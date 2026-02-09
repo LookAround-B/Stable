@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { verifyJWT } from '../../../lib/auth';
+import { verifyToken } from '../../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PUT') {
@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const token = authHeader.substring(7);
-    const payload = verifyJWT(token);
+    const payload = verifyToken(token);
 
     if (!payload || !payload.id) {
       return res.status(401).json({ error: 'Invalid token' });
