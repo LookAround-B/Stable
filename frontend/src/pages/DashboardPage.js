@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../services/apiClient';
 import '../styles/DashboardPage.css';
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const [taskStats, setTaskStats] = useState({
+    pending: 0,
+    completed: 0,
+    total: 0
+  });
+
+  useEffect(() => {
+    loadTaskStats();
+  }, []);
+
+  const loadTaskStats = async () => {
+    try {
+      const response = await apiClient.get('/tasks');
+      const tasks = response.data.data || [];
+      
+      const pending = tasks.filter(t => t.status === 'Pending').length;
+      const completed = tasks.filter(t => t.status === 'Completed').length;
+      
+      setTaskStats({
+        pending,
+        completed,
+        total: tasks.length
+      });
+    } catch (error) {
+      console.error('Error loading task stats:', error);
+    }
+  };
 
   const renderRoleSpecificContent = () => {
     const role = user?.designation;
@@ -123,21 +151,47 @@ const DashboardPage = () => {
           </div>
         );
 
+      case 'Jamedar':
+        return (
+          <div className="dashboard-grid">
+            <div className="card">
+              <h2>Assigned Tasks</h2>
+              <p className="metric">{taskStats.total}</p>
+            </div>
+            <div className="card">
+              <h2>Pending Tasks</h2>
+              <p className="metric">{taskStats.pending}</p>
+            </div>
+            <div className="card">
+              <h2>Completed Tasks</h2>
+              <p className="metric">{taskStats.completed}</p>
+            </div>
+            <div className="card">
+              <h2>Task Completion Rate</h2>
+              <p className="score">{taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0}%</p>
+            </div>
+          </div>
+        );
+
       case 'Groomer':
       default:
         return (
           <div className="dashboard-grid">
             <div className="card">
               <h2>My Daily Tasks</h2>
-              <p className="metric">0</p>
+              <p className="metric">{taskStats.total}</p>
             </div>
             <div className="card">
-              <h2>Completed Today</h2>
-              <p className="metric">0</p>
+              <h2>Pending Tasks</h2>
+              <p className="metric">{taskStats.pending}</p>
             </div>
             <div className="card">
-              <h2>Assigned Horses</h2>
-              <p className="metric">0</p>
+              <h2>Completed Tasks</h2>
+              <p className="metric">{taskStats.completed}</p>
+            </div>
+            <div className="card">
+              <h2>Task Completion Rate</h2>
+              <p className="score">{taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0}%</p>
             </div>
           </div>
         );

@@ -38,7 +38,7 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
     const { status, horseId, skip = 0, take = 10 } = req.query
     const token = getTokenFromRequest(req as any)
     const decoded = verifyToken(token)
-    const userId = decoded?.userId
+    const userId = decoded?.id
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -60,7 +60,7 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
     // Filter tasks based on user role
     // Admins and supervisors see tasks they created
     // Groomers see tasks assigned to them
-    const adminRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor']
+    const adminRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar']
     
     if (adminRoles.includes(user.designation)) {
       // Admins see tasks they created
@@ -94,7 +94,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
   try {
     const token = getTokenFromRequest(req as any)
     const decoded = verifyToken(token)
-    const userId = decoded?.userId
+    const userId = decoded?.id
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' })

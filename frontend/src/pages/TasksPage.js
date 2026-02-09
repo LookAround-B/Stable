@@ -31,7 +31,8 @@ const CAN_REVIEW_TASKS = [
   'Stable Manager',
   'Instructor',
   'Ground Supervisor',
-  'Senior Executive Accounts'
+  'Senior Executive Accounts',
+  'Jamedar'
 ];
 
 const getRoleTaskDescription = (role) => {
@@ -238,20 +239,30 @@ const TasksPage = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await apiClient.post('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      console.log('Uploading file:', file.name);
+      
+      // Don't override Content-Type - let axios handle it automatically
+      const response = await apiClient.post('/upload', formData);
+
+      console.log('Upload response:', response.data);
+
+      // Handle both { url } and { data: { url } } formats
+      const uploadedUrl = response.data.url || response.data.data?.url;
+      
+      if (!uploadedUrl) {
+        throw new Error('No URL returned from upload');
+      }
 
       setCompletionData({
         ...completionData,
-        photoUrl: response.data.url,
+        photoUrl: uploadedUrl,
       });
       setMessage('✓ Photo uploaded successfully!');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
-      setMessage(`✗ Error uploading photo: ${error.response?.data?.error || error.message}`);
+      console.error('Upload error details:', error);
+      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+      setMessage(`✗ Error uploading photo: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
