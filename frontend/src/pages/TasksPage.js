@@ -20,7 +20,8 @@ const CAN_CREATE_TASKS = [
   'School Administrator',
   'Stable Manager',
   'Instructor',
-  'Ground Supervisor'
+  'Ground Supervisor',
+  'Jamedar'
 ];
 
 const CAN_REVIEW_TASKS = [
