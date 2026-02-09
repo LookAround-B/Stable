@@ -8,7 +8,7 @@ const Sidebar = () => {
 
   // Determine which pages to show based on user role
   const showAttendance = true; // All users
-  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Groom'].includes(user?.designation);
+  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Groom'].includes(user?.designation);
   const showGateAttendance = user?.designation === 'Guard';
   const showMedicineLogs = user?.designation === 'Jamedar';
