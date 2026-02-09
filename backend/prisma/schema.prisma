@@ -1,0 +1,388 @@
+// This is your Prisma schema file for PostgreSQL
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id                    String      @id @default(cuid())
+  fullName              String
+  email                 String      @unique
+  password              String
+  phoneNumber           String?
+  designation           String      // Role as per PRD: Guard, Gardener, Housekeeping, Electrician, Ground Supervisor, Groom, Riding Boy, Rider, Instructor, Farrier, Jamedar, Stable Manager, Executive Admin, Senior Executive Accounts, Executive Accounts, School Administrator, Director
+  department            String      // 'Ground Operations', 'Stable Operations', 'Accounts/Administration', 'Leadership'
+  colorCode             String?
+  profileImage          String?
+  shiftTiming           String?     // For Guards and Electrician: Morning, Afternoon, Evening, Night
+  employmentStatus      String      @default("Active") // 'Active', 'Inactive', 'On Leave'
+  isApproved            Boolean     @default(false)
+  supervisorId          String?     // Direct reporting manager
+  supervisor            Employee?   @relation("supervision", fields: [supervisorId], references: [id], onDelete: SetNull)
+  subordinates          Employee[]  @relation("supervision")
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  // Relations
+  assignedTasks         Task[]
+  createdTasks          Task[]      @relation("TaskCreatedBy")
+  attendanceLogs        AttendanceLog[]
+  healthRecords         HealthRecord[]
+  createdApprovals      Approval[] @relation("approver")
+  createdReports        Report[] @relation("reporter")
+  reportedReports       Report[] @relation("reportedEmployee")
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  supervisedHorses      Horse[] @relation("horseSupervision")
+  assignedHorses        HorseCareTeam[] @relation("assignedStaff")
+  gateAttendanceLogs    GateAttendanceLog[]
+  jamiedarMedicineLogs  MedicineLog[]
+  attendanceRecords     Attendance[] @relation("attendanceRecords")
+  groomWorkSheets       GroomWorkSheet[] @relation("groomWorkSheets")
+
+
+  @@index([designation])
+  @@index([department])
+  @@index([supervisorId])
+  @@index([email])
+}
+
+model Horse {
+  id                    String      @id @default(cuid())
+  name                  String      @unique
+  gender                String      // 'Male', 'Female'
+  dateOfBirth           DateTime
+  breed                 String?
+  color                 String?
+  height                Float?
+  age                   Int?        // Calculated from DOB
+  location              String?     // Stable location/ID
+  profileImage          String?
+  status                String      @default("Active") // 'Active', 'Rest', 'Injured', 'Traveling'
+  discipline            String?     // 'Dressage', 'Jumping', 'Polo', etc.
+  trainingLevel         String?     // Training level
+  workloadLimit         String?     // 'Light', 'Medium', 'Heavy'
+  
+  // Measurements
+  girthSize             String?
+  bitSize               String?
+  rugSize               String?
+  bridleSize            String?
+  numnahSize            String?
+  
+  // Identification
+  ueln                  String?     // Universal Equine Life Number
+  microchipNumber       String?
+  feiId                 String?
+  feiIdExpiry           DateTime?
+  passportDetails       String?
+  
+  // Pedigree
+  sire                  String?     // Father
+  damsire               String?     // Mother's father
+  
+  // Ownership
+  ownerName             String?
+  ownerContact          String?
+  leaseStatus           String?     // 'Owned', 'Leased', 'Training'
+  emergencyContact      String?
+  insuranceDetails      String?
+  
+  // Supervisor/Manager
+  supervisorId          String?     // Assigned Stable Manager/Instructor
+  supervisor            Employee?   @relation("horseSupervision", fields: [supervisorId], references: [id], onDelete: SetNull)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  // Relations
+  tasks                 Task[]
+  healthRecords         HealthRecord[]
+  medicineLog           MedicineLog[]
+  careTeam              HorseCareTeam[]
+  groomWorkEntries      WorkSheetEntry[] @relation("groomWorkEntries")
+
+  @@index([status])
+  @@index([name])
+  @@index([supervisorId])
+}
+
+model Task {
+  id                    String      @id @default(cuid())
+  name                  String
+  type                  String      // 'Daily', 'Weekly', 'Event-based'
+  status                String      @default("Pending") // 'Pending', 'In Progress', 'Completed', 'Cancelled'
+  horseId               String
+  horse                 Horse       @relation(fields: [horseId], references: [id], onDelete: Cascade)
+  assignedEmployeeId    String
+  assignedEmployee      Employee    @relation(fields: [assignedEmployeeId], references: [id])
+  createdById           String
+  createdBy             Employee    @relation("TaskCreatedBy", fields: [createdById], references: [id])
+  scheduledTime         DateTime
+  completedTime         DateTime?
+  priority              String      @default("Medium") // 'Low', 'Medium', 'High', 'Urgent'
+  requiredProof         Boolean     @default(false)
+  proofImage            String?
+  description           String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  // Relations
+  approvals             Approval[]
+
+  @@index([horseId])
+  @@index([assignedEmployeeId])
+  @@index([createdById])
+  @@index([status])
+  @@index([scheduledTime])
+}
+
+model Approval {
+  id                    String      @id @default(cuid())
+  taskId                String
+  task                  Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  approverId            String
+  approver              Employee    @relation("approver", fields: [approverId], references: [id])
+  approverLevel         String      // 'Zamindar', 'Instructor', 'Admin'
+  status                String      @default("Pending") // 'Pending', 'Approved', 'Rejected'
+  comments              String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([taskId])
+  @@index([approverId])
+  @@unique([taskId, approverId])
+}
+
+model Report {
+  id                    String      @id @default(cuid())
+  reportedEmployeeId    String
+  reportedEmployee      Employee    @relation("reportedEmployee", fields: [reportedEmployeeId], references: [id])
+  reporterEmployeeId    String
+  reporter              Employee    @relation("reporter", fields: [reporterEmployeeId], references: [id])
+  reason                String
+  category              String?
+  taskId                String?
+  status                String      @default("Pending") // 'Pending', 'Reviewed', 'Closed'
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([reportedEmployeeId])
+  @@index([reporterEmployeeId])
+}
+
+model HealthRecord {
+  id                    String      @id @default(cuid())
+  horseId               String
+  horse                 Horse       @relation(fields: [horseId], references: [id], onDelete: Cascade)
+  healthAdvisorId       String?
+  healthAdvisor         Employee?   @relation(fields: [healthAdvisorId], references: [id])
+  recordType            String      // 'Vaccination', 'Deworming', 'Injury', 'Vet Visit', 'Farrier Visit', 'Medication'
+  description           String?
+  date                  DateTime
+  nextDueDate           DateTime?
+  documents             String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([horseId])
+  @@index([healthAdvisorId])
+  @@index([date])
+}
+
+model Notification {
+  id                    String      @id @default(cuid())
+  employeeId            String
+  employee              Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type                  String      // 'task_assignment', 'approval_request', 'task_completion', 'report_filed'
+  title                 String
+  message               String
+  isRead                Boolean     @default(false)
+  relatedTaskId         String?
+  relatedApprovalId     String?
+  createdAt             DateTime    @default(now())
+  readAt                DateTime?
+
+  @@index([employeeId])
+  @@index([isRead])
+}
+
+model AuditLog {
+  id                    String      @id @default(cuid())
+  userId                String
+  user                  Employee    @relation(fields: [userId], references: [id])
+  action                String      // 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'APPROVE'
+  entityType            String      // 'Task', 'Horse', 'Employee', 'Report'
+  entityId              String
+  changes               String?     // JSON string of changes
+  ipAddress             String?
+  userAgent             String?
+  createdAt             DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// Manual Attendance Logging System
+model AttendanceLog {
+  id                    String      @id @default(cuid())
+  employeeId            String
+  employee              Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date                  DateTime    @default(now())
+  timeIn                DateTime
+  timeOut               DateTime?
+  shift                 String?     // For Guards and Electrician only
+  notes                 String?
+  approvedBy            String?     // Supervisor approval
+  isApproved            Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([employeeId])
+  @@index([date])
+}
+
+// Gate Attendance (Guards only) - records all staff and visitors
+model GateAttendanceLog {
+  id                    String      @id @default(cuid())
+  guardId               String
+  guard                 Employee    @relation(fields: [guardId], references: [id], onDelete: Cascade)
+  personName            String      // Staff member or visitor name
+  personType            String      // 'Staff' or 'Visitor'
+  entryTime             DateTime
+  exitTime              DateTime?
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([guardId])
+  @@index([entryTime])
+}
+
+// Visitor Management (Housekeeping)
+model VisitorLog {
+  id                    String      @id @default(cuid())
+  visitorName           String
+  purpose               String
+  checkInTime           DateTime
+  checkOutTime          DateTime?
+  contactPerson         String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// Medicine/Treatment Log (Jamedar)
+model MedicineLog {
+  id                    String      @id @default(cuid())
+  jamiedarId            String
+  jamedar               Employee    @relation(fields: [jamiedarId], references: [id], onDelete: Cascade)
+  horseId               String
+  horse                 Horse       @relation(fields: [horseId], references: [id], onDelete: Cascade)
+  medicineName          String
+  quantity              String
+  timeAdministered      DateTime
+  notes                 String?
+  photoUrl              String?     // Before/after photos
+  stockAlert            Boolean     @default(false)
+  approvedBy            String?     // Stable Manager approval
+  isApproved            Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([jamiedarId])
+  @@index([horseId])
+}
+
+// Horse Care Team Assignment
+model HorseCareTeam {
+  id                    String      @id @default(cuid())
+  horseId               String
+  horse                 Horse       @relation(fields: [horseId], references: [id], onDelete: Cascade)
+  staffId               String
+  staff                 Employee    @relation("assignedStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  role                  String      // 'Groom', 'Rider', 'Instructor', 'Jamedar', 'Farrier'
+  isActive              Boolean     @default(true)
+  assignedDate          DateTime    @default(now())
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([horseId, staffId, role])
+  @@index([horseId])
+  @@index([staffId])
+}
+
+model SystemSettings {
+  id                    String      @id @default(cuid())
+  key                   String      @unique
+  value                 String
+  description           String?
+  updatedAt             DateTime    @updatedAt
+}
+
+// Groom Work Sheet - Daily record of groom activities
+model GroomWorkSheet {
+  id                    String      @id @default(cuid())
+  groomId               String      // Employee ID of groom
+  groom                 Employee    @relation("groomWorkSheets", fields: [groomId], references: [id], onDelete: Cascade)
+  date                  DateTime    @default(now())
+  totalAM               Float       @default(0) // Total morning hours
+  totalPM               Float       @default(0) // Total afternoon hours
+  wholeDayHours         Float       @default(0) // Total hours for the day
+  woodchipsUsed         Float       @default(0) // Total woodchips in units
+  bichaliUsed           Float       @default(0) // Total bichali in kg
+  booSaUsed             Int         @default(0) // Total boo sa (hay) bags
+  remarks               String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  entries               WorkSheetEntry[]
+
+  @@index([groomId])
+  @@index([date])
+}
+
+// Individual horse entries in groom work sheet
+model WorkSheetEntry {
+  id                    String      @id @default(cuid())
+  worksheetId           String
+  worksheet             GroomWorkSheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  horseId               String
+  horse                 Horse       @relation("groomWorkEntries", fields: [horseId], references: [id], onDelete: Cascade)
+  amHours               Float       @default(0)
+  pmHours               Float       @default(0)
+  wholeDayHours         Float       @default(0)
+  woodchipsUsed         Float       @default(0) // Woodchips (B) in units
+  bichaliUsed           Float       @default(0) // Bichali in kg (bags)
+  booSaUsed             Int         @default(0) // Boo sa in bags
+  remarks               String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([worksheetId])
+  @@index([horseId])
+}
+
+// Enhanced Attendance Log with status tracking
+model Attendance {
+  id                    String      @id @default(cuid())
+  employeeId            String
+  employee              Employee    @relation("attendanceRecords", fields: [employeeId], references: [id], onDelete: Cascade)
+  date                  DateTime
+  checkInTime           DateTime?
+  checkOutTime          DateTime?
+  status                String      @default("Present") // 'Present', 'Absent', 'Leave', 'WOFF' (Weekly Off), 'Half Day'
+  remarks               String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+  @@index([status])
+}

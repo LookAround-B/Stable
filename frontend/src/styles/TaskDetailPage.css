@@ -1,0 +1,8 @@
+.task-detail-page {
+  width: 100%;
+}
+
+.task-detail-page h1 {
+  margin-bottom: 2rem;
+  color: #333;
+}

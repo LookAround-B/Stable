@@ -1,0 +1,31 @@
+.settings-page {
+  width: 100%;
+}
+
+.settings-page h1 {
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.settings-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.settings-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h2 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.settings-section p {
+  color: #666;
+  font-size: 0.9rem;
+}

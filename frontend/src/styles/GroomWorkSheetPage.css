@@ -1,0 +1,454 @@
+.groom-worksheet-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.groom-worksheet-page h1 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.role-description {
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.message {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-left: 4px solid #4caf50;
+}
+
+.message.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #f44336;
+}
+
+.worksheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.header-left label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.header-left input,
+.header-left select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.header-left input:focus,
+.header-left select:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.btn-add-worksheet {
+  padding: 0.75rem 1.5rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-add-worksheet:hover {
+  background-color: #388e3c;
+}
+
+/* Add Worksheet Form */
+.add-worksheet-form {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.add-worksheet-form h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.form-group input:disabled {
+  background-color: #f0f0f0;
+  color: #999;
+}
+
+/* Entries Section */
+.entries-section {
+  margin: 2rem 0;
+}
+
+.entries-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.entries-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.btn-add-entry {
+  padding: 0.5rem 1rem;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-add-entry:hover {
+  background-color: #1976d2;
+}
+
+.entry-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.entry-header h5 {
+  margin: 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.btn-remove {
+  padding: 0.4rem 0.8rem;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.btn-remove:hover {
+  background-color: #da190b;
+}
+
+.entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.btn-submit {
+  padding: 0.75rem 2rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.95rem;
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+.btn-submit:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Worksheets List */
+.worksheets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.no-worksheets {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
+  font-style: italic;
+}
+
+.worksheet-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.worksheet-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.worksheet-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f5f5f5, #fafafa);
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.worksheet-header-card:hover {
+  background: linear-gradient(135deg, #eeeeee, #f5f5f5);
+}
+
+.worksheet-info {
+  flex: 1;
+}
+
+.worksheet-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.worksheet-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.worksheet-summary {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.supply-tag {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+}
+
+.supply-tag.woodchips {
+  background-color: #8b6f47;
+}
+
+.supply-tag.bichali {
+  background-color: #8b7355;
+}
+
+.supply-tag.boosa {
+  background-color: #d4a574;
+  color: #333;
+}
+
+.expand-icon {
+  color: #999;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.worksheet-header-card:hover .expand-icon {
+  color: #333;
+}
+
+.worksheet-details {
+  padding: 1.5rem;
+  background: #fafafa;
+}
+
+.entry-detail {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+}
+
+.entry-detail:last-child {
+  margin-bottom: 0;
+}
+
+.horse-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.entry-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.entry-stats span {
+  padding: 0.3rem 0.6rem;
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.entry-remark {
+  font-size: 0.9rem;
+  color: #555;
+  font-style: italic;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.worksheet-remark {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #e3f2fd;
+  border-left: 4px solid #1976d2;
+  border-radius: 4px;
+  color: #1565c0;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .groom-worksheet-page {
+    padding: 1rem;
+  }
+
+  .worksheet-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-left {
+    flex-direction: column;
+  }
+
+  .header-left label,
+  .btn-add-worksheet {
+    width: 100%;
+  }
+
+  .worksheet-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .worksheet-summary {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .worksheet-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

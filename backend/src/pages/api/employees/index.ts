@@ -1,0 +1,121 @@
+// pages/api/employees/index.ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import prisma from '@/lib/prisma'
+import { runMiddleware } from '@/lib/cors'
+import cors from 'cors'
+import bcrypt from 'bcryptjs'
+
+const corsMiddleware = cors({
+  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
+  credentials: true,
+})
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Run CORS middleware
+  await runMiddleware(req, res, corsMiddleware)
+
+  // Check authentication
+  const token = getTokenFromRequest(req as any)
+  if (!token || !verifyToken(token)) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  switch (req.method) {
+    case 'GET':
+      return handleGetEmployees(req, res)
+    case 'POST':
+      return handleCreateEmployee(req, res)
+    default:
+      return res.status(405).json({ error: 'Method not allowed' })
+  }
+}
+
+async function handleGetEmployees(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const { designation, skip = 0, take = 1000 } = req.query
+
+    const where = designation ? { designation } : {}
+
+    const employees = await prisma.employee.findMany({
+      where,
+      skip: parseInt(skip as string),
+      take: parseInt(take as string),
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        designation: true,
+        colorCode: true,
+        profileImage: true,
+        employmentStatus: true,
+        phoneNumber: true,
+        isApproved: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    const total = await prisma.employee.count({ where })
+
+    return res.status(200).json({
+      data: employees,
+      pagination: { total, skip, take },
+    })
+  } catch (error) {
+    console.error('Error fetching employees:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const { fullName, email, designation, phoneNumber, colorCode, shiftTiming, supervisorId } =
+      req.body
+
+    if (!fullName || !email || !designation) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    // Determine department based on designation
+    let department = 'Leadership'
+    if (['Stable Manager', 'Instructor', 'Jamedar', 'Groom', 'Riding Boy', 'Rider', 'Farrier'].includes(designation)) {
+      department = 'Stable Operations'
+    } else if (['Ground Supervisor', 'Guard', 'Electrician', 'Gardener', 'Housekeeping'].includes(designation)) {
+      department = 'Ground Operations'
+    } else if (['Senior Executive Accounts', 'Executive Accounts', 'Executive Admin'].includes(designation)) {
+      department = 'Accounts/Administration'
+    }
+
+    // Hash default password for new employees
+    const defaultPassword = await bcrypt.hash('password123', 10)
+
+    const employee = await prisma.employee.create({
+      data: {
+        fullName,
+        email,
+        designation,
+        password: defaultPassword,
+        phoneNumber,
+        colorCode,
+        shiftTiming,
+        department,
+        supervisorId: supervisorId || null,
+        employmentStatus: 'Active',
+        isApproved: false,
+      },
+    })
+
+    return res.status(201).json({
+      id: employee.id,
+      fullName: employee.fullName,
+      email: employee.email,
+      designation: employee.designation,
+    })
+  } catch (error) {
+    console.error('Error creating employee:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}

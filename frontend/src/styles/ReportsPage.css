@@ -1,0 +1,28 @@
+.reports-page {
+  width: 100%;
+}
+
+.reports-page h1 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.btn-add {
+  background-color: #1976d2;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-add:hover {
+  background-color: #1565c0;
+}
+
+.reports-list {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

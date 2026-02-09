@@ -1,0 +1,212 @@
+.pending-approval-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+}
+
+.pending-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 4rem 3rem;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.pending-icon {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.pending-container h1 {
+  color: #333;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.pending-message {
+  background: #f5f5f5;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #ff9800;
+}
+
+.pending-message p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0.75rem 0;
+}
+
+.pending-message .main-message {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ff9800;
+  margin: 1.5rem 0;
+}
+
+.pending-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.info-box {
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: #999;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.info-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.info-value.status-pending {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.pending-steps {
+  background: #e8f5e9;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #4caf50;
+  text-align: left;
+}
+
+.pending-steps h3 {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.pending-steps ol {
+  color: #333;
+  margin: 0;
+  padding-left: 2rem;
+}
+
+.pending-steps li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.pending-note {
+  background: #e3f2fd;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #2196f3;
+}
+
+.pending-note p {
+  color: #1976d2;
+  margin: 0;
+  font-weight: 500;
+}
+
+.pending-contact {
+  color: #999;
+  font-size: 0.95rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.pending-contact p {
+  margin: 0;
+}
+
+.btn-back-login {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 2rem;
+  transition: all 0.3s ease;
+}
+
+.btn-back-login:hover {
+  background-color: #1565c0;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-back-login:active {
+  transform: translateY(0);
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .pending-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .pending-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .pending-container h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .pending-message {
+    padding: 1.5rem;
+  }
+
+  .pending-info {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .pending-steps {
+    padding: 1.5rem;
+  }
+
+  .pending-steps ol {
+    padding-left: 1.5rem;
+  }
+}
