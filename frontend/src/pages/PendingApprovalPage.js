@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
+import apiClient from '../services/apiClient';
 import '../styles/PendingApprovalPage.css';
 
 const PendingApprovalPage = () => {
@@ -30,20 +31,11 @@ const PendingApprovalPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/employees/profile-update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
+      const response = await apiClient.put('/employees/profile-update', formData);
+      
+      if (response.status === 200) {
+        setSubmitted(true);
       }
-
-      setSubmitted(true);
     } catch (err) {
       setError('Failed to submit form. Please try again.');
       console.error('Error:', err);

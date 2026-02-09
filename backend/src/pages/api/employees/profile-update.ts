@@ -1,10 +1,19 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import corsMiddleware, { runMiddleware } from '../../../lib/cors';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'PUT') {
+  // Run CORS middleware
+  await runMiddleware(req, res, corsMiddleware);
+
+  if (req.method !== 'PUT' && req.method !== 'OPTIONS') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Handle OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
   try {
