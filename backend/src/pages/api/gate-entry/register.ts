@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Define supervisor roles who can view gate register
-  const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'];
+  const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'];
   const canView = user.designation === 'Guard' || SUPERVISOR_ROLES.includes(user.designation);
   const canModify = user.designation === 'Guard';
 

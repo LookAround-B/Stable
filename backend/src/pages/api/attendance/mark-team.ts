@@ -72,26 +72,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Check if supervisor can mark this employee's attendance based on role
-    const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'];
+    const SUPERVISOR_ROLES = ['Super Admin', 'Stable Manager', 'Ground Supervisor'];
     
     if (!supervisor || !SUPERVISOR_ROLES.includes(supervisor.designation)) {
       return res.status(403).json({ error: 'Only supervisors can mark attendance' });
     }
-
-    // Jamedar can mark Stable Operations staff
-    if (supervisor.designation === 'Jamedar') {
-      if (employee.department !== 'Stable Operations' || SUPERVISOR_ROLES.includes(employee.designation)) {
-        return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
-      }
-    }
-    // Instructor can mark Stable Operations staff
-    else if (supervisor.designation === 'Instructor') {
-      if (employee.department !== 'Stable Operations' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor'].includes(employee.designation)) {
-        return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
-      }
-    }
     // Stable Manager can mark Stable Operations staff
-    else if (supervisor.designation === 'Stable Manager') {
+    if (supervisor.designation === 'Stable Manager') {
       if (employee.department !== 'Stable Operations' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(employee.designation)) {
         return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
       }
@@ -132,6 +119,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         data: {
           status,
           remarks,
+          checkInTime: new Date(), // Add timestamp when marked
           updatedAt: new Date()
         },
         include: {
@@ -151,7 +139,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           employeeId,
           date: attendanceDate,
           status,
-          remarks
+          remarks,
+          checkInTime: new Date() // Add timestamp when marked
         },
         include: {
           employee: {

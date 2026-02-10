@@ -42,6 +42,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateAttendance(req: NextApiRequest, res: NextApiResponse, userId: string) {
   try {
+    // Check user role - supervisors cannot self-mark
+    const user = await prisma.employee.findUnique({
+      where: { id: userId },
+      select: { designation: true }
+    });
+
+    const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'];
+    if (user && SUPERVISOR_ROLES.includes(user.designation)) {
+      return res.status(403).json({ error: 'Supervisors cannot self-mark attendance. Use Mark Team Attendance instead.' });
+    }
+
     const { date, status, remarks } = req.body;
 
     if (!date || !status) {

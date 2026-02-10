@@ -7,11 +7,11 @@ const Sidebar = () => {
   const { user } = useAuth();
 
   // Determine which pages to show based on user role
-  const showPersonalAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'].includes(user?.designation);
-  const showTeamAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'].includes(user?.designation);
-  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'].includes(user?.designation);
+  const showPersonalAttendance = false; // Removed - supervisors cannot self-mark
+  const showTeamAttendance = ['Super Admin', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
+  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Groom'].includes(user?.designation);
-  const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'].includes(user?.designation);
+  const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showMedicineLogs = user?.designation === 'Jamedar';
   const showCareTeam = user?.designation === 'Stable Manager';
 

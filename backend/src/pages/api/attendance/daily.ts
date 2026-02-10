@@ -25,6 +25,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Verify user authorization
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const user = await verifyAuth(token);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Define allowed roles for viewing daily attendance
+    const ALLOWED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'];
+    
+    if (!ALLOWED_ROLES.includes(user.designation)) {
+      return res.status(403).json({ error: 'You do not have permission to access daily attendance records' });
+    }
+
     if (req.method === 'GET') {
       // Get attendance records for a date range
       const { date, employeeId, status, startDate, endDate } = req.query;
