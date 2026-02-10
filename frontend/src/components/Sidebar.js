@@ -7,7 +7,8 @@ const Sidebar = () => {
   const { user } = useAuth();
 
   // Determine which pages to show based on user role
-  const showAttendance = true; // All users
+  const showPersonalAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
+  const showTeamAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
   const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Groom'].includes(user?.designation);
   const showGateEntry = user?.designation === 'Guard';
@@ -43,10 +44,18 @@ const Sidebar = () => {
           <span className="section-title">Operations</span>
         </li>
 
-        {showAttendance && (
+        {showPersonalAttendance && (
           <li>
             <Link to="/digital-attendance" className="menu-item">
               📋 My Attendance
+            </Link>
+          </li>
+        )}
+
+        {showTeamAttendance && (
+          <li>
+            <Link to="/team-attendance" className="menu-item">
+              👥 Mark Team Attendance
             </Link>
           </li>
         )}
