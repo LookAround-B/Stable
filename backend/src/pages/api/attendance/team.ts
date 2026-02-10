@@ -146,20 +146,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
     });
 
-    // Group by employee
-    const grouped = attendanceRecords.reduce((acc: any, record: any) => {
-      const empId = record.employeeId;
-      if (!acc[empId]) {
-        acc[empId] = {
-          employee: record.employee,
-          records: []
-        };
-      }
-      acc[empId].records.push(record);
-      return acc;
-    }, {});
-
-    // Flatten grouped records for easier consumption on frontend
+    // Flatten records for easier consumption on frontend
     const flattenedRecords = attendanceRecords.map(record => ({
       id: record.id,
       employee: record.employee,

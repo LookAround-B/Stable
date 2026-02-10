@@ -85,12 +85,34 @@ async function main() {
       isApproved: true,
     },
     {
+      email: 'jamedar2@test.com',
+      password: 'password123',
+      fullName: 'Anand Jamedar',
+      designation: 'Jamedar',
+      department: 'Stable Operations',
+      phoneNumber: '555-0006b',
+      shiftTiming: null,
+      employmentStatus: 'Active',
+      isApproved: true,
+    },
+    {
       email: 'groom@test.com',
       password: 'password123',
       fullName: 'Sarah Groom',
       designation: 'Groom',
       department: 'Stable Operations',
       phoneNumber: '555-0007',
+      shiftTiming: null,
+      employmentStatus: 'Active',
+      isApproved: true,
+    },
+    {
+      email: 'groom2@test.com',
+      password: 'password123',
+      fullName: 'Michael Groom',
+      designation: 'Groom',
+      department: 'Stable Operations',
+      phoneNumber: '555-0007b',
       shiftTiming: null,
       employmentStatus: 'Active',
       isApproved: true,
@@ -259,14 +281,19 @@ async function main() {
 
   // Set up supervisor relationships
   const supervisorRelationships = [
-    // Stable Operations - Emma Manager supervises Jamedar and Groom
+    // Stable Operations - Emma Manager supervises Jamadars
     { subordinate: 'jamedar@test.com', supervisor: 'manager@test.com' },
-    { subordinate: 'groom@test.com', supervisor: 'manager@test.com' },
-    { subordinate: 'groom@test.com', supervisor: 'jamedar@test.com' }, // Jamedar also supervises Groom
+    { subordinate: 'jamedar2@test.com', supervisor: 'manager@test.com' },
+    { subordinate: 'instructor@test.com', supervisor: 'manager@test.com' },
     { subordinate: 'riding-boy@test.com', supervisor: 'manager@test.com' },
     { subordinate: 'rider@test.com', supervisor: 'manager@test.com' },
     { subordinate: 'farrier@test.com', supervisor: 'manager@test.com' },
-    { subordinate: 'instructor@test.com', supervisor: 'manager@test.com' },
+    
+    // Jamedar Raj supervises Sarah Groom and other staff
+    { subordinate: 'groom@test.com', supervisor: 'jamedar@test.com' },
+    
+    // Jamedar Anand supervises Michael Groom and other staff
+    { subordinate: 'groom2@test.com', supervisor: 'jamedar2@test.com' },
     
     // Ground Operations - Ground Supervisor supervises Guards, Electrician, Gardener, Housekeeping
     { subordinate: 'guard@test.com', supervisor: 'ground-supervisor@test.com' },
