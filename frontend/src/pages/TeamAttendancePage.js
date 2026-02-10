@@ -4,7 +4,6 @@ import apiClient from '../services/apiClient';
 import '../styles/TeamAttendancePage.css';
 
 const TeamAttendancePage = () => {
-  const { user } = useAuth();
   const [teamMembers, setTeamMembers] = useState([]);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,6 +19,7 @@ const TeamAttendancePage = () => {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const loadData = async () => {
@@ -99,11 +99,6 @@ const TeamAttendancePage = () => {
       case 'Half Day': return 'status-halfday';
       default: return '';
     }
-  };
-
-  const getTeamMemberName = (memberId) => {
-    const member = teamMembers.find(m => m.id === memberId);
-    return member ? member.fullName : 'Unknown';
   };
 
   const getTeamMemberRole = (memberId) => {
