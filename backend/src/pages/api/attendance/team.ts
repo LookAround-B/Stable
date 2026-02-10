@@ -17,7 +17,8 @@ const SUPERVISOR_ROLES = [
   'School Administrator',
   'Ground Supervisor',
   'Stable Manager',
-  'Jamedar'
+  'Jamedar',
+  'Instructor'
 ];
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -116,6 +117,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           department: 'Stable Operations',
           designation: {
             notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar']
+          }
+        },
+        select: { id: true, fullName: true, designation: true }
+      });
+    } else if (user.designation === 'Instructor') {
+      // Instructor sees all staff in Stable Operations except supervisors
+      teamMembers = await prisma.employee.findMany({
+        where: {
+          department: 'Stable Operations',
+          designation: {
+            notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor']
           }
         },
         select: { id: true, fullName: true, designation: true }

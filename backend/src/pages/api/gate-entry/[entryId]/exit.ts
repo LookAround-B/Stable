@@ -46,7 +46,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const { entryId } = req.body;
+    let { entryId } = req.query;
+
+    if (Array.isArray(entryId)) {
+      entryId = entryId[0];
+    }
 
     if (!entryId) {
       return res.status(400).json({ error: 'Entry ID required' });

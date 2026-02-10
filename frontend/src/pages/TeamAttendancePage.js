@@ -25,8 +25,10 @@ const TeamAttendancePage = () => {
     setLoading(true);
     setError('');
     try {
-      // Load team members
-      const teamResponse = await apiClient.get('/attendance/team-members');
+      // Load team members (excluding those already marked for this date)
+      const teamResponse = await apiClient.get('/attendance/team-members', {
+        params: { date: selectedDate }
+      });
       setTeamMembers(teamResponse.data.teamMembers || []);
 
       // Load attendance records for selected date
@@ -109,7 +111,7 @@ const TeamAttendancePage = () => {
     <div className="team-attendance-container">
       <div className="attendance-header">
         <h2>Mark Team Attendance</h2>
-        <p className="subtitle">Mark attendance for your team members</p>
+        <p className="subtitle">Mark attendance for team members</p>
       </div>
 
       {successMessage && (

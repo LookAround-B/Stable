@@ -400,6 +400,7 @@ model GateEntry {
   visitor               Visitor?    @relation(fields: [visitorId], references: [id], onDelete: SetNull)
   entryTime             DateTime
   exitTime              DateTime?
+  notes                 String?     // Additional notes/remarks
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 

@@ -36,6 +36,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userId = decoded?.id;
 
   try {
+    const { date } = req.query;
+
     // Get the current user
     const user = await prisma.employee.findUnique({
       where: { id: userId },
@@ -46,15 +48,39 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Get IDs of employees who already have attendance marked for this date
+    let markedEmployeeIds: string[] = [];
+    if (date) {
+      const startDate = new Date(date as string);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1);
+
+      const markedRecords = await prisma.attendance.findMany({
+        where: {
+          date: {
+            gte: startDate,
+            lt: endDate
+          }
+        },
+        select: { employeeId: true }
+      });
+
+      markedEmployeeIds = markedRecords.map(r => r.employeeId);
+    }
+
     let teamMembers: any[] = [];
 
     if (user.designation === 'Jamedar') {
-      // Jamadars see all staff in their department (Stable Operations) except other supervisors
+      // Jamadars see all staff in their department (Stable Operations) except other supervisors and already-marked
       teamMembers = await prisma.employee.findMany({
         where: {
           department: 'Stable Operations',
           designation: {
             notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar']
+          },
+          id: {
+            notIn: markedEmployeeIds
           }
         },
         select: {
@@ -67,12 +93,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
       });
     } else if (user.designation === 'Stable Manager') {
-      // Stable Manager sees all staff in Stable Operations except other supervisors
+      // Stable Manager sees all staff in Stable Operations except other supervisors and already-marked
       teamMembers = await prisma.employee.findMany({
         where: {
           department: 'Stable Operations',
           designation: {
             notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager']
+          },
+          id: {
+            notIn: markedEmployeeIds
           }
         },
         select: {
@@ -85,11 +114,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
       });
     } else if (user.designation === 'Ground Supervisor') {
-      // Ground Supervisor sees all staff in Ground Operations
+      // Ground Supervisor sees all staff in Ground Operations except already-marked
       teamMembers = await prisma.employee.findMany({
         where: {
           department: 'Ground Operations',
-          designation: { not: 'Ground Supervisor' }
+          designation: { not: 'Ground Supervisor' },
+          id: {
+            notIn: markedEmployeeIds
+          }
+        },
+        select: {
+          id: true,
+          fullName: true,
+          designation: true
+        },
+        orderBy: {
+          fullName: 'asc'
+        }
+      });
+    } else if (user.designation === 'Instructor') {
+      // Instructor sees all staff in Stable Operations except supervisors and already-marked
+      teamMembers = await prisma.employee.findMany({
+        where: {
+          department: 'Stable Operations',
+          designation: {
+            notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor']
+          },
+          id: {
+            notIn: markedEmployeeIds
+          }
         },
         select: {
           id: true,
@@ -101,11 +154,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
       });
     } else if (['Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
-      // Admin roles see everyone except other admin roles
+      // Admin roles see everyone except other admin roles and already-marked
       teamMembers = await prisma.employee.findMany({
         where: {
           designation: {
             notIn: ['Super Admin', 'Director', 'School Administrator']
+          },
+          id: {
+            notIn: markedEmployeeIds
           }
         },
         select: {

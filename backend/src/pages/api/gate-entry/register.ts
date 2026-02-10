@@ -30,17 +30,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const userId = decoded?.id;
 
-  // Verify user is a Guard
+  // Verify user role
   const user = await prisma.employee.findUnique({
     where: { id: userId },
     select: { designation: true }
   });
 
-  if (!user || user.designation !== 'Guard') {
-    return res.status(403).json({ error: 'Only Guards can access gate entry/exit' });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // Define supervisor roles who can view gate register
+  const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'];
+  const canView = user.designation === 'Guard' || SUPERVISOR_ROLES.includes(user.designation);
+  const canModify = user.designation === 'Guard';
+
+  // Only Guards can create/modify entries
+  if (!canView) {
+    return res.status(403).json({ error: 'Only Guards and supervisors can access gate register' });
   }
 
   if (req.method === 'POST') {
+    if (!canModify) {
+      return res.status(403).json({ error: 'Only Guards can record entries' });
+    }
     return handleCreateGateEntry(req, res, userId);
   } else if (req.method === 'GET') {
     return handleGetGateRegister(req, res);

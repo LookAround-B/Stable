@@ -72,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Check if supervisor can mark this employee's attendance based on role
-    const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'];
+    const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor'];
     
     if (!supervisor || !SUPERVISOR_ROLES.includes(supervisor.designation)) {
       return res.status(403).json({ error: 'Only supervisors can mark attendance' });
@@ -81,6 +81,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Jamedar can mark Stable Operations staff
     if (supervisor.designation === 'Jamedar') {
       if (employee.department !== 'Stable Operations' || SUPERVISOR_ROLES.includes(employee.designation)) {
+        return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
+      }
+    }
+    // Instructor can mark Stable Operations staff
+    else if (supervisor.designation === 'Instructor') {
+      if (employee.department !== 'Stable Operations' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor'].includes(employee.designation)) {
         return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
       }
     }
