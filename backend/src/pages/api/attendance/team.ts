@@ -107,6 +107,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
         select: { id: true, fullName: true, designation: true }
       });
+    } else if (user.designation === 'Jamedar') {
+      // Get all staff under this Jamedar
+      teamMembers = await prisma.employee.findMany({
+        where: {
+          supervisorId: userId
+        },
+        select: { id: true, fullName: true, designation: true }
+      });
     } else if (['School Administrator', 'Director', 'Super Admin'].includes(user.designation)) {
       // Get all staff
       teamMembers = await prisma.employee.findMany({
@@ -151,10 +159,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return acc;
     }, {});
 
+    // Flatten grouped records for easier consumption on frontend
+    const flattenedRecords = attendanceRecords.map(record => ({
+      id: record.id,
+      employee: record.employee,
+      status: record.status,
+      remarks: record.remarks,
+      date: record.date,
+      checkInTime: record.checkInTime,
+      checkOutTime: record.checkOutTime
+    }));
+
     return res.status(200).json({
       date: date || new Date().toISOString().split('T')[0],
       teamSize: teamMemberIds.length,
-      attendance: Object.values(grouped)
+      attendance: flattenedRecords
     });
   } catch (error) {
     console.error('Error getting team attendance:', error);

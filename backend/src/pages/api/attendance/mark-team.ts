@@ -36,7 +36,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supervisorId = decoded?.id;
 
   try {
-    const { employeeId, date, status, remarks } = req.body;
+    let { employeeId, date, status, remarks } = req.body;
+
+    // Check if marking for Monday and auto-set status to WOFF
+    const markingDate = new Date(date);
+    const dayOfMarkingDate = markingDate.getDay(); // 0 = Sunday, 1 = Monday
+    if (dayOfMarkingDate === 1) {
+      // Marking for Monday - always set to WOFF (weekly off)
+      status = 'WOFF';
+    }
 
     if (!employeeId || !date || !status) {
       return res.status(400).json({ error: 'Employee ID, date, and status are required' });
