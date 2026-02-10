@@ -56,14 +56,51 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Invalid attendance status' });
     }
 
-    // Verify that the employee is under this supervisor
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
-      select: { supervisorId: true }
+    // Verify that the employee exists and supervisor can mark their attendance
+    const supervisor = await prisma.employee.findUnique({
+      where: { id: supervisorId },
+      select: { designation: true, department: true }
     });
 
-    if (!employee || employee.supervisorId !== supervisorId) {
-      return res.status(403).json({ error: 'You can only mark attendance for your team members' });
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { designation: true, department: true }
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    // Check if supervisor can mark this employee's attendance based on role
+    const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'];
+    
+    if (!supervisor || !SUPERVISOR_ROLES.includes(supervisor.designation)) {
+      return res.status(403).json({ error: 'Only supervisors can mark attendance' });
+    }
+
+    // Jamedar can mark Stable Operations staff
+    if (supervisor.designation === 'Jamedar') {
+      if (employee.department !== 'Stable Operations' || SUPERVISOR_ROLES.includes(employee.designation)) {
+        return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
+      }
+    }
+    // Stable Manager can mark Stable Operations staff
+    else if (supervisor.designation === 'Stable Manager') {
+      if (employee.department !== 'Stable Operations' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(employee.designation)) {
+        return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
+      }
+    }
+    // Ground Supervisor can mark Ground Operations staff
+    else if (supervisor.designation === 'Ground Supervisor') {
+      if (employee.department !== 'Ground Operations' || employee.designation === 'Ground Supervisor') {
+        return res.status(403).json({ error: 'You can only mark attendance for non-supervisor staff in your department' });
+      }
+    }
+    // Admin roles can mark anyone except other admin roles
+    else if (!['Super Admin', 'Director', 'School Administrator'].includes(supervisor.designation)) {
+      return res.status(403).json({ error: 'Invalid supervisor role' });
+    } else if (['Super Admin', 'Director', 'School Administrator'].includes(employee.designation)) {
+      return res.status(403).json({ error: 'You cannot mark attendance for other administrators' });
     }
 
     // Parse date
