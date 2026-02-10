@@ -69,6 +69,9 @@ async function main() {
     },
   ];
 
+  // Map to store created employees for supervisor relationships
+  const createdEmployees: { [key: string]: string } = {};
+
   for (const user of testUsers) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
@@ -83,8 +86,19 @@ async function main() {
       },
     });
 
+    createdEmployees[user.email] = created.id;
     console.log(`✅ Created: ${created.fullName} (${created.email}) - ${created.designation}`);
   }
+
+  // Set up supervisor relationships: Jamedar supervises Groom
+  const jamedarId = createdEmployees['jamedar@test.com'];
+  const groomEmail = 'groom@test.com';
+  
+  await prisma.employee.update({
+    where: { email: groomEmail },
+    data: { supervisorId: jamedarId },
+  });
+  console.log('✅ Set Jamedar as supervisor of Groom');
 
   // Seed attendance data for today
   const attendanceDate = new Date();
@@ -125,7 +139,7 @@ async function main() {
     worksheetDate.setHours(0, 0, 0, 0);
 
     // Create a sample groom worksheet
-    const worksheet = await prisma.groomWorkSheet.create({
+    await prisma.groomWorkSheet.create({
       data: {
         groomId: groomEmployee.id,
         date: worksheetDate,

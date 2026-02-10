@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import '../styles/TeamAttendancePage.css';
 
@@ -62,7 +61,7 @@ const TeamAttendancePage = () => {
     }
 
     try {
-      const response = await apiClient.post('/attendance/mark-team', {
+      await apiClient.post('/attendance/mark-team', {
         employeeId: formData.employeeId,
         date: selectedDate,
         status: formData.status,

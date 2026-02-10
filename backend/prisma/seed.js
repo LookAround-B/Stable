@@ -262,6 +262,7 @@ async function main() {
     // Stable Operations - Emma Manager supervises Jamedar and Groom
     { subordinate: 'jamedar@test.com', supervisor: 'manager@test.com' },
     { subordinate: 'groom@test.com', supervisor: 'manager@test.com' },
+    { subordinate: 'groom@test.com', supervisor: 'jamedar@test.com' }, // Jamedar also supervises Groom
     { subordinate: 'riding-boy@test.com', supervisor: 'manager@test.com' },
     { subordinate: 'rider@test.com', supervisor: 'manager@test.com' },
     { subordinate: 'farrier@test.com', supervisor: 'manager@test.com' },

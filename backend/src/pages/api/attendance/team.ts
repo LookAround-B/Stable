@@ -16,7 +16,8 @@ const SUPERVISOR_ROLES = [
   'Director',
   'School Administrator',
   'Ground Supervisor',
-  'Stable Manager'
+  'Stable Manager',
+  'Jamedar'
 ];
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
