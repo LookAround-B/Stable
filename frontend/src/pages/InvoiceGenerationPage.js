@@ -38,15 +38,15 @@ const InvoiceGenerationPage = () => {
     try {
       const response = await apiClient.get('/employees');
       const instructorsList = (response.data.data || []).filter(
-        (emp: any) => emp.designation === 'Instructor'
+        (emp) => emp.designation === 'Instructor'
       );
       setInstructors(instructorsList);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading instructors:', error);
     }
   };
 
-  const handleGenerateInvoice = async (e: any) => {
+  const handleGenerateInvoice = async (e) => {
     e.preventDefault();
 
     if (!filters.startDate || !filters.endDate) {
@@ -72,7 +72,7 @@ const InvoiceGenerationPage = () => {
       setInvoice(response.data.data);
       setMessage('Invoice generated successfully');
       setMessageType('success');
-    } catch (error: any) {
+    } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to generate invoice');
       setMessageType('error');
       setInvoice(null);
@@ -109,10 +109,10 @@ const InvoiceGenerationPage = () => {
     }
   };
 
-  const generatePDFContent = (invoiceData: any) => {
+  const generatePDFContent = (invoiceData) => {
     const recordsHTML = invoiceData.records
       .map(
-        (r: any) => `
+        (r) => `
         <tr>
           <td>${new Date(r.date).toLocaleDateString()}</td>
           <td>${r.horse.name}</td>
@@ -127,7 +127,7 @@ const InvoiceGenerationPage = () => {
 
     const workTypeSummary = Object.entries(invoiceData.summary.byWorkType)
       .map(
-        ([type, data]: any) => `
+        ([type, data]) => `
         <tr>
           <td>${type}</td>
           <td>${data.count}</td>
@@ -250,7 +250,7 @@ const InvoiceGenerationPage = () => {
                   }
                 >
                   <option value="">All Instructors</option>
-                  {instructors.map((instructor: any) => (
+                  {instructors.map((instructor) => (
                     <option key={instructor.id} value={instructor.id}>
                       {instructor.fullName}
                     </option>
@@ -371,7 +371,7 @@ const InvoiceGenerationPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {invoice.records.map((record: any, index: number) => (
+                {invoice.records.map((record, index) => (
                   <tr key={index}>
                     <td>{new Date(record.date).toLocaleDateString()}</td>
                     <td>{record.horse.name}</td>
@@ -398,7 +398,7 @@ const InvoiceGenerationPage = () => {
                   </thead>
                   <tbody>
                     {Object.entries(invoice.summary.byWorkType).map(
-                      ([type, data]: any) => (
+                      ([type, data]) => (
                         <tr key={type}>
                           <td>{type}</td>
                           <td>{data.count}</td>

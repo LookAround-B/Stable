@@ -44,7 +44,7 @@ const DailyWorkRecordsPage = () => {
 
       setRecords(response.data.data || []);
       setMessage('');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading records:', error);
       setMessage('Failed to load records');
       setMessageType('error');
@@ -63,7 +63,7 @@ const DailyWorkRecordsPage = () => {
 
       setHorses(horsesRes.data.data || []);
       setEmployees(employeesRes.data.data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading data:', error);
     }
   };
@@ -73,7 +73,7 @@ const DailyWorkRecordsPage = () => {
     loadHorsesAndEmployees();
   }, [selectedDate]);
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -81,7 +81,7 @@ const DailyWorkRecordsPage = () => {
     }));
   };
 
-  const handleDateChange = (e: any) => {
+  const handleDateChange = (e) => {
     const newDate = e.target.value;
     setFormData((prev) => ({
       ...prev,
@@ -89,7 +89,7 @@ const DailyWorkRecordsPage = () => {
     }));
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.horseId || !formData.riderId || !formData.duration) {
@@ -129,7 +129,7 @@ const DailyWorkRecordsPage = () => {
       setEditingId(null);
       setShowForm(false);
       loadRecords();
-    } catch (error: any) {
+    } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to save record');
       setMessageType('error');
     } finally {
@@ -137,7 +137,7 @@ const DailyWorkRecordsPage = () => {
     }
   };
 
-  const handleEdit = (record: any) => {
+  const handleEdit = (record) => {
     setFormData({
       horseId: record.horseId,
       riderId: record.riderId,
@@ -150,7 +150,7 @@ const DailyWorkRecordsPage = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this record?')) return;
 
     try {
@@ -159,7 +159,7 @@ const DailyWorkRecordsPage = () => {
       setMessage('Record deleted successfully');
       setMessageType('success');
       loadRecords();
-    } catch (error: any) {
+    } catch (error) {
       setMessage(error.response?.data?.error || 'Failed to delete record');
       setMessageType('error');
     } finally {
@@ -240,7 +240,7 @@ const DailyWorkRecordsPage = () => {
                   required
                 >
                   <option value="">Select a horse</option>
-                  {horses.map((horse: any) => (
+                  {horses.map((horse) => (
                     <option key={horse.id} value={horse.id}>
                       {horse.name}
                     </option>
@@ -258,7 +258,7 @@ const DailyWorkRecordsPage = () => {
                   required
                 >
                   <option value="">Select a rider</option>
-                  {employees.map((emp: any) => (
+                  {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.fullName} ({emp.designation})
                     </option>
@@ -352,7 +352,7 @@ const DailyWorkRecordsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {records.map((record: any) => (
+                {records.map((record) => (
                   <tr key={record.id}>
                     <td>{record.horse.name}</td>
                     <td>{record.rider.fullName}</td>
