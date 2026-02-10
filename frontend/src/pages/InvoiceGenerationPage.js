@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import '../styles/InvoiceGenerationPage.css';
@@ -32,9 +32,9 @@ const InvoiceGenerationPage = () => {
     if (user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation)) {
       loadInstructors();
     }
-  }, []);
+  }, [user?.designation, loadInstructors]);
 
-  const loadInstructors = async () => {
+  const loadInstructors = useCallback(async () => {
     try {
       const response = await apiClient.get('/employees');
       const instructorsList = (response.data.data || []).filter(
@@ -44,7 +44,7 @@ const InvoiceGenerationPage = () => {
     } catch (error) {
       console.error('Error loading instructors:', error);
     }
-  };
+  }, []);
 
   const handleGenerateInvoice = async (e) => {
     e.preventDefault();

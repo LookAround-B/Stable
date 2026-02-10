@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../services/apiClient';
 import '../styles/DailyWorkRecordsPage.css';
 
 const DailyWorkRecordsPage = () => {
-  const { user } = useAuth();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,7 +25,7 @@ const DailyWorkRecordsPage = () => {
   const workTypes = ['Lesson', 'Training', 'Exercise', 'Rehab', 'Groundwork', 'Lunge', 'Hack'];
 
   // Load records
-  const loadRecords = async () => {
+  const loadRecords = useCallback(async () => {
     try {
       setLoading(true);
       const startDate = new Date(selectedDate);
@@ -71,7 +69,7 @@ const DailyWorkRecordsPage = () => {
   useEffect(() => {
     loadRecords();
     loadHorsesAndEmployees();
-  }, [selectedDate]);
+  }, [selectedDate, loadRecords]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
