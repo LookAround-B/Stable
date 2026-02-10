@@ -22,6 +22,8 @@ import GateEntryRegisterPage from './pages/GateEntryRegisterPage';
 import MedicineLogPage from './pages/MedicineLogPage';
 import GroomWorkSheetPage from './pages/GroomWorkSheetPage';
 import HorseCareTeamPage from './pages/HorseCareTeamPage';
+import DailyWorkRecordsPage from './pages/DailyWorkRecordsPage';
+import InvoiceGenerationPage from './pages/InvoiceGenerationPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './styles/App.css';
 
@@ -56,6 +58,8 @@ function App() {
             <Route path="/medicine-logs" element={<MedicineLogPage />} />
             <Route path="/groom-worksheet" element={<GroomWorkSheetPage />} />
             <Route path="/horse-care-team" element={<HorseCareTeamPage />} />
+            <Route path="/daily-work-records" element={<DailyWorkRecordsPage />} />
+            <Route path="/invoice-generation" element={<InvoiceGenerationPage />} />
           </Route>
           
           <Route path="*" element={<NotFoundPage />} />

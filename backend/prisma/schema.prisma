@@ -47,6 +47,8 @@ model Employee {
   groomWorkSheets       GroomWorkSheet[] @relation("groomWorkSheets")
   gateEntries           GateEntry[] @relation("gateEntries")
   gateEntriesAsEmployee GateEntry[] @relation("gateEntriesAsEmployee")
+  instructorRecords     InstructorDailyWorkRecord[] @relation("instructorRecords")
+  riderRecords          InstructorDailyWorkRecord[] @relation("riderRecords")
 
 
   @@index([designation])
@@ -109,6 +111,7 @@ model Horse {
   medicineLog           MedicineLog[]
   careTeam              HorseCareTeam[]
   groomWorkEntries      WorkSheetEntry[] @relation("groomWorkEntries")
+  workRecords           InstructorDailyWorkRecord[] @relation("workRecords")
 
   @@index([status])
   @@index([name])
@@ -422,4 +425,26 @@ model Visitor {
   updatedAt             DateTime    @updatedAt
 
   @@index([name])
+}
+// Instructor Daily Work Records (EIRS) - Source of truth for billing
+model InstructorDailyWorkRecord {
+  id                    String      @id @default(cuid())
+  instructorId          String      // Instructor who supervised
+  instructor            Employee    @relation("instructorRecords", fields: [instructorId], references: [id], onDelete: Cascade)
+  horseId               String      // Horse that was ridden
+  horse                 Horse       @relation("workRecords", fields: [horseId], references: [id], onDelete: Cascade)
+  riderId               String      // Student/Rider
+  rider                 Employee    @relation("riderRecords", fields: [riderId], references: [id], onDelete: Cascade)
+  workType              String      // 'Lesson', 'Training', 'Exercise', 'Rehab', etc.
+  duration              Int         // Duration in minutes
+  date                  DateTime    // Date of the session
+  notes                 String?     // Optional notes
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([instructorId, horseId, riderId, date]) // Prevent exact duplicate sessions on same day
+  @@index([instructorId])
+  @@index([horseId])
+  @@index([riderId])
+  @@index([date])
 }

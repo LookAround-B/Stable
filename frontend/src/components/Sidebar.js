@@ -14,6 +14,8 @@ const Sidebar = () => {
   const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showMedicineLogs = user?.designation === 'Jamedar';
   const showCareTeam = user?.designation === 'Stable Manager';
+  const showEIRS = user?.designation === 'Instructor';
+  const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
 
   return (
     <aside className="sidebar">
@@ -96,6 +98,22 @@ const Sidebar = () => {
           <li>
             <Link to="/horse-care-team" className="menu-item">
               👨‍🌾 Care Teams
+            </Link>
+          </li>
+        )}
+
+        {showEIRS && (
+          <li>
+            <Link to="/daily-work-records" className="menu-item">
+              📝 Daily Work Records
+            </Link>
+          </li>
+        )}
+
+        {showInvoiceGeneration && (
+          <li>
+            <Link to="/invoice-generation" className="menu-item">
+              💰 Invoice Generation
             </Link>
           </li>
         )}
