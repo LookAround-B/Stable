@@ -49,7 +49,7 @@ const DailyWorkRecordsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedDate]);
 
   // Load horses and employees
   const loadHorsesAndEmployees = async () => {

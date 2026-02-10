@@ -27,13 +27,6 @@ const InvoiceGenerationPage = () => {
     return new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
   }
 
-  // Load instructors if user is Stable Manager
-  useEffect(() => {
-    if (user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation)) {
-      loadInstructors();
-    }
-  }, [user?.designation, loadInstructors]);
-
   const loadInstructors = useCallback(async () => {
     try {
       const response = await apiClient.get('/employees');
@@ -45,6 +38,13 @@ const InvoiceGenerationPage = () => {
       console.error('Error loading instructors:', error);
     }
   }, []);
+
+  // Load instructors if user is Stable Manager
+  useEffect(() => {
+    if (user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation)) {
+      loadInstructors();
+    }
+  }, [user?.designation, loadInstructors]);
 
   const handleGenerateInvoice = async (e) => {
     e.preventDefault();
