@@ -90,34 +90,44 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     let teamMembers: any[] = [];
 
     if (user.designation === 'Ground Supervisor') {
-      // Get all ground operations staff under this supervisor
+      // Get all ground operations staff except supervisors
       teamMembers = await prisma.employee.findMany({
         where: {
-          supervisorId: userId,
-          department: 'Ground Operations'
+          department: 'Ground Operations',
+          designation: { not: 'Ground Supervisor' }
         },
         select: { id: true, fullName: true, designation: true }
       });
     } else if (user.designation === 'Stable Manager') {
-      // Get all stable operations staff under this supervisor
+      // Get all stable operations staff except supervisors
       teamMembers = await prisma.employee.findMany({
         where: {
-          supervisorId: userId,
-          department: 'Stable Operations'
+          department: 'Stable Operations',
+          designation: {
+            notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager']
+          }
         },
         select: { id: true, fullName: true, designation: true }
       });
     } else if (user.designation === 'Jamedar') {
-      // Get all staff under this Jamedar
+      // Get all staff in Stable Operations except supervisors
       teamMembers = await prisma.employee.findMany({
         where: {
-          supervisorId: userId
+          department: 'Stable Operations',
+          designation: {
+            notIn: ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar']
+          }
         },
         select: { id: true, fullName: true, designation: true }
       });
     } else if (['School Administrator', 'Director', 'Super Admin'].includes(user.designation)) {
-      // Get all staff
+      // Get all staff except admin roles
       teamMembers = await prisma.employee.findMany({
+        where: {
+          designation: {
+            notIn: ['Super Admin', 'Director', 'School Administrator']
+          }
+        },
         select: { id: true, fullName: true, designation: true }
       });
     }
