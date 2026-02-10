@@ -16,6 +16,8 @@ import SettingsPage from './pages/SettingsPage';
 import AttendancePage from './pages/AttendancePage';
 import DailyAttendancePage from './pages/DailyAttendancePage';
 import GateAttendancePage from './pages/GateAttendancePage';
+import DigitalAttendancePage from './pages/DigitalAttendancePage';
+import GateEntryRegisterPage from './pages/GateEntryRegisterPage';
 import MedicineLogPage from './pages/MedicineLogPage';
 import GroomWorkSheetPage from './pages/GroomWorkSheetPage';
 import HorseCareTeamPage from './pages/HorseCareTeamPage';
@@ -45,8 +47,10 @@ function App() {
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/digital-attendance" element={<DigitalAttendancePage />} />
             <Route path="/daily-attendance" element={<DailyAttendancePage />} />
             <Route path="/gate-attendance" element={<GateAttendancePage />} />
+            <Route path="/gate-entry" element={<GateEntryRegisterPage />} />
             <Route path="/medicine-logs" element={<MedicineLogPage />} />
             <Route path="/groom-worksheet" element={<GroomWorkSheetPage />} />
             <Route path="/horse-care-team" element={<HorseCareTeamPage />} />

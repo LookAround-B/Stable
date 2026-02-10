@@ -10,7 +10,7 @@ const Sidebar = () => {
   const showAttendance = true; // All users
   const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Groom'].includes(user?.designation);
-  const showGateAttendance = user?.designation === 'Guard';
+  const showGateEntry = user?.designation === 'Guard';
   const showMedicineLogs = user?.designation === 'Jamedar';
   const showCareTeam = user?.designation === 'Stable Manager';
 
@@ -45,8 +45,8 @@ const Sidebar = () => {
 
         {showAttendance && (
           <li>
-            <Link to="/attendance" className="menu-item">
-              📋 Attendance
+            <Link to="/digital-attendance" className="menu-item">
+              📋 My Attendance
             </Link>
           </li>
         )}
@@ -67,10 +67,10 @@ const Sidebar = () => {
           </li>
         )}
 
-        {showGateAttendance && (
+        {showGateEntry && (
           <li>
-            <Link to="/gate-attendance" className="menu-item">
-              🚪 Gate Log
+            <Link to="/gate-entry" className="menu-item">
+              🚪 Gate Register
             </Link>
           </li>
         )}

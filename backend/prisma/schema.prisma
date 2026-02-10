@@ -45,6 +45,8 @@ model Employee {
   jamiedarMedicineLogs  MedicineLog[]
   attendanceRecords     Attendance[] @relation("attendanceRecords")
   groomWorkSheets       GroomWorkSheet[] @relation("groomWorkSheets")
+  gateEntries           GateEntry[] @relation("gateEntries")
+  gateEntriesAsEmployee GateEntry[] @relation("gateEntriesAsEmployee")
 
 
   @@index([designation])
@@ -368,7 +370,7 @@ model WorkSheetEntry {
   @@index([horseId])
 }
 
-// Enhanced Attendance Log with status tracking
+// Enhanced Attendance Log with status tracking for all staff
 model Attendance {
   id                    String      @id @default(cuid())
   employeeId            String
@@ -381,8 +383,42 @@ model Attendance {
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
-  @@unique([employeeId, date])
   @@index([employeeId])
   @@index([date])
   @@index([status])
+}
+
+// Gate Entry/Exit Register (managed by Guards)
+model GateEntry {
+  id                    String      @id @default(cuid())
+  guardId               String
+  guard                 Employee    @relation("gateEntries", fields: [guardId], references: [id], onDelete: Cascade)
+  personType            String      // 'Staff' or 'Visitor'
+  employeeId            String?     // For staff entries
+  employee              Employee?   @relation("gateEntriesAsEmployee", fields: [employeeId], references: [id], onDelete: SetNull)
+  visitorId             String?     // For visitor entries
+  visitor               Visitor?    @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+  entryTime             DateTime
+  exitTime              DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([guardId])
+  @@index([employeeId])
+  @@index([visitorId])
+  @@index([entryTime])
+  @@index([personType])
+}
+
+// Visitor Information (for gate entry tracking)
+model Visitor {
+  id                    String      @id @default(cuid())
+  name                  String
+  purpose               String
+  contactNumber         String?
+  gateEntries           GateEntry[]
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([name])
 }
