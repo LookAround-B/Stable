@@ -2,6 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../services/apiClient';
 import '../styles/DailyWorkRecordsPage.css';
 
+// Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)
+const getTodayString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const DailyWorkRecordsPage = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -11,16 +20,24 @@ const DailyWorkRecordsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getTodayString());
 
   const [formData, setFormData] = useState({
     horseId: '',
     riderId: '',
     workType: 'Lesson',
     duration: '',
-    date: selectedDate,
+    date: getTodayString(),
     notes: '',
   });
+
+  // Update form date when selectedDate changes
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      date: selectedDate,
+    }));
+  }, [selectedDate]);
 
   const workTypes = ['Lesson', 'Training', 'Exercise', 'Rehab', 'Groundwork', 'Lunge', 'Hack'];
 
@@ -28,22 +45,26 @@ const DailyWorkRecordsPage = () => {
   const loadRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const startDate = new Date(selectedDate);
-      startDate.setDate(startDate.getDate());
-      const endDate = new Date(selectedDate);
-      endDate.setDate(endDate.getDate() + 1);
+
+      const startDateStr = selectedDate; // Use selected date directly
+      const endDateStr = selectedDate; // Same date (not next day)
+
+      console.log('Loading records for date range:', startDateStr, 'to', endDateStr);
 
       const response = await apiClient.get('/eirs', {
         params: {
-          startDate: startDate.toISOString().split('T')[0],
-          endDate: endDate.toISOString().split('T')[0],
+          startDate: startDateStr,
+          endDate: endDateStr,
         },
       });
 
+      console.log('Records response:', response.data);
       setRecords(response.data.data || []);
       setMessage('');
     } catch (error) {
       console.error('Error loading records:', error);
+      console.error('Error response status:', error.response?.status);
+      console.error('Error response data:', error.response?.data);
       setMessage('Failed to load records');
       setMessageType('error');
     } finally {
@@ -59,10 +80,14 @@ const DailyWorkRecordsPage = () => {
         apiClient.get('/employees'),
       ]);
 
+      console.log('Horses response:', horsesRes.data);
+      console.log('Employees response:', employeesRes.data);
+
       setHorses(horsesRes.data.data || []);
       setEmployees(employeesRes.data.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
+      console.error('Error response:', error.response?.data);
     }
   };
 
@@ -99,20 +124,28 @@ const DailyWorkRecordsPage = () => {
     try {
       setLoading(true);
 
+      console.log('Submitting form data:', formData);
+
       if (editingId) {
         // Update record
-        await apiClient.put(`/eirs/${editingId}`, {
+        const updateResult = await apiClient.put(`/eirs/${editingId}`, {
           ...formData,
           duration: parseInt(formData.duration),
         });
+        console.log('Update result:', updateResult.data);
         setMessage('Record updated successfully');
       } else {
         // Create new record
-        await apiClient.post('/eirs', {
+        const submitData = {
           ...formData,
           duration: parseInt(formData.duration),
-        });
+        };
+        console.log('Creating record with data:', submitData);
+        console.log('Date value:', submitData.date, 'Type:', typeof submitData.date);
+        console.log('HorseId:', submitData.horseId, 'RiderId:', submitData.riderId, 'WorkType:', submitData.workType);
+        await apiClient.post('/eirs', submitData);
         setMessage('Record created successfully');
+
       }
 
       setMessageType('success');
@@ -256,11 +289,13 @@ const DailyWorkRecordsPage = () => {
                   required
                 >
                   <option value="">Select a rider</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.fullName} ({emp.designation})
-                    </option>
-                  ))}
+                  {employees
+                    .filter((emp) => ['Rider', 'Riding Boy'].includes(emp.designation))
+                    .map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.fullName} ({emp.designation})
+                      </option>
+                    ))}
                 </select>
               </div>
 

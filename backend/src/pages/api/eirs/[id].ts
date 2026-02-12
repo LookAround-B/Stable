@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../../../lib/prisma';
-import { verifyAuth } from '../../../../lib/auth';
+import { prisma } from '../../../lib/prisma';
+import { verifyToken } from '../../../lib/auth';
 import cors from 'cors';
-import { runMiddleware } from '../../../../lib/cors';
+import { runMiddleware } from '../../../lib/cors';
 
 const corsMiddleware = cors({
   origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
@@ -25,10 +25,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const token = authHeader.split(' ')[1];
-    const user = await verifyAuth(token);
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Get full user data from database
+    const user = await prisma.employee.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        designation: true,
+        fullName: true,
+      },
+    });
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'User not found' });
     }
 
     const { id } = req.query;
@@ -81,8 +96,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (workType) updateData.workType = workType;
       if (duration) updateData.duration = parseInt(duration);
       if (date) {
-        const recordDate = new Date(date);
-        recordDate.setHours(0, 0, 0, 0);
+        // Parse date string as YYYY-MM-DD and create a Date at start of day UTC (same as POST handler)
+        const [year, month, day] = (date as string).split('-').map(Number);
+        const recordDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+        console.log(`[EIRS PUT] Updating date: ${date} to UTC: ${recordDate.toISOString()}`);
         updateData.date = recordDate;
       }
       if (notes !== undefined) updateData.notes = notes;
@@ -111,6 +128,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
         },
       });
+
+      console.log('[EIRS PUT] Record updated:', JSON.stringify(updatedRecord, null, 2));
 
       return res.status(200).json({
         data: updatedRecord,

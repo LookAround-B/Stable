@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { verifyAuth } from '../../../lib/auth';
+import { verifyToken } from '../../../lib/auth';
 import cors from 'cors';
 import { runMiddleware } from '../../../lib/cors';
 
@@ -25,10 +25,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const token = authHeader.split(' ')[1];
-    const user = await verifyAuth(token);
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Get full user data from database
+    const user = await prisma.employee.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        designation: true,
+        fullName: true,
+      },
+    });
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'User not found' });
     }
 
     if (req.method === 'GET') {
@@ -55,14 +70,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       if (startDate || endDate) {
         where.date = {};
         if (startDate) {
-          where.date.gte = new Date(startDate as string);
+          // Parse date string as YYYY-MM-DD and create a Date at start of day UTC
+          const [year, month, day] = (startDate as string).split('-').map(Number);
+          const startDateObj = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+          console.log(`[EIRS GET] startDate: ${startDate}, parsed: year=${year} month=${month} day=${day}, UTC: ${startDateObj.toISOString()}`);
+          where.date.gte = startDateObj;
         }
         if (endDate) {
-          const endDateObj = new Date(endDate as string);
-          endDateObj.setHours(23, 59, 59, 999);
-          where.date.lte = endDateObj;
+          // Parse date string as YYYY-MM-DD and create a Date at START of NEXT day UTC (exclusive end)
+          const [year, month, day] = (endDate as string).split('-').map(Number);
+          const endDateObj = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0)); // Add 1 to day to get next day
+          console.log(`[EIRS GET] endDate: ${endDate}, parsed: year=${year} month=${month} day=${day}, next day UTC: ${endDateObj.toISOString()}`);
+          where.date.lt = endDateObj; // Use lt (less than) for exclusive upper bound
         }
       }
+
+      console.log('[EIRS GET] Final where clause:', JSON.stringify(where, null, 2));
 
       const records = await prisma.instructorDailyWorkRecord.findMany({
         where,
@@ -103,7 +126,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const { horseId, riderId, workType, duration, date, notes } = req.body;
 
+      console.log('[EIRS POST] Request body:', JSON.stringify(req.body, null, 2));
+      console.log('[EIRS POST] Parsed: horseId=', horseId, 'riderId=', riderId, 'workType=', workType, 'duration=', duration, 'date=', date);
+
       if (!horseId || !riderId || !workType || !duration || !date) {
+        console.log('[EIRS POST] Validation failed - Missing fields');
         return res.status(400).json({ error: 'Missing required fields: horseId, riderId, workType, duration, date' });
       }
 
@@ -125,8 +152,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(404).json({ error: 'Rider/Student not found' });
       }
 
-      const recordDate = new Date(date);
-      recordDate.setHours(0, 0, 0, 0);
+      // Parse date string as YYYY-MM-DD and create a Date at start of day UTC
+      const [year, month, day] = (date as string).split('-').map(Number);
+      const recordDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
 
       const record = await prisma.instructorDailyWorkRecord.create({
         data: {

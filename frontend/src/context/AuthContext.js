@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser } from '../services/authService';
+import { getCurrentUser, isAuthenticated } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -8,12 +8,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try to load user on mount
+    // Try to load user on mount only if token exists
     const loadUser = async () => {
       try {
-        const response = await getCurrentUser();
-        setUser(response.data);
+        // Only attempt to fetch user if there's a valid token
+        if (isAuthenticated()) {
+          const response = await getCurrentUser();
+          setUser(response.data);
+        } else {
+          setUser(null);
+        }
       } catch (error) {
+        // If token is invalid, clear it
         setUser(null);
       } finally {
         setLoading(false);

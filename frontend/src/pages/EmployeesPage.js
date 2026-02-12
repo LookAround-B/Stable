@@ -153,9 +153,6 @@ const EmployeesPage = () => {
     }
   };
 
-  // Get team members for current user (if supervisor)
-  const teamMembers = employees.filter((emp) => emp.supervisorId === user?.id);
-
   const filteredEmployees = employees.filter(
     (emp) =>
       emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -292,40 +289,6 @@ const EmployeesPage = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
-
-      {/* Team Members Section - Hidden from Super Admin and Admin */}
-      {(SUPERVISORY_ROLES.includes(user?.designation) && 
-        !['Super Admin', 'Admin'].includes(user?.designation)) && (
-        <div className="team-section">
-          <h2>👥 Your Team</h2>
-          {teamMembers.length === 0 ? (
-            <p className="info-text">No team members assigned</p>
-          ) : (
-            <table className="employees-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Contact</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamMembers.map((emp) => (
-                  <tr key={emp.id}>
-                    <td>{emp.fullName}</td>
-                    <td>{emp.email}</td>
-                    <td>{emp.designation}</td>
-                    <td>{emp.isApproved ? '✓ Approved' : '⏳ Pending'}</td>
-                    <td>{emp.phoneNumber || 'N/A'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
         </div>
       )}
 

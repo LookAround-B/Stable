@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
-import { verifyAuth } from '../../../lib/auth';
+import { verifyToken } from '../../../lib/auth';
 
 const CORS_ALLOWED_ORIGINS = ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'];
 
@@ -32,10 +32,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const token = authHeader.split(' ')[1];
-    const user = await verifyAuth(token);
+    const decoded = verifyToken(token);
     
-    if (!user) {
+    if (!decoded) {
       return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Get full user data from database
+    const user = await prisma.employee.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        designation: true,
+        fullName: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
     }
 
     // Define allowed roles for viewing daily attendance

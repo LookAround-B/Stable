@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import * as XLSX from 'xlsx';
 import '../styles/InvoiceGenerationPage.css';
 
 const InvoiceGenerationPage = () => {
@@ -84,18 +85,51 @@ const InvoiceGenerationPage = () => {
   const handleDownloadPDF = () => {
     if (!invoice) return;
 
-    // Generate PDF content
-    const docTitle = `Invoice_${invoice.instructor.fullName}_${invoice.periodStart}_${invoice.periodEnd}.pdf`;
-    const doc = generatePDFContent(invoice);
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([]);
 
-    // Create a blob and download
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(doc));
-    element.setAttribute('download', docTitle);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    // Add title
+    XLSX.utils.sheet_add_aoa(worksheet, [
+      [`Invoice Report`],
+      [`Instructor: ${invoice.instructor.fullName}`],
+      [`Period: ${new Date(invoice.periodStart).toLocaleDateString('en-IN')} to ${new Date(invoice.periodEnd).toLocaleDateString('en-IN')}`],
+      [`Total Sessions: ${invoice.summary.totalSessions}`],
+      [`Total Hours: ${invoice.summary.totalHours}`],
+      [],
+      [`Date`, `Horse`, `Rider`, `Work Type`, `Duration (min)`, `Notes`]
+    ], { origin: 'A1' });
+
+    // Add records data
+    const recordsData = invoice.records.map(record => [
+      new Date(record.date).toLocaleDateString('en-IN'),
+      record.horse.name,
+      record.rider.fullName,
+      record.workType,
+      record.duration,
+      record.notes || '-'
+    ]);
+
+    XLSX.utils.sheet_add_aoa(worksheet, recordsData, { origin: 'A8' });
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 20 }
+    ];
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoice');
+
+    // Generate filename
+    const fileName = `Invoice_${invoice.instructor.fullName}_${new Date(invoice.periodStart).toLocaleDateString('en-IN').replace(/\//g, '-')}.xlsx`;
+
+    // Write file
+    XLSX.writeFile(workbook, fileName);
   };
 
   const handlePrint = () => {
@@ -352,7 +386,7 @@ const InvoiceGenerationPage = () => {
                 🖨 Print
               </button>
               <button className="btn btn-info" onClick={handleDownloadPDF}>
-                📥 Download PDF
+                📥 Download Excel
               </button>
             </div>
           </div>

@@ -8,10 +8,6 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
-  // Serve static files from public folder
-  publicRuntimeConfig: {
-    staticFolder: '/public',
-  },
   // Handle rewrites for static files
   async rewrites() {
     return {

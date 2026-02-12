@@ -18,10 +18,19 @@ export default async function handler(
   // Run CORS middleware
   await runMiddleware(req, res, corsMiddleware)
 
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
   // Check authentication
   const token = getTokenFromRequest(req as any)
-  if (!token || !verifyToken(token)) {
-    return res.status(401).json({ error: 'Unauthorized' })
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization header' })
+  }
+
+  const decoded = verifyToken(token)
+  if (!decoded) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
   switch (req.method) {

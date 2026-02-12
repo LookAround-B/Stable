@@ -9,13 +9,14 @@ const Sidebar = () => {
   // Determine which pages to show based on user role
   const showPersonalAttendance = false; // Removed - supervisors cannot self-mark
   const showTeamAttendance = ['Super Admin', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
-  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
-  const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Groom'].includes(user?.designation);
+  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Ground Supervisor', 'Groom'].includes(user?.designation);
+  const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Groom'].includes(user?.designation);
   const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showMedicineLogs = user?.designation === 'Jamedar';
-  const showCareTeam = user?.designation === 'Stable Manager';
+  const showCareTeam = false;
   const showEIRS = user?.designation === 'Instructor';
   const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
 
   return (
     <aside className="sidebar">
@@ -114,6 +115,14 @@ const Sidebar = () => {
           <li>
             <Link to="/invoice-generation" className="menu-item">
               💰 Invoice Generation
+            </Link>
+          </li>
+        )}
+
+        {showHorseFeeds && (
+          <li>
+            <Link to="/horse-feeds" className="menu-item">
+              🥕 Horse Feeds
             </Link>
           </li>
         )}

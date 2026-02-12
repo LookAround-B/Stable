@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding database with test data...');
 
-  // Clear existing data (be careful with this!)
-  await prisma.employee.deleteMany({});
+  // Note: We do NOT delete all employees anymore to preserve user-created accounts
+  // Users can optionally run this to add test accounts without deleting their data
 
-  // Create test users with different roles
+  // Create test users with different roles (using upsert to avoid duplicates)
   const testUsers = [
     {
       email: 'admin@test.com',
@@ -67,6 +67,30 @@ async function main() {
       department: 'Leadership',
       phoneNumber: '555-0007',
     },
+    {
+      email: 'instructor@test.com',
+      password: 'password123',
+      fullName: 'Alex Instructor',
+      designation: 'Instructor',
+      department: 'Stable Operations',
+      phoneNumber: '555-0008',
+    },
+    {
+      email: 'rider@test.com',
+      password: 'password123',
+      fullName: 'John Rider',
+      designation: 'Rider',
+      department: 'Riding Program',
+      phoneNumber: '555-0009',
+    },
+    {
+      email: 'riding-boy@test.com',
+      password: 'password123',
+      fullName: 'Tommy Riding Boy',
+      designation: 'Riding Boy',
+      department: 'Riding Program',
+      phoneNumber: '555-0010',
+    },
   ];
 
   // Map to store created employees for supervisor relationships
@@ -75,8 +99,16 @@ async function main() {
   for (const user of testUsers) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    const created = await prisma.employee.create({
-      data: {
+    const created = await prisma.employee.upsert({
+      where: { email: user.email },
+      update: {
+        fullName: user.fullName,
+        designation: user.designation,
+        department: user.department,
+        phoneNumber: user.phoneNumber,
+        password: hashedPassword,
+      },
+      create: {
         email: user.email,
         password: hashedPassword,
         fullName: user.fullName,
@@ -87,7 +119,7 @@ async function main() {
     });
 
     createdEmployees[user.email] = created.id;
-    console.log(`✅ Created: ${created.fullName} (${created.email}) - ${created.designation}`);
+    console.log(`✅ Ensured: ${created.fullName} (${created.email}) - ${created.designation}`);
   }
 
   // Set up supervisor relationships: Jamedar supervises Groom
@@ -129,6 +161,32 @@ async function main() {
   }
 
   console.log('✅ Seeded attendance records');
+
+  // Seed horses
+  const horseNames = [
+    'Alta Strada', 'Vallee', 'Dejavu', 'Tara', 'Smile Stone', 'Perseus', 'Prada', 'Rodrigo',
+    'Zara', 'Fabia', 'Claudia', 'Cadillac', 'Maximus', 'Cesat', 'Pluto', 'Rebelda',
+    'Sheeba', 'Fudge', 'Poppy', 'Sil Colman', 'Saraswathi', 'Leon', 'Starlight', 'General',
+    'Vadim', 'Campari', 'Marengo', 'Colorado', 'Spirit', 'Transformer', 'Paris', 'Miss Elegance',
+    'Cool Nature', 'Caraida', 'Quintina', 'Kara', 'Hobo', 'Successful Dream', 'Knotty Dancer', 'Sonia',
+    'Ashley', 'Ziggy', 'Matthieus', 'Ricardo', 'Clara', 'Theo', 'Hugo',
+  ];
+
+  for (const horseName of horseNames) {
+    await prisma.horse.upsert({
+      where: { name: horseName },
+      update: {},
+      create: {
+        name: horseName,
+        gender: 'Mare',
+        dateOfBirth: new Date(2015, 0, 1),
+        breed: 'Thoroughbred',
+        age: 9,
+        color: 'Bay',
+      },
+    });
+  }
+  console.log(`✅ Seeded ${horseNames.length} horses`);
 
   // Get sample grooms and horses for groom worksheet
   const groomEmployee = await prisma.employee.findUnique({ where: { email: 'groom@test.com' } });

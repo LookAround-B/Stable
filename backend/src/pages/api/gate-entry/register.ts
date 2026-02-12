@@ -72,6 +72,7 @@ async function handleCreateGateEntry(req: NextApiRequest, res: NextApiResponse, 
       newVisitorName,
       newVisitorPurpose,
       newVisitorPhone,
+      vehicleNo,
       notes
     } = req.body;
 
@@ -106,6 +107,7 @@ async function handleCreateGateEntry(req: NextApiRequest, res: NextApiResponse, 
         personType,
         employeeId: personType === 'Staff' ? employeeId : null,
         visitorId: personType === 'Visitor' ? visitorIdToUse : null,
+        vehicleNo: vehicleNo || null,
         entryTime: new Date(),
         notes
       },

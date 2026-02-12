@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import '../styles/GateEntryRegisterPage.css';
@@ -18,17 +18,14 @@ const GateEntryRegisterPage = () => {
     newVisitorName: '',
     newVisitorPurpose: '',
     newVisitorPhone: '',
+    vehicleNo: '',
     notes: ''
   });
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, [selectedDate]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -51,7 +48,11 @@ const GateEntryRegisterPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -100,10 +101,11 @@ const GateEntryRegisterPage = () => {
         newVisitorName: formData.newVisitorName || null,
         newVisitorPurpose: formData.newVisitorPurpose || null,
         newVisitorPhone: formData.newVisitorPhone || null,
+        vehicleNo: formData.vehicleNo || null,
         notes: formData.notes
       };
 
-      const response = await apiClient.post(endpoint, payload);
+      await apiClient.post(endpoint, payload);
       
       setSuccessMessage(`${formMode === 'entry' ? 'Entry' : 'Exit'} recorded successfully`);
       
@@ -115,6 +117,7 @@ const GateEntryRegisterPage = () => {
         newVisitorName: '',
         newVisitorPurpose: '',
         newVisitorPhone: '',
+        vehicleNo: '',
         notes: ''
       });
       setShowForm(false);
@@ -150,11 +153,6 @@ const GateEntryRegisterPage = () => {
   const getStaffName = (staffId) => {
     const staff = staffList.find(s => s.id === staffId);
     return staff ? staff.fullName : 'Unknown';
-  };
-
-  const getVisitorName = (visitorId) => {
-    const visitor = visitorsList.find(v => v.id === visitorId);
-    return visitor ? visitor.name : 'Unknown';
   };
 
   const formatTime = (timeString) => {
@@ -337,6 +335,19 @@ const GateEntryRegisterPage = () => {
                 </>
               )}
 
+              {/* Vehicle Number */}
+              <div className="form-group">
+                <label>Vehicle No. (Optional)</label>
+                <input 
+                  type="text" 
+                  name="vehicleNo"
+                  value={formData.vehicleNo}
+                  onChange={handleFormChange}
+                  placeholder="Vehicle registration number"
+                  className="form-input"
+                />
+              </div>
+
               {/* Notes */}
               <div className="form-group">
                 <label>Notes (Optional)</label>
@@ -381,6 +392,7 @@ const GateEntryRegisterPage = () => {
                   <tr>
                     <th>Name</th>
                     <th>Type</th>
+                    <th>Vehicle No.</th>
                     <th>Entry Time</th>
                     <th>Exit Time</th>
                     <th>Duration</th>
@@ -402,6 +414,7 @@ const GateEntryRegisterPage = () => {
                           {entry.personType}
                         </span>
                       </td>
+                      <td>{entry.vehicleNo || '-'}</td>
                       <td>{formatTime(entry.entryTime)}</td>
                       <td>{formatTime(entry.exitTime)}</td>
                       <td>{getTotalDuration(entry.entryTime, entry.exitTime)}</td>

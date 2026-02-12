@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import '../styles/DigitalAttendancePage.css';
@@ -17,11 +17,7 @@ const DigitalAttendancePage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadAttendanceRecords();
-  }, [searchDate]);
-
-  const loadAttendanceRecords = async () => {
+  const loadAttendanceRecords = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -35,7 +31,11 @@ const DigitalAttendancePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchDate]);
+
+  useEffect(() => {
+    loadAttendanceRecords();
+  }, [loadAttendanceRecords]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +56,7 @@ const DigitalAttendancePage = () => {
     }
 
     try {
-      const response = await apiClient.post('/attendance/digital', {
+      await apiClient.post('/attendance/digital', {
         date: formData.date,
         status: formData.status,
         remarks: formData.remarks

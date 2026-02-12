@@ -49,6 +49,7 @@ model Employee {
   gateEntriesAsEmployee GateEntry[] @relation("gateEntriesAsEmployee")
   instructorRecords     InstructorDailyWorkRecord[] @relation("instructorRecords")
   riderRecords          InstructorDailyWorkRecord[] @relation("riderRecords")
+  horseFeedRecords      HorseFeed[] @relation("horseFeedRecords")
 
 
   @@index([designation])
@@ -112,6 +113,7 @@ model Horse {
   careTeam              HorseCareTeam[]
   groomWorkEntries      WorkSheetEntry[] @relation("groomWorkEntries")
   workRecords           InstructorDailyWorkRecord[] @relation("workRecords")
+  feedRecords           HorseFeed[] @relation("horseFeedRecords")
 
   @@index([status])
   @@index([name])
@@ -401,6 +403,7 @@ model GateEntry {
   employee              Employee?   @relation("gateEntriesAsEmployee", fields: [employeeId], references: [id], onDelete: SetNull)
   visitorId             String?     // For visitor entries
   visitor               Visitor?    @relation(fields: [visitorId], references: [id], onDelete: SetNull)
+  vehicleNo             String?     // Vehicle registration number
   entryTime             DateTime
   exitTime              DateTime?
   notes                 String?     // Additional notes/remarks
@@ -446,5 +449,37 @@ model InstructorDailyWorkRecord {
   @@index([instructorId])
   @@index([horseId])
   @@index([riderId])
+  @@index([date])
+}
+
+// Horse Feed Records
+model HorseFeed {
+  id                    String      @id @default(cuid())
+  recordedById          String      // Stable Manager or Ground Supervisor
+  recordedBy            Employee    @relation("horseFeedRecords", fields: [recordedById], references: [id], onDelete: Cascade)
+  horseId               String
+  horse                 Horse       @relation("horseFeedRecords", fields: [horseId], references: [id], onDelete: Cascade)
+  date                  DateTime    // Date of feed record
+  
+  // Feed quantities (in kg or standard units)
+  balance               Float?
+  barley                Float?
+  oats                  Float?
+  soya                  Float?
+  lucerne               Float?
+  linseed               Float?
+  rOil                  Float?      // R.Oil
+  biotin                Float?
+  joint                 Float?
+  epsom                 Float?
+  heylase               Float?
+  
+  notes                 String?     // Optional notes
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([horseId, date])  // Only one feed record per horse per day
+  @@index([recordedById])
+  @@index([horseId])
   @@index([date])
 }
