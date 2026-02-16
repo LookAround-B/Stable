@@ -112,6 +112,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     let record;
+    const now = new Date();
     if (existingRecord) {
       // Update existing record
       record = await prisma.attendance.update({
@@ -119,8 +120,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         data: {
           status,
           remarks,
-          checkInTime: new Date(), // Add timestamp when marked
-          updatedAt: new Date()
+          markedAt: now, // Record when attendance was marked
+          updatedAt: now
         },
         include: {
           employee: {
@@ -140,7 +141,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           date: attendanceDate,
           status,
           remarks,
-          checkInTime: new Date() // Add timestamp when marked
+          markedAt: now // Record when attendance was marked
         },
         include: {
           employee: {

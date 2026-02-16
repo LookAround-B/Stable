@@ -50,6 +50,8 @@ model Employee {
   instructorRecords     InstructorDailyWorkRecord[] @relation("instructorRecords")
   riderRecords          InstructorDailyWorkRecord[] @relation("riderRecords")
   horseFeedRecords      HorseFeed[] @relation("horseFeedRecords")
+  expensesCreated       Expense[] @relation("expenseCreatedBy")
+  assignedExpenses      Expense[] @relation("employeeExpenses")
 
 
   @@index([designation])
@@ -114,6 +116,7 @@ model Horse {
   groomWorkEntries      WorkSheetEntry[] @relation("groomWorkEntries")
   workRecords           InstructorDailyWorkRecord[] @relation("workRecords")
   feedRecords           HorseFeed[] @relation("horseFeedRecords")
+  expenses              Expense[] @relation("horseExpenses")
 
   @@index([status])
   @@index([name])
@@ -385,6 +388,7 @@ model Attendance {
   checkOutTime          DateTime?
   status                String      @default("Present") // 'Present', 'Absent', 'Leave', 'WOFF' (Weekly Off), 'Half Day'
   remarks               String?
+  markedAt              DateTime?   // Timestamp when attendance was marked
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
@@ -481,5 +485,33 @@ model HorseFeed {
   @@unique([horseId, date])  // Only one feed record per horse per day
   @@index([recordedById])
   @@index([horseId])
+  @@index([date])
+}
+
+model Expense {
+  id                    String      @id @default(cuid())
+  type                  String      // 'Medicine', 'Treatment', 'Maintenance', 'Miscellaneous'
+  amount                Float
+  description           String
+  date                  DateTime
+  createdById           String
+  createdBy             Employee    @relation("expenseCreatedBy", fields: [createdById], references: [id])
+  
+  // Assignment - can be either horse OR employee, not both
+  horseId               String?
+  horse                 Horse?      @relation("horseExpenses", fields: [horseId], references: [id], onDelete: SetNull)
+  employeeId            String?
+  employee              Employee?   @relation("employeeExpenses", fields: [employeeId], references: [id], onDelete: SetNull)
+  
+  // Attachments - JSON array of file URLs
+  attachments           String?     // JSON array of attachment URLs
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([createdById])
+  @@index([horseId])
+  @@index([employeeId])
+  @@index([type])
   @@index([date])
 }

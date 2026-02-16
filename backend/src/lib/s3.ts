@@ -29,8 +29,10 @@ export const uploadImage = async (
     // Write file
     fs.writeFileSync(filePath, buffer)
     
-    // Return public URL
-    const publicUrl = `/uploads/${folderPath}/${uniqueName}`
+    // Return public URL with full backend domain
+    const relativePath = `/uploads/${folderPath}/${uniqueName}`
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000'
+    const publicUrl = `${backendUrl}${relativePath}`
     return publicUrl
   } catch (error) {
     console.error('Error uploading image:', error)

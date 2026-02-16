@@ -246,6 +246,7 @@ const TeamAttendancePage = () => {
                     <th>Role</th>
                     <th>Status</th>
                     <th>Remarks</th>
+                    <th>Marked At</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -259,6 +260,9 @@ const TeamAttendancePage = () => {
                         </span>
                       </td>
                       <td>{record.remarks || '-'}</td>
+                      <td>
+                        {record.markedAt ? new Date(record.markedAt).toLocaleString() : 'Not marked'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

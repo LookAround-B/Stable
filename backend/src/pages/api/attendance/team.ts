@@ -150,7 +150,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       remarks: record.remarks,
       date: record.date,
       checkInTime: record.checkInTime,
-      checkOutTime: record.checkOutTime
+      checkOutTime: record.checkOutTime,
+      markedAt: record.markedAt
     }));
 
     return res.status(200).json({

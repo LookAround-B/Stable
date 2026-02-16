@@ -7,6 +7,7 @@ async function main() {
   console.log('🌱 Seeding database with comprehensive test data...');
 
   // Clear existing data - delete in order of dependencies
+  await prisma.expense.deleteMany({});
   await prisma.attendance.deleteMany({});
   await prisma.groomWorkSheet.deleteMany({});
   await prisma.task.deleteMany({});
@@ -224,7 +225,7 @@ async function main() {
       email: 'senior-accounts@test.com',
       password: 'password123',
       fullName: 'Patricia Senior Accounts',
-      designation: 'Senior Executive Accounts',
+      designation: 'Senior Executive - Accounts',
       department: 'Accounts/Administration',
       phoneNumber: '555-0017',
       shiftTiming: null,
@@ -318,6 +319,63 @@ async function main() {
       });
       console.log(`📋 Set supervisor: ${createdUsers[rel.supervisor].fullName} → ${createdUsers[rel.subordinate].fullName}`);
     }
+  }
+
+  // Seed horses
+  console.log('\n🐴 Seeding Horses...');
+  const horseNames = [
+    'Alta Strada', 'Vallee', 'Dejavu', 'Tara', 'Smile Stone', 'Perseus', 'Prada', 'Rodrigo',
+    'Zara', 'Fabia', 'Claudia', 'Cadillac', 'Maximus', 'Cesat', 'Pluto', 'Rebelda',
+    'Sheeba', 'Fudge', 'Poppy', 'Sil Colman', 'Saraswathi', 'Leon', 'Starlight', 'General',
+  ];
+
+  for (const horseName of horseNames) {
+    const horse = await prisma.horse.upsert({
+      where: { name: horseName },
+      update: {},
+      create: {
+        name: horseName,
+        gender: Math.random() > 0.5 ? 'Male' : 'Female',
+        dateOfBirth: new Date(2015, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+        breed: 'Thoroughbred',
+        color: ['Bay', 'Chestnut', 'Black', 'Grey'].sort(() => Math.random() - 0.5)[0],
+        status: 'Active',
+        supervisorId: createdUsers['manager@test.com']?.id || null,
+      },
+    });
+  }
+
+  console.log(`✅ Seeded ${horseNames.length} horses`);
+
+  // Seed sample expenses for testing
+  console.log('\n💳 Seeding Sample Expenses...');
+  const allHorses = await prisma.horse.findMany({ take: 5 });
+  const allEmployees = await prisma.employee.findMany({ take: 5 });
+  const seniorAccountsUser = createdUsers['senior-accounts@test.com'];
+
+  if (seniorAccountsUser && allHorses.length > 0) {
+    const expenseTypes = ['Medicine', 'Treatment', 'Maintenance', 'Miscellaneous'];
+    
+    for (let i = 0; i < 10; i++) {
+      const randomType = expenseTypes[Math.floor(Math.random() * expenseTypes.length)];
+      const horse = allHorses[i % allHorses.length];
+      const date = new Date();
+      date.setDate(date.getDate() - Math.floor(Math.random() * 30)); // Random date within last 30 days
+
+      await prisma.expense.create({
+        data: {
+          type: randomType,
+          amount: Math.floor(Math.random() * 5000) + 500, // 500 - 5500
+          description: `Sample ${randomType} expense for testing`,
+          date: date,
+          createdById: seniorAccountsUser.id,
+          horseId: horse.id,
+          attachments: null,
+        },
+      });
+    }
+
+    console.log(`✅ Seeded 10 sample expenses`);
   }
 
   // Seed attendance data for today

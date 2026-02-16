@@ -20,6 +20,7 @@ app.use('/api/health-records', require('./routes/healthRecordRoutes'));
 app.use('/api/audit-logs', require('./routes/auditLogRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/expenses', require('./routes/expenseRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
