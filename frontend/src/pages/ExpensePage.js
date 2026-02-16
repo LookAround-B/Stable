@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import '../styles/ExpensePage.css';
+import * as XLSX from 'xlsx';
 
 const ExpensePage = () => {
   const { user } = useAuth();
@@ -267,6 +268,60 @@ const ExpensePage = () => {
       attachments: parsedAttachments,
     });
     setShowForm(true);
+  };
+
+  const handleDownloadExcel = () => {
+    if (expenses.length === 0) {
+      alert('No expenses to download');
+      return;
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB');
+    };
+
+    const formatCurrency = (amount) => {
+      return `₹ ${parseFloat(amount || 0).toFixed(2)}`;
+    };
+
+    // Prepare data for Excel
+    const excelData = expenses.map((expense) => ({
+      'Date': formatDate(expense.date),
+      'Type': expense.type || '',
+      'Description': expense.description || '',
+      'Amount': formatCurrency(expense.amount),
+      'Assigned Horse': expense.horse?.name || '-',
+      'Assigned Employee': expense.employee?.fullName || '-',
+      'Created By': expense.createdBy?.fullName || '',
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 12 }, // Date
+      { wch: 15 }, // Type
+      { wch: 25 }, // Description
+      { wch: 12 }, // Amount
+      { wch: 18 }, // Assigned Horse
+      { wch: 18 }, // Assigned Employee
+      { wch: 15 }, // Created By
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Expenses');
+
+    // Generate filename with date
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const filename = `Expenses_${dateStr}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
+    console.log('📥 Downloaded expenses to:', filename);
   };
 
   const handleDelete = async (id) => {
@@ -578,23 +633,35 @@ const ExpensePage = () => {
       <div className="expenses-list">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <h2 style={{ margin: 0 }}>Expenses ({expenses.length})</h2>
-          {(filters.type || filters.horseId || filters.employeeId || filters.startDate || filters.endDate) && (
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setFilters({
-                  type: '',
-                  horseId: '',
-                  employeeId: '',
-                  startDate: '',
-                  endDate: '',
-                });
-              }}
-              style={{ padding: '8px 16px', fontSize: '13px' }}
-            >
-              Clear Filters
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {expenses.length > 0 && (
+              <button
+                className="btn-primary"
+                onClick={handleDownloadExcel}
+                style={{ padding: '8px 16px', fontSize: '13px' }}
+                title="Download filtered expenses as Excel"
+              >
+                📥 Download Excel
+              </button>
+            )}
+            {(filters.type || filters.horseId || filters.employeeId || filters.startDate || filters.endDate) && (
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setFilters({
+                    type: '',
+                    horseId: '',
+                    employeeId: '',
+                    startDate: '',
+                    endDate: '',
+                  });
+                }}
+                style={{ padding: '8px 16px', fontSize: '13px' }}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
         </div>
 
         {loading && <p style={{ textAlign: 'center', color: '#666' }}>⏳ Loading expenses...</p>}
