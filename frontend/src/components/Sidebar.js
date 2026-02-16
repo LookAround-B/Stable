@@ -17,7 +17,7 @@ const Sidebar = () => {
   const showEIRS = user?.designation === 'Instructor';
   const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showExpenses = user?.designation === 'Senior Executive - Accounts' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const showExpenses = ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
 
   return (
     <aside className="sidebar">

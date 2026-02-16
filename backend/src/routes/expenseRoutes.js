@@ -16,15 +16,15 @@ router.get('/', authenticateToken, getAllExpenses);
 router.get('/:id', authenticateToken, getExpenseById);
 
 // POST /api/expenses - Create new expense
-// Only Senior Executive – Accounts can create expenses
-router.post('/', authenticateToken, authorize('Senior Executive - Accounts'), createExpense);
+// Only Senior Executive – Accounts and Junior Executive – Accounts can create expenses
+router.post('/', authenticateToken, authorize('Senior Executive - Accounts', 'Junior Executive - Accounts'), createExpense);
 
 // PUT /api/expenses/:id - Update expense
-// Only Senior Executive – Accounts can edit expenses
-router.put('/:id', authenticateToken, authorize('Senior Executive - Accounts'), updateExpense);
+// Only Senior Executive – Accounts and Junior Executive – Accounts can edit expenses
+router.put('/:id', authenticateToken, authorize('Senior Executive - Accounts', 'Junior Executive - Accounts'), updateExpense);
 
 // DELETE /api/expenses/:id - Delete expense
-// Only Senior Executive – Accounts can delete expenses
-router.delete('/:id', authenticateToken, authorize('Senior Executive - Accounts'), deleteExpense);
+// Only Senior Executive – Accounts and Junior Executive – Accounts can delete expenses
+router.delete('/:id', authenticateToken, authorize('Senior Executive - Accounts', 'Junior Executive - Accounts'), deleteExpense);
 
 module.exports = router;
