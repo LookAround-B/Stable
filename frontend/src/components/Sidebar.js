@@ -18,6 +18,9 @@ const Sidebar = () => {
   const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showExpenses = ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
+  const showFines = true; // Everyone can see their fines
+
 
   return (
     <aside className="sidebar">
@@ -135,6 +138,24 @@ const Sidebar = () => {
             </Link>
           </li>
         )}
+
+        {showInspections && (
+          <li>
+            <Link to="/inspections" className="menu-item">
+              🔍 Inspection Rounds
+            </Link>
+          </li>
+        )}
+
+        {showFines && (
+          <li>
+            <Link to="/fines" className="menu-item">
+              ⚠️ Fine System
+            </Link>
+          </li>
+        )}
+
+
 
         <li>
           <Link to="/reports" className="menu-item">

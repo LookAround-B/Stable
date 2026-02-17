@@ -52,6 +52,12 @@ model Employee {
   horseFeedRecords      HorseFeed[] @relation("horseFeedRecords")
   expensesCreated       Expense[] @relation("expenseCreatedBy")
   assignedExpenses      Expense[] @relation("employeeExpenses")
+  inspectionRounds      InspectionRound[] @relation("inspectionRounds")
+  resolvedInspections   InspectionRound[] @relation("resolvedInspections")
+  roundChecks           JamedarRoundCheck[] @relation("roundChecks")
+  finesIssued           Fine[] @relation("finesIssued")
+  finesReceived         Fine[] @relation("finesReceived")
+  finesResolved         Fine[] @relation("finesResolved")
 
 
   @@index([designation])
@@ -117,6 +123,7 @@ model Horse {
   workRecords           InstructorDailyWorkRecord[] @relation("workRecords")
   feedRecords           HorseFeed[] @relation("horseFeedRecords")
   expenses              Expense[] @relation("horseExpenses")
+  inspectionRounds      InspectionRound[] @relation("inspectionRounds")
 
   @@index([status])
   @@index([name])
@@ -514,4 +521,72 @@ model Expense {
   @@index([employeeId])
   @@index([type])
   @@index([date])
+}
+
+model InspectionRound {
+  id                    String      @id @default(cuid())
+  jamedarId             String
+  jamedar               Employee    @relation("inspectionRounds", fields: [jamedarId], references: [id], onDelete: Cascade)
+  round                 String      // 'Morning', 'Afternoon', 'Evening'
+  image                 String      // Image file URL
+  description           String      // Inspection description (max 500 chars)
+  horseId               String?
+  horse                 Horse?      @relation("inspectionRounds", fields: [horseId], references: [id], onDelete: SetNull)
+  location              String      // Location text (max 100 chars)
+  severityLevel         String      // 'Low', 'Medium', 'High', 'Critical'
+  
+  // Comments and Resolution
+  comments              String?     // Comments from reviewers (max 500 chars)
+  status                String      @default("Open") // 'Open', 'Resolved'
+  resolvedById          String?
+  resolvedBy            Employee?   @relation("resolvedInspections", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolutionNotes       String?     // Resolution notes (max 500 chars)
+  resolvedAt            DateTime?
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([jamedarId])
+  @@index([round])
+  @@index([horseId])
+  @@index([severityLevel])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Fine {
+  id                    String      @id @default(cuid())
+  issuedById            String
+  issuedBy              Employee    @relation("finesIssued", fields: [issuedById], references: [id], onDelete: Cascade)
+  issuedToId            String
+  issuedTo              Employee    @relation("finesReceived", fields: [issuedToId], references: [id], onDelete: Cascade)
+  reason                String      // Reason for fine (max 500 chars)
+  evidenceImage         String      // Evidence image URL (mandatory)
+  status                String      @default("Open") // 'Open', 'Resolved', 'Dismissed'
+  resolvedById          String?
+  resolvedBy            Employee?   @relation("finesResolved", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolutionNotes       String?     // Notes when resolving
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([issuedById])
+  @@index([issuedToId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model JamedarRoundCheck {
+  id                    String      @id @default(cuid())
+  jamedarId             String
+  jamedar               Employee    @relation("roundChecks", fields: [jamedarId], references: [id], onDelete: Cascade)
+  checkDate             DateTime    // Date of the round check (stored as date only)
+  morningCompleted      Boolean     @default(false)
+  afternoonCompleted    Boolean     @default(false)
+  eveningCompleted      Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([jamedarId, checkDate])
+  @@index([jamedarId])
+  @@index([checkDate])
 }
