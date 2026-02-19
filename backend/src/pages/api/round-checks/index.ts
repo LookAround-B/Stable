@@ -17,7 +17,7 @@ async function handleGetRoundCheck(req: NextApiRequest, res: NextApiResponse) {
     const userId = decoded?.id
     const userDesignation = decoded?.designation
 
-    if (!userId) {
+    if (!userId || !userDesignation) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 

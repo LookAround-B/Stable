@@ -55,7 +55,7 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
     const userId = decoded?.id
     const userRole = decoded?.designation
 
-    if (!userId) {
+    if (!userId || !userRole) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 

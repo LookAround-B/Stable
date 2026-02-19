@@ -19,7 +19,7 @@ async function handleGetFines(req: NextApiRequest, res: NextApiResponse) {
     const userId = decoded?.id
     const userDesignation = decoded?.designation
 
-    if (!userId) {
+    if (!userId || !userDesignation) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
@@ -85,7 +85,7 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
     const issuedById = decoded?.id
     const userDesignation = decoded?.designation
 
-    if (!issuedById) {
+    if (!issuedById || !userDesignation) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
