@@ -109,7 +109,7 @@ async function handleUpdateExpense(req: NextApiRequest, res: NextApiResponse, _d
         formData[fieldname] = val
       })
 
-      bb.on('file', (fieldname: string, file: any, info: any) => {
+      bb.on('file', (_fieldname: string, file: any, info: any) => {
         const filePromise = new Promise((resolve, reject) => {
           try {
             const chunks: Buffer[] = []
