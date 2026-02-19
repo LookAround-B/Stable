@@ -11,7 +11,7 @@ if (!fs.existsSync(uploadsDir)) {
 export const uploadImage = async (
   buffer: Buffer,
   filename: string,
-  mimetype: string,
+  _mimetype: string,
   folderPath: string
 ): Promise<string> => {
   try {
