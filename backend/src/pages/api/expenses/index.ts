@@ -113,7 +113,7 @@ async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, _dec
   }
 }
 
-async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, _decoded: any) {
+async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, decoded: any) {
   try {
     console.log('📝 Creating new expense...')
     const { type, amount, description, date, horseId, employeeId, attachments } = req.body
