@@ -50,7 +50,7 @@ export default async function handler(
   }
 }
 
-async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, decoded: any) {
+async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, _decoded: any) {
   try {
     const { type, horseId, employeeId, startDate, endDate, page = 1, limit = 10 } = req.query
 
@@ -113,7 +113,7 @@ async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, deco
   }
 }
 
-async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, decoded: any) {
+async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, _decoded: any) {
   try {
     console.log('📝 Creating new expense...')
     const { type, amount, description, date, horseId, employeeId, attachments } = req.body
