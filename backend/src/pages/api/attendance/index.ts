@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
-import { requireAuth } from '@/lib/roles-prd'
 import cors from 'cors'
 import { runMiddleware } from '@/lib/cors'
 
