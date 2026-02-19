@@ -33,7 +33,7 @@ export default async function handler(
 
     if (req.method === 'GET') {
       // Get all meetings for the current user (created or participating)
-      const { status, filterType = 'all' } = req.query
+      const { status, _filterType = 'all' } = req.query
 
       const where: any = {
         OR: [
