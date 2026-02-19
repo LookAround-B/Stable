@@ -4,7 +4,9 @@ import cors from 'cors'
 
 // Initialize the cors middleware
 const corsMiddleware = cors({
-  origin: process.env.CORS_ORIGIN || ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
+  origin: process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',')
+    : ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000', 'https://horsestable.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
