@@ -54,6 +54,9 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
     const { id } = req.query
     const { round, description, horseId, location, severityLevel, comments, status, resolutionNotes } = req.body
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
     const userRole = decoded?.designation

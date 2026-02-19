@@ -25,6 +25,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
     const decoded = verifyToken(token);
 
     if (!decoded) {

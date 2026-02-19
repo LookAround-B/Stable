@@ -75,7 +75,10 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     const { id } = req.query
     const { status, completionNotes, photoUrl } = req.body
     const token = getTokenFromRequest(req as any)
-    const decoded = verifyToken(token)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    const decoded = verifyToken(token)   
     const userId = decoded?.id
 
     if (!id) {

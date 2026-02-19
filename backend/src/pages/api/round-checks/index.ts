@@ -84,6 +84,9 @@ async function handleUpsertRoundCheck(req: NextApiRequest, res: NextApiResponse)
   try {
     const { date, morningCompleted, afternoonCompleted, eveningCompleted } = req.body
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const jamedarId = decoded?.id
     const userDesignation = decoded?.designation

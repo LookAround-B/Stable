@@ -186,6 +186,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return handleGetInspections(req, res)
     case 'POST':
       // Check if user is Jamedar
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' })
+      }
       const decoded = verifyToken(token)
       if (decoded?.designation !== 'Jamedar') {
         return res.status(403).json({ error: 'Only Jamedar can create inspections' })

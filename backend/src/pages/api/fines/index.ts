@@ -84,6 +84,9 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { issuedToId, reason, evidenceImage } = req.body
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const issuedById = decoded?.id
     const userDesignation = decoded?.designation
