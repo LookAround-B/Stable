@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/busboy": "^1.5.3",
-    "@types/cors": "^2.8.13",
+    "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",

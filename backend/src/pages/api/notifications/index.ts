@@ -64,7 +64,7 @@ async function handleGetNotifications(
 async function handleMarkAsRead(
   req: NextApiRequest,
   res: NextApiResponse,
-  employeeId: string
+  _employeeId: string
 ) {
   try {
     const { notificationId } = req.body

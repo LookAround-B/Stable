@@ -5,7 +5,6 @@ import { uploadImage } from '@/lib/s3'
 import { runMiddleware } from '@/lib/cors'
 import cors from 'cors'
 import busboy from 'busboy'
-import { Readable } from 'stream'
 
 const corsMiddleware = cors({
   origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
@@ -48,7 +47,7 @@ export default async function handler(
     let filename = ''
     let mimetype = ''
 
-    bb.on('file', (fieldname, stream, info) => {
+    bb.on('file', (_fieldname, stream, info) => {
       const chunks: Buffer[] = []
 
       stream.on('data', (chunk) => {

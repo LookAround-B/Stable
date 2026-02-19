@@ -35,7 +35,7 @@ export default async function handler(
   }
 }
 
-async function handleGetSettings(req: NextApiRequest, res: NextApiResponse) {
+async function handleGetSettings(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const settings = await prisma.systemSettings.findMany()
 

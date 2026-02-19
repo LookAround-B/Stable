@@ -50,7 +50,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-async function handleGetVisitors(req: NextApiRequest, res: NextApiResponse) {
+async function handleGetVisitors(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const visitors = await prisma.visitor.findMany({
       orderBy: {
