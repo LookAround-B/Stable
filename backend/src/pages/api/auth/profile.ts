@@ -26,8 +26,6 @@ export default async function handler(
     if (!authHeader) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
-
-    const token = authHeader.replace('Bearer ', '')
     
     const { fullName, phoneNumber, designation } = req.body
 
