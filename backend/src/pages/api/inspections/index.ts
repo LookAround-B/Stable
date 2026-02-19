@@ -13,6 +13,9 @@ async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { round, horseId, severityLevel, startDate, endDate, jamedarId } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
     const userDesignation = decoded?.designation
@@ -68,6 +71,9 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
   try {
     const { round, description, horseId, location, severityLevel, image } = req.body
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const jamedarId = decoded?.id
 

@@ -15,6 +15,9 @@ async function handleGetFines(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { status, issuedToId, issuedById, startDate, endDate } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
     const userDesignation = decoded?.designation

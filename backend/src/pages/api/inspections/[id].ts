@@ -13,6 +13,9 @@ async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
 
@@ -164,11 +167,14 @@ async function handleDeleteInspection(req: NextApiRequest, res: NextApiResponse)
   try {
     const { id } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
     const userDesignation = decoded?.designation
 
-    if (!userId) {
+    if (!userId || !userDesignation) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 

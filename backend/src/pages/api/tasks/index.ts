@@ -37,6 +37,9 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { status, horseId, skip = 0, take = 10 } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
 
@@ -112,6 +115,9 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
 async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
   try {
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
 
