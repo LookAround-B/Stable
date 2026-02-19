@@ -124,11 +124,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       attendanceDate.setHours(0, 0, 0, 0);
 
       // Check if record exists for this employee on this date
-      const existing = await prisma.attendance.findUnique({
+      const existing = await prisma.attendance.findFirst({
         where: {
-          employeeId_date: {
-            employeeId,
-            date: attendanceDate,
+          employeeId,
+          date: {
+            gte: new Date(attendanceDate.toISOString().split('T')[0]),
+            lt: new Date(new Date(attendanceDate).getTime() + 86400000),
           },
         },
       });
