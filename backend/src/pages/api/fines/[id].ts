@@ -59,7 +59,7 @@ async function handleUpdateFine(req: NextApiRequest, res: NextApiResponse) {
     }
     const decoded = verifyToken(token)
     const userId = decoded?.id
-    const userDesignation = decoded?.role
+    const userDesignation = decoded?.designation
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -129,7 +129,7 @@ async function handleDeleteFine(req: NextApiRequest, res: NextApiResponse) {
     }
     const decoded = verifyToken(token)
     const userId = decoded?.id
-    const userDesignation = decoded?.role
+    const userDesignation = decoded?.designation
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' })

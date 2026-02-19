@@ -17,7 +17,7 @@ async function handleGetFines(req: NextApiRequest, res: NextApiResponse) {
     const token = getTokenFromRequest(req as any)
     const decoded = verifyToken(token)
     const userId = decoded?.id
-    const userDesignation = decoded?.role
+    const userDesignation = decoded?.designation
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -83,7 +83,7 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
     const token = getTokenFromRequest(req as any)
     const decoded = verifyToken(token)
     const issuedById = decoded?.id
-    const userDesignation = decoded?.role
+    const userDesignation = decoded?.designation
 
     if (!issuedById) {
       return res.status(401).json({ error: 'Unauthorized' })
