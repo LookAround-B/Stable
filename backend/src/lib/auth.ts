@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken'
 import { NextRequest, NextResponse } from 'next/server'
 import type { NextApiRequest } from 'next'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d'
+const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_EXPIRE: string = process.env.JWT_EXPIRE || '7d'
 
 export interface JwtPayload {
   id: string
@@ -13,7 +13,7 @@ export interface JwtPayload {
 }
 
 export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE as string })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE })
 }
 
 export const verifyToken = (token: string): JwtPayload | null => {
