@@ -13,6 +13,9 @@ async function handleGetFine(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
 
@@ -51,6 +54,9 @@ async function handleUpdateFine(req: NextApiRequest, res: NextApiResponse) {
     const { id } = req.query
     const { status, resolutionNotes } = req.body
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
     const userDesignation = decoded?.role
@@ -118,6 +124,9 @@ async function handleDeleteFine(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
     const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
     const decoded = verifyToken(token)
     const userId = decoded?.id
     const userDesignation = decoded?.role
