@@ -54,7 +54,7 @@ export default async function handler(
   }
 }
 
-async function handleGetExpense(_req: NextApiRequest, res: NextApiResponse, decoded: any, id: string) {
+async function handleGetExpense(_req: NextApiRequest, res: NextApiResponse, _decoded: any, id: string) {
   try {
     const expense = await prisma.expense.findUnique({
       where: { id },
@@ -86,7 +86,7 @@ async function handleGetExpense(_req: NextApiRequest, res: NextApiResponse, deco
   }
 }
 
-async function handleUpdateExpense(req: NextApiRequest, res: NextApiResponse, decoded: any, id: string) {
+async function handleUpdateExpense(req: NextApiRequest, res: NextApiResponse, _decoded: any, id: string) {
   try {
     // Check if expense exists
     const expense = await prisma.expense.findUnique({ where: { id } })
@@ -197,7 +197,7 @@ async function handleUpdateExpense(req: NextApiRequest, res: NextApiResponse, de
   }
 }
 
-async function handleDeleteExpense(_req: NextApiRequest, res: NextApiResponse, decoded: any, id: string) {
+async function handleDeleteExpense(_req: NextApiRequest, res: NextApiResponse, _decoded: any, id: string) {
   try {
     const expense = await prisma.expense.findUnique({ where: { id } })
     if (!expense) {
