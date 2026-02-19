@@ -2,22 +2,51 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import cors from 'cors'
 
+// Get allowed origins from environment or defaults
+function getAllowedOrigins(): string[] {
+  if (process.env.CORS_ORIGIN) {
+    return process.env.CORS_ORIGIN.split(',').map((origin: string) => origin.trim());
+  }
+  return [
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3000',
+    'https://horsestable04.vercel.app',
+    'https://horsestable-frontend.vercel.app',
+    process.env.FRONTEND_URL
+  ].filter((url): url is string => !!url);
+}
+
 // Initialize the cors middleware
 const corsMiddleware = cors({
-  origin: process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',')
-    : [
-        'http://localhost:3001',
-        'http://localhost:3002',
-        'http://localhost:3000',
-        'https://horsestable04.vercel.app',
-        'https://horsestable-frontend.vercel.app',
-        process.env.FRONTEND_URL
-      ].filter((url): url is string => !!url),
+  origin: getAllowedOrigins(),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 })
+
+// Create new cors middleware instance with current env variables
+export function createCorsMiddleware() {
+  return cors({
+    origin: getAllowedOrigins(),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+}
+
+// Set CORS headers manually for API routes that don't use middleware
+export function setCorsHeaders(res: NextApiResponse, origin?: string) {
+  const allowedOrigins = getAllowedOrigins();
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (allowedOrigins.length > 0) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+}
 
 // Helper function to run middleware
 export function runMiddleware(

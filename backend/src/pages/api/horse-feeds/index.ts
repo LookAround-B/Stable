@@ -1,13 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
-import cors from 'cors';
-import { runMiddleware } from '../../../lib/cors';
+import { runMiddleware, createCorsMiddleware } from '../../../lib/cors';
 
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-});
+const corsMiddleware = createCorsMiddleware();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   await runMiddleware(req, res, corsMiddleware);

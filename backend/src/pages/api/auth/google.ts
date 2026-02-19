@@ -4,7 +4,9 @@ import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { prisma } from '../../../lib/prisma';
 
-const CORS_ALLOWED_ORIGINS = ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'];
+const CORS_ALLOWED_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'];
 
 function setCorsHeaders(res: NextApiResponse, origin?: string) {
   if (origin && CORS_ALLOWED_ORIGINS.includes(origin)) {

@@ -2,14 +2,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { uploadImage } from '@/lib/s3'
-import { runMiddleware } from '@/lib/cors'
-import cors from 'cors'
+import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
 import busboy from 'busboy'
 
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-})
+const corsMiddleware = createCorsMiddleware()
 
 export const config = {
   api: {

@@ -6,8 +6,12 @@ import { runMiddleware } from '@/lib/cors'
 import bcrypt from 'bcryptjs'
 import cors from 'cors'
 
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'];
+
 const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
+  origin: corsOrigins,
   credentials: true,
 })
 

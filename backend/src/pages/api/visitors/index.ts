@@ -1,15 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { runMiddleware } from '../../../lib/cors';
-import cors from 'cors';
+import { runMiddleware, createCorsMiddleware } from '../../../lib/cors';
 
 const prisma = new PrismaClient();
 
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-});
+const corsMiddleware = createCorsMiddleware();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Apply CORS middleware
