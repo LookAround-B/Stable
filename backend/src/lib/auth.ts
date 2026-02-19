@@ -1,5 +1,5 @@
 // JWT and Authentication utilities
-import jwt, { SignOptions } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import { NextRequest, NextResponse } from 'next/server'
 import type { NextApiRequest } from 'next'
 
