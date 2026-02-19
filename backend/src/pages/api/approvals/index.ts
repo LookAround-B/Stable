@@ -36,7 +36,8 @@ async function handleGetApprovals(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { status, skip = 0, take = 10 } = req.query
 
-    const where = status ? { status } : {}
+    const statusValue = Array.isArray(status) ? status[0] : status
+    const where = statusValue ? { status: statusValue } : {}
 
     const approvals = await prisma.approval.findMany({
       where,
@@ -47,7 +48,7 @@ async function handleGetApprovals(req: NextApiRequest, res: NextApiResponse) {
         approver: true,
       },
       orderBy: { createdAt: 'desc' },
-    })
+    }})
 
     const total = await prisma.approval.count({ where })
 
