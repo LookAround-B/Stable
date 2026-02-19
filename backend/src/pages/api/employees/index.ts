@@ -47,7 +47,8 @@ async function handleGetEmployees(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { designation, skip = 0, take = 1000 } = req.query
 
-    const where = designation ? { designation } : {}
+    const designationValue = Array.isArray(designation) ? designation[0] : designation
+    const where = designationValue ? { designation: designationValue } : {}
 
     const employees = await prisma.employee.findMany({
       where,
