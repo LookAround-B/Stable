@@ -47,7 +47,7 @@ const DigitalAttendancePage = () => {
         status: 'WOFF'
       }));
     }
-  }, [formData.date]);
+  }, [formData.date, formData.status]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;

@@ -122,11 +122,6 @@ const TeamAttendancePage = () => {
     return dateObj.getDay() === 1; // 1 = Monday
   };
 
-  const getDayName = (dateStr) => {
-    const dateObj = new Date(dateStr);
-    return dateObj.toLocaleString('en-US', { weekday: 'long' });
-  };
-
   const handleDownloadExcel = () => {
     if (attendanceRecords.length === 0) {
       alert('No attendance records to download');
