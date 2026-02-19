@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import '../styles/TeamAttendancePage.css';
+import * as XLSX from 'xlsx';
 
 const TeamAttendancePage = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -18,6 +19,15 @@ const TeamAttendancePage = () => {
 
   useEffect(() => {
     loadData();
+    // Check if selected date is Monday and auto-set status to WOFF
+    const dateObj = new Date(selectedDate);
+    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 1 = Monday
+    if (dayOfWeek === 1) {
+      setFormData(prev => ({
+        ...prev,
+        status: 'WOFF'
+      }));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -107,6 +117,64 @@ const TeamAttendancePage = () => {
     return member ? member.designation : 'Unknown';
   };
 
+  const isMonday = () => {
+    const dateObj = new Date(selectedDate);
+    return dateObj.getDay() === 1; // 1 = Monday
+  };
+
+  const getDayName = (dateStr) => {
+    const dateObj = new Date(dateStr);
+    return dateObj.toLocaleString('en-US', { weekday: 'long' });
+  };
+
+  const handleDownloadExcel = () => {
+    if (attendanceRecords.length === 0) {
+      alert('No attendance records to download');
+      return;
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB');
+    };
+
+    // Prepare data for Excel
+    const excelData = attendanceRecords.map((record) => ({
+      'Date': formatDate(record.date),
+      'Employee Name': record.employee?.fullName || '-',
+      'Designation': record.employee?.designation || '-',
+      'Status': record.status,
+      'Remarks': record.remarks || '',
+      'Marked At': record.markedAt ? new Date(record.markedAt).toLocaleString('en-GB') : '',
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 12 }, // Date
+      { wch: 20 }, // Employee Name
+      { wch: 18 }, // Designation
+      { wch: 12 }, // Status
+      { wch: 25 }, // Remarks
+      { wch: 18 }, // Marked At
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
+
+    // Generate filename with date
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const filename = `Attendance_${selectedDate}_${dateStr}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
+    console.log('📥 Downloaded attendance to:', filename);
+  };
+
   return (
     <div className="team-attendance-container">
       <div className="attendance-header">
@@ -131,12 +199,20 @@ const TeamAttendancePage = () => {
         <div className="mark-section">
           <div className="section-header">
             <h3>Quick Mark Attendance</h3>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowForm(!showForm)}
-            >
-              {showForm ? 'Cancel' : '+ Mark Attendance'}
-            </button>
+            <div className="header-buttons">
+              <button 
+                className="btn btn-download"
+                onClick={handleDownloadExcel}
+              >
+                📥 Download Excel
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={() => setShowForm(!showForm)}
+              >
+                {showForm ? 'Cancel' : '+ Mark Attendance'}
+              </button>
+            </div>
           </div>
 
           {showForm && (
@@ -169,6 +245,9 @@ const TeamAttendancePage = () => {
                     className="form-input"
                     required
                   />
+                  {isMonday() && (
+                    <span className="form-hint">📅 Monday is weekly off (WOFF)</span>
+                  )}
                 </div>
               </div>
 

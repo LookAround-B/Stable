@@ -27,6 +27,7 @@ const HorsesPage = () => {
     color: '',
     dateOfBirth: '',
     height: '',
+    stableNumber: '',
     supervisorId: '',
   });
   const [message, setMessage] = useState('');
@@ -75,6 +76,18 @@ const HorsesPage = () => {
     }));
   };
 
+  // Generate random alphanumeric stable number (e.g., A12, B7, ST-09)
+  const generateStableNumber = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const formats = [
+      () => letters.charAt(Math.floor(Math.random() * 26)) + Math.floor(Math.random() * 100), // A12
+      () => letters.substring(0, 2).split('').map(() => letters.charAt(Math.floor(Math.random() * 26))).join('') + '-' + Math.floor(Math.random() * 100).toString().padStart(2, '0'), // ST-09
+      () => letters.charAt(Math.floor(Math.random() * 26)) + Math.floor(Math.random() * 10), // B7
+    ];
+    const format = formats[Math.floor(Math.random() * formats.length)];
+    return format();
+  };
+
   const handleAddHorse = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -86,6 +99,9 @@ const HorsesPage = () => {
         throw new Error('Name and Gender are required');
       }
 
+      // Generate stable number if not provided
+      const stableNumber = formData.stableNumber || generateStableNumber();
+
       // Call API to create horse
       await apiClient.post('/horses', {
         name: formData.name,
@@ -94,6 +110,7 @@ const HorsesPage = () => {
         color: formData.color,
         dateOfBirth: formData.dateOfBirth || null,
         height: formData.height ? parseFloat(formData.height) : null,
+        stableNumber: stableNumber,
         supervisorId: formData.supervisorId || null,
         status: 'Active',
       });
@@ -111,6 +128,7 @@ const HorsesPage = () => {
         color: '',
         dateOfBirth: '',
         height: '',
+        stableNumber: '',
         supervisorId: '',
       });
       setShowModal(false);
@@ -132,6 +150,7 @@ const HorsesPage = () => {
       color: '',
       dateOfBirth: '',
       height: '',
+      stableNumber: '',
       supervisorId: '',
     });
   };
@@ -144,14 +163,16 @@ const HorsesPage = () => {
     horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase()))
+    (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const filteredMyHorses = myHorses.filter((horse) =>
     horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase()))
+    (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -268,6 +289,21 @@ const HorsesPage = () => {
                 </div>
 
                 <div className="form-group">
+                  <label htmlFor="stableNumber">Unique Stable Number (Optional)</label>
+                  <input
+                    id="stableNumber"
+                    type="text"
+                    name="stableNumber"
+                    value={formData.stableNumber}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    placeholder="(ST-09)"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label htmlFor="supervisorId">Assign to Manager</label>
                   <select
                     id="supervisorId"
@@ -321,7 +357,7 @@ const HorsesPage = () => {
           <div className="search-bar">
             <input
               type="text"
-              placeholder="🔍 Search by name, breed, color, gender..."
+              placeholder="🔍 Search by name, stable number, breed, color, gender..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -336,6 +372,7 @@ const HorsesPage = () => {
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Stable Number</th>
                   <th>Gender</th>
                   <th>Breed</th>
                   <th>Color</th>
@@ -346,9 +383,10 @@ const HorsesPage = () => {
                 {filteredMyHorses.map((horse) => (
                   <tr key={horse.id}>
                     <td>{horse.name}</td>
+                    <td>{horse.stableNumber}</td>
                     <td>{horse.gender}</td>
-                    <td>{horse.breed || 'N/A'}</td>
-                    <td>{horse.color || 'N/A'}</td>
+                    <td>{horse.breed || ''}</td>
+                    <td>{horse.color || ''}</td>
                     <td>{horse.status}</td>
                   </tr>
                 ))}
@@ -363,7 +401,7 @@ const HorsesPage = () => {
         <div className="search-bar">
           <input
             type="text"
-            placeholder="🔍 Search by name, breed, color, gender..."
+            placeholder="🔍 Search by name, stable number, breed, color, gender..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -378,6 +416,7 @@ const HorsesPage = () => {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Stable Number</th>
                 <th>Gender</th>
                 <th>Breed</th>
                 <th>Color</th>
@@ -389,9 +428,10 @@ const HorsesPage = () => {
               {filteredHorses.map((horse) => (
                 <tr key={horse.id}>
                   <td>{horse.name}</td>
+                  <td>{horse.stableNumber}</td>
                   <td>{horse.gender}</td>
-                  <td>{horse.breed || 'N/A'}</td>
-                  <td>{horse.color || 'N/A'}</td>
+                  <td>{horse.breed || ''}</td>
+                  <td>{horse.color || ''}</td>
                   <td>
                     {horse.supervisor
                       ? `${horse.supervisor.fullName} (${horse.supervisor.designation})`

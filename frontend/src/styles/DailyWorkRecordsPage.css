@@ -99,6 +99,21 @@
   box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
 }
 
+.btn-download {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-download:hover:not(:disabled) {
+  background-color: #229954;
+  box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3);
+}
+
+.control-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 .btn-success {
   background-color: #27ae60;
   color: white;

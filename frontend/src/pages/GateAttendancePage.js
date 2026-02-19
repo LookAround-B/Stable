@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import '../styles/GateAttendancePage.css';
+import * as XLSX from 'xlsx';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
@@ -155,6 +156,64 @@ const GateAttendancePage = () => {
   const visitorLogs = logs.filter((log) => log.personType === 'Visitor');
   const displayLogs = activeTab === 'staff' ? staffLogs : visitorLogs;
 
+  const handleDownloadExcel = () => {
+    if (displayLogs.length === 0) {
+      alert(`No ${activeTab} logs to download`);
+      return;
+    }
+
+    let excelData;
+    let fileName;
+    let sheetName;
+
+    if (activeTab === 'staff') {
+      excelData = displayLogs.map((log) => ({
+        'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '',
+        'Employee Name': log.personName || '-',
+        'Designation': log.designation || '-',
+        'Entry Time': formatTime(log.entryTime),
+        'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited',
+        'Shift': log.shift || '-',
+        'Notes': log.notes || '',
+      }));
+      fileName = `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      sheetName = 'Staff Entry/Exit';
+    } else {
+      excelData = displayLogs.map((log) => ({
+        'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '',
+        'Visitor Name': log.personName || '-',
+        'Purpose': log.purpose || '-',
+        'Entry Time': formatTime(log.entryTime),
+        'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited',
+        'Contact': log.contact || '-',
+        'Notes': log.notes || '',
+      }));
+      fileName = `VisitorLog_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      sheetName = 'Visitor Log';
+    }
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 12 }, // Date
+      { wch: 20 }, // Name
+      { wch: 18 }, // Designation/Purpose
+      { wch: 18 }, // Entry Time
+      { wch: 18 }, // Exit Time
+      { wch: 15 }, // Shift/Contact
+      { wch: 25 }, // Notes
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+    // Download file
+    XLSX.writeFile(workbook, fileName);
+    console.log('📥 Downloaded gate attendance to:', fileName);
+  };
+
   // Only Guards can access this page
   if (user?.designation !== 'Guard') {
     return (
@@ -187,12 +246,20 @@ const GateAttendancePage = () => {
 
       {activeTab === 'staff' && (
         <div className="section">
-          <button
-            className="btn-add"
-            onClick={() => setShowStaffForm(!showStaffForm)}
-          >
-            {showStaffForm ? '✕ Cancel' : '+ Log Staff Entry/Exit'}
-          </button>
+          <div className="section-buttons">
+            <button
+              className="btn-add"
+              onClick={() => setShowStaffForm(!showStaffForm)}
+            >
+              {showStaffForm ? '✕ Cancel' : '+ Log Staff Entry/Exit'}
+            </button>
+            <button
+              className="btn-download"
+              onClick={handleDownloadExcel}
+            >
+              📥 Download Excel
+            </button>
+          </div>
 
           {showStaffForm && (
             <div className="form-container">
@@ -300,12 +367,20 @@ const GateAttendancePage = () => {
 
       {activeTab === 'visitor' && (
         <div className="section">
-          <button
-            className="btn-add"
-            onClick={() => setShowVisitorForm(!showVisitorForm)}
-          >
-            {showVisitorForm ? '✕ Cancel' : '+ Log Visitor'}
-          </button>
+          <div className="section-buttons">
+            <button
+              className="btn-add"
+              onClick={() => setShowVisitorForm(!showVisitorForm)}
+            >
+              {showVisitorForm ? '✕ Cancel' : '+ Log Visitor'}
+            </button>
+            <button
+              className="btn-download"
+              onClick={handleDownloadExcel}
+            >
+              📥 Download Excel
+            </button>
+          </div>
 
           {showVisitorForm && (
             <div className="form-container">

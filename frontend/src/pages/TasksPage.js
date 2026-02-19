@@ -106,6 +106,19 @@ const TasksPage = () => {
     };
   }, [viewingTaskId]);
 
+  // Only Instructors can access tasks
+  if (user?.designation !== 'Instructor') {
+    return (
+      <div className="page-container">
+        <div className="error-message">
+          <h2>⛔ Access Denied</h2>
+          <p>Only Instructors can create and manage tasks.</p>
+          <p>If you need to approve tasks, please contact your supervisor.</p>
+        </div>
+      </div>
+    );
+  }
+
   const loadTasks = async () => {
     try {
       const response = await apiClient.get('/tasks');

@@ -1,0 +1,782 @@
+/* MeetingPage.css */
+
+.meeting-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.meeting-page h1 {
+  color: #2c3e50;
+  margin-bottom: 25px;
+  font-size: 2em;
+}
+
+.meeting-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  min-height: calc(100vh - 200px);
+}
+
+/* Calendar Section */
+.calendar-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.calendar-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  min-width: 200px;
+  text-align: center;
+}
+
+.calendar-header button {
+  background: #3498db;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.calendar-header button:hover {
+  background: #2980b9;
+  transform: scale(1.1);
+}
+
+.weekday-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.weekday-label {
+  text-align: center;
+  font-weight: bold;
+  color: #7f8c8d;
+  padding: 8px 0;
+  font-size: 0.9em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  flex: 1;
+}
+
+.calendar-day {
+  min-height: 80px;
+  border: 1px solid #ecf0f1;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.calendar-day:hover:not(.empty) {
+  background: #e8f4f8;
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+}
+
+.calendar-day.empty {
+  background: #f8f9fa;
+  cursor: default;
+}
+
+.day-number {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.day-meetings {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.meeting-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.meeting-dot:hover {
+  transform: scale(1.3);
+}
+
+.meeting-dot.scheduled {
+  background: #3498db;
+}
+
+.meeting-dot.completed {
+  background: #27ae60;
+}
+
+.meeting-dot.cancelled {
+  background: #e74c3c;
+}
+
+.calendar-hint {
+  margin-top: 15px;
+  padding: 10px;
+  background: #e8f4f8;
+  border-left: 4px solid #3498db;
+  color: #2c3e50;
+  font-size: 0.9em;
+  border-radius: 4px;
+}
+
+/* Details Section */
+.details-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-buttons button {
+  padding: 8px 16px;
+  background: #ecf0f1;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.filter-buttons button:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.filter-buttons button.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+/* Meetings List */
+.meetings-list-container {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.meetings-list-container h4 {
+  color: #2c3e50;
+  margin: 0 0 12px 0;
+  font-size: 1em;
+}
+
+.meetings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meeting-list-item {
+  padding: 12px;
+  background: white;
+  border: 2px solid #ecf0f1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.meeting-list-item:hover {
+  border-color: #3498db;
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.2);
+  transform: translateX(4px);
+}
+
+.meeting-list-item.selected {
+  background: #3498db;
+  border-color: #3498db;
+  color: white;
+}
+
+.meeting-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.meeting-title {
+  font-weight: bold;
+  font-size: 0.95em;
+}
+
+.status-badge-small {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75em;
+  font-weight: bold;
+}
+
+.meeting-list-item.selected .status-badge-small {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.meeting-list-date {
+  font-size: 0.85em;
+  color: #7f8c8d;
+  margin-bottom: 4px;
+}
+
+.meeting-list-item.selected .meeting-list-date {
+  color: #ecf0f1;
+}
+
+.meeting-list-participants {
+  font-size: 0.8em;
+  color: #95a5a6;
+}
+
+.meeting-list-item.selected .meeting-list-participants {
+  color: #ecf0f1;
+}
+
+.meeting-details {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.meeting-details h3 {
+  color: #2c3e50;
+  margin: 0 0 15px 0;
+  font-size: 1.5em;
+}
+
+.detail-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.detail-info p {
+  margin: 8px 0;
+  color: #2c3e50;
+}
+
+.detail-info strong {
+  color: #34495e;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.status-badge.scheduled {
+  background: #3498db;
+  color: white;
+}
+
+.status-badge.completed {
+  background: #27ae60;
+  color: white;
+}
+
+.status-badge.cancelled {
+  background: #e74c3c;
+  color: white;
+}
+
+.meeting-details h4 {
+  color: #2c3e50;
+  margin: 20px 0 10px 0;
+  font-size: 1.1em;
+}
+
+.participants-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.participant {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #ecf0f1;
+  transition: all 0.3s ease;
+}
+
+.participant:hover {
+  background: #e8f4f8;
+  border-color: #3498db;
+}
+
+.participant-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
+
+.participant-info .name {
+  margin: 0;
+  font-weight: bold;
+  color: #2c3e50;
+  font-size: 0.9em;
+}
+
+.participant-info .designation {
+  margin: 2px 0 0 0;
+  color: #7f8c8d;
+  font-size: 0.8em;
+}
+
+.btn-mom {
+  padding: 10px 16px;
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
+
+.btn-mom:hover {
+  background: #e67e22;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(243, 156, 18, 0.2);
+}
+
+/* MOM Form */
+.mom-form {
+  background: #fff8e1;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #f39c12;
+  margin-bottom: 20px;
+}
+
+.mom-form h4 {
+  color: #2c3e50;
+  margin-top: 0;
+}
+
+.mom-section {
+  margin-bottom: 15px;
+}
+
+.mom-section label {
+  display: block;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  font-size: 0.95em;
+}
+
+.input-group button {
+  padding: 10px 16px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.input-group button:hover {
+  background: #229954;
+}
+
+.mom-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.mom-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: white;
+  margin: 6px 0;
+  border-radius: 6px;
+  border-left: 3px solid #f39c12;
+  color: #2c3e50;
+}
+
+.btn-remove {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.mom-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-save {
+  padding: 10px 16px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #229954;
+  transform: translateY(-2px);
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-gmail {
+  padding: 10px 16px;
+  background: #ea4335;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-gmail:hover {
+  background: #d33426;
+  transform: translateY(-2px);
+}
+
+.no-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #95a5a6;
+  text-align: center;
+}
+
+.no-selection p {
+  font-size: 1.1em;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-content h2 {
+  color: #2c3e50;
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  font-size: 0.95em;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.participant-selector {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.participant-option {
+  padding: 10px;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #2c3e50;
+}
+
+.participant-option:hover {
+  background: #e8f4f8;
+  border-color: #3498db;
+}
+
+.participant-option.selected {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.selected-participants {
+  margin-bottom: 15px;
+}
+
+.selected-participants h4 {
+  color: #2c3e50;
+  margin: 15px 0 8px 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #3498db;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.9em;
+}
+
+.chip button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.1em;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.chip button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.form-actions button[type='submit'] {
+  background: #3498db;
+  color: white;
+}
+
+.form-actions button[type='submit']:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+.form-actions button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions button[type='button'] {
+  background: #ecf0f1;
+  color: #2c3e50;
+}
+
+.form-actions button[type='button']:hover {
+  background: #bdc3c7;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .meeting-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .meeting-page {
+    padding: 10px;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  .calendar-day {
+    min-height: 60px;
+    padding: 5px;
+  }
+
+  .day-number {
+    font-size: 0.9em;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .participant-selector {
+    max-height: 200px;
+  }
+}

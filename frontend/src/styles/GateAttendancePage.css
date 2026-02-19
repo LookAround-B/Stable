@@ -66,6 +66,29 @@
   background-color: #2980b9;
 }
 
+.section-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-download {
+  background-color: #27ae60;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btn-download:hover {
+  background-color: #229954;
+}
+
 .form-container {
   background: #f8f9fa;
   padding: 30px;

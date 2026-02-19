@@ -225,7 +225,7 @@ const HorseFeedsPage = () => {
                   <option value="">Select a horse</option>
                   {horses.map((horse) => (
                     <option key={horse.id} value={horse.id}>
-                      {horse.name}
+                      {horse.name} ({horse.stableNumber || 'No Stable #'})
                     </option>
                   ))}
                 </select>
@@ -308,6 +308,7 @@ const HorseFeedsPage = () => {
               <thead>
                 <tr>
                   <th>Horse</th>
+                  <th>Stable Number</th>
                   <th>Balance</th>
                   <th>Barley</th>
                   <th>Oats</th>
@@ -341,6 +342,7 @@ const HorseFeedsPage = () => {
                   return (
                     <tr key={horseId}>
                       <td className="horse-name">{data.horseName}</td>
+                      <td>{data.stableNumber || '-'}</td>
                       <td>{data.balance ? data.balance.toFixed(2) : '-'}</td>
                       <td>{data.barley ? data.barley.toFixed(2) : '-'}</td>
                       <td>{data.oats ? data.oats.toFixed(2) : '-'}</td>

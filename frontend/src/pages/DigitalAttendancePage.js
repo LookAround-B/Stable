@@ -37,6 +37,18 @@ const DigitalAttendancePage = () => {
     loadAttendanceRecords();
   }, [loadAttendanceRecords]);
 
+  // Auto-set to WOFF if date is Monday
+  useEffect(() => {
+    const dateObj = new Date(formData.date);
+    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 1 = Monday
+    if (dayOfWeek === 1 && formData.status !== 'WOFF') {
+      setFormData(prev => ({
+        ...prev,
+        status: 'WOFF'
+      }));
+    }
+  }, [formData.date]);
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -90,6 +102,11 @@ const DigitalAttendancePage = () => {
       case 'Half Day': return 'status-halfday';
       default: return '';
     }
+  };
+
+  const isMonday = () => {
+    const dateObj = new Date(formData.date);
+    return dateObj.getDay() === 1; // 1 = Monday
   };
 
   return (
@@ -147,6 +164,9 @@ const DigitalAttendancePage = () => {
                     className="form-input"
                     required
                   />
+                  {isMonday() && (
+                    <span className="form-hint">📅 Monday is weekly off (WOFF)</span>
+                  )}
                 </div>
               </div>
 

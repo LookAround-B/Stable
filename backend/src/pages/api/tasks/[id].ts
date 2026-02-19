@@ -41,7 +41,22 @@ async function handleGetTask(req: NextApiRequest, res: NextApiResponse) {
 
     const task = await prisma.task.findUnique({
       where: { id: id as string },
-      include: { horse: true, assignedEmployee: true },
+      include: { 
+        horse: true, 
+        assignedEmployee: true, 
+        approvals: { 
+          include: {
+            approver: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                designation: true
+              }
+            }
+          }
+        }
+      },
     })
 
     if (!task) {
@@ -59,30 +74,94 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
     const { status, completionNotes, photoUrl } = req.body
+    const token = getTokenFromRequest(req as any)
+    const decoded = verifyToken(token)
+    const userId = decoded?.id
 
     if (!id) {
       return res.status(400).json({ error: 'Task ID is required' })
     }
 
     // Validate status
-    const validStatuses = ['Pending', 'In Progress', 'Completed', 'Cancelled']
+    const validStatuses = ['Pending', 'In Progress', 'Completed', 'Pending Review', 'Approved', 'Rejected', 'Cancelled']
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' })
     }
 
     const updateData: any = {}
     if (status) updateData.status = status
-    if (completionNotes) updateData.description = completionNotes // Store notes in description field
-    if (photoUrl) updateData.proofImage = photoUrl // Use correct field name
-    if (status === 'Completed') {
+    if (completionNotes) updateData.completionNotes = completionNotes
+    if (photoUrl) updateData.proofImage = photoUrl
+    if (status === 'Completed' || status === 'Pending Review') {
       updateData.completedTime = new Date()
     }
 
     const task = await prisma.task.update({
       where: { id: id as string },
       data: updateData,
-      include: { horse: true, assignedEmployee: true },
+      include: { 
+        horse: true, 
+        assignedEmployee: true, 
+        createdBy: true, 
+        approvals: {
+          include: {
+            approver: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                designation: true
+              }
+            }
+          }
+        }
+      },
     })
+
+    // Create approval record if status is Approved or Rejected
+    if ((status === 'Approved' || status === 'Rejected') && userId) {
+      await prisma.approval.upsert({
+        where: {
+          taskId_approverId: {
+            taskId: id as string,
+            approverId: userId,
+          },
+        },
+        update: {
+          status: status === 'Approved' ? 'Approved' : 'Rejected',
+        },
+        create: {
+          taskId: id as string,
+          approverId: userId,
+          status: status === 'Approved' ? 'Approved' : 'Rejected',
+          approverLevel: 'Admin',
+        },
+      })
+
+      // Refresh task to include the new approval
+      const updatedTask = await prisma.task.findUnique({
+        where: { id: id as string },
+        include: { 
+          horse: true, 
+          assignedEmployee: true, 
+          createdBy: true, 
+          approvals: {
+            include: {
+              approver: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  designation: true
+                }
+              }
+            }
+          }
+        },
+      })
+
+      return res.status(200).json(updatedTask)
+    }
 
     return res.status(200).json(task)
   } catch (error) {

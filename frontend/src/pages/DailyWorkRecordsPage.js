@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../services/apiClient';
 import '../styles/DailyWorkRecordsPage.css';
+import * as XLSX from 'xlsx';
 
 // Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)
 const getTodayString = () => {
@@ -211,6 +212,54 @@ const DailyWorkRecordsPage = () => {
     });
   };
 
+  const handleDownloadExcel = () => {
+    if (records.length === 0) {
+      alert('No records to download');
+      return;
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB');
+    };
+
+    // Prepare data for Excel
+    const excelData = records.map((record) => ({
+      'Date': formatDate(record.date),
+      'Horse': record.horse?.name || '-',
+      'Rider': record.rider?.fullName || '-',
+      'Work Type': record.workType,
+      'Duration (mins)': record.duration || '-',
+      'Notes': record.notes || '',
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 12 }, // Date
+      { wch: 18 }, // Horse
+      { wch: 18 }, // Rider
+      { wch: 15 }, // Work Type
+      { wch: 15 }, // Duration
+      { wch: 30 }, // Notes
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Daily Work Records');
+
+    // Generate filename with date
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const filename = `DailyWorkRecords_${selectedDate}_${dateStr}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
+    console.log('📥 Downloaded daily work records to:', filename);
+  };
+
   return (
     <div className="daily-work-records-page">
       <h1>Daily Work Records (EIRS)</h1>
@@ -232,15 +281,26 @@ const DailyWorkRecordsPage = () => {
           />
         </label>
 
-        {!showForm && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowForm(true)}
-            disabled={loading}
-          >
-            + New Record
-          </button>
-        )}
+        <div className="control-buttons">
+          {!showForm && (
+            <button
+              className="btn btn-download"
+              onClick={handleDownloadExcel}
+              disabled={loading}
+            >
+              📥 Download Excel
+            </button>
+          )}
+          {!showForm && (
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowForm(true)}
+              disabled={loading}
+            >
+              + New Record
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (

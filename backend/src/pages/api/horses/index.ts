@@ -53,6 +53,9 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
       skip: parseInt(skip as string),
       take: parseInt(take as string),
       orderBy: { name: 'asc' },
+      include: {
+        supervisor: true,
+      }
     })
 
     const total = await prisma.horse.count({ where })
@@ -69,7 +72,7 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { name, gender, dateOfBirth, breed, color, height, status } = req.body
+    const { name, gender, dateOfBirth, breed, color, height, stableNumber, supervisorId, status } = req.body
 
     if (!name || !gender || !dateOfBirth) {
       return res.status(400).json({ error: 'Missing required fields' })
@@ -83,8 +86,13 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
         breed,
         color,
         height: height ? parseFloat(height) : null,
+        stableNumber: stableNumber || null,
+        supervisorId: supervisorId || null,
         status: status || 'Active',
       },
+      include: {
+        supervisor: true,
+      }
     })
 
     return res.status(201).json(horse)

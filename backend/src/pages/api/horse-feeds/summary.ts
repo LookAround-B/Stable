@@ -76,6 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           select: {
             id: true,
             name: true,
+            stableNumber: true,
           },
         },
       },
@@ -89,10 +90,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const record of records) {
       const horseId = record.horse.id;
       const horseName = record.horse.name;
+      const stableNumber = record.horse.stableNumber;
 
       if (!summary[horseId]) {
         summary[horseId] = {
           horseName,
+          stableNumber,
           balance: 0,
           barley: 0,
           oats: 0,

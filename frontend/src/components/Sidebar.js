@@ -20,6 +20,10 @@ const Sidebar = () => {
   const showExpenses = ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showFines = true; // Everyone can see their fines
+  const showTasks = user?.designation === 'Instructor'; // Only Instructors can create/assign tasks
+  const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Parent roles approve tasks
+  const showMyAssignedTasks = user?.designation !== 'Instructor'; // All non-Instructors see their assigned tasks
+  const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Only parent roles can create meetings
 
 
   return (
@@ -30,11 +34,34 @@ const Sidebar = () => {
             📊 Dashboard
           </Link>
         </li>
-        <li>
-          <Link to="/tasks" className="menu-item">
-            ✓ My Tasks
-          </Link>
-        </li>
+        {showTasks && (
+          <li>
+            <Link to="/tasks" className="menu-item">
+              ✓ Tasks
+            </Link>
+          </li>
+        )}
+        {showMyAssignedTasks && (
+          <li>
+            <Link to="/my-assigned-tasks" className="menu-item">
+              📝 My Assigned Tasks
+            </Link>
+          </li>
+        )}
+        {showApprovals && (
+          <li>
+            <Link to="/pending-approvals" className="menu-item">
+              ✅ Approvals
+            </Link>
+          </li>
+        )}
+        {showMeetings && (
+          <li>
+            <Link to="/meetings" className="menu-item">
+              📅 Meetings
+            </Link>
+          </li>
+        )}
         <li>
           <Link to="/horses" className="menu-item">
             🐴 Horses

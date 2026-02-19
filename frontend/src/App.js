@@ -28,6 +28,9 @@ import HorseFeedsPage from './pages/HorseFeedsPage';
 import ExpensePage from './pages/ExpensePage';
 import InspectionPage from './pages/InspectionPage';
 import FinePage from './pages/FinePage';
+import ApprovalTasksPage from './pages/ApprovalTasksPage';
+import MyAssignedTasksPage from './pages/MyAssignedTasksPage';
+import MeetingPage from './pages/MeetingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './styles/App.css';
 
@@ -68,6 +71,9 @@ function App() {
             <Route path="/expenses" element={<ExpensePage />} />
             <Route path="/inspections" element={<InspectionPage />} />
             <Route path="/fines" element={<FinePage />} />
+            <Route path="/pending-approvals" element={<ApprovalTasksPage />} />
+            <Route path="/my-assigned-tasks" element={<MyAssignedTasksPage />} />
+            <Route path="/meetings" element={<MeetingPage />} />
           </Route>
           
           <Route path="*" element={<NotFoundPage />} />

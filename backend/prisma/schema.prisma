@@ -58,6 +58,8 @@ model Employee {
   finesIssued           Fine[] @relation("finesIssued")
   finesReceived         Fine[] @relation("finesReceived")
   finesResolved         Fine[] @relation("finesResolved")
+  meetingsCreated       Meeting[] @relation("meetingsCreated")
+  meetingParticipants   MeetingParticipant[] @relation("meetingParticipants")
 
 
   @@index([designation])
@@ -76,6 +78,7 @@ model Horse {
   height                Float?
   age                   Int?        // Calculated from DOB
   location              String?     // Stable location/ID
+  stableNumber          String?     @unique // Unique alphanumeric (e.g., A12, B7, ST-09) for location ID, record tracking, billing
   profileImage          String?
   status                String      @default("Active") // 'Active', 'Rest', 'Injured', 'Traveling'
   discipline            String?     // 'Dressage', 'Jumping', 'Polo', etc.
@@ -134,7 +137,7 @@ model Task {
   id                    String      @id @default(cuid())
   name                  String
   type                  String      // 'Daily', 'Weekly', 'Event-based'
-  status                String      @default("Pending") // 'Pending', 'In Progress', 'Completed', 'Cancelled'
+  status                String      @default("Pending") // 'Pending', 'In Progress', 'Completed', 'Pending Review', 'Approved', 'Rejected'
   horseId               String
   horse                 Horse       @relation(fields: [horseId], references: [id], onDelete: Cascade)
   assignedEmployeeId    String
@@ -143,9 +146,11 @@ model Task {
   createdBy             Employee    @relation("TaskCreatedBy", fields: [createdById], references: [id])
   scheduledTime         DateTime
   completedTime         DateTime?
+  submittedAt           DateTime?   // When employee submitted completion
   priority              String      @default("Medium") // 'Low', 'Medium', 'High', 'Urgent'
   requiredProof         Boolean     @default(false)
   proofImage            String?
+  completionNotes       String?     // Notes from employee about task completion
   description           String?
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
@@ -573,6 +578,52 @@ model Fine {
   @@index([issuedToId])
   @@index([status])
   @@index([createdAt])
+}
+
+model Meeting {
+  id                    String      @id @default(cuid())
+  title                 String
+  description           String?
+  meetingDate           DateTime    // Date of the meeting
+  meetingTime           String?     // Time as string (e.g., "10:30 AM")
+  location              String?
+  createdById           String
+  createdBy             Employee    @relation("meetingsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  status                String      @default("Scheduled") // 'Scheduled', 'Completed', 'Cancelled'
+  participants          MeetingParticipant[]
+  mom                   MeetingMOM?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([createdById])
+  @@index([status])
+  @@index([meetingDate])
+}
+
+model MeetingParticipant {
+  id                    String      @id @default(cuid())
+  meetingId             String
+  meeting               Meeting     @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  employeeId            String
+  employee              Employee    @relation("meetingParticipants", fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+
+  @@unique([meetingId, employeeId])
+  @@index([meetingId])
+  @@index([employeeId])
+}
+
+model MeetingMOM {
+  id                    String      @id @default(cuid())
+  meetingId             String      @unique
+  meeting               Meeting     @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  pointsDiscussed       String?     // JSON array of points
+  memberInputs          String?     // JSON array of inputs from members
+  decisions             String?     // JSON array of decisions made
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([meetingId])
 }
 
 model JamedarRoundCheck {
