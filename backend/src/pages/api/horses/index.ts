@@ -46,7 +46,8 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { status, skip = 0, take = 1000 } = req.query
 
-    const where = status ? { status } : {}
+    const statusValue = Array.isArray(status) ? status[0] : status
+    const where = statusValue ? { status: statusValue } : {}
 
     const horses = await prisma.horse.findMany({
       where,
