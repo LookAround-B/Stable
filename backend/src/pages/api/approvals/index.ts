@@ -48,7 +48,7 @@ async function handleGetApprovals(req: NextApiRequest, res: NextApiResponse) {
         approver: true,
       },
       orderBy: { createdAt: 'desc' },
-    }})
+    })
 
     const total = await prisma.approval.count({ where })
 
