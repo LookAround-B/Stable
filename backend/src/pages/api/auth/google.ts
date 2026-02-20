@@ -6,41 +6,26 @@ import { prisma } from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin as string;
-  const allowedOrigins = [
-    'http://localhost:3001',
-    'http://localhost:3002', 
-    'http://localhost:3000',
-    'https://horsestable01.vercel.app',
-    'https://horsestable-frontend.vercel.app',
-    'https://horsestable04.vercel.app',
-  ];
   
-  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
-  
-  // ALWAYS set CORS headers (required for preflight to succeed)
-  if (isAllowedOrigin) {
-    res.setHeader('Access-Control-Allow-Origin', origin || 'https://horsestable01.vercel.app');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  
+  // ALWAYS send CORS headers for now (debugging)
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  // Set COOP to unsafe-none for OAuth popup (MUST be done before response)
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
-  console.log('[google.ts]', req.method, 'from origin:', origin, 'allowed:', isAllowedOrigin);
+  console.log('[google.ts]', req.method, 'from origin:', origin);
 
   // Handle preflight OPTIONS (MUST be before POST check)
   if (req.method === 'OPTIONS') {
-    console.log('[google.ts] ✓ OPTIONS preflight OK');
+    console.log('[google.ts] ✓ OPTIONS preflight');
     return res.status(200).end();
   }
 
   // Only POST allowed
   if (req.method !== 'POST') {
-    console.log('[google.ts] ✗ 405: Method not allowed -', req.method);
+    console.log('[google.ts] ✗ 405:', req.method);
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 

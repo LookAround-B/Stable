@@ -73,19 +73,8 @@ export function createCorsMiddleware() {
 
 // Set CORS headers manually for API routes that don't use middleware
 export function setCorsHeaders(res: NextApiResponse, origin?: string) {
-  const allowedOrigins = getAllowedOrigins();
-  
-  // For credentials mode, origin must match request origin exactly
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (!origin) {
-    // If no origin header (e.g., direct fetch), allow the first default origin
-    res.setHeader('Access-Control-Allow-Origin', 'https://horsestable01.vercel.app');
-  } else {
-    // Origin not in allowed list - don't set header (will fail CORS check)
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  
+  // ALWAYS send permissive CORS headers
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -112,15 +101,9 @@ export function runMiddleware(
 // Handle CORS headers and preflight requests
 export function handleCorsAndPreflight(req: NextApiRequest, res: NextApiResponse): boolean {
   const origin = req.headers.origin as string;
-  const allowedOrigins = getAllowedOrigins();
   
-  // Set CORS headers
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (allowedOrigins.length > 0) {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
-  }
-  
+  // ALWAYS send CORS headers
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');

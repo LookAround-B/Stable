@@ -9,25 +9,12 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const origin = req.headers.origin as string;
-  const allowedOrigins = [
-    'http://localhost:3001',
-    'http://localhost:3002', 
-    'http://localhost:3000',
-    'https://horsestable01.vercel.app',
-    'https://horsestable-frontend.vercel.app',
-    'https://horsestable04.vercel.app',
-  ];
   
-  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
-  
-  // ALWAYS set CORS headers (required for preflight to succeed)
-  if (isAllowedOrigin) {
-    res.setHeader('Access-Control-Allow-Origin', origin || 'https://horsestable01.vercel.app');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  
+  // ALWAYS send CORS headers
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
