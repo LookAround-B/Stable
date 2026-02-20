@@ -10,6 +10,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const origin = req.headers.origin as string;
   setCorsHeaders(res, origin);
 
+  // Remove any restrictive COOP headers that might block OAuth
+  res.removeHeader('Cross-Origin-Opener-Policy');
+  res.removeHeader('Cross-Origin-Embedder-Policy');
+
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
