@@ -7,7 +7,7 @@ import { prisma } from '../../../lib/prisma';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin as string;
   
-  // ALWAYS send CORS headers for now (debugging)
+  // Set headers FIRST before any response
   res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -15,17 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
-  console.log('[google.ts]', req.method, 'from origin:', origin);
-
-  // Handle preflight OPTIONS (MUST be before POST check)
+  // Handle preflight OPTIONS - respond with status 200 and minimal body
   if (req.method === 'OPTIONS') {
-    console.log('[google.ts] ✓ OPTIONS preflight');
-    return res.status(200).end();
+    return res.status(200).json({ ok: true });
   }
 
   // Only POST allowed
   if (req.method !== 'POST') {
-    console.log('[google.ts] ✗ 405:', req.method);
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
