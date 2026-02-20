@@ -2,15 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
-import { runMiddleware } from '../../../lib/cors';
-import cors from 'cors';
-
 const prisma = new PrismaClient();
-
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-});
 
 const SUPERVISOR_ROLES = [
   'Super Admin',
@@ -19,11 +11,16 @@ const SUPERVISOR_ROLES = [
 ];
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Set CORS headers FIRST
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  // Apply CORS middleware
-  await runMiddleware(req, res, corsMiddleware);
 
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
