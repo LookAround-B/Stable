@@ -2,18 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { generateToken } from '@/lib/auth'
-import { createCorsMiddleware, runMiddleware } from '@/lib/cors'
 import bcrypt from 'bcryptjs'
-
-const corsMiddleware = createCorsMiddleware()
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }

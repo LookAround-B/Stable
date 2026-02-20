@@ -3,12 +3,8 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { prisma } from '../../../lib/prisma';
-import { setCorsHeaders } from '../../../lib/cors';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const origin = req.headers.origin as string | undefined;
-  setCorsHeaders(res, origin);
-
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;

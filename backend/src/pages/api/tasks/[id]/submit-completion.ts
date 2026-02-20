@@ -2,15 +2,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
-
-const corsMiddleware = createCorsMiddleware()
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  await runMiddleware(req, res, corsMiddleware)
 
   if (req.method !== 'PATCH') {
     return res.status(405).json({ error: 'Method not allowed' })
