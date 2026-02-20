@@ -7,7 +7,21 @@ const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'St
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (handleCorsAndPreflight(req, res)) return;
-  return handleRoutes(req, res);
+
+  // Check authentication
+  const token = getTokenFromRequest(req as any)
+  if (!token || !verifyToken(token)) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  switch (req.method) {
+    case 'GET':
+      return handleRoutes(req, res)
+    case 'POST':
+      return handleCreateFine(req, res)
+    default:
+      return res.status(405).json({ error: 'Method not allowed' })
+  }
 }
 
 async function handleRoutes(req: NextApiRequest, res: NextApiResponse) {
@@ -176,20 +190,4 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Check authentication
-  const token = getTokenFromRequest(req as any)
-  if (!token || !verifyToken(token)) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-
-  switch (req.method) {
-    case 'GET':
-      return handleGetFines(req, res)
-    case 'POST':
-      return handleCreateFine(req, res)
-    default:
-      return res.status(405).json({ error: 'Method not allowed' })
-  }
-}
 

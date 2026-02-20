@@ -3,15 +3,6 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (handleCorsAndPreflight(req, res)) return;
-  return handleRoutes(req, res);
-}
-
-async function handleRoutes(req: NextApiRequest, res: NextApiResponse) {
-  return handleGetFine(req, res);
-}
-
 async function handleGetFine(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
@@ -166,6 +157,9 @@ async function handleDeleteFine(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Handle CORS and OPTIONS preflight
+  if (handleCorsAndPreflight(req, res)) return;
+
   // Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {

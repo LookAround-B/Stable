@@ -3,11 +3,6 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (handleCorsAndPreflight(req, res)) return;
-  return handleGetInspections(req, res);
-}
-
 async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { round, horseId, severityLevel, startDate, endDate, jamedarId } = req.query
@@ -171,6 +166,8 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
+  
   // Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
@@ -182,9 +179,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return handleGetInspections(req, res)
     case 'POST':
       // Check if user is Jamedar
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
       const decoded = verifyToken(token)
       if (decoded?.designation !== 'Jamedar') {
         return res.status(403).json({ error: 'Only Jamedar can create inspections' })

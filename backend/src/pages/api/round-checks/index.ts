@@ -3,11 +3,6 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (handleCorsAndPreflight(req, res)) return;
-  return handleGetRoundCheck(req, res);
-}
-
 async function handleGetRoundCheck(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { date } = req.query
@@ -142,6 +137,8 @@ async function handleUpsertRoundCheck(req: NextApiRequest, res: NextApiResponse)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
+  
   // Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
