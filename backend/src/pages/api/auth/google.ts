@@ -3,24 +3,10 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { prisma } from '../../../lib/prisma';
-
-const CORS_ALLOWED_ORIGINS = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'];
-
-function setCorsHeaders(res: NextApiResponse, origin?: string) {
-  if (origin && CORS_ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (CORS_ALLOWED_ORIGINS.length > 0) {
-    res.setHeader('Access-Control-Allow-Origin', CORS_ALLOWED_ORIGINS[0]);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-}
+import { setCorsHeaders } from '../../../lib/cors';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const origin = req.headers.origin;
+  const origin = req.headers.origin as string | undefined;
   setCorsHeaders(res, origin);
 
   if (req.method === 'OPTIONS') {

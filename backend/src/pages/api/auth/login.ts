@@ -2,18 +2,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { generateToken } from '@/lib/auth'
-import { runMiddleware } from '@/lib/cors'
+import { createCorsMiddleware, runMiddleware } from '@/lib/cors'
 import bcrypt from 'bcryptjs'
-import cors from 'cors'
 
-const corsOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'];
-
-const corsMiddleware = cors({
-  origin: corsOrigins,
-  credentials: true,
-})
+const corsMiddleware = createCorsMiddleware()
 
 export default async function handler(
   req: NextApiRequest,

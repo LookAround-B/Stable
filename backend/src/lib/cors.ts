@@ -17,9 +17,27 @@ function getAllowedOrigins(): string[] {
   ].filter((url): url is string => !!url);
 }
 
+// Helper to create origin validation function
+function createOriginValidator() {
+  return (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    const allowedOrigins = getAllowedOrigins();
+    
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  };
+}
+
 // Initialize the cors middleware
 const corsMiddleware = cors({
-  origin: getAllowedOrigins(),
+  origin: createOriginValidator(),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -28,7 +46,7 @@ const corsMiddleware = cors({
 // Create new cors middleware instance with current env variables
 export function createCorsMiddleware() {
   return cors({
-    origin: getAllowedOrigins(),
+    origin: createOriginValidator(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
