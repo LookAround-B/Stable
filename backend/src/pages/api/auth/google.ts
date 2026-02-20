@@ -6,34 +6,41 @@ import { prisma } from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin as string;
+  const allowedOrigins = [
+    'http://localhost:3001',
+    'http://localhost:3002', 
+    'http://localhost:3000',
+    'https://horsestable01.vercel.app',
+    'https://horsestable-frontend.vercel.app',
+    'https://horsestable04.vercel.app',
+  ];
   
-  // Clear any restrictive security headers that might block OAuth
-  res.removeHeader('Cross-Origin-Opener-Policy');
-  res.removeHeader('Cross-Origin-Embedder-Policy');
-  res.removeHeader('X-Frame-Options');
-  res.removeHeader('X-Content-Type-Options');
+  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
   
-  // Set permissive CORS headers for OAuth
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  // ALWAYS set CORS headers (required for preflight to succeed)
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || 'https://horsestable01.vercel.app');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
-  // Explicitly prevent any COOP/COEP headers by setting to 'unsafe-none'
+  // Set COOP to unsafe-none for OAuth popup (MUST be done before response)
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
-  console.log('[google.ts] Handling', req.method, 'from origin:', origin);
+  console.log('[google.ts]', req.method, 'from origin:', origin, 'allowed:', isAllowedOrigin);
 
-  // Handle preflight OPTIONS
+  // Handle preflight OPTIONS (MUST be before POST check)
   if (req.method === 'OPTIONS') {
-    console.log('[google.ts] Returning 200 for OPTIONS');
-    return res.status(200).json({ ok: true });
+    console.log('[google.ts] ✓ OPTIONS preflight OK');
+    return res.status(200).end();
   }
 
   // Only POST allowed
   if (req.method !== 'POST') {
-    console.log('[google.ts] 405: Method not allowed -', req.method);
+    console.log('[google.ts] ✗ 405: Method not allowed -', req.method);
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 

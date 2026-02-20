@@ -74,14 +74,23 @@ export function createCorsMiddleware() {
 // Set CORS headers manually for API routes that don't use middleware
 export function setCorsHeaders(res: NextApiResponse, origin?: string) {
   const allowedOrigins = getAllowedOrigins();
+  
+  // For credentials mode, origin must match request origin exactly
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (allowedOrigins.length > 0) {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  } else if (!origin) {
+    // If no origin header (e.g., direct fetch), allow the first default origin
+    res.setHeader('Access-Control-Allow-Origin', 'https://horsestable01.vercel.app');
+  } else {
+    // Origin not in allowed list - don't set header (will fail CORS check)
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 }
 
 // Helper function to run middleware
@@ -118,9 +127,9 @@ export function handleCorsAndPreflight(req: NextApiRequest, res: NextApiResponse
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
   
-  // Handle preflight OPTIONS requests
+  // Handle preflight OPTIONS requests (MUST return BEFORE setting body)
   if (req.method === 'OPTIONS') {
-    res.status(200).json({ ok: true });
+    res.status(200).end();
     return true;
   }
   

@@ -9,20 +9,31 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const origin = req.headers.origin as string;
+  const allowedOrigins = [
+    'http://localhost:3001',
+    'http://localhost:3002', 
+    'http://localhost:3000',
+    'https://horsestable01.vercel.app',
+    'https://horsestable-frontend.vercel.app',
+    'https://horsestable04.vercel.app',
+  ];
   
-  // Clear restrictive security headers and set permissive CORS
-  res.removeHeader('Cross-Origin-Opener-Policy');
-  res.removeHeader('Cross-Origin-Embedder-Policy');
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  const isAllowedOrigin = !origin || allowedOrigins.includes(origin);
+  
+  // ALWAYS set CORS headers (required for preflight to succeed)
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || 'https://horsestable01.vercel.app');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
   // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).json({ ok: true });
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
