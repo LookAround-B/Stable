@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { handleCorsAndPreflight } from '@/lib/cors'
+
 import prisma from '@/lib/prisma'
 
 async function handleGetRoundCheck(req: NextApiRequest, res: NextApiResponse) {
@@ -137,7 +137,9 @@ async function handleUpsertRoundCheck(req: NextApiRequest, res: NextApiResponse)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (handleCorsAndPreflight(req, res)) return;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   
   // Check authentication
   const token = getTokenFromRequest(req as any)

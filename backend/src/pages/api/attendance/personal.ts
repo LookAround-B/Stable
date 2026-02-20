@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { handleCorsAndPreflight } from '../../../lib/cors';
+
 import { runMiddleware } from '../../../lib/cors';
 import cors from 'cors';
 
@@ -13,7 +13,9 @@ const corsMiddleware = cors({
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (handleCorsAndPreflight(req, res)) return;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   // Apply CORS middleware
   await runMiddleware(req, res, corsMiddleware);
 

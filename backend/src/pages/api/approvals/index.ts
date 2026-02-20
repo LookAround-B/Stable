@@ -1,14 +1,15 @@
 // pages/api/approvals/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { verifyToken } from '@/lib/auth'
-import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (handleCorsAndPreflight(req, res)) return;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   // Verify authentication
   const authHeader = req.headers.authorization
   const token = authHeader?.replace('Bearer ', '')

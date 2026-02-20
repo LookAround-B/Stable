@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { handleCorsAndPreflight } from '@/lib/cors'
+
 import prisma from '@/lib/prisma'
 
 async function handleGetFine(req: NextApiRequest, res: NextApiResponse) {
@@ -158,7 +158,9 @@ async function handleDeleteFine(req: NextApiRequest, res: NextApiResponse) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Handle CORS and OPTIONS preflight
-  if (handleCorsAndPreflight(req, res)) return;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   // Check authentication
   const token = getTokenFromRequest(req as any)

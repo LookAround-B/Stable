@@ -8,17 +8,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const origin = req.headers.origin as string;
-  
-  // ALWAYS send CORS headers
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
-
-  // Handle OPTIONS preflight
+  // Handle OPTIONS preflight (vercel.json provides CORS headers at infrastructure level)
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }

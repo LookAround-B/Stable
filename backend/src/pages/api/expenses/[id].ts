@@ -1,7 +1,6 @@
 // pages/api/expenses/[id].ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 import { uploadImage } from '@/lib/s3'
 import Busboy from 'busboy'
@@ -10,7 +9,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (handleCorsAndPreflight(req, res)) return;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   // Set CORS headers explicitly
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
