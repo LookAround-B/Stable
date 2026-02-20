@@ -1,21 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log('[test-cors]', req.method, 'from:', req.headers.origin);
+  console.log('[test-cors] Method:', req.method);
   
-  // Set CORS headers FIRST, before anything else
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Use writeHead to explicitly set all headers
+  res.writeHead(200, {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'X-Custom-Header': 'CORS-TEST',
+    'Content-Type': 'text/plain'
+  });
   
   if (req.method === 'OPTIONS') {
-    console.log('[test-cors] Responding to OPTIONS');
-    return res.status(200).send('OK');
+    res.end('OK');
+    return;
   }
   
-  res.status(200).json({ 
-    message: 'CORS test endpoint',
-    method: req.method,
-    origin: req.headers.origin
-  });
+  res.end('test-cors works');
 }

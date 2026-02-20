@@ -1,21 +1,29 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { prisma } from '../../../lib/prisma';
+import cors from 'cors';
+import { runMiddleware } from '../../../lib/cors';
+
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+const corsMiddleware = cors(corsOptions);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const origin = req.headers.origin as string;
+  // Apply CORS middleware first
+  await runMiddleware(req, res, corsMiddleware);
   
-  // Set headers FIRST before any response
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // Ensure COOP/COEP are set to unsafe-none
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
   res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
-  // Handle preflight OPTIONS - respond with status 200 and minimal body
+  // Handle preflight OPTIONS
   if (req.method === 'OPTIONS') {
     return res.status(200).json({ ok: true });
   }
