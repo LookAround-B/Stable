@@ -6,31 +6,36 @@ import { prisma } from '../../../lib/prisma';
 import { setCorsHeaders } from '../../../lib/cors';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers for all requests
   const origin = req.headers.origin as string;
-  setCorsHeaders(res, origin);
-
-  // Remove any restrictive COOP headers that might block OAuth
+  
+  // Clear any restrictive security headers that might block OAuth
   res.removeHeader('Cross-Origin-Opener-Policy');
   res.removeHeader('Cross-Origin-Embedder-Policy');
+  res.removeHeader('X-Frame-Options');
+  res.removeHeader('X-Content-Type-Options');
+  
+  // Set permissive CORS headers for OAuth
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Explicitly prevent any COOP/COEP headers by setting to 'unsafe-none'
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
-  // Debug logging
-  console.log('[google.ts] Request:', {
-    method: req.method,
-    origin: origin,
-    headers: Object.keys(req.headers),
-  });
+  console.log('[google.ts] Handling', req.method, 'from origin:', origin);
 
-  // Handle preflight OPTIONS request
+  // Handle preflight OPTIONS
   if (req.method === 'OPTIONS') {
-    console.log('[google.ts] Handling OPTIONS preflight');
-    return res.status(200).end();
+    console.log('[google.ts] Returning 200 for OPTIONS');
+    return res.status(200).json({ ok: true });
   }
 
-  // Only allow POST
+  // Only POST allowed
   if (req.method !== 'POST') {
-    console.log('[google.ts] Method not POST:', req.method);
-    return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+    console.log('[google.ts] 405: Method not allowed -', req.method);
+    return res.status(405).json({ error: 'Only POST allowed' });
   }
 
   try {
