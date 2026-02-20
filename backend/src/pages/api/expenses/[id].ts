@@ -2,15 +2,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware } from '@/lib/cors'
 import { uploadImage } from '@/lib/s3'
-import cors from 'cors'
 import Busboy from 'busboy'
-
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-})
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,7 +15,7 @@ export default async function handler(
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Access-Control-Allow-Credentials', 'true')
 
-  // Run CORS middlewareif (req.method === 'OPTIONS') {
+  if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 

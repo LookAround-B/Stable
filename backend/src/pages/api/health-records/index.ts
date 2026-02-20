@@ -6,7 +6,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middlewareconst token = getTokenFromRequest(req as any)
+  const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }

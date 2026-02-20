@@ -1,11 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
-const corsMiddleware = createCorsMiddleware();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await runMiddleware(req, res, corsMiddleware);
-
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;

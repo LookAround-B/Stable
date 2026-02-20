@@ -3,12 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 
-const corsMiddleware = createCorsMiddleware();
-
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Apply CORS middleware
-  await runMiddleware(req, res, corsMiddleware);
-
   // Verify JWT token
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) {

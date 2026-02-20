@@ -2,13 +2,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware } from '@/lib/cors'
-import cors from 'cors'
-
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-})
 
 export default async function handler(
   req: NextApiRequest,

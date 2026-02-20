@@ -1,13 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware } from '@/lib/cors'
-import cors from 'cors'
-
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-})
 
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar']
 
@@ -178,7 +171,7 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Run CORS middleware// Check authentication
+  // Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })

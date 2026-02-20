@@ -2,18 +2,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import cors from 'cors'
-
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:3000'],
-  credentials: true,
-})
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middlewareconst token = getTokenFromRequest(req as any)
+  // Verify authentication
+  const authHeader = req.headers.authorization
+  const token = authHeader?.replace('Bearer ', '')
+  
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }

@@ -1,12 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
-import cors from 'cors'
-import { runMiddleware } from '@/lib/cors'
-
-const corsMiddleware = cors({
-  origin: ['http://localhost:3001', 'http://localhost:3000'],
-  credentials: true,
-})
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {if (req.method === 'GET') {
     return handleGet(req, res)
