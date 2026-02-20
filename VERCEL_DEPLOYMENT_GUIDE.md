@@ -2,14 +2,14 @@
 
 ## Project Deployment Links
 
-### Current Deployments
+### Current Live Deployments ✅
 - **Backend API**: https://horsestablebackend.vercel.app
-- **Frontend**: https://horsestable-frontend.vercel.app (or https://horsestable04.vercel.app)
+- **Frontend**: https://horsestable01.vercel.app
 - **GitHub Repository**: https://github.com/LookAround-B/Stable
 
 ### Vercel Project Links
 - **Vercel Dashboard**: https://vercel.com/dashboard
-- **Backend Project**: https://vercel.com/lookround-b/stable (or similar)
+- **Backend Project Settings**: Check Vercel dashboard for environment variables
 
 ---
 
@@ -197,17 +197,19 @@ DATABASE_URL="<connection-string>" npx prisma migrate deploy
 5. **Deprecated AWS SDK v2**: Removed aws-sdk dependency (deprecated); using local file uploads instead
 
 ### Latest Deployment Status
-- **Commit**: 5156f79 (Clean up CORS middleware and TypeScript compilation errors)
+- **Commit**: efb3f7b (Add correct Vercel frontend domain to CORS origins)
 - **Build Status**: ✅ Passing
+- **Frontend**: https://horsestable01.vercel.app
+- **Backend**: https://horsestablebackend.vercel.app
 - **Last Updated**: February 20, 2026
 
 ### Deployed Endpoints
-All API routes compiled successfully:
-- ✅ /api/auth/google - Google OAuth login
+All API routes compiled and deployed successfully:
+- ✅ /api/auth/google - Google OAuth login (CORS fixed ✅)
 - ✅ /api/auth/login - Email/password login
-- ✅ /api/ - 50+ operational endpoints
+- ✅ 50+ operational endpoints
 - ✅ CORS headers properly configured
-- ✅ Security headers (COOP, COEP, XSS, Clickjacking)
+- ✅ OPTIONS preflight requests handled
 
 ---
 
