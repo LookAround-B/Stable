@@ -11,6 +11,7 @@ function getAllowedOrigins(): string[] {
     'http://localhost:3002', 
     'http://localhost:3003', 
     'http://localhost:3000',
+    'https://horsestable01.vercel.app',
     'https://horsestable-frontend.vercel.app',
     'https://horsestable04.vercel.app',
     'https://horsestable.vercel.app'

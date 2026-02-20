@@ -15,8 +15,10 @@ function getAllowedOrigins(): string[] {
     'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3000',
-    'https://horsestable04.vercel.app',
+    'https://horsestable01.vercel.app',
     'https://horsestable-frontend.vercel.app',
+    'https://horsestable04.vercel.app',
+    'https://horsestablebackend.vercel.app',
     process.env.FRONTEND_URL
   ].filter((url): url is string => !!url);
   
