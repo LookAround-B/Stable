@@ -14,13 +14,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.removeHeader('Cross-Origin-Opener-Policy');
   res.removeHeader('Cross-Origin-Embedder-Policy');
 
+  // Debug logging
+  console.log('[google.ts] Request:', {
+    method: req.method,
+    origin: origin,
+    headers: Object.keys(req.headers),
+  });
+
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
+    console.log('[google.ts] Handling OPTIONS preflight');
     return res.status(200).end();
   }
 
   // Only allow POST
   if (req.method !== 'POST') {
+    console.log('[google.ts] Method not POST:', req.method);
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
