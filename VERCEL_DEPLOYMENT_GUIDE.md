@@ -1,5 +1,18 @@
 # Vercel Production Deployment Guide
 
+## Project Deployment Links
+
+### Current Deployments
+- **Backend API**: https://horsestablebackend.vercel.app
+- **Frontend**: https://horsestable-frontend.vercel.app (or https://horsestable04.vercel.app)
+- **GitHub Repository**: https://github.com/LookAround-B/Stable
+
+### Vercel Project Links
+- **Vercel Dashboard**: https://vercel.com/dashboard
+- **Backend Project**: https://vercel.com/lookround-b/stable (or similar)
+
+---
+
 ## Overview
 This guide walks you through deploying the Stable Management System to Vercel with Vercel Postgres.
 
@@ -166,6 +179,37 @@ DATABASE_URL="<your-connection-string>" npx prisma db execute --stdin
 # Manually run migrations
 DATABASE_URL="<connection-string>" npx prisma migrate deploy
 ```
+
+---
+
+## Recent Fixes (February 20, 2026)
+
+### Fixed Issues
+1. **CORS Headers**: Added proper Cross-Origin-Opener-Policy and security headers to next.config.js
+2. **Google Auth 405 Error**: Fixed missing CORS headers and proper request handling in google.ts endpoint
+3. **TypeScript Compilation**: Removed unused CORS middleware imports and declarations from 26+ API files
+4. **Package Dependencies**: 
+   - Updated axios 1.3.4 → 1.7.7
+   - Updated dotenv 16.0.3 → 16.4.5
+   - Updated express-validator 7.0.0 → 7.1.0
+   - Updated jsonwebtoken 9.0.0 → 9.0.2
+   - Updated @prisma/client 5.0.0 → 5.18.0
+5. **Deprecated AWS SDK v2**: Removed aws-sdk dependency (deprecated); using local file uploads instead
+
+### Latest Deployment Status
+- **Commit**: 5156f79 (Clean up CORS middleware and TypeScript compilation errors)
+- **Build Status**: ✅ Passing
+- **Last Updated**: February 20, 2026
+
+### Deployed Endpoints
+All API routes compiled successfully:
+- ✅ /api/auth/google - Google OAuth login
+- ✅ /api/auth/login - Email/password login
+- ✅ /api/ - 50+ operational endpoints
+- ✅ CORS headers properly configured
+- ✅ Security headers (COOP, COEP, XSS, Clickjacking)
+
+---
 
 ---
 
