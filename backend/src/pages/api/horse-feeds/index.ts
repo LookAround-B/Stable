@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
-import { runMiddleware, createCorsMiddleware } from '../../../lib/cors';
-
 const corsMiddleware = createCorsMiddleware();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -191,3 +189,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
+

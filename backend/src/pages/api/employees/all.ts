@@ -13,10 +13,7 @@ const corsMiddleware = cors({
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-) {
-  await runMiddleware(req, res, corsMiddleware)
-
-  if (req.method !== 'GET') {
+) {if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
@@ -58,3 +55,4 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+

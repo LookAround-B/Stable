@@ -14,10 +14,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  const token = getTokenFromRequest(req as any)
+  // Run CORS middlewareconst token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
@@ -85,3 +82,4 @@ async function handleCreateApproval(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+

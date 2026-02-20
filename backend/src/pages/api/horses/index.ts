@@ -2,18 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
-
-const corsMiddleware = createCorsMiddleware()
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  if (req.method === 'OPTIONS') {
+  // Run CORS middlewareif (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
@@ -98,3 +91,4 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+

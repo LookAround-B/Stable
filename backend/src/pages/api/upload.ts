@@ -2,10 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { uploadImage } from '@/lib/s3'
-import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
 import busboy from 'busboy'
-
-const corsMiddleware = createCorsMiddleware()
 
 export const config = {
   api: {
@@ -17,10 +14,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  // Check authentication
+  // Run CORS middleware// Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
@@ -93,3 +87,4 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+

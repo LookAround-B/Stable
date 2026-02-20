@@ -171,3 +171,4 @@ async function handleGetAttendance(req: NextApiRequest, res: NextApiResponse, us
 }
 
 export default handler;
+

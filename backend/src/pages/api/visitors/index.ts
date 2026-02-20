@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-import { runMiddleware, createCorsMiddleware } from '../../../lib/cors';
-
 const prisma = new PrismaClient();
 
 const corsMiddleware = createCorsMiddleware();
@@ -86,3 +84,4 @@ async function handleCreateVisitor(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
+

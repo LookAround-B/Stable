@@ -14,10 +14,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  // Check authentication
+  // Run CORS middleware// Check authentication
   const token = getTokenFromRequest(req)
   const decoded = verifyToken(token || '')
 

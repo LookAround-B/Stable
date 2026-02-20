@@ -21,10 +21,7 @@ export default async function handler(
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Access-Control-Allow-Credentials', 'true')
 
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  // Handle OPTIONS preflight request (no auth check needed)
+  // Run CORS middleware// Handle OPTIONS preflight request (no auth check needed)
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
@@ -254,3 +251,4 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
     return res.status(500).json({ error: 'Internal server error', details: (error as any).message })
   }
 }
+

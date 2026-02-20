@@ -2,19 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
-
-const corsMiddleware = createCorsMiddleware()
-
 const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-) {
-  await runMiddleware(req, res, corsMiddleware)
-
-  try {
+) {try {
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'No authorization header' })

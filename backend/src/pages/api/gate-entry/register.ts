@@ -201,3 +201,4 @@ async function handleGetGateRegister(req: NextApiRequest, res: NextApiResponse) 
 }
 
 export default handler;
+

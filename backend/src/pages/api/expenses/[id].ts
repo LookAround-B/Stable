@@ -22,10 +22,7 @@ export default async function handler(
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Access-Control-Allow-Credentials', 'true')
 
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  if (req.method === 'OPTIONS') {
+  // Run CORS middlewareif (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 

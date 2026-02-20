@@ -1,13 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
-import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
-
-const corsMiddleware = createCorsMiddleware()
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await runMiddleware(req, res, corsMiddleware)
-
-  if (req.method === 'GET') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
     return handlePost(req, res)
@@ -186,3 +179,4 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Failed to update medicine log' })
   }
 }
+

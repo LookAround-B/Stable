@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
-import { runMiddleware, createCorsMiddleware } from '../../../lib/cors';
-
 const corsMiddleware = createCorsMiddleware();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -129,3 +127,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: 'Failed to fetch summary' });
   }
 }
+

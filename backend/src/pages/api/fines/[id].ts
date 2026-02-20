@@ -163,10 +163,7 @@ async function handleDeleteFine(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  // Check authentication
+  // Run CORS middleware// Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })

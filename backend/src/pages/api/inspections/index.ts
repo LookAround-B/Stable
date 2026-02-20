@@ -1,10 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { runMiddleware, createCorsMiddleware } from '@/lib/cors'
-
-const corsMiddleware = createCorsMiddleware()
-
 async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { round, horseId, severityLevel, startDate, endDate, jamedarId } = req.query
@@ -168,10 +164,7 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Run CORS middleware
-  await runMiddleware(req, res, corsMiddleware)
-
-  // Check authentication
+  // Run CORS middleware// Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
@@ -194,3 +187,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).json({ error: 'Method not allowed' })
   }
 }
+

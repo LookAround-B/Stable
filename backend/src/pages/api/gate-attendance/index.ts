@@ -8,10 +8,7 @@ const corsMiddleware = cors({
   credentials: true,
 })
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await runMiddleware(req, res, corsMiddleware)
-
-  if (req.method === 'GET') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
     return handlePost(req, res)
@@ -119,3 +116,4 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Failed to create gate attendance log' })
   }
 }
+
