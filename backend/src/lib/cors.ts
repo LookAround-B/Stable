@@ -5,9 +5,13 @@ import cors from 'cors'
 // Get allowed origins from environment or defaults
 function getAllowedOrigins(): string[] {
   if (process.env.CORS_ORIGIN) {
-    return process.env.CORS_ORIGIN.split(',').map((origin: string) => origin.trim());
+    const origins = process.env.CORS_ORIGIN.split(',').map((origin: string) => origin.trim());
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[CORS] Using CORS_ORIGIN from env:', origins);
+    }
+    return origins;
   }
-  return [
+  const defaults = [
     'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3000',
@@ -15,6 +19,11 @@ function getAllowedOrigins(): string[] {
     'https://horsestable-frontend.vercel.app',
     process.env.FRONTEND_URL
   ].filter((url): url is string => !!url);
+  
+  if (process.env.NODE_ENV === 'production') {
+    console.log('[CORS] CORS_ORIGIN not set, using defaults:', defaults);
+  }
+  return defaults;
 }
 
 // Helper to create origin validation function
@@ -30,6 +39,13 @@ function createOriginValidator() {
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[CORS] Origin not allowed:', {
+          origin,
+          allowedOrigins,
+          corsOriginEnv: process.env.CORS_ORIGIN || 'NOT SET'
+        });
+      }
       callback(new Error('CORS not allowed'));
     }
   };
