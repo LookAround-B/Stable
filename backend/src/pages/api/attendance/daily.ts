@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { handleCorsAndPreflight } from '../../../lib/cors';
 
 const CORS_ALLOWED_ORIGINS = ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'];
 
@@ -16,6 +17,7 @@ function setCorsHeaders(res: NextApiResponse, origin?: string) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
   const origin = req.headers.origin;
   setCorsHeaders(res, origin);
 

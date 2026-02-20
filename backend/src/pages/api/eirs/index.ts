@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { handleCorsAndPreflight } from '../../../lib/cors';
 import cors from 'cors';
 import { runMiddleware } from '../../../lib/cors';
 
@@ -10,6 +11,7 @@ const corsMiddleware = cors({
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
   await runMiddleware(req, res, corsMiddleware);
 
   if (req.method === 'OPTIONS') {

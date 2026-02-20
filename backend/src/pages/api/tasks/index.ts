@@ -1,12 +1,14 @@
 // pages/api/tasks/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (handleCorsAndPreflight(req, res)) return;
   // Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {

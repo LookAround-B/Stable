@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
-async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
+  return handleRoutes(req, res);
+}
+
+async function handleRoutes(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
     const token = getTokenFromRequest(req as any)

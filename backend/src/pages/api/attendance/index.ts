@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {if (req.method === 'GET') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
     return handlePost(req, res)

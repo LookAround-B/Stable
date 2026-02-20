@@ -1,6 +1,7 @@
 // pages/api/employees/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
@@ -8,6 +9,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  if (handleCorsAndPreflight(req, res)) return;
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }

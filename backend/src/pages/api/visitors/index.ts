@@ -1,9 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { handleCorsAndPreflight } from '@/lib/cors';
 const prisma = new PrismaClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
   // Verify JWT token
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) {

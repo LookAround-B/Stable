@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { handleCorsAndPreflight } from '../../../lib/cors';
 import { runMiddleware } from '../../../lib/cors';
 import cors from 'cors';
 
@@ -18,6 +19,7 @@ const SUPERVISOR_ROLES = [
 ];
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
   // Apply CORS middleware
   await runMiddleware(req, res, corsMiddleware);
 

@@ -1,13 +1,16 @@
 // pages/api/meetings/[id]/participants.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { handleCorsAndPreflight } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
-) {try {
+) {
+  if (handleCorsAndPreflight(req, res)) return;
+  try {
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'No authorization header' })

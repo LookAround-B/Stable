@@ -1,9 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { handleCorsAndPreflight } from '../../../lib/cors';
 import corsMiddleware, { runMiddleware } from '../../../lib/cors';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (handleCorsAndPreflight(req, res)) return;
   // Run CORS middleware
   await runMiddleware(req, res, corsMiddleware);
 

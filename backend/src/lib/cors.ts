@@ -100,4 +100,31 @@ export function runMiddleware(
   })
 }
 
+// Handle CORS headers and preflight requests
+export function handleCorsAndPreflight(req: NextApiRequest, res: NextApiResponse): boolean {
+  const origin = req.headers.origin as string;
+  const allowedOrigins = getAllowedOrigins();
+  
+  // Set CORS headers
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (allowedOrigins.length > 0) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).json({ ok: true });
+    return true;
+  }
+  
+  return false;
+}
+
 export default corsMiddleware
