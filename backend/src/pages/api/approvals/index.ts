@@ -1,6 +1,6 @@
 // pages/api/approvals/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { runMiddleware } from '@/lib/cors'
 import cors from 'cors'
