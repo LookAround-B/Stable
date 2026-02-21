@@ -29,14 +29,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const userId = decoded?.id;
 
-  // Verify user is a Guard
+  // Verify user is a Guard or Admin
   const user = await prisma.employee.findUnique({
     where: { id: userId },
     select: { designation: true }
   });
 
-  if (!user || user.designation !== 'Guard') {
-    return res.status(403).json({ error: 'Only Guards can manage visitors' });
+  const allowedRoles = ['Guard', 'Super Admin', 'Director', 'Stable Manager', 'Ground Supervisor', 'School Administrator'];
+  if (!user || !allowedRoles.includes(user.designation)) {
+    return res.status(403).json({ error: 'You do not have permission to manage visitors' });
   }
 
   if (req.method === 'GET') {
