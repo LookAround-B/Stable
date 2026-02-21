@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         id: user.id,
         email: user.email,
-        role: user.designation,
+        designation: user.designation,
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
