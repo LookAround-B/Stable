@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/authService';
 import '../styles/Navigation.css';
 
-const Navigation = () => {
+const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -13,8 +13,15 @@ const Navigation = () => {
 
   return (
     <nav className="navigation">
-      <div className="nav-brand">
-        <h1>Stable Management System</h1>
+      <div className="nav-left">
+        <button className={`hamburger-btn ${sidebarOpen ? 'active' : ''}`} onClick={onToggleSidebar} aria-label="Toggle menu">
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+        </button>
+        <div className="nav-brand">
+          <h1>Stable Management</h1>
+        </div>
       </div>
       <div className="nav-right">
         <button onClick={handleLogout} className="btn-logout">

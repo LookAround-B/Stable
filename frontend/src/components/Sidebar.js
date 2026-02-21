@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   // Determine which pages to show based on user role
@@ -27,7 +27,7 @@ const Sidebar = () => {
 
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <ul className="sidebar-menu">
         <li>
           <Link to="/" className="menu-item">

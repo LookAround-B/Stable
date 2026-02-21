@@ -1,16 +1,27 @@
 .navigation {
   background-color: #1976d2;
   color: white;
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 56px;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .nav-brand h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin: 0;
+  white-space: nowrap;
 }
 
 .nav-right {
@@ -25,8 +36,77 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .btn-logout:hover {
   background-color: #d32f2f;
+}
+
+/* Hamburger button - hidden on desktop */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  width: 40px;
+  height: 40px;
+}
+
+.hamburger-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+@media (max-width: 768px) {
+  .navigation {
+    padding: 0.5rem 1rem;
+  }
+
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .nav-brand h1 {
+    font-size: 1.05rem;
+  }
+
+  .btn-logout {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-brand h1 {
+    font-size: 0.95rem;
+  }
 }
