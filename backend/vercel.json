@@ -1,6 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npx prisma generate && npx prisma db push --skip-generate --accept-data-loss && npm run build",
+  "framework": "nextjs",
   "headers": [
     {
       "source": "/api/(.*)",
