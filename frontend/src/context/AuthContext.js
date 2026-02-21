@@ -1,40 +1,57 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getCurrentUser, isAuthenticated } from '../services/authService';
+import { getCurrentUser, isAuthenticated, getCachedUser, setCachedUser } from '../services/authService';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize user from localStorage cache immediately (no flash)
+  const [user, setUser] = useState(() => {
+    if (isAuthenticated()) {
+      return getCachedUser();
+    }
+    return null;
+  });
+  // If we have a cached user, we're not in a loading state
+  const [loading, setLoading] = useState(() => {
+    if (isAuthenticated()) {
+      return !getCachedUser();
+    }
+    return false;
+  });
 
   useEffect(() => {
-    // Try to load user on mount only if token exists
-    const loadUser = async () => {
+    // Refresh user data from API in the background
+    const refreshUser = async () => {
       try {
-        // Only attempt to fetch user if there's a valid token
         if (isAuthenticated()) {
           const response = await getCurrentUser();
-          setUser(response.data);
+          const freshUser = response.data;
+          setUser(freshUser);
+          setCachedUser(freshUser);
         } else {
           setUser(null);
         }
       } catch (error) {
-        // If token is invalid, clear it
+        // If token is invalid, clear everything
         setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       } finally {
         setLoading(false);
       }
     };
 
-    loadUser();
+    refreshUser();
   }, []);
 
   const login = (userData) => {
     setUser(userData);
+    setCachedUser(userData);
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('user');
   };
 
   const value = {
