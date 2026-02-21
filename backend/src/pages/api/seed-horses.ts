@@ -163,10 +163,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.horseCareTeam.deleteMany({})
     await prisma.medicineLog.deleteMany({})
     await prisma.healthRecord.deleteMany({})
-    // Delete expenses linked to horses
-    await prisma.expense.updateMany({ where: { horseId: { not: null } }, data: { horseId: null } })
-    // Delete tasks linked to horses
-    await prisma.task.deleteMany({ where: { horseId: { not: null } } })
+    // Nullify horse references on expenses (horseId is optional on Expense)
+    await prisma.expense.updateMany({ where: { horseId: { not: undefined } }, data: { horseId: null } })
+    // Delete all tasks (horseId is required on Task, so all tasks reference a horse)
+    await prisma.approval.deleteMany({})
+    await prisma.task.deleteMany({})
     await prisma.horse.deleteMany({})
     
     console.log('Cleared existing horses')
