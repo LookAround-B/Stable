@@ -106,18 +106,8 @@ const TasksPage = () => {
     };
   }, [viewingTaskId]);
 
-  // Only Instructors can access tasks
-  if (user?.designation !== 'Instructor') {
-    return (
-      <div className="page-container">
-        <div className="error-message">
-          <h2>⛔ Access Denied</h2>
-          <p>Only Instructors can create and manage tasks.</p>
-          <p>If you need to approve tasks, please contact your supervisor.</p>
-        </div>
-      </div>
-    );
-  }
+  // All authenticated users can view tasks (assigned to them)
+  // Only users in CAN_CREATE_TASKS can create new tasks
 
   const loadTasks = async () => {
     try {

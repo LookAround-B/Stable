@@ -20,9 +20,9 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showExpenses = ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showFines = true; // Everyone can see their fines
-  const showTasks = user?.designation === 'Instructor'; // Only Instructors can create/assign tasks
+  const showTasks = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(user?.designation); // Roles that can create/assign tasks
   const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Parent roles approve tasks
-  const showMyAssignedTasks = user?.designation !== 'Instructor'; // All non-Instructors see their assigned tasks
+  const showMyAssignedTasks = true; // Everyone can see tasks assigned to them
   const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Only parent roles can create meetings
 
 

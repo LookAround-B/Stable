@@ -62,17 +62,21 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
 
     // Filter tasks based on user role
     // For approval workflow: show all tasks with "Pending Review" status
-    // For other queries: Admins see tasks they created, Groomers see tasks assigned to them
-    const adminRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar']
+    // Admin/management roles see tasks they created + tasks assigned to them
+    // Other roles see tasks assigned to them
+    const adminRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor']
     
     if (status === 'Pending Review' && adminRoles.includes(user.designation)) {
       // For approval review: show all pending review tasks
       // No additional filtering - managers can see all pending review tasks regardless of who created them
     } else if (adminRoles.includes(user.designation)) {
-      // Admins see tasks they created (for non-approval queries)
-      where.createdById = userId
+      // Admins/Instructors see tasks they created OR tasks assigned to them
+      where.OR = [
+        { createdById: userId },
+        { assignedEmployeeId: userId },
+      ]
     } else {
-      // Groomers and others see tasks assigned to them
+      // Groomers, Riding Boys, and others see tasks assigned to them
       where.assignedEmployeeId = userId
     }
 
