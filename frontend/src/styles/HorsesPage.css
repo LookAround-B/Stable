@@ -249,6 +249,13 @@ button:disabled {
   gap: 0.5rem;
 }
 
+.horses-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: -2rem -2rem 0 -2rem;
+  padding: 0 2rem;
+}
+
 .horses-table {
   width: 100%;
   border-collapse: collapse;
@@ -269,6 +276,7 @@ button:disabled {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .horses-table tbody tr {
@@ -284,6 +292,7 @@ button:disabled {
 .horses-table td {
   padding: 1rem 1.25rem;
   color: #333;
+  white-space: nowrap;
 }
 
 .horses-table tbody tr:last-child {
@@ -299,35 +308,65 @@ button:disabled {
   background-color: #f5f9ff;
 }
 
-/* Status Badge Styling */
-.horses-table td:last-child {
-  font-weight: 600;
-}
-
-.horses-table tbody tr:contains(Active) td:last-child {
-  color: #2e7d32;
-}
-
-/* Make manager column stand out */
-.horses-table td:nth-child(5) {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-/* Responsive table */
 @media (max-width: 768px) {
-  .horses-table {
-    font-size: 0.85rem;
-  }
-
-  .horses-table th,
-  .horses-table td {
-    padding: 0.75rem;
-  }
-
   .horses-list,
   .team-section {
     padding: 1rem;
+  }
+
+  .horses-list h2,
+  .team-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .horses-table {
+    font-size: 0.8rem;
+  }
+
+  .horses-table th {
+    padding: 0.75rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  .horses-table td {
+    padding: 0.75rem 0.625rem;
+  }
+
+  .horses-table-wrapper {
+    margin: -1rem -1rem 0 -1rem;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .horses-list,
+  .team-section {
+    padding: 0.75rem;
+  }
+
+  .horses-list h2,
+  .team-section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .horses-table {
+    font-size: 0.7rem;
+  }
+
+  .horses-table th {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .horses-table td {
+    padding: 0.5rem;
+  }
+
+  .horses-table-wrapper {
+    margin: -0.75rem -0.75rem 0 -0.75rem;
+    padding: 0 0.75rem;
   }
 }
 
@@ -345,16 +384,19 @@ button:disabled {
   margin-bottom: 1.5rem;
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .search-input {
   flex: 1;
+  min-width: 200px;
   padding: 0.75rem 1rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -366,4 +408,15 @@ button:disabled {
 
 .search-input::placeholder {
   color: #999;
+}
+
+@media (max-width: 480px) {
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .search-input {
+    min-width: 100%;
+    width: 100%;
+  }
 }

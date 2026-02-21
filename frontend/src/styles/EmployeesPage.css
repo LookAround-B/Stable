@@ -250,6 +250,13 @@ button:disabled {
   gap: 0.5rem;
 }
 
+.employees-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: -2rem -2rem 0 -2rem;
+  padding: 0 2rem;
+}
+
 .employees-table {
   width: 100%;
   border-collapse: collapse;
@@ -270,6 +277,7 @@ button:disabled {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .employees-table tbody tr {
@@ -285,6 +293,7 @@ button:disabled {
 .employees-table td {
   padding: 1rem 1.25rem;
   color: #333;
+  white-space: nowrap;
 }
 
 .employees-table tbody tr:last-child {
@@ -356,19 +365,71 @@ button:disabled {
   transform: none;
 }
 
-/* Responsive table */
 @media (max-width: 768px) {
-  .employees-table {
-    font-size: 0.85rem;
+  .employees-list {
+    padding: 1rem;
   }
 
-  .employees-table th,
+  .employees-list h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .employees-table {
+    font-size: 0.8rem;
+  }
+
+  .employees-table th {
+    padding: 0.75rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
   .employees-table td {
+    padding: 0.75rem 0.625rem;
+  }
+
+  .btn-approve {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .employees-table-wrapper {
+    margin: -1rem -1rem 0 -1rem;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .employees-list {
     padding: 0.75rem;
   }
 
-  .employees-list {
-    padding: 1rem;
+  .employees-list h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .employees-table {
+    font-size: 0.7rem;
+  }
+
+  .employees-table th {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.65rem;
+  }
+
+  .employees-table td {
+    padding: 0.5rem;
+  }
+
+  .btn-approve {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .employees-table-wrapper {
+    margin: -0.75rem -0.75rem 0 -0.75rem;
+    padding: 0 0.75rem;
   }
 }
 

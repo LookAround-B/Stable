@@ -54,7 +54,19 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px;
+    position: fixed;
+    left: -250px;
+    top: 56px;
+    bottom: 0;
+    width: 250px;
+    transition: left 0.3s ease;
+    z-index: 100;
+    background-color: #f5f5f5;
+    border-right: 1px solid #ddd;
+  }
+
+  .sidebar.sidebar-open {
+    left: 0;
   }
 
   .menu-item {
@@ -64,5 +76,22 @@
   .section-title {
     font-size: 0.7rem;
     padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 200px;
+    left: -200px;
+  }
+
+  .menu-item {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .section-title {
+    font-size: 0.65rem;
+    padding: 0 0.875rem;
   }
 }
