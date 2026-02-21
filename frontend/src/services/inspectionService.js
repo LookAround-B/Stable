@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

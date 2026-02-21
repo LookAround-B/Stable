@@ -18,16 +18,6 @@ export default async function handler(
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-  // Set CORS headers explicitly
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
-
-  // Handle OPTIONS preflight request (no auth check needed)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
-  }
 
   // Now check authentication for actual requests
   const token = getTokenFromRequest(req as any)

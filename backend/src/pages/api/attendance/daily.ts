@@ -3,22 +3,15 @@ import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
 
 
-const CORS_ALLOWED_ORIGINS = ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3002'];
-
-function setCorsHeaders(res: NextApiResponse, origin?: string) {
-  if (origin && CORS_ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (CORS_ALLOWED_ORIGINS.length > 0) {
-    res.setHeader('Access-Control-Allow-Origin', CORS_ALLOWED_ORIGINS[0]);
-  }
+function setCorsHeaders(res: NextApiResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const origin = req.headers.origin;
-  setCorsHeaders(res, origin);
+  setCorsHeaders(res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

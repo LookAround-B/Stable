@@ -65,7 +65,7 @@ const ExpensePage = () => {
 
   const loadHorses = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
       const token = localStorage.getItem('token');
       console.log('Loading horses from:', `${apiUrl}/horses`);
       
@@ -102,7 +102,7 @@ const ExpensePage = () => {
 
   const loadEmployees = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
       const token = localStorage.getItem('token');
       console.log('Loading employees from:', `${apiUrl}/employees`);
       

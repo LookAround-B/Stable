@@ -31,7 +31,7 @@ export const uploadImage = async (
     
     // Return public URL with full backend domain
     const relativePath = `/uploads/${folderPath}/${uniqueName}`
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000'
+    const backendUrl = process.env.BACKEND_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
     const publicUrl = `${backendUrl}${relativePath}`
     return publicUrl
   } catch (error) {

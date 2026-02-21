@@ -682,7 +682,7 @@ const TasksPage = () => {
                         <h4>📷 Evidence Photo</h4>
                         <div className="evidence-photo-container">
                           <img 
-                            src={task.proofImage.startsWith('http') ? task.proofImage : `http://localhost:3000${task.proofImage}`} 
+                            src={task.proofImage.startsWith('http') ? task.proofImage : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://horsestablebackend.vercel.app'}${task.proofImage}`} 
                             alt="Task evidence" 
                             className="evidence-photo"
                             onClick={() => setFullscreenImage(task.proofImage)}
@@ -742,7 +742,7 @@ const TasksPage = () => {
           </button>
           <div className="fullscreen-image-container">
             <img 
-              src={fullscreenImage.startsWith('http') ? fullscreenImage : `http://localhost:3000${fullscreenImage}`}
+              src={fullscreenImage.startsWith('http') ? fullscreenImage : `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://horsestablebackend.vercel.app'}${fullscreenImage}`}
               alt="Full size view"
               className="fullscreen-image"
               onClick={() => setFullscreenImage(null)}
