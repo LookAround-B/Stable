@@ -340,6 +340,7 @@ async function main() {
         breed: 'Thoroughbred',
         color: ['Bay', 'Chestnut', 'Black', 'Grey'].sort(() => Math.random() - 0.5)[0],
         status: 'Active',
+        stableNumber: `ST-${horseNames.indexOf(horseName) + 1}`,
         supervisorId: createdUsers['manager@test.com']?.id || null,
       },
     });
