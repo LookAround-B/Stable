@@ -14,7 +14,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showMedicineLogs = user?.designation === 'Jamedar';
   const showCareTeam = false;
-  const showEIRS = user?.designation === 'Instructor';
+  const showEIRS = ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(user?.designation);
   const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showExpenses = ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);

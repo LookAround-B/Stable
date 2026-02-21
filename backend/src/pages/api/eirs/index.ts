@@ -50,11 +50,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       let where: any = {};
 
-      // Instructors can only see their own records
+      // Instructors can only see their own records (records they created)
       if (user.designation === 'Instructor') {
         where.instructorId = user.id;
       }
-      // Stable Manager can see all
+      // Riding Boys, Riders, Grooms see records where they are the rider
+      else if (['Riding Boy', 'Rider', 'Groom'].includes(user.designation)) {
+        where.riderId = user.id;
+      }
+      // Stable Manager, admins can see all
       else if (user.designation !== 'Stable Manager' && !['Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
         return res.status(403).json({ error: 'You do not have permission to view EIRS records' });
       }

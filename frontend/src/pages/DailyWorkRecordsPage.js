@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import '../styles/DailyWorkRecordsPage.css';
 import * as XLSX from 'xlsx';
@@ -12,7 +13,10 @@ const getTodayString = () => {
   return `${year}-${month}-${day}`;
 };
 
+const CAN_CREATE_RECORDS = ['Instructor'];
+
 const DailyWorkRecordsPage = () => {
+  const { user } = useAuth();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -22,6 +26,7 @@ const DailyWorkRecordsPage = () => {
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
+  const canCreateRecords = CAN_CREATE_RECORDS.includes(user?.designation);
 
   const [formData, setFormData] = useState({
     horseId: '',
@@ -291,7 +296,7 @@ const DailyWorkRecordsPage = () => {
               📥 Download Excel
             </button>
           )}
-          {!showForm && (
+          {!showForm && canCreateRecords && (
             <button
               className="btn btn-primary"
               onClick={() => setShowForm(true)}
@@ -303,7 +308,7 @@ const DailyWorkRecordsPage = () => {
         </div>
       </div>
 
-      {showForm && (
+      {showForm && canCreateRecords && (
         <div className="form-container">
           <div className="form-card">
             <h2>{editingId ? 'Edit Work Record' : 'New Work Record'}</h2>
@@ -438,10 +443,11 @@ const DailyWorkRecordsPage = () => {
                 <tr>
                   <th>Horse</th>
                   <th>Rider</th>
+                  {!canCreateRecords && <th>Instructor</th>}
                   <th>Type</th>
                   <th>Duration (min)</th>
                   <th>Notes</th>
-                  <th>Actions</th>
+                  {canCreateRecords && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -449,25 +455,28 @@ const DailyWorkRecordsPage = () => {
                   <tr key={record.id}>
                     <td>{record.horse.name}</td>
                     <td>{record.rider.fullName}</td>
+                    {!canCreateRecords && <td>{record.instructor?.fullName || '-'}</td>}
                     <td>{record.workType}</td>
                     <td>{record.duration}</td>
                     <td>{record.notes || '-'}</td>
-                    <td className="actions">
-                      <button
-                        className="btn btn-sm btn-edit"
-                        onClick={() => handleEdit(record)}
-                        title="Edit"
-                      >
-                        ✎
-                      </button>
-                      <button
-                        className="btn btn-sm btn-delete"
-                        onClick={() => handleDelete(record.id)}
-                        title="Delete"
-                      >
-                        🗑
-                      </button>
-                    </td>
+                    {canCreateRecords && (
+                      <td className="actions">
+                        <button
+                          className="btn btn-sm btn-edit"
+                          onClick={() => handleEdit(record)}
+                          title="Edit"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className="btn btn-sm btn-delete"
+                          onClick={() => handleDelete(record.id)}
+                          title="Delete"
+                        >
+                          🗑
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
