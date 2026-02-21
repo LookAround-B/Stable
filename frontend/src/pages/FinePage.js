@@ -5,7 +5,7 @@ import '../styles/FinePage.css';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar'];
+const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor'];
 
 const FinePage = () => {
   const { user } = useAuth();

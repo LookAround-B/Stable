@@ -69,7 +69,7 @@ async function handleUpdateFine(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Check authorization (must be issuer or director/admin)
-    if (userId !== fine.issuedById && !['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(userDesignation)) {
+    if (userId !== fine.issuedById && !['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Instructor', 'Ground Supervisor'].includes(userDesignation)) {
       return res.status(403).json({ error: 'Not authorized to update this fine' })
     }
 
@@ -139,7 +139,7 @@ async function handleDeleteFine(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Check authorization (only issuer or director/admin can delete)
-    if (userId !== fine.issuedById && !['Super Admin', 'Director', 'School Administrator'].includes(userDesignation)) {
+    if (userId !== fine.issuedById && !['Super Admin', 'Director', 'School Administrator', 'Instructor', 'Ground Supervisor'].includes(userDesignation)) {
       return res.status(403).json({ error: 'Not authorized to delete this fine' })
     }
 

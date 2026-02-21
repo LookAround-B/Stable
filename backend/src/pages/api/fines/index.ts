@@ -3,7 +3,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
 
-const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar']
+const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor']
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set CORS headers
@@ -66,9 +66,9 @@ async function handleRoutes(req: NextApiRequest, res: NextApiResponse) {
 
     // Role-based filtering
     // Users can always see fines issued TO them
-    // Jamedar see fines they issued OR fines issued to them
+    // Jamedar/Instructor/Ground Supervisor see fines they issued OR fines issued to them
     // Admin roles see all fines
-    if (userDesignation === 'Jamedar') {
+    if (['Jamedar', 'Instructor', 'Ground Supervisor'].includes(userDesignation)) {
       where.OR = [
         { issuedById: userId },
         { issuedToId: userId },
