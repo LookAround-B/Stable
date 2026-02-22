@@ -37,7 +37,7 @@ const ExpensePage = () => {
   const EXPENSE_TYPES = ['Medicine', 'Treatment', 'Maintenance', 'Miscellaneous'];
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-  const isAccountsUser = useMemo(() => ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation), [user?.designation]);
+  const isAccountsUser = useMemo(() => ['Senior Executive Accounts', 'Executive Accounts', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation), [user?.designation]);
 
   const loadExpenses = useCallback(async () => {
     try {
