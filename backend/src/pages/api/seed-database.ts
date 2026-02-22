@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await prisma.employee.upsert({
         where: { email: userData.email },
-        update: { password: hashedPassword },
+        update: { password: hashedPassword, fullName: userData.fullName, designation: userData.designation, department: userData.department },
         create: {
           email: userData.email,
           password: hashedPassword,
