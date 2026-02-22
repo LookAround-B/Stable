@@ -17,7 +17,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showEIRS = ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(user?.designation);
   const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showExpenses = ['Senior Executive - Accounts', 'Junior Executive - Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const showExpenses = ['Senior Executive Accounts', 'Executive Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showFines = true; // Everyone can see their fines
   const showTasks = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(user?.designation); // Roles that can create/assign tasks
