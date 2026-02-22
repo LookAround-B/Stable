@@ -82,7 +82,7 @@ async function handleGetEmployee(
 }
 
 async function handleDeleteEmployee(
-  req: NextApiRequest,
+  _req: NextApiRequest,
   res: NextApiResponse,
   id: string,
   decoded: { id: string; email: string; designation: string }
