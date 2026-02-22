@@ -465,7 +465,15 @@ ${momData.decisions.map((d) => `- ${d}`).join('\n')}
 
               {(user.id === selectedMeeting.createdBy.id ||
               parentRoles.includes(user.designation)) &&
-              new Date(selectedMeeting.meetingDate) <= new Date() ? (
+              (() => {
+                // Combine meetingDate and meetingTime for accurate comparison
+                const dateStr = selectedMeeting.meetingDate;
+                const timeStr = selectedMeeting.meetingTime || '00:00';
+                const [hours, minutes] = timeStr.split(':');
+                const meetingDateTime = new Date(dateStr);
+                meetingDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+                return meetingDateTime <= new Date();
+              })() ? (
                 <>
                   <button
                     className="btn-mom"
