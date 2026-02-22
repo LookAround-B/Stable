@@ -22,8 +22,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         email: 'admin@test.com',
         password: 'password123',
-        fullName: 'Admin User',
-        designation: 'Super Admin',
+        fullName: 'Admin Director',
+        designation: 'Director',
+        department: 'Leadership',
+      },
+      {
+        email: 'manager@test.com',
+        password: 'password123',
+        fullName: 'Emma Manager',
+        designation: 'Stable Manager',
+        department: 'Stable Operations',
+      },
+      {
+        email: 'accounts@test.com',
+        password: 'password123',
+        fullName: 'Priya Accounts',
+        designation: 'Senior Executive Accounts',
+        department: 'Accounts/Administration',
+      },
+      {
+        email: 'schooladmin@test.com',
+        password: 'password123',
+        fullName: 'Rahul School Admin',
+        designation: 'School Administrator',
         department: 'Leadership',
       },
       {

@@ -54,6 +54,8 @@ const EmployeesPage = () => {
 
   // Super Admin, Director, and School Administrator can add employees
   const canAddEmployee = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  // Only Director can delete employees
+  const canDeleteEmployee = user?.designation === 'Director';
 
   useEffect(() => {
     // Load existing employees to show as supervisors
@@ -150,6 +152,24 @@ const EmployeesPage = () => {
     } catch (error) {
       console.error('Error approving employee:', error);
       setMessage('Error approving employee: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleDeleteEmployee = async (employeeId, employeeName) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${employeeName}"? This will remove all their records and cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await apiClient.delete(`/employees/${employeeId}`);
+      setMessage(response.data.message || 'Employee deleted successfully!');
+      loadEmployees();
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      setMessage('Error: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -315,7 +335,7 @@ const EmployeesPage = () => {
                 <th>Supervisor</th>
                 <th>Status</th>
                 <th>Contact</th>
-                {canAddEmployee && <th>Actions</th>}
+                {(canAddEmployee || canDeleteEmployee) && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -336,14 +356,23 @@ const EmployeesPage = () => {
                     </span>
                   </td>
                   <td>{employee.phoneNumber || 'N/A'}</td>
-                  {canAddEmployee && (
+                  {(canAddEmployee || canDeleteEmployee) && (
                     <td>
-                      {!employee.isApproved && (
+                      {canAddEmployee && !employee.isApproved && (
                         <button
                           className="btn-approve"
                           onClick={() => handleApproveEmployee(employee.id)}
                         >
                           ✓ Approve
+                        </button>
+                      )}
+                      {canDeleteEmployee && employee.id !== user?.id && (
+                        <button
+                          className="btn-delete"
+                          onClick={() => handleDeleteEmployee(employee.id, employee.fullName)}
+                          style={{ marginLeft: '8px', background: '#e74c3c', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
+                        >
+                          🗑 Delete
                         </button>
                       )}
                     </td>
