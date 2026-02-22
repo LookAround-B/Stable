@@ -46,7 +46,7 @@ export default async function handler(
 }
 
 async function handleGetEmployee(
-  req: NextApiRequest,
+  _req: NextApiRequest,
   res: NextApiResponse,
   id: string
 ) {
