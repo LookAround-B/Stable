@@ -116,53 +116,94 @@ async function handleDeleteEmployee(
       return res.status(404).json({ error: 'Employee not found' })
     }
 
-    // Delete all related records first (cascade may handle some, but be explicit)
-    // Delete in order of dependencies
+    // Delete ALL related records explicitly before deleting employee
     await prisma.$transaction(async (tx) => {
-      // Delete approvals where this employee is the approver
+      // 1. Approvals where this employee is the approver
       await tx.approval.deleteMany({ where: { approverId: id } })
-      // Delete approvals on tasks created by or assigned to this employee
-      const tasksOfEmployee = await tx.task.findMany({
-        where: { OR: [{ createdById: id }, { assignedEmployeeId: id }] },
-        select: { id: true },
-      })
-      if (tasksOfEmployee.length > 0) {
-        await tx.approval.deleteMany({
-          where: { taskId: { in: tasksOfEmployee.map(t => t.id) } },
+
+      // 2. Approvals linked to tasks created/assigned to this employee
+      const taskIds = (
+        await tx.task.findMany({
+          where: { OR: [{ createdById: id }, { assignedEmployeeId: id }] },
+          select: { id: true },
         })
+      ).map((t) => t.id)
+      if (taskIds.length > 0) {
+        await tx.approval.deleteMany({ where: { taskId: { in: taskIds } } })
       }
 
-      // Delete tasks
+      // 3. Tasks
       await tx.task.deleteMany({ where: { OR: [{ createdById: id }, { assignedEmployeeId: id }] } })
 
-      // Delete fines
+      // 4. Fines
       await tx.fine.deleteMany({ where: { OR: [{ issuedById: id }, { issuedToId: id }, { resolvedById: id }] } })
 
-      // Delete attendance records
-      await tx.attendance.deleteMany({ where: { OR: [{ employeeId: id }, { markedById: id }] } })
+      // 5. Reports
+      await tx.report.deleteMany({ where: { OR: [{ reportedEmployeeId: id }, { reporterEmployeeId: id }] } })
 
-      // Delete groom worksheets  
-      await tx.groomWorkSheet.deleteMany({ where: { employeeId: id } })
+      // 6. Audit logs
+      await tx.auditLog.deleteMany({ where: { userId: id } })
 
-      // Delete gate entries
-      await tx.gateEntry.deleteMany({ where: { guardId: id } })
+      // 7. Expenses (created by OR assigned to)
+      await tx.expense.deleteMany({ where: { OR: [{ createdById: id }, { employeeId: id }] } })
 
-      // Delete EIRS records
+      // 8. Nullify health record advisor references (optional FK)
+      await tx.healthRecord.updateMany({ where: { healthAdvisorId: id }, data: { healthAdvisorId: null } })
+
+      // 9. Attendance records
+      await tx.attendance.deleteMany({ where: { employeeId: id } })
+
+      // 10. Attendance logs
+      await tx.attendanceLog.deleteMany({ where: { employeeId: id } })
+
+      // 11. Groom worksheets (cascades to WorkSheetEntry)
+      await tx.groomWorkSheet.deleteMany({ where: { groomId: id } })
+
+      // 12. Gate entries (as guard or as employee)
+      await tx.gateEntry.deleteMany({ where: { OR: [{ guardId: id }, { employeeId: id }] } })
+
+      // 13. Gate attendance logs
+      await tx.gateAttendanceLog.deleteMany({ where: { guardId: id } })
+
+      // 14. EIRS / Instructor daily work records
       await tx.instructorDailyWorkRecord.deleteMany({ where: { OR: [{ instructorId: id }, { riderId: id }] } })
 
-      // Delete expenses
-      await tx.expense.deleteMany({ where: { submittedById: id } })
+      // 15. Horse feed records
+      await tx.horseFeed.deleteMany({ where: { recordedById: id } })
 
-      // Delete inspection rounds
-      await tx.inspectionRound.deleteMany({ where: { inspectorId: id } })
+      // 16. Inspection rounds (as jamedar or resolver)
+      await tx.inspectionRound.deleteMany({ where: { OR: [{ jamedarId: id }, { resolvedById: id }] } })
 
-      // Remove supervisor references from other employees
-      await tx.employee.updateMany({
-        where: { supervisorId: id },
-        data: { supervisorId: null },
-      })
+      // 17. Jamedar round checks
+      await tx.jamedarRoundCheck.deleteMany({ where: { jamedarId: id } })
 
-      // Finally delete the employee
+      // 18. Meeting participants, then meetings (cascade handles MOM + participants)
+      await tx.meetingParticipant.deleteMany({ where: { employeeId: id } })
+      const meetingIds = (
+        await tx.meeting.findMany({ where: { createdById: id }, select: { id: true } })
+      ).map((m) => m.id)
+      if (meetingIds.length > 0) {
+        await tx.meetingMOM.deleteMany({ where: { meetingId: { in: meetingIds } } })
+        await tx.meetingParticipant.deleteMany({ where: { meetingId: { in: meetingIds } } })
+      }
+      await tx.meeting.deleteMany({ where: { createdById: id } })
+
+      // 19. Medicine logs
+      await tx.medicineLog.deleteMany({ where: { jamiedarId: id } })
+
+      // 20. Horse care team assignments
+      await tx.horseCareTeam.deleteMany({ where: { staffId: id } })
+
+      // 21. Notifications
+      await tx.notification.deleteMany({ where: { employeeId: id } })
+
+      // 22. Remove supervisor references from other employees
+      await tx.employee.updateMany({ where: { supervisorId: id }, data: { supervisorId: null } })
+
+      // 23. Remove horse supervisor references
+      await tx.horse.updateMany({ where: { supervisorId: id }, data: { supervisorId: null } })
+
+      // 24. Finally delete the employee
       await tx.employee.delete({ where: { id } })
     })
 
