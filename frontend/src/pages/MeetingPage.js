@@ -618,7 +618,10 @@ ${momData.decisions.map((d) => `- ${d}`).join('\n')}
                   marginTop: '15px'
                 }}>
                   <p><strong>📋 MOM Available After Meeting:</strong></p>
-                  <p>Minutes of Meeting can be added after {new Date(selectedMeeting.meetingDate).toLocaleDateString('en-IN')}</p>
+                  <p>
+                    Minutes of Meeting can be added after {new Date(selectedMeeting.meetingDate).toLocaleDateString('en-IN')}
+                    {selectedMeeting.meetingTime ? ` and ${selectedMeeting.meetingTime} hr` : ''}
+                  </p>
                 </div>
               ) : null}
             </div>
