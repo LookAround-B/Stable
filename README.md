@@ -125,8 +125,8 @@ Comprehensive horse records including:
 ## Getting Started
 
 ### Prerequisites
-- Node.js 14+ and npm
-- MySQL 8.0+
+- Node.js 18+ and npm
+- PostgreSQL 12+
 - AWS S3 account (for image storage)
 
 ### Backend Setup
@@ -148,10 +148,14 @@ cp .env.example .env
 
 4. Update `.env` with your database and AWS credentials
 
-5. Create database:
+5. Create database and run migrations:
 ```bash
-mysql -u root -p < ../database/schema.sql
-mysql -u root -p stable_management < ../database/seed.sql
+npm run prisma:migrate
+```
+
+6. (Optional) Seed initial data:
+```bash
+npm run seed
 ```
 
 6. Start the server:
@@ -184,6 +188,24 @@ npm start
 ```
 
 App runs on `http://localhost:3000`
+
+## Cross-Platform Setup (Windows + Linux)
+
+To avoid line-ending conflicts and editor formatting issues across OSes:
+
+1. Ensure Git respects LF line endings in this repo:
+```bash
+git config core.autocrlf input
+```
+
+2. Keep the new repo settings that normalize line endings and whitespace:
+- `.gitattributes` enforces LF line endings
+- `.editorconfig` enforces whitespace consistency
+
+3. Reinstall dependencies after switching OS or Node versions:
+```bash
+npm run install-all
+```
 
 ## Key Features Implementation
 
