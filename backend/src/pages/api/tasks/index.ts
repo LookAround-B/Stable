@@ -140,7 +140,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       description,
     } = req.body
 
-    if (!name || !type || !horseId || !assignedEmployeeId || !scheduledTime) {
+    if (!name || !type || !assignedEmployeeId || !scheduledTime) {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 

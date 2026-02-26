@@ -151,7 +151,7 @@ const TasksPage = () => {
     setMessage('');
 
     try {
-      if (!formData.name || !formData.horseId || !formData.assignedEmployeeId || !formData.scheduledTime) {
+      if (!formData.name || !formData.assignedEmployeeId || !formData.scheduledTime) {
         setMessage('✗ Please fill in all required fields');
         setLoading(false);
         return;
@@ -404,9 +404,9 @@ const TasksPage = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Horse *</label>
-                <select name="horseId" value={formData.horseId} onChange={handleInputChange} required>
-                  <option value="">Select a horse</option>
+                <label>Horse</label>
+                <select name="horseId" value={formData.horseId} onChange={handleInputChange}>
+                  <option value="">Select a horse (optional)</option>
                   {horses.map(horse => (
                     <option key={horse.id} value={horse.id}>{horse.name}</option>
                   ))}

@@ -1,3 +1,5 @@
 cd 'd:\AI Projects\horsestable\backend'; $env:PORT=3000; npm run dev
 
 cd 'd:\AI Projects\horsestable\frontend'; $env:PORT=3001; npm start
+
+cd 'd:\AI Projects\horsestable\backend'; npm run build; 
