@@ -1,56 +1,63 @@
-// Local file upload utilities (fallback from S3)
-import fs from 'fs'
-import path from 'path'
+// Cloudflare R2 Storage Utilities
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
+// Initialize R2 client
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+  },
+})
+
+const bucket = process.env.R2_BUCKET || 'horsestable-storage'
 
 export const uploadImage = async (
   buffer: Buffer,
   filename: string,
-  _mimetype: string,
+  mimetype: string,
   folderPath: string
 ): Promise<string> => {
   try {
     // Generate unique filename
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}-${filename}`
-    const folderPath_ = path.join(uploadsDir, folderPath)
-    
-    // Ensure folder exists
-    if (!fs.existsSync(folderPath_)) {
-      fs.mkdirSync(folderPath_, { recursive: true })
-    }
-    
-    const filePath = path.join(folderPath_, uniqueName)
-    
-    // Write file
-    fs.writeFileSync(filePath, buffer)
-    
-    // Return public URL with full backend domain
-    const relativePath = `/uploads/${folderPath}/${uniqueName}`
-    const backendUrl = process.env.BACKEND_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
-    const publicUrl = `${backendUrl}${relativePath}`
+    const key = `${folderPath}/${uniqueName}`
+
+    // Upload to R2
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: mimetype,
+      })
+    )
+
+    // Return public R2 URL
+    const publicUrl = `${process.env.R2_ENDPOINT}/${bucket}/${key}`
     return publicUrl
   } catch (error) {
-    console.error('Error uploading image:', error)
+    console.error('Error uploading to R2:', error)
     throw error
   }
 }
 
 export const deleteImage = async (imageUrl: string): Promise<void> => {
   try {
-    if (!imageUrl.startsWith('/uploads/')) {
-      return // Skip non-local uploads
-    }
-    
-    const filePath = path.join(process.cwd(), 'public', imageUrl)
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath)
-    }
+    // Extract key from URL
+    const urlPath = new URL(imageUrl).pathname
+    const key = urlPath.replace(`/${bucket}/`, '')
+
+    // Delete from R2
+    await r2.send(
+      new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      })
+    )
   } catch (error) {
-    console.error('Error deleting image:', error)
+    console.error('Error deleting from R2:', error)
   }
 }
+
