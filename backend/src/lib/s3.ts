@@ -35,7 +35,7 @@ export const uploadImage = async (
     )
 
     // Return public R2 URL
-    const publicUrl = `${process.env.R2_ENDPOINT}/${bucket}/${key}`
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`
     return publicUrl
   } catch (error) {
     console.error('Error uploading to R2:', error)
