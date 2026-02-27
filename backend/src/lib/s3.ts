@@ -20,8 +20,10 @@ export const uploadImage = async (
   folderPath: string
 ): Promise<string> => {
   try {
-    // Generate unique filename
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}-${filename}`
+    // Extract file extension safely
+    const ext = filename.split('.').pop()?.toLowerCase() || 'bin'
+    // Generate safe filename without special characters
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
     const key = `${folderPath}/${uniqueName}`
 
     // Upload to R2
