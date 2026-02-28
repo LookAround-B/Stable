@@ -332,6 +332,7 @@ const FeedInventoryPage = () => {
                       <th>Opening Stock</th>
                       <th>Units Brought</th>
                       <th>Total Available</th>
+                      <th>Used Today</th>
                       <th>Total Used</th>
                       <th>Units Left</th>
                       <th>Unit</th>
@@ -352,6 +353,9 @@ const FeedInventoryPage = () => {
                           <td>{record.openingStock}</td>
                           <td>{record.unitsBrought}</td>
                           <td className="total-available">{totalAvailable}</td>
+                          <td className={record.usedToday > 0 ? 'text-warning' : ''}>
+                            {record.usedToday ?? 0}
+                          </td>
                           <td>{record.totalUsed}</td>
                           <td className={`units-left ${isEmpty ? 'text-danger' : isLow ? 'text-warning' : 'text-success'}`}>
                             {record.unitsLeft}

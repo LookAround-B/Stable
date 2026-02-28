@@ -111,7 +111,20 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     orderBy: [{ year: 'desc' }, { month: 'desc' }, { feedType: 'asc' }],
   });
 
-  return res.status(200).json({ data: records, feedTypes: FEED_TYPES });
+  // Calculate today's usage for each feed type
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const recordsWithToday = await Promise.all(
+    records.map(async (record) => {
+      const usedToday = await calculateUsage(record.feedType, todayStart, todayEnd);
+      return { ...record, usedToday };
+    })
+  );
+
+  return res.status(200).json({ data: recordsWithToday, feedTypes: FEED_TYPES });
 }
 
 // POST - Create or update inventory entry for a month
