@@ -60,6 +60,7 @@ model Employee {
   finesResolved         Fine[] @relation("finesResolved")
   meetingsCreated       Meeting[] @relation("meetingsCreated")
   meetingParticipants   MeetingParticipant[] @relation("meetingParticipants")
+  feedInventoryRecords  FeedInventory[] @relation("feedInventoryRecords")
 
 
   @@index([designation])
@@ -640,4 +641,26 @@ model JamedarRoundCheck {
   @@unique([jamedarId, checkDate])
   @@index([jamedarId])
   @@index([checkDate])
+}
+
+model FeedInventory {
+  id                    String      @id @default(cuid())
+  feedType              String      // 'barley', 'oats', 'soya', 'lucerne', 'linseed', 'rOil', 'biotin', 'joint', 'epsom', 'heylase', 'balance'
+  month                 Int         // Month (1-12)
+  year                  Int         // Year (e.g. 2026)
+  unitsBrought          Float       @default(0)  // Units purchased/received this month
+  openingStock          Float       @default(0)  // Stock at beginning of month
+  totalUsed             Float       @default(0)  // Total units consumed (auto-calculated from HorseFeed)
+  unitsLeft             Float       @default(0)  // Remaining units (openingStock + unitsBrought - totalUsed)
+  unit                  String      @default("kg") // Unit of measurement (kg, liters, packets, etc.)
+  notes                 String?
+  recordedById          String
+  recordedBy            Employee    @relation("feedInventoryRecords", fields: [recordedById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([feedType, month, year])  // One entry per feed type per month
+  @@index([feedType])
+  @@index([month, year])
+  @@index([recordedById])
 }

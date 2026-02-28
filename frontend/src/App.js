@@ -25,6 +25,7 @@ import HorseCareTeamPage from './pages/HorseCareTeamPage';
 import DailyWorkRecordsPage from './pages/DailyWorkRecordsPage';
 import InvoiceGenerationPage from './pages/InvoiceGenerationPage';
 import HorseFeedsPage from './pages/HorseFeedsPage';
+import FeedInventoryPage from './pages/FeedInventoryPage';
 import ExpensePage from './pages/ExpensePage';
 import InspectionPage from './pages/InspectionPage';
 import FinePage from './pages/FinePage';
@@ -68,6 +69,7 @@ function App() {
             <Route path="/daily-work-records" element={<DailyWorkRecordsPage />} />
             <Route path="/invoice-generation" element={<InvoiceGenerationPage />} />
             <Route path="/horse-feeds" element={<HorseFeedsPage />} />
+            <Route path="/feed-inventory" element={<FeedInventoryPage />} />
             <Route path="/expenses" element={<ExpensePage />} />
             <Route path="/inspections" element={<InspectionPage />} />
             <Route path="/fines" element={<FinePage />} />
