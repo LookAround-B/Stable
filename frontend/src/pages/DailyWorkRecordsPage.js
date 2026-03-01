@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/DailyWorkRecordsPage.css';
 import * as XLSX from 'xlsx';
 
@@ -328,40 +329,36 @@ const DailyWorkRecordsPage = () => {
 
               <div className="form-group">
                 <label htmlFor="horseId">Horse *</label>
-                <select
+                <SearchableSelect
                   id="horseId"
                   name="horseId"
                   value={formData.horseId}
                   onChange={handleInputChange}
+                  placeholder="Select a horse"
                   required
-                >
-                  <option value="">Select a horse</option>
-                  {horses.map((horse) => (
-                    <option key={horse.id} value={horse.id}>
-                      {horse.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Select a horse' },
+                    ...horses.map(h => ({ value: h.id, label: h.name }))
+                  ]}
+                />
               </div>
 
               <div className="form-group">
                 <label htmlFor="riderId">Rider/Student *</label>
-                <select
+                <SearchableSelect
                   id="riderId"
                   name="riderId"
                   value={formData.riderId}
                   onChange={handleInputChange}
+                  placeholder="Select a rider"
                   required
-                >
-                  <option value="">Select a rider</option>
-                  {employees
-                    .filter((emp) => ['Rider', 'Riding Boy'].includes(emp.designation))
-                    .map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.fullName} ({emp.designation})
-                      </option>
-                    ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Select a rider' },
+                    ...employees
+                      .filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation))
+                      .map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                  ]}
+                />
               </div>
 
               <div className="form-row">

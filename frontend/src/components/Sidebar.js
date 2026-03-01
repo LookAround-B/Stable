@@ -12,12 +12,14 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Ground Supervisor', 'Groom'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Groom'].includes(user?.designation);
   const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
-  const showMedicineLogs = user?.designation === 'Jamedar';
+  const showMedicineLogs = user?.designation === 'Jamedar' || ['Stable Manager', 'Director', 'Super Admin', 'School Administrator'].includes(user?.designation);
   const showCareTeam = false;
   const showEIRS = ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(user?.designation);
   const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showFeedInventory = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const showMedicineInventory = ['Stable Manager', 'Super Admin', 'Director', 'School Administrator', 'Jamedar'].includes(user?.designation);
+  const showGroceriesInventory = ['Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(user?.designation);
   const showExpenses = ['Senior Executive Accounts', 'Executive Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showFines = true; // Everyone can see their fines
@@ -25,6 +27,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Parent roles approve tasks
   const showMyAssignedTasks = true; // Everyone can see tasks assigned to them
   const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Only parent roles can create meetings
+  const showHorses = user?.designation !== 'Guard'; // Guards cannot access horse data
 
 
   return (
@@ -33,6 +36,11 @@ const Sidebar = ({ isOpen, onClose }) => {
         <li>
           <Link to="/" className="menu-item">
             📊 Dashboard
+          </Link>
+        </li>
+        <li>
+          <Link to="/profile" className="menu-item">
+            👤 My Profile
           </Link>
         </li>
         {showTasks && (
@@ -63,11 +71,13 @@ const Sidebar = ({ isOpen, onClose }) => {
             </Link>
           </li>
         )}
-        <li>
-          <Link to="/horses" className="menu-item">
-            🐴 Horses
-          </Link>
-        </li>
+        {showHorses && (
+          <li>
+            <Link to="/horses" className="menu-item">
+              🐴 Horses
+            </Link>
+          </li>
+        )}
         <li>
           <Link to="/employees" className="menu-item">
             👥 Team
@@ -163,6 +173,22 @@ const Sidebar = ({ isOpen, onClose }) => {
           <li>
             <Link to="/feed-inventory" className="menu-item">
               📦 Feed Inventory
+            </Link>
+          </li>
+        )}
+
+        {showMedicineInventory && (
+          <li>
+            <Link to="/medicine-inventory" className="menu-item">
+              💊 Medicine Inventory
+            </Link>
+          </li>
+        )}
+
+        {showGroceriesInventory && (
+          <li>
+            <Link to="/groceries-inventory" className="menu-item">
+              🛒 Groceries Inventory
             </Link>
           </li>
         )}

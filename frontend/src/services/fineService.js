@@ -78,6 +78,7 @@ const fineService = {
       const payload = {
         issuedToId: formData.issuedToId,
         reason: formData.reason,
+        amount: parseFloat(formData.amount),
         evidenceImage: imageData,
       };
 

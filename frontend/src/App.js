@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
+import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import HorsesPage from './pages/HorsesPage';
 import HorseDetailPage from './pages/HorseDetailPage';
@@ -19,13 +20,15 @@ import TeamAttendancePage from './pages/TeamAttendancePage';
 import DailyAttendancePage from './pages/DailyAttendancePage';
 import GateAttendancePage from './pages/GateAttendancePage';
 import GateEntryRegisterPage from './pages/GateEntryRegisterPage';
-import MedicineLogPage from './pages/MedicineLogPage';
+import MedicineLogsPage from './pages/MedicineLogsPage';
 import GroomWorkSheetPage from './pages/GroomWorkSheetPage';
 import HorseCareTeamPage from './pages/HorseCareTeamPage';
 import DailyWorkRecordsPage from './pages/DailyWorkRecordsPage';
 import InvoiceGenerationPage from './pages/InvoiceGenerationPage';
 import HorseFeedsPage from './pages/HorseFeedsPage';
 import FeedInventoryPage from './pages/FeedInventoryPage';
+import MedicineInventoryPage from './pages/MedicineInventoryPage';
+import GroceriesInventoryPage from './pages/GroceriesInventoryPage';
 import ExpensePage from './pages/ExpensePage';
 import InspectionPage from './pages/InspectionPage';
 import FinePage from './pages/FinePage';
@@ -50,6 +53,7 @@ function App() {
           
           <Route element={<PrivateRoute />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/horses" element={<HorsesPage />} />
             <Route path="/horses/:id" element={<HorseDetailPage />} />
             <Route path="/tasks" element={<TasksPage />} />
@@ -63,13 +67,15 @@ function App() {
             <Route path="/daily-attendance" element={<DailyAttendancePage />} />
             <Route path="/gate-attendance" element={<GateAttendancePage />} />
             <Route path="/gate-entry" element={<GateEntryRegisterPage />} />
-            <Route path="/medicine-logs" element={<MedicineLogPage />} />
+            <Route path="/medicine-logs" element={<MedicineLogsPage />} />
             <Route path="/groom-worksheet" element={<GroomWorkSheetPage />} />
             <Route path="/horse-care-team" element={<HorseCareTeamPage />} />
             <Route path="/daily-work-records" element={<DailyWorkRecordsPage />} />
             <Route path="/invoice-generation" element={<InvoiceGenerationPage />} />
             <Route path="/horse-feeds" element={<HorseFeedsPage />} />
             <Route path="/feed-inventory" element={<FeedInventoryPage />} />
+            <Route path="/medicine-inventory" element={<MedicineInventoryPage />} />
+            <Route path="/groceries-inventory" element={<GroceriesInventoryPage />} />
             <Route path="/expenses" element={<ExpensePage />} />
             <Route path="/inspections" element={<InspectionPage />} />
             <Route path="/fines" element={<FinePage />} />

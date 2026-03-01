@@ -40,10 +40,6 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid task ID' })
     }
 
-    if (!proofImage) {
-      return res.status(400).json({ error: 'Proof image is required' })
-    }
-
     // Get the task
     const task = await prisma.task.findUnique({
       where: { id },
@@ -62,6 +58,11 @@ export default async function handler(
     // Verify task is in "In Progress" status
     if (task.status !== 'In Progress') {
       return res.status(400).json({ error: 'Task must be in progress before submission' })
+    }
+
+    // If task requires proof, proofImage must be provided
+    if (task.requiredProof && !proofImage) {
+      return res.status(400).json({ error: 'Photo evidence is required for this task' })
     }
 
     // Update task with completion data

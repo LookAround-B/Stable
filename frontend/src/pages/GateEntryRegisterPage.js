@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/GateEntryRegisterPage.css';
 
 const GateEntryRegisterPage = () => {
@@ -250,20 +251,18 @@ const GateEntryRegisterPage = () => {
               {formData.personType === 'Staff' && (
                 <div className="form-group">
                   <label>Select Staff Member *</label>
-                  <select 
+                  <SearchableSelect
                     name="employeeId"
                     value={formData.employeeId}
                     onChange={handleFormChange}
-                    className="form-input"
+                    placeholder="-- Choose Staff --"
                     required
-                  >
-                    <option value="">-- Choose Staff --</option>
-                    {staffList.map(staff => (
-                      <option key={staff.id} value={staff.id}>
-                        {staff.fullName} ({staff.designation})
-                      </option>
-                    ))}
-                  </select>
+                    className="form-input"
+                    options={[
+                      { value: '', label: '-- Choose Staff --' },
+                      ...staffList.map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                    ]}
+                  />
                 </div>
               )}
 
@@ -275,19 +274,17 @@ const GateEntryRegisterPage = () => {
                     
                     <div className="form-group">
                       <label>Existing Visitors</label>
-                      <select 
+                      <SearchableSelect
                         name="visitorId"
                         value={formData.visitorId}
                         onChange={handleFormChange}
+                        placeholder="-- Select Visitor --"
                         className="form-input"
-                      >
-                        <option value="">-- Select Visitor --</option>
-                        {visitorsList.map(visitor => (
-                          <option key={visitor.id} value={visitor.id}>
-                            {visitor.name} ({visitor.purpose})
-                          </option>
-                        ))}
-                      </select>
+                        options={[
+                          { value: '', label: '-- Select Visitor --' },
+                          ...visitorsList.map(v => ({ value: v.id, label: `${v.name} (${v.purpose})` }))
+                        ]}
+                      />
                     </div>
 
                     <div className="divider">OR</div>

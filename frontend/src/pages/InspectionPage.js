@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import inspectionService from '../services/inspectionService';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/InspectionPage.css';
 import * as XLSX from 'xlsx';
 
@@ -391,14 +392,16 @@ const InspectionPage = () => {
 
         <div className="filter-group">
           <label>Horse</label>
-          <select name="horseId" value={filters.horseId} onChange={handleFilterChange}>
-            <option value="">All Horses</option>
-            {horses.map((horse) => (
-              <option key={horse.id} value={horse.id}>
-                {horse.name}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            name="horseId"
+            value={filters.horseId}
+            onChange={handleFilterChange}
+            placeholder="All Horses"
+            options={[
+              { value: '', label: 'All Horses' },
+              ...horses.map(h => ({ value: h.id, label: h.name }))
+            ]}
+          />
         </div>
 
         <div className="filter-group">
@@ -489,19 +492,17 @@ const InspectionPage = () => {
 
             <div className="form-group">
               <label htmlFor="horse-select">Horse</label>
-              <select
+              <SearchableSelect
                 id="horse-select"
                 name="horseId"
                 value={formData.horseId}
                 onChange={handleFormChange}
-              >
-                <option value="">Select Horse</option>
-                {horses.map((horse) => (
-                  <option key={horse.id} value={horse.id}>
-                    {horse.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select Horse"
+                options={[
+                  { value: '', label: 'Select Horse' },
+                  ...horses.map(h => ({ value: h.id, label: h.name }))
+                ]}
+              />
             </div>
 
             <div className="form-group">

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/HorseFeedsPage.css';
 
 const HorseFeedsPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [horses, setHorses] = useState([]);
@@ -15,6 +18,15 @@ const HorseFeedsPage = () => {
   const [summaryData, setSummaryData] = useState({});
 
   const feedTypes = ['balance', 'barley', 'oats', 'soya', 'lucerne', 'linseed', 'rOil', 'biotin', 'joint', 'epsom', 'heylase'];
+
+  // Display names for feed types
+  const getFeedTypeDisplayName = (feedType) => {
+    const displayNames = {
+      'balance': 'Himalayan Balance',
+      'rOil': 'R.Oil',
+    };
+    return displayNames[feedType] || feedType.charAt(0).toUpperCase() + feedType.slice(1);
+  };
 
   const [formData, setFormData] = useState({
     horseId: '',
@@ -164,7 +176,17 @@ const HorseFeedsPage = () => {
     );
   }
 
-  return (
+  return user?.designation === 'Guard' ? (
+    <div className="horse-feeds-page">
+      <div className="access-denied">
+        <h2>✖ Access Denied</h2>
+        <p>You do not have permission to access horse feed data.</p>
+        <button onClick={() => navigate('/')} className="btn-back">
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  ) : (
     <div className="page-container">
       <div className="page-header">
         <h1>🐴 Horse Feeds</h1>
@@ -215,20 +237,18 @@ const HorseFeedsPage = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label htmlFor="horseId">Horse *</label>
-                <select
+                <SearchableSelect
                   id="horseId"
                   name="horseId"
                   value={formData.horseId}
                   onChange={handleFormChange}
+                  placeholder="Select a horse"
                   required
-                >
-                  <option value="">Select a horse</option>
-                  {horses.map((horse) => (
-                    <option key={horse.id} value={horse.id}>
-                      {horse.name} ({horse.stableNumber || 'No Stable #'})
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Select a horse' },
+                    ...horses.map(h => ({ value: h.id, label: `${h.name} (${h.stableNumber || 'No Stable #'})` }))
+                  ]}
+                />
               </div>
 
               <div className="form-group">
@@ -247,7 +267,7 @@ const HorseFeedsPage = () => {
                 {feedTypes.map((feedType) => (
                   <div className="form-group" key={feedType}>
                     <label htmlFor={feedType}>
-                      {feedType === 'rOil' ? 'R.Oil' : feedType.charAt(0).toUpperCase() + feedType.slice(1)}
+                      {getFeedTypeDisplayName(feedType)}
                     </label>
                     <input
                       type="number"
@@ -309,7 +329,7 @@ const HorseFeedsPage = () => {
                 <tr>
                   <th>Horse</th>
                   <th>Stable Number</th>
-                  <th>Balance</th>
+                  <th>Himalayan Balance</th>
                   <th>Barley</th>
                   <th>Oats</th>
                   <th>Soya</th>

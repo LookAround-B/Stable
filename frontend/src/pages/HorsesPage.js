@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/HorsesPage.css';
 
 const SUPERVISORY_ROLES = [
@@ -15,6 +17,7 @@ const SUPERVISORY_ROLES = [
 
 const HorsesPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [horses, setHorses] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
@@ -175,7 +178,17 @@ const HorsesPage = () => {
     (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  return (
+  return user?.designation === 'Guard' ? (
+    <div className="horses-page">
+      <div className="access-denied">
+        <h2>❌ Access Denied</h2>
+        <p>You do not have permission to access horse data.</p>
+        <button onClick={() => navigate('/')} className="btn-back">
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  ) : (
     <div className="horses-page">
       <h1>🐴 Horses</h1>
       <p className="info-text">
@@ -211,9 +224,11 @@ const HorsesPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  pattern="[A-Za-z\s]*"
+                  placeholder="Shadow (letters and spaces only)"
                   required
                   disabled={loading}
-                  placeholder="Shadow"
+                  title="Horse name should only contain letters and spaces"
                 />
               </div>
 
@@ -305,20 +320,18 @@ const HorsesPage = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="supervisorId">Assign to Manager</label>
-                  <select
+                  <SearchableSelect
                     id="supervisorId"
                     name="supervisorId"
                     value={formData.supervisorId}
                     onChange={handleInputChange}
+                    placeholder="-- No Assignment --"
                     disabled={loading}
-                  >
-                    <option value="">-- No Assignment --</option>
-                    {supervisors.map((supervisor) => (
-                      <option key={supervisor.id} value={supervisor.id}>
-                        {supervisor.fullName} ({supervisor.designation})
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: '', label: '-- No Assignment --' },
+                      ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                    ]}
+                  />
                 </div>
               </div>
 

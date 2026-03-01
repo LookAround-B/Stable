@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/AttendancePage.css';
 
 const AttendancePage = () => {
@@ -134,21 +135,19 @@ const AttendancePage = () => {
             {isManager && (
               <div className="form-group">
                 <label htmlFor="employeeId">Employee *</label>
-                <select
+                <SearchableSelect
                   id="employeeId"
                   name="employeeId"
                   value={formData.employeeId}
                   onChange={handleInputChange}
+                  placeholder="-- Select Employee --"
                   required
                   disabled={loading}
-                >
-                  <option value="">-- Select Employee --</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.fullName} ({emp.designation})
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: '-- Select Employee --' },
+                    ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                  ]}
+                />
               </div>
             )}
 

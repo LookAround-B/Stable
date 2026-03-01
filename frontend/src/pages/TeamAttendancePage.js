@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/TeamAttendancePage.css';
 import * as XLSX from 'xlsx';
 
@@ -215,20 +216,18 @@ const TeamAttendancePage = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Team Member *</label>
-                  <select 
+                  <SearchableSelect
                     name="employeeId"
                     value={formData.employeeId}
                     onChange={handleFormChange}
-                    className="form-input"
+                    placeholder="-- Select Team Member --"
                     required
-                  >
-                    <option value="">-- Select Team Member --</option>
-                    {teamMembers.map(member => (
-                      <option key={member.id} value={member.id}>
-                        {member.fullName} ({member.designation})
-                      </option>
-                    ))}
-                  </select>
+                    className="form-input"
+                    options={[
+                      { value: '', label: '-- Select Team Member --' },
+                      ...teamMembers.map(m => ({ value: m.id, label: `${m.fullName} (${m.designation})` }))
+                    ]}
+                  />
                 </div>
 
                 <div className="form-group">

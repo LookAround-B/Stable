@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/MedicineLogPage.css';
 
 const MedicineLogPage = () => {
@@ -154,21 +155,19 @@ const MedicineLogPage = () => {
           <form onSubmit={handleSubmit} className="medicine-form">
             <div className="form-group">
               <label htmlFor="horseId">Horse *</label>
-              <select
+              <SearchableSelect
                 id="horseId"
                 name="horseId"
                 value={formData.horseId}
                 onChange={handleInputChange}
+                placeholder="-- Select Horse --"
                 required
                 disabled={loading}
-              >
-                <option value="">-- Select Horse --</option>
-                {horses.map((horse) => (
-                  <option key={horse.id} value={horse.id}>
-                    {horse.name} (ID: {horse.registrationNumber})
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: '-- Select Horse --' },
+                  ...horses.map(h => ({ value: h.id, label: `${h.name} (ID: ${h.registrationNumber})` }))
+                ]}
+              />
             </div>
 
             <div className="form-group">

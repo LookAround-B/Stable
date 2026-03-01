@@ -1,0 +1,143 @@
+/* SearchableSelect component */
+.searchable-select {
+  position: relative;
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+/* Trigger button – mimics a native <select> */
+.searchable-select .ss-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.searchable-select .ss-trigger:hover:not(:disabled) {
+  border-color: #aaa;
+}
+
+.searchable-select.open .ss-trigger {
+  border-color: #4a90e2;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  outline: none;
+}
+
+.searchable-select.disabled .ss-trigger {
+  background: #f5f5f5;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.ss-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ss-placeholder {
+  color: #999;
+}
+
+.ss-arrow {
+  font-size: 0.6rem;
+  color: #666;
+  margin-left: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Dropdown panel */
+.ss-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #4a90e2;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Search box inside dropdown */
+.ss-search-wrapper {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.ss-search {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.ss-search:focus {
+  border-color: #4a90e2;
+}
+
+/* Option list */
+.ss-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ss-option {
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  transition: background 0.15s;
+}
+
+.ss-option:hover {
+  background: #f0f7ff;
+}
+
+.ss-option.selected {
+  background: #e3f0fd;
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+.ss-empty-option {
+  color: #999;
+  font-style: italic;
+}
+
+.ss-no-results {
+  padding: 0.6rem 0.75rem;
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Inside filter-bar / filter-group contexts */
+.filter-group .searchable-select,
+.filter-bar .searchable-select {
+  min-width: 160px;
+}

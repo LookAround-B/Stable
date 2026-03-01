@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 import '../styles/InvoiceGenerationPage.css';
 
@@ -273,7 +274,7 @@ const InvoiceGenerationPage = () => {
             {user?.designation !== 'Instructor' && (
               <div className="filter-group">
                 <label htmlFor="instructorId">Select Instructor</label>
-                <select
+                <SearchableSelect
                   id="instructorId"
                   value={filters.instructorId}
                   onChange={(e) =>
@@ -282,14 +283,12 @@ const InvoiceGenerationPage = () => {
                       instructorId: e.target.value,
                     }))
                   }
-                >
-                  <option value="">All Instructors</option>
-                  {instructors.map((instructor) => (
-                    <option key={instructor.id} value={instructor.id}>
-                      {instructor.fullName}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="All Instructors"
+                  options={[
+                    { value: '', label: 'All Instructors' },
+                    ...instructors.map(i => ({ value: i.id, label: i.fullName }))
+                  ]}
+                />
               </div>
             )}
 

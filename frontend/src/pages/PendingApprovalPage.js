@@ -81,8 +81,10 @@ const PendingApprovalPage = () => {
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleInputChange}
+                pattern="[A-Za-z\s]*"
+                placeholder="Enter your full name (letters and spaces only)"
                 required
-                placeholder="Enter your full name"
+                title="Name should only contain letters and spaces"
               />
             </div>
 
@@ -94,8 +96,12 @@ const PendingApprovalPage = () => {
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
+                inputMode="numeric"
+                maxLength="10"
+                pattern="[0-9]*"
+                placeholder="10-digit mobile number"
                 required
-                placeholder="Enter your mobile number (e.g., +91-9876543210)"
+                title="Phone number should contain only 10 digits"
               />
             </div>
 

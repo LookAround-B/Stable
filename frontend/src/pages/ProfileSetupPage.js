@@ -68,8 +68,11 @@ const ProfileSetupPage = () => {
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
+              pattern="[A-Za-z\s]*"
+              placeholder="Enter your full name (letters and spaces only)"
               required
               disabled={loading}
+              title="Name should only contain letters and spaces"
             />
           </div>
 
@@ -81,8 +84,13 @@ const ProfileSetupPage = () => {
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleInputChange}
+              inputMode="numeric"
+              maxLength="10"
+              pattern="[0-9]*"
+              placeholder="Enter 10-digit phone number"
               required
               disabled={loading}
+              title="Phone number should contain only 10 digits"
             />
           </div>
 

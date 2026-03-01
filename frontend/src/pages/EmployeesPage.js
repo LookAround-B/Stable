@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/EmployeesPage.css';
 
 // All 18 roles in the system
@@ -52,6 +53,105 @@ const EmployeesPage = () => {
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Define which roles each designation can see
+  // Hierarchy: Supers see all, Middles see peers+superiors+subordinates, Staff see parents+superiors+peers
+  const getVisibleRoles = (userDesignation) => {
+    const roleVisibility = {
+      'Super Admin': null, // null means see all
+      'Director': null,
+      'School Administrator': null,
+      'Ground Supervisor': ['Ground Supervisor', 'Director', 'School Administrator', 'Super Admin', 'Stable Manager', 'Senior Executive Admin', 'Senior Executive Accounts', 'Guard', 'Gardener', 'Housekeeping', 'Electrician'],
+      'Stable Manager': ['Stable Manager', 'Director', 'School Administrator', 'Super Admin', 'Ground Supervisor', 'Senior Executive Admin', 'Senior Executive Accounts', 'Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar'],
+      'Senior Executive Admin': ['Senior Executive Admin', 'Senior Executive Accounts', 'Director', 'School Administrator', 'Super Admin', 'Ground Supervisor', 'Stable Manager', 'Executive Admin'],
+      'Senior Executive Accounts': ['Senior Executive Accounts', 'Senior Executive Admin', 'Director', 'School Administrator', 'Super Admin', 'Ground Supervisor', 'Stable Manager', 'Executive Accounts'],
+      'Jamedar': ['Jamedar', 'Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Stable Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Guard': ['Guard', 'Ground Supervisor', 'Gardener', 'Housekeeping', 'Electrician'],
+      'Groom': ['Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar', 'Stable Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Riding Boy': ['Riding Boy', 'Groom', 'Rider', 'Instructor', 'Farrier', 'Jamedar', 'Stable Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Rider': ['Rider', 'Groom', 'Riding Boy', 'Instructor', 'Farrier', 'Jamedar', 'Stable Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Instructor': ['Instructor', 'Groom', 'Riding Boy', 'Rider', 'Farrier', 'Jamedar', 'Stable Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Farrier': ['Farrier', 'Groom', 'Riding Boy', 'Rider', 'Instructor', 'Jamedar', 'Stable Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Electrician': ['Electrician', 'Ground Supervisor', 'Guard', 'Gardener', 'Housekeeping'],
+      'Gardener': ['Gardener', 'Ground Supervisor', 'Guard', 'Housekeeping', 'Electrician'],
+      'Housekeeping': ['Housekeeping', 'Ground Supervisor', 'Guard', 'Gardener', 'Electrician'],
+      'Executive Admin': ['Executive Admin', 'Senior Executive Admin', 'Director', 'School Administrator', 'Super Admin'],
+      'Executive Accounts': ['Executive Accounts', 'Senior Executive Accounts', 'Director', 'School Administrator', 'Super Admin'],
+      'Restaurant Manager': ['Restaurant Manager', 'Kitchen Helper', 'Waiter', 'Director', 'School Administrator', 'Super Admin'],
+      'Kitchen Helper': ['Kitchen Helper', 'Waiter', 'Restaurant Manager', 'Director', 'School Administrator', 'Super Admin'],
+      'Waiter': ['Waiter', 'Kitchen Helper', 'Restaurant Manager', 'Director', 'School Administrator', 'Super Admin'],
+    };
+    return roleVisibility[userDesignation];
+  };
+
+  // Define hierarchy relationships for sorting
+  const getHierarchyInfo = (designation) => {
+    const hierarchy = {
+      'Super Admin': { superiors: [], subordinates: ['Director', 'School Administrator', 'Ground Supervisor', 'Stable Manager', 'Senior Executive Admin', 'Senior Executive Accounts', 'Guard', 'Gardener', 'Housekeeping', 'Electrician', 'Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar', 'Executive Admin', 'Executive Accounts'] },
+      'Director': { superiors: ['Super Admin'], subordinates: ['School Administrator', 'Ground Supervisor', 'Stable Manager', 'Senior Executive Admin', 'Senior Executive Accounts', 'Guard', 'Gardener', 'Housekeeping', 'Electrician', 'Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar', 'Executive Admin', 'Executive Accounts'] },
+      'School Administrator': { superiors: ['Director', 'Super Admin'], subordinates: ['Ground Supervisor', 'Stable Manager', 'Senior Executive Admin', 'Senior Executive Accounts', 'Guard', 'Gardener', 'Housekeeping', 'Electrician', 'Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar', 'Executive Admin', 'Executive Accounts'] },
+      'Ground Supervisor': { superiors: ['Director', 'School Administrator', 'Super Admin'], subordinates: ['Guard', 'Gardener', 'Housekeeping', 'Electrician'] },
+      'Stable Manager': { superiors: ['Director', 'School Administrator', 'Super Admin', 'Ground Supervisor'], subordinates: ['Groom', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar'] },
+      'Senior Executive Admin': { superiors: ['Director', 'School Administrator', 'Super Admin'], subordinates: ['Executive Admin'] },
+      'Senior Executive Accounts': { superiors: ['Director', 'School Administrator', 'Super Admin'], subordinates: ['Executive Accounts'] },
+      'Guard': { superiors: ['Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Gardener': { superiors: ['Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Housekeeping': { superiors: ['Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Electrician': { superiors: ['Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Groom': { superiors: ['Stable Manager', 'Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Riding Boy': { superiors: ['Stable Manager', 'Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Rider': { superiors: ['Stable Manager', 'Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Instructor': { superiors: ['Stable Manager', 'Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Farrier': { superiors: ['Stable Manager', 'Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Jamedar': { superiors: ['Stable Manager', 'Ground Supervisor', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Executive Admin': { superiors: ['Senior Executive Admin', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Executive Accounts': { superiors: ['Senior Executive Accounts', 'School Administrator', 'Director', 'Super Admin'], subordinates: [] },
+      'Restaurant Manager': { superiors: ['Director', 'School Administrator', 'Super Admin'], subordinates: ['Kitchen Helper', 'Waiter'] },
+      'Kitchen Helper': { superiors: ['Restaurant Manager', 'Director', 'School Administrator', 'Super Admin'], subordinates: [] },
+      'Waiter': { superiors: ['Restaurant Manager', 'Director', 'School Administrator', 'Super Admin'], subordinates: [] },
+    };
+    return hierarchy[designation] || { superiors: [], subordinates: [] };
+  };
+
+  // Filter and sort employees based on user's role
+  const getFilteredEmployeeList = (allEmployees) => {
+    if (!user) return [];
+    
+    const visibleRoles = getVisibleRoles(user.designation);
+    
+    // Super Admin, Director, School Administrator see all
+    if (visibleRoles !== null) {
+      // Filter by visible roles
+      allEmployees = allEmployees.filter(emp => visibleRoles.includes(emp.designation));
+    }
+
+    // Sort: pending first, then superiors, then self/peers, then subordinates
+    const userHierarchy = getHierarchyInfo(user.designation);
+    return allEmployees.sort((a, b) => {
+      // 1. Pending employees first
+      if (a.isApproved !== b.isApproved) {
+        return a.isApproved ? 1 : -1; // Not approved comes first
+      }
+
+      // 2. Get sort priority for each employee
+      const getPriority = (emp) => {
+        if (userHierarchy.superiors.includes(emp.designation)) return 1; // Superiors
+        if (emp.designation === user.designation) return 2; // Self/peers
+        if (userHierarchy.subordinates.includes(emp.designation)) return 3; // Subordinates
+        return 4; // Others
+      };
+
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // 3. Within same priority, sort by name
+      return a.fullName.localeCompare(b.fullName);
+    });
+  };
+
   // Super Admin, Director, and School Administrator can add employees
   const canAddEmployee = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   // Only Director can delete employees
@@ -60,6 +160,7 @@ const EmployeesPage = () => {
   useEffect(() => {
     // Load existing employees to show as supervisors
     loadEmployees();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadEmployees = async () => {
@@ -67,8 +168,10 @@ const EmployeesPage = () => {
       const response = await apiClient.get('/employees');
       const employeeList = response.data.data || [];
       setEmployees(employeeList);
+      
       // Filter supervisory roles for supervisor dropdown
-      const supervisorList = employeeList.filter((emp) =>
+      const filteredEmployeeList = getFilteredEmployeeList(employeeList);
+      const supervisorList = filteredEmployeeList.filter((emp) =>
         SUPERVISORY_ROLES.includes(emp.designation)
       );
       setSupervisors(supervisorList);
@@ -173,7 +276,7 @@ const EmployeesPage = () => {
     }
   };
 
-  const filteredEmployees = employees.filter(
+  const filteredEmployees = getFilteredEmployeeList(employees).filter(
     (emp) =>
       emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -216,9 +319,11 @@ const EmployeesPage = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
+                  pattern="[A-Za-z\s]*"
+                  placeholder="John Doe (letters and spaces only)"
                   required
                   disabled={loading}
-                  placeholder="John Doe"
+                  title="Name should only contain letters and spaces"
                 />
               </div>
 
@@ -255,20 +360,18 @@ const EmployeesPage = () => {
 
               <div className="form-group">
                 <label htmlFor="supervisorId">Supervisor (Optional)</label>
-                <select
+                <SearchableSelect
                   id="supervisorId"
                   name="supervisorId"
                   value={formData.supervisorId}
                   onChange={handleInputChange}
+                  placeholder="-- Select Supervisor --"
                   disabled={loading}
-                >
-                  <option value="">-- Select Supervisor --</option>
-                  {supervisors.map((supervisor) => (
-                    <option key={supervisor.id} value={supervisor.id}>
-                      {supervisor.fullName} ({supervisor.designation})
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: '-- Select Supervisor --' },
+                    ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                  ]}
+                />
               </div>
 
               <div className="form-group">
@@ -279,8 +382,12 @@ const EmployeesPage = () => {
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
+                  inputMode="numeric"
+                  maxLength="10"
+                  pattern="[0-9]*"
+                  placeholder="10-digit phone number"
                   disabled={loading}
-                  placeholder="123-456-7890"
+                  title="Phone number should contain only 10 digits"
                 />
               </div>
 

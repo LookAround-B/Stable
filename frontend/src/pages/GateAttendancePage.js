@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/GateAttendancePage.css';
 import * as XLSX from 'xlsx';
 
@@ -266,22 +267,18 @@ const GateAttendancePage = () => {
               <form onSubmit={handleStaffSubmit} className="gate-form">
                 <div className="form-group">
                   <label htmlFor="employeeId">Employee *</label>
-                  <select
+                  <SearchableSelect
                     id="employeeId"
                     value={staffForm.employeeId}
-                    onChange={(e) =>
-                      setStaffForm({ ...staffForm, employeeId: e.target.value })
-                    }
+                    onChange={(e) => setStaffForm({ ...staffForm, employeeId: e.target.value })}
+                    placeholder="-- Select Employee --"
                     required
                     disabled={loading}
-                  >
-                    <option value="">-- Select Employee --</option>
-                    {employees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.fullName} ({emp.designation})
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: '', label: '-- Select Employee --' },
+                      ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                    ]}
+                  />
                 </div>
 
                 <div className="form-row">

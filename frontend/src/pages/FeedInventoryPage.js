@@ -4,7 +4,7 @@ import feedInventoryService from '../services/feedInventoryService';
 import '../styles/FeedInventoryPage.css';
 
 const FEED_LABELS = {
-  balance: 'Balance',
+  balance: 'Himalayan Balance',
   barley: 'Barley',
   oats: 'Oats',
   soya: 'Soya',

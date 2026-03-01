@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import SearchableSelect from '../components/SearchableSelect';
 import '../styles/GroomWorkSheetPage.css';
 
 const GroomWorkSheetPage = () => {
@@ -215,14 +216,15 @@ const GroomWorkSheetPage = () => {
             <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </label>
 
-          <select value={filterGroomId} onChange={(e) => setFilterGroomId(e.target.value)}>
-            <option value="all">All Grooms</option>
-            {getGroomers().map((groom) => (
-              <option key={groom.id} value={groom.id}>
-                {groom.fullName}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            value={filterGroomId}
+            onChange={(e) => setFilterGroomId(e.target.value)}
+            placeholder="All Grooms"
+            options={[
+              { value: 'all', label: 'All Grooms' },
+              ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))
+            ]}
+          />
         </div>
 
         {canCreateWorksheet && (
@@ -240,19 +242,17 @@ const GroomWorkSheetPage = () => {
             <div className="form-row">
               <div className="form-group">
                 <label>Groom *</label>
-                <select
+                <SearchableSelect
                   value={newWorksheet.groomId}
                   onChange={(e) => setNewWorksheet({ ...newWorksheet, groomId: e.target.value })}
-                  disabled={user?.designation === 'Groom'}
+                  placeholder="Select Groom"
                   required
-                >
-                  <option value="">Select Groom</option>
-                  {getGroomers().map((groom) => (
-                    <option key={groom.id} value={groom.id}>
-                      {groom.fullName}
-                    </option>
-                  ))}
-                </select>
+                  disabled={user?.designation === 'Groom'}
+                  options={[
+                    { value: '', label: 'Select Groom' },
+                    ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))
+                  ]}
+                />
               </div>
 
               <div className="form-group">
@@ -289,18 +289,16 @@ const GroomWorkSheetPage = () => {
                     <div className="form-row">
                       <div className="form-group">
                         <label>Horse *</label>
-                        <select
+                        <SearchableSelect
                           value={entry.horseId}
                           onChange={(e) => handleEntryChange(index, 'horseId', e.target.value)}
+                          placeholder="Select Horse"
                           required
-                        >
-                          <option value="">Select Horse</option>
-                          {horses.map((horse) => (
-                            <option key={horse.id} value={horse.id}>
-                              {horse.name}
-                            </option>
-                          ))}
-                        </select>
+                          options={[
+                            { value: '', label: 'Select Horse' },
+                            ...horses.map(h => ({ value: h.id, label: h.name }))
+                          ]}
+                        />
                       </div>
 
                       <div className="form-group">

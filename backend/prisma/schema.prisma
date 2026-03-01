@@ -42,7 +42,7 @@ model Employee {
   supervisedHorses      Horse[] @relation("horseSupervision")
   assignedHorses        HorseCareTeam[] @relation("assignedStaff")
   gateAttendanceLogs    GateAttendanceLog[]
-  jamiedarMedicineLogs  MedicineLog[]
+  jamiedarMedicineLogs  MedicineLog[]  @relation("jamiedarMedicineLogs")
   attendanceRecords     Attendance[] @relation("attendanceRecords")
   groomWorkSheets       GroomWorkSheet[] @relation("groomWorkSheets")
   gateEntries           GateEntry[] @relation("gateEntries")
@@ -61,6 +61,10 @@ model Employee {
   meetingsCreated       Meeting[] @relation("meetingsCreated")
   meetingParticipants   MeetingParticipant[] @relation("meetingParticipants")
   feedInventoryRecords  FeedInventory[] @relation("feedInventoryRecords")
+  medicineInventoryRecords MedicineInventory[] @relation("medicineInventoryRecords")
+  medicineLogsApproved  MedicineLog[] @relation("medicineLogsApproved")
+  groceriesInventory    GroceriesInventory[] @relation("groceriesInventory")
+  groceriesInventoryCreated GroceriesInventory[] @relation("groceriesInventoryCreated")
 
 
   @@index([designation])
@@ -121,7 +125,7 @@ model Horse {
   // Relations
   tasks                 Task[]
   healthRecords         HealthRecord[]
-  medicineLog           MedicineLog[]
+  medicineLogs          MedicineLog[]  @relation("medicineLogs")
   careTeam              HorseCareTeam[]
   groomWorkEntries      WorkSheetEntry[] @relation("groomWorkEntries")
   workRecords           InstructorDailyWorkRecord[] @relation("workRecords")
@@ -305,22 +309,30 @@ model VisitorLog {
 model MedicineLog {
   id                    String      @id @default(cuid())
   jamiedarId            String
-  jamedar               Employee    @relation(fields: [jamiedarId], references: [id], onDelete: Cascade)
+  jamedar               Employee    @relation("jamiedarMedicineLogs", fields: [jamiedarId], references: [id], onDelete: Cascade)
   horseId               String
-  horse                 Horse       @relation(fields: [horseId], references: [id], onDelete: Cascade)
+  horse                 Horse       @relation("medicineLogs", fields: [horseId], references: [id], onDelete: Cascade)
   medicineName          String
-  quantity              String
+  quantity              Float
+  unit                  String      @default("ml") // ml, g, tablets, vials, etc.
   timeAdministered      DateTime
   notes                 String?
   photoUrl              String?     // Before/after photos
   stockAlert            Boolean     @default(false)
-  approvedBy            String?     // Stable Manager approval
-  isApproved            Boolean     @default(false)
+  
+  // Approval workflow - Stable Manager approves
+  approvalStatus        String      @default("pending") // pending, approved, rejected
+  approvedById          String?
+  approvedBy            Employee?   @relation("medicineLogsApproved", fields: [approvedById], references: [id], onDelete: SetNull)
+  rejectionReason       String?
+  approvalDate          DateTime?
+  
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
   @@index([jamiedarId])
   @@index([horseId])
+  @@index([approvalStatus])
 }
 
 // Horse Care Team Assignment
@@ -567,6 +579,7 @@ model Fine {
   issuedToId            String
   issuedTo              Employee    @relation("finesReceived", fields: [issuedToId], references: [id], onDelete: Cascade)
   reason                String      // Reason for fine (max 500 chars)
+  amount                Float?      // Fine amount in rupees (optional for backwards compatibility)
   evidenceImage         String      // Evidence image URL (mandatory)
   status                String      @default("Open") // 'Open', 'Resolved', 'Dismissed'
   resolvedById          String?
@@ -663,4 +676,46 @@ model FeedInventory {
   @@index([feedType])
   @@index([month, year])
   @@index([recordedById])
+}
+
+model MedicineInventory {
+  id                    String      @id @default(cuid())
+  medicineType          String      // 'antibiotic', 'antiseptic', 'painkiller', 'vitamin', 'dewormer', 'injection', 'ointment', 'supplement'
+  month                 Int         // Month (1-12)
+  year                  Int         // Year (e.g. 2026)
+  unitsPurchased        Float       @default(0)  // Units purchased/received this month
+  openingStock          Float       @default(0)  // Stock at beginning of month
+  totalUsed             Float       @default(0)  // Total units consumed
+  unitsLeft             Float       @default(0)  // Remaining units (openingStock + unitsPurchased - totalUsed)
+  unit                  String      @default("ml") // Unit of measurement (ml, g, tablets, vials, etc.)
+  notes                 String?
+  recordedById          String
+  recordedBy            Employee    @relation("medicineInventoryRecords", fields: [recordedById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([medicineType, month, year])  // One entry per medicine type per month
+  @@index([medicineType])
+  @@index([month, year])
+  @@index([recordedById])
+}
+
+model GroceriesInventory {
+  id                    String      @id @default(cuid())
+  name                  String      // Name of grocery item
+  quantity              Float       // Quantity purchased/in stock
+  unit                  String      @default("kg") // kg, liters, boxes, units, etc.
+  price                 Float       // Price per unit
+  totalPrice            Float       // quantity * price
+  description           String?     // Optional description
+  employeeId            String?     // Who got it (optional)
+  employee              Employee?   @relation("groceriesInventory", fields: [employeeId], references: [id], onDelete: SetNull)
+  createdById           String      // Who created this entry (Senior/Junior Executive Admin)
+  createdBy             Employee    @relation("groceriesInventoryCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([createdById])
+  @@index([employeeId])
+  @@index([createdAt])
 }

@@ -21,6 +21,8 @@ app.use('/api/audit-logs', require('./routes/auditLogRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
+app.use('/api/medicine-inventory', require('./routes/medicineInventoryRoutes'));
+app.use('/api/medicine-logs', require('./routes/medicineLogRoutes'));
 app.use('/api/inspections', require('./routes/inspectionRoutes'));
 
 // Error handling middleware
