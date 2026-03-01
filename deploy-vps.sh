@@ -51,7 +51,9 @@ if pm2 info horsestable-frontend > /dev/null 2>&1; then
   pm2 restart horsestable-frontend
 else
   echo "⚠️  Frontend process not found, starting fresh..."
-  pm2 start "npm run start" --name horsestable-frontend --cwd /opt/horsestable/frontend
+  # Install serve if not available, then start it
+  npm list -g serve >/dev/null 2>&1 || npm install -g serve
+  pm2 start "serve -s build -l 3001" --name horsestable-frontend --cwd /opt/horsestable/frontend
 fi
 sleep 2
 
