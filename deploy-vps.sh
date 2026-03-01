@@ -27,6 +27,9 @@ echo "🔨 Building backend..."
 cd backend
 # Clean build cache
 rm -rf .next 2>/dev/null || true
+# Sync database schema with new models
+echo "📊 Syncing database schema..."
+npx prisma db push --skip-generate
 npx prisma generate
 npm run build
 echo "✅ Backend built successfully"
