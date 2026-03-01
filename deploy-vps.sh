@@ -42,9 +42,14 @@ cd ../frontend
 npm run build
 echo "✅ Frontend built successfully"
 
-# Restart frontend
+# Restart or start frontend
 echo "🔄 Restarting frontend..."
-pm2 restart horsestable-frontend
+if pm2 info horsestable-frontend > /dev/null 2>&1; then
+  pm2 restart horsestable-frontend
+else
+  echo "⚠️  Frontend process not found, starting fresh..."
+  pm2 start "npm run start" --name horsestable-frontend --cwd /opt/horsestable/frontend
+fi
 sleep 2
 
 # Verify both services are running
