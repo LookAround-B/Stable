@@ -1,12 +1,22 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  LayoutDashboard, User, CheckSquare, ClipboardList, ShieldCheck,
+  Calendar, Heart, Users, Clipboard, UserCheck, FileText,
+  FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
+  Receipt, Wheat, Package, ShoppingCart, CreditCard,
+  Search, AlertTriangle, BarChart3, Settings
+} from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
 
   // Determine which pages to show based on user role
-  const showPersonalAttendance = false; // Removed - supervisors cannot self-mark
+  const showPersonalAttendance = false;
   const showTeamAttendance = ['Super Admin', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Ground Supervisor', 'Groom'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Groom'].includes(user?.designation);
@@ -21,213 +31,56 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showGroceriesInventory = ['Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(user?.designation);
   const showExpenses = ['Senior Executive Accounts', 'Executive Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
-  const showFines = true; // Everyone can see their fines
-  const showTasks = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(user?.designation); // Roles that can create/assign tasks
-  const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Parent roles approve tasks
-  const showMyAssignedTasks = true; // Everyone can see tasks assigned to them
-  const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation); // Only parent roles can create meetings
-  const showHorses = user?.designation !== 'Guard'; // Guards cannot access horse data
+  const showFines = true;
+  const showTasks = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
+  const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
+  const showMyAssignedTasks = true;
+  const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
+  const showHorses = user?.designation !== 'Guard';
 
+  const MenuItem = ({ to, icon: Icon, label }) => (
+    <li>
+      <Link to={to} className={`menu-item${isActive(to) ? ' active' : ''}`}>
+        <span className="menu-icon-circle"><Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} /></span>
+        <span className="menu-label">{label}</span>
+      </Link>
+    </li>
+  );
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <ul className="sidebar-menu">
-        <li>
-          <Link to="/" className="menu-item">
-            📊 Dashboard
-          </Link>
-        </li>
-        <li>
-          <Link to="/profile" className="menu-item">
-            👤 My Profile
-          </Link>
-        </li>
-        {showTasks && (
-          <li>
-            <Link to="/tasks" className="menu-item">
-              ✓ Tasks
-            </Link>
-          </li>
-        )}
-        {showMyAssignedTasks && (
-          <li>
-            <Link to="/my-assigned-tasks" className="menu-item">
-              📝 My Assigned Tasks
-            </Link>
-          </li>
-        )}
-        {showApprovals && (
-          <li>
-            <Link to="/pending-approvals" className="menu-item">
-              ✅ Approvals
-            </Link>
-          </li>
-        )}
-        {showMeetings && (
-          <li>
-            <Link to="/meetings" className="menu-item">
-              📅 Meetings
-            </Link>
-          </li>
-        )}
-        {showHorses && (
-          <li>
-            <Link to="/horses" className="menu-item">
-              🐴 Horses
-            </Link>
-          </li>
-        )}
-        <li>
-          <Link to="/employees" className="menu-item">
-            👥 Team
-          </Link>
-        </li>
+        <MenuItem to="/" icon={LayoutDashboard} label="Dashboard" />
+        <MenuItem to="/profile" icon={User} label="My Profile" />
+        {showTasks && <MenuItem to="/tasks" icon={CheckSquare} label="Tasks" />}
+        {showMyAssignedTasks && <MenuItem to="/my-assigned-tasks" icon={ClipboardList} label="My Assigned Tasks" />}
+        {showApprovals && <MenuItem to="/pending-approvals" icon={ShieldCheck} label="Approvals" />}
+        {showMeetings && <MenuItem to="/meetings" icon={Calendar} label="Meetings" />}
+        {showHorses && <MenuItem to="/horses" icon={Heart} label="Horses" />}
+        <MenuItem to="/employees" icon={Users} label="Team" />
 
-        {/* PRD v2.0 Feature Pages */}
         <li className="menu-section">
           <span className="section-title">Operations</span>
         </li>
 
-        {showPersonalAttendance && (
-          <li>
-            <Link to="/digital-attendance" className="menu-item">
-              📋 My Attendance
-            </Link>
-          </li>
-        )}
-
-        {showTeamAttendance && (
-          <li>
-            <Link to="/team-attendance" className="menu-item">
-              👥 Mark Team Attendance
-            </Link>
-          </li>
-        )}
-
-        {showDailyAttendance && (
-          <li>
-            <Link to="/daily-attendance" className="menu-item">
-              📋 Daily Register
-            </Link>
-          </li>
-        )}
-
-        {showGroomWorksheet && (
-          <li>
-            <Link to="/groom-worksheet" className="menu-item">
-              📝 Groom Worksheet
-            </Link>
-          </li>
-        )}
-
-        {showGateEntry && (
-          <li>
-            <Link to="/gate-entry" className="menu-item">
-              🚪 Gate Register
-            </Link>
-          </li>
-        )}
-
-        {showMedicineLogs && (
-          <li>
-            <Link to="/medicine-logs" className="menu-item">
-              💊 Medicine Logs
-            </Link>
-          </li>
-        )}
-
-        {showCareTeam && (
-          <li>
-            <Link to="/horse-care-team" className="menu-item">
-              👨‍🌾 Care Teams
-            </Link>
-          </li>
-        )}
-
-        {showEIRS && (
-          <li>
-            <Link to="/daily-work-records" className="menu-item">
-              📝 Daily Work Records
-            </Link>
-          </li>
-        )}
-
-        {showInvoiceGeneration && (
-          <li>
-            <Link to="/invoice-generation" className="menu-item">
-              💰 Invoice Generation
-            </Link>
-          </li>
-        )}
-
-        {showHorseFeeds && (
-          <li>
-            <Link to="/horse-feeds" className="menu-item">
-              🥕 Horse Feeds
-            </Link>
-          </li>
-        )}
-
-        {showFeedInventory && (
-          <li>
-            <Link to="/feed-inventory" className="menu-item">
-              📦 Feed Inventory
-            </Link>
-          </li>
-        )}
-
-        {showMedicineInventory && (
-          <li>
-            <Link to="/medicine-inventory" className="menu-item">
-              💊 Medicine Inventory
-            </Link>
-          </li>
-        )}
-
-        {showGroceriesInventory && (
-          <li>
-            <Link to="/groceries-inventory" className="menu-item">
-              🛒 Groceries Inventory
-            </Link>
-          </li>
-        )}
-
-        {showExpenses && (
-          <li>
-            <Link to="/expenses" className="menu-item">
-              💳 Expense Tracking
-            </Link>
-          </li>
-        )}
-
-        {showInspections && (
-          <li>
-            <Link to="/inspections" className="menu-item">
-              🔍 Inspection Rounds
-            </Link>
-          </li>
-        )}
-
-        {showFines && (
-          <li>
-            <Link to="/fines" className="menu-item">
-              ⚠️ Fine System
-            </Link>
-          </li>
-        )}
-
-
-
-        <li>
-          <Link to="/reports" className="menu-item">
-            📈 Reports
-          </Link>
-        </li>
-        <li>
-          <Link to="/settings" className="menu-item">
-            ⚙️ Settings
-          </Link>
-        </li>
+        {showPersonalAttendance && <MenuItem to="/digital-attendance" icon={Clipboard} label="My Attendance" />}
+        {showTeamAttendance && <MenuItem to="/team-attendance" icon={UserCheck} label="Mark Team Attendance" />}
+        {showDailyAttendance && <MenuItem to="/daily-attendance" icon={FileText} label="Daily Register" />}
+        {showGroomWorksheet && <MenuItem to="/groom-worksheet" icon={FileEdit} label="Groom Worksheet" />}
+        {showGateEntry && <MenuItem to="/gate-entry" icon={DoorOpen} label="Gate Register" />}
+        {showMedicineLogs && <MenuItem to="/medicine-logs" icon={Pill} label="Medicine Logs" />}
+        {showCareTeam && <MenuItem to="/horse-care-team" icon={HeartHandshake} label="Care Teams" />}
+        {showEIRS && <MenuItem to="/daily-work-records" icon={NotebookPen} label="Daily Work Records" />}
+        {showInvoiceGeneration && <MenuItem to="/invoice-generation" icon={Receipt} label="Invoice Generation" />}
+        {showHorseFeeds && <MenuItem to="/horse-feeds" icon={Wheat} label="Horse Feeds" />}
+        {showFeedInventory && <MenuItem to="/feed-inventory" icon={Package} label="Feed Inventory" />}
+        {showMedicineInventory && <MenuItem to="/medicine-inventory" icon={Pill} label="Medicine Inventory" />}
+        {showGroceriesInventory && <MenuItem to="/groceries-inventory" icon={ShoppingCart} label="Groceries Inventory" />}
+        {showExpenses && <MenuItem to="/expenses" icon={CreditCard} label="Expense Tracking" />}
+        {showInspections && <MenuItem to="/inspections" icon={Search} label="Inspection Rounds" />}
+        {showFines && <MenuItem to="/fines" icon={AlertTriangle} label="Fine System" />}
+        <MenuItem to="/reports" icon={BarChart3} label="Reports" />
+        <MenuItem to="/settings" icon={Settings} label="Settings" />
       </ul>
     </aside>
   );
