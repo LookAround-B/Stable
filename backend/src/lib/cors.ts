@@ -16,13 +16,6 @@ function getAllowedOrigins(): string[] {
     'http://localhost:3002',
     'http://localhost:3000',
     // Vercel deployments
-    'https://horsestable01.vercel.app',
-    'https://horsestable-frontend.vercel.app',
-    'https://horsestable04.vercel.app',
-    'https://horsestablebackend.vercel.app',
-    // Render deployments
-    'https://horsestable-backend.onrender.com',
-    'https://horsestable-frontend.onrender.com',
     // Environment variable
     process.env.FRONTEND_URL
   ].filter((url): url is string => !!url);

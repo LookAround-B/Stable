@@ -153,7 +153,7 @@ const FinePage = () => {
 
   const loadEmployees = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
+      const apiUrl = process.env.REACT_APP_API_URL;
       const token = localStorage.getItem('token');
       console.log('Loading employees from:', `${apiUrl}/employees`);
 
