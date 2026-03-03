@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
-import '../styles/InvoiceGenerationPage.css';
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();

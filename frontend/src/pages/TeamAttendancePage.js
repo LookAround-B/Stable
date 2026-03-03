@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/TeamAttendancePage.css';
 import * as XLSX from 'xlsx';
 
 const TeamAttendancePage = () => {

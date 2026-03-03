@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/authService';
-import '../styles/Navigation.css';
 
 const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
   const navigate = useNavigate();

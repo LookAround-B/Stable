@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import NotificationCenter from './NotificationCenter';
-import '../styles/MainLayout.css';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

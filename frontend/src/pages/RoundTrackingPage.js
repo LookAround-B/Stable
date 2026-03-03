@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import roundCheckService from '../services/roundCheckService';
-import '../styles/RoundTrackingPage.css';
 
 const RoundTrackingPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);

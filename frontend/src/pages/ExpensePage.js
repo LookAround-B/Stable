@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/ExpensePage.css';
 import * as XLSX from 'xlsx';
 
 const ExpensePage = () => {
@@ -159,7 +158,7 @@ const ExpensePage = () => {
 
   const loadHorses = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
+      const apiUrl = process.env.REACT_APP_API_URL;
       const token = localStorage.getItem('token');
       console.log('Loading horses from:', `${apiUrl}/horses`);
       
@@ -196,7 +195,7 @@ const ExpensePage = () => {
 
   const loadEmployees = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
+      const apiUrl = process.env.REACT_APP_API_URL;
       const token = localStorage.getItem('token');
       console.log('Loading employees from:', `${apiUrl}/employees`);
       

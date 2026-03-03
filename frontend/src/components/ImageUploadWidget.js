@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import '../styles/ImageUploadWidget.css';
 
 const ImageUploadWidget = ({ onImagesSelected, maxImages = 5, maxSizeMB = 10 }) => {
   const [selectedImages, setSelectedImages] = useState([]);

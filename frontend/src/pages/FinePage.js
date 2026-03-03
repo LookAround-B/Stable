@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import fineService from '../services/fineService';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/FinePage.css';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -153,7 +152,7 @@ const FinePage = () => {
 
   const loadEmployees = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api';
+      const apiUrl = process.env.REACT_APP_API_URL;
       const token = localStorage.getItem('token');
       console.log('Loading employees from:', `${apiUrl}/employees`);
 

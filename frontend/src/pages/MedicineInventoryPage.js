@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import medicineInventoryService from '../services/medicineInventoryService';
-import '../styles/MedicineInventoryPage.css';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',

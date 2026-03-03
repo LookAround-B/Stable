@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/DailyWorkRecordsPage.css';
 import * as XLSX from 'xlsx';
 
 // Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)

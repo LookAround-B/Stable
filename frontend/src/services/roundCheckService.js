@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'https://horsestablebackend.vercel.app/api'
+const API_URL = process.env.REACT_APP_API_URL;
 
 const roundCheckService = {
   // Get round check for a specific date

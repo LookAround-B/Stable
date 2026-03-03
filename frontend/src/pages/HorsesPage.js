@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/HorsesPage.css';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',

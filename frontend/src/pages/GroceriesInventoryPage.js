@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
-import "../styles/GroceriesInventoryPage.css";
 
 const GroceriesInventoryPage = () => {
   const [groceries, setGroceries] = useState([]);

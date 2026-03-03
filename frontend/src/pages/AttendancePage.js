@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/AttendancePage.css';
 
 const AttendancePage = () => {
   const { user } = useAuth();

@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import '../styles/SearchableSelect.css';
 
 /**
  * SearchableSelect – a drop-in replacement for <select> that adds a search box.
@@ -51,7 +50,8 @@ const SearchableSelect = ({
   }, [open]);
 
   const selectedLabel =
-    Array.isArray(options) && options.find((o) => String(o.value) === String(value))?.label || '';
+  (Array.isArray(options) &&
+    options.find((o) => String(o.value) === String(value))?.label) || '';
 
   const filtered = Array.isArray(options) ? options.filter((o) =>
     o.label.toLowerCase().includes(search.toLowerCase())
