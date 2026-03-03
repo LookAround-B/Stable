@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/GateEntryRegisterPage.css';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();

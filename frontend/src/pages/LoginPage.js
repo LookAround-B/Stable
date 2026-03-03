@@ -3,7 +3,6 @@ import { loginWithEmail, loginWithGoogle, setToken } from '../services/authServi
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import '../styles/LoginPage.css';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');

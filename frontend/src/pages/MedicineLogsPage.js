@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import medicineLogService from '../services/medicineLogService';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/MedicineLogsPage.css';
 
 const MedicineLogsPage = () => {
   const { user } = useAuth();

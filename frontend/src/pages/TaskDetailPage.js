@@ -1,6 +1,5 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import '../styles/TaskDetailPage.css';
 
 const TaskDetailPage = () => {
   const { id } = useParams();

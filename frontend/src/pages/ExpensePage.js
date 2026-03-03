@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import SearchableSelect from '../components/SearchableSelect';
-import '../styles/ExpensePage.css';
 import * as XLSX from 'xlsx';
 
 const ExpensePage = () => {

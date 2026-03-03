@@ -1,5 +1,4 @@
 import React from 'react';
-import '../styles/ReportsPage.css';
 
 const ReportsPage = () => {
   return (

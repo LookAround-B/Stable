@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { createProfile, setToken } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
-import '../styles/ProfileSetupPage.css';
 
 const DESIGNATIONS = ['Groomer', 'Zamindar', 'Instructor', 'Admin', 'Health Advisor', 'Super Admin'];
 

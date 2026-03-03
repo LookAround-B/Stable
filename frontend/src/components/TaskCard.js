@@ -1,5 +1,4 @@
 import React from 'react';
-import '../styles/TaskCard.css';
 
 const TaskCard = ({ task, onTaskClick, onStartTask, onCompleteTask }) => {
   const getStatusColor = (status) => {

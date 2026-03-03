@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import '../styles/NotificationCenter.css';
 
 const NotificationCenter = () => {
   const { user } = useAuth();

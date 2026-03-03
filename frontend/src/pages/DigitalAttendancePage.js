@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import '../styles/DigitalAttendancePage.css';
 
 const DigitalAttendancePage = () => {
   const { user } = useAuth();

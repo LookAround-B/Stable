@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import '../styles/ApprovalTasksPage.css';
 
 const ApprovalTasksPage = () => {
   const { user } = useAuth();

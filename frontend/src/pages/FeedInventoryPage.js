@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import feedInventoryService from '../services/feedInventoryService';
-import '../styles/FeedInventoryPage.css';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance',

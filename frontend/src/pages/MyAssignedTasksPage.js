@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
-import '../styles/MyAssignedTasksPage.css';
 
 const MyAssignedTasksPage = () => {
   const [tasks, setTasks] = useState([]);

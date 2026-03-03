@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/HorseDetailPage.css';
 
 const HorseDetailPage = () => {
   const { id } = useParams();

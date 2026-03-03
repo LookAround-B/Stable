@@ -36,7 +36,6 @@ import ApprovalTasksPage from './pages/ApprovalTasksPage';
 import MyAssignedTasksPage from './pages/MyAssignedTasksPage';
 import MeetingPage from './pages/MeetingPage';
 import NotFoundPage from './pages/NotFoundPage';
-import './styles/App.css';
 
 function App() {
   // Use a default Google Client ID - you should replace this with your actual Client ID

@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import '../styles/SearchableSelect.css';
 
 /**
  * SearchableSelect – a drop-in replacement for <select> that adds a search box.

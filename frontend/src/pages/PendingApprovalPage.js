@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
 import apiClient from '../services/apiClient';
-import '../styles/PendingApprovalPage.css';
 
 const PendingApprovalPage = () => {
   const { user } = useAuth();
