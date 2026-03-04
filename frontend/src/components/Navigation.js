@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/authService';
+import SearchBar from './SearchBar';
 
 const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
           <h1>Stable Management</h1>
         </div>
       </div>
+      
+      <div className="nav-center">
+        <SearchBar />
+      </div>
+
       <div className="nav-right">
         <button onClick={handleLogout} className="btn-logout">
           Logout
