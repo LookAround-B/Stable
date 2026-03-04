@@ -20,7 +20,7 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
           <span className="hamburger-line"></span>
         </button>
         <div className="nav-brand">
-          <h1>Stable Management</h1>
+          <h1>EFM - Equestrian Facility Management</h1>
         </div>
       </div>
       
