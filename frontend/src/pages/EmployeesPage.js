@@ -520,7 +520,6 @@ const EmployeesPage = () => {
           </table>
         )}
       </div>
-    </div>
 
       {lightboxSrc && (
         <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
