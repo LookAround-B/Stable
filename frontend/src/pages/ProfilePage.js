@@ -1,44 +1,71 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 
 const ROLES_WITH_HORSES = [
-  'Groom',
-  'Riding Boy',
-  'Rider',
-  'Jamedar',
-  'Instructor',
-  'Stable Manager',
-  'Ground Supervisor'
+  'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
 ];
 
+/* ── helper: crop image via canvas ── */
+const createImage = (url) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.addEventListener('load', () => resolve(img));
+    img.addEventListener('error', reject);
+    img.setAttribute('crossOrigin', 'anonymous');
+    img.src = url;
+  });
+
+async function getCroppedImg(imageSrc, croppedAreaPixels) {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const SIZE = 400;
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+  // draw circular clip
+  ctx.beginPath();
+  ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(
+    image,
+    croppedAreaPixels.x, croppedAreaPixels.y,
+    croppedAreaPixels.width, croppedAreaPixels.height,
+    0, 0, SIZE, SIZE
+  );
+  return canvas.toDataURL('image/jpeg', 0.88);
+}
+
 const ProfilePage = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  /* crop state */
+  const fileInputRef = useRef(null);
+  const [rawImage, setRawImage]         = useState(null); // object URL
+  const [cropOpen, setCropOpen]         = useState(false);
+  const [crop, setCrop]                 = useState({ x: 0, y: 0 });
+  const [zoom, setZoom]                 = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [uploading, setUploading]       = useState(false);
+  const [uploadMsg, setUploadMsg]       = useState('');
 
   const loadAssignedHorses = useCallback(async () => {
     try {
       setLoading(true);
-      // Get the care team assignments for this user
       const response = await apiClient.get('/horse-care-team');
       const data = Array.isArray(response.data) ? response.data : response.data.data || [];
-      
-      // Filter assignments where this user is the staff member
-      const userAssignments = data.filter(assignment => assignment.staffId === user?.id);
-      
-      // Extract horse information
-      const horses = userAssignments.map(assignment => ({
-        id: assignment.horseId,
-        name: assignment.horse?.name || 'Unknown',
-        role: assignment.role,
-        breed: assignment.horse?.breed || '-',
-        stableNumber: assignment.horse?.stableNumber || '-'
-      }));
-      
-      setAssignedHorses(horses);
-    } catch (error) {
-      console.error('Error loading assigned horses:', error);
+      const userAssignments = data.filter(a => a.staffId === user?.id);
+      setAssignedHorses(userAssignments.map(a => ({
+        id: a.horseId,
+        name: a.horse?.name || 'Unknown',
+        role: a.role,
+        breed: a.horse?.breed || '-',
+        stableNumber: a.horse?.stableNumber || '-',
+      })));
+    } catch {
       setAssignedHorses([]);
     } finally {
       setLoading(false);
@@ -46,17 +73,64 @@ const ProfilePage = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    if (user && ROLES_WITH_HORSES.includes(user.designation)) {
-      loadAssignedHorses();
-    }
+    if (user && ROLES_WITH_HORSES.includes(user.designation)) loadAssignedHorses();
   }, [user, loadAssignedHorses]);
+
+  /* file selected */
+  const onFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setRawImage(url);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCropOpen(true);
+    e.target.value = '';
+  };
+
+  const onCropComplete = useCallback((_, pixels) => {
+    setCroppedAreaPixels(pixels);
+  }, []);
+
+  /* save cropped image */
+  const handleSaveCrop = async () => {
+    if (!croppedAreaPixels) return;
+    try {
+      setUploading(true);
+      setUploadMsg('');
+      const base64 = await getCroppedImg(rawImage, croppedAreaPixels);
+
+      // PUT to backend — send profileImage alongside current data so validation passes
+      const response = await apiClient.put('/employees/profile-update', {
+        fullName:    user.fullName    || '',
+        phoneNumber: user.phoneNumber || '',
+        designation: user.designation || '',
+        profileImage: base64,
+      });
+
+      const updated = response.data?.user || response.data;
+      updateUser({ profileImage: updated.profileImage || base64 });
+      setCropOpen(false);
+      URL.revokeObjectURL(rawImage);
+      setRawImage(null);
+      setUploadMsg('✓ Profile photo updated!');
+      setTimeout(() => setUploadMsg(''), 3000);
+    } catch (err) {
+      setUploadMsg('✗ Failed to save. Try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setCropOpen(false);
+    if (rawImage) { URL.revokeObjectURL(rawImage); setRawImage(null); }
+  };
 
   if (!user) {
     return (
       <div className="profile-page">
-        <div className="no-user">
-          <p>Please log in to view your profile</p>
-        </div>
+        <div className="no-user"><p>Please log in to view your profile</p></div>
       </div>
     );
   }
@@ -69,14 +143,25 @@ const ProfilePage = () => {
         <div className="profile-hero-card">
           <div className="profile-hero-bg" />
           <div className="profile-hero-content">
-            <div className="profile-avatar-wrap">
+            <div className="profile-avatar-wrap" onClick={() => fileInputRef.current?.click()} title="Click to change photo">
               {user.profileImage ? (
                 <img src={user.profileImage} alt="Profile" className="profile-avatar-img" />
               ) : (
                 <div className="profile-avatar-initials">👨</div>
               )}
               <span className={`profile-status-dot ${user.isApproved ? 'online' : 'pending'}`} />
+              {/* camera overlay */}
+              <div className="profile-avatar-overlay">
+                <span className="profile-avatar-camera">📷</span>
+              </div>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={onFileChange}
+            />
             <div className="profile-hero-info">
               <h1 className="profile-hero-name">{user.fullName || 'User'}</h1>
               <p className="profile-hero-designation">{user.designation || 'Staff'}</p>
@@ -85,13 +170,17 @@ const ProfilePage = () => {
                   {user.isApproved ? '✓ Approved' : '⧖ Pending Approval'}
                 </span>
               </div>
+              {uploadMsg && (
+                <p style={{ marginTop: 8, fontSize: '.8125rem', color: uploadMsg.startsWith('✓') ? '#10b981' : '#ef4444' }}>
+                  {uploadMsg}
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Info Grid */}
         <div className="profile-cards-grid">
-          {/* Personal Information */}
           <div className="profile-info-card">
             <div className="profile-card-header">
               <span className="profile-card-icon">👤</span>
@@ -117,7 +206,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Contact Information */}
           <div className="profile-info-card">
             <div className="profile-card-header">
               <span className="profile-card-icon">📬</span>
@@ -146,7 +234,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Assigned Horses Section */}
+        {/* Assigned Horses */}
         {ROLES_WITH_HORSES.includes(user.designation) && (
           <div className="profile-horses-section">
             <div className="profile-card-header">
@@ -178,10 +266,53 @@ const ProfilePage = () => {
             )}
           </div>
         )}
-
       </div>
+
+      {/* Crop Modal */}
+      {cropOpen && rawImage && (
+        <div className="crop-modal-overlay" onClick={handleCancelCrop}>
+          <div className="crop-modal" onClick={e => e.stopPropagation()}>
+            <div className="crop-modal-header">
+              <h3>Adjust your photo</h3>
+              <button className="crop-close-btn" onClick={handleCancelCrop}>✕</button>
+            </div>
+            <div className="crop-area">
+              <Cropper
+                image={rawImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="crop-zoom-row">
+              <span className="crop-zoom-label">Zoom</span>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.01}
+                value={zoom}
+                onChange={e => setZoom(Number(e.target.value))}
+                className="crop-zoom-slider"
+              />
+            </div>
+            <div className="crop-modal-actions">
+              <button className="btn-secondary" onClick={handleCancelCrop} disabled={uploading}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveCrop} disabled={uploading}>
+                {uploading ? 'Saving…' : 'Apply Photo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ProfilePage;
+

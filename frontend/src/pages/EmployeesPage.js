@@ -54,6 +54,7 @@ const EmployeesPage = () => {
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightId, setHighlightId] = useState(null);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
 
   // Define which roles each designation can see
   // Hierarchy: Supers see all, Middles see peers+superiors+subordinates, Staff see parents+superiors+peers
@@ -463,7 +464,21 @@ const EmployeesPage = () => {
             <tbody>
               {filteredEmployees.map((employee) => (
                 <tr key={employee.id} id={`emp-row-${employee.id}`} className={highlightId === employee.id ? 'row-highlight' : ''}>
-                  <td>{employee.fullName}</td>
+                  <td>
+                    <div className="emp-name-cell">
+                      <div
+                        className="emp-avatar"
+                        onClick={() => employee.profileImage && setLightboxSrc(employee.profileImage)}
+                        style={employee.profileImage ? {cursor:'pointer'} : {}}
+                      >
+                        {employee.profileImage
+                          ? <img src={employee.profileImage} alt={employee.fullName} className="emp-avatar-img" />
+                          : <span className="emp-avatar-initials">{(employee.fullName || '?').charAt(0).toUpperCase()}</span>
+                        }
+                      </div>
+                      <span>{employee.fullName}</span>
+                    </div>
+                  </td>
                   <td>{employee.email}</td>
                   <td>{employee.designation}</td>
                   <td>
@@ -505,6 +520,14 @@ const EmployeesPage = () => {
           </table>
         )}
       </div>
+    </div>
+
+      {lightboxSrc && (
+        <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
+          <button className="lightbox-close" onClick={() => setLightboxSrc(null)}>✕</button>
+          <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 };

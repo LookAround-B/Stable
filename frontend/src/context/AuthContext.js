@@ -49,6 +49,14 @@ export const AuthProvider = ({ children }) => {
     setCachedUser(userData);
   };
 
+  const updateUser = (partialData) => {
+    setUser(prev => {
+      const updated = { ...prev, ...partialData };
+      setCachedUser(updated);
+      return updated;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -59,6 +67,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user,
   };
 

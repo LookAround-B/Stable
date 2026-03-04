@@ -24,6 +24,7 @@ const HorsesPage = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightId, setHighlightId] = useState(null);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     gender: 'Male',
@@ -409,7 +410,21 @@ const HorsesPage = () => {
               <tbody>
                 {filteredMyHorses.map((horse) => (
                   <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
-                    <td>{horse.name}</td>
+                    <td>
+                      <div className="emp-name-cell">
+                        <div
+                          className="emp-avatar"
+                          onClick={() => horse.profileImage && setLightboxSrc(horse.profileImage)}
+                          style={horse.profileImage ? {cursor:'pointer'} : {}}
+                        >
+                          {horse.profileImage
+                            ? <img src={horse.profileImage} alt={horse.name} className="emp-avatar-img" />
+                            : <span className="emp-avatar-initials">{(horse.name||'?').charAt(0).toUpperCase()}</span>
+                          }
+                        </div>
+                        <span>{horse.name}</span>
+                      </div>
+                    </td>
                     <td>{horse.stableNumber}</td>
                     <td>{horse.gender}</td>
                     <td>{horse.breed || ''}</td>
@@ -454,7 +469,21 @@ const HorsesPage = () => {
             <tbody>
               {filteredHorses.map((horse) => (
                 <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
-                  <td>{horse.name}</td>
+                  <td>
+                    <div className="emp-name-cell">
+                      <div
+                        className="emp-avatar"
+                        onClick={() => horse.profileImage && setLightboxSrc(horse.profileImage)}
+                        style={horse.profileImage ? {cursor:'pointer'} : {}}
+                      >
+                        {horse.profileImage
+                          ? <img src={horse.profileImage} alt={horse.name} className="emp-avatar-img" />
+                          : <span className="emp-avatar-initials">{(horse.name||'?').charAt(0).toUpperCase()}</span>
+                        }
+                      </div>
+                      <span>{horse.name}</span>
+                    </div>
+                  </td>
                   <td>{horse.stableNumber}</td>
                   <td>{horse.gender}</td>
                   <td>{horse.breed || ''}</td>
@@ -472,6 +501,13 @@ const HorsesPage = () => {
           </table>
         )}
       </div>
+
+      {lightboxSrc && (
+        <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
+          <button className="lightbox-close" onClick={() => setLightboxSrc(null)}>✕</button>
+          <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 };

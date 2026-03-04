@@ -37,21 +37,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const { fullName, phoneNumber, designation } = req.body;
+    const { fullName, phoneNumber, designation, profileImage } = req.body;
 
     // Validate input
     if (!fullName || !phoneNumber || !designation) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Build update data
+    const updateData: any = { fullName, phoneNumber, designation };
+    if (profileImage !== undefined) {
+      updateData.profileImage = profileImage;
+    }
+
     // Update user profile
     const updatedUser = await prisma.employee.update({
       where: { id: payload.id },
-      data: {
-        fullName,
-        phoneNumber,
-        designation,
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,

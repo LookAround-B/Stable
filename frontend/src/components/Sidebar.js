@@ -157,7 +157,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* User card — only shown inside sidebar on mobile */}
       {user && (
-        <div className="floating-user-card sidebar-user-card">
+        <div className="floating-user-card sidebar-user-card mobile-only-card">
           <div className="floating-user-avatar">👨</div>
           <div className="floating-user-info">
             <div className="floating-user-name">{user.fullName || user.name || 'User'}</div>
