@@ -158,7 +158,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       {/* User card — only shown inside sidebar on mobile */}
       {user && (
         <div className="floating-user-card sidebar-user-card mobile-only-card">
-          <div className="floating-user-avatar">👨</div>
+          <div className="floating-user-avatar">
+            {user.profileImage
+              ? <img src={user.profileImage} alt={user.fullName} className="floating-user-avatar-img" />
+              : <span className="floating-user-avatar-initial">{(user.fullName || user.name || 'U').charAt(0).toUpperCase()}</span>
+            }
+          </div>
           <div className="floating-user-info">
             <div className="floating-user-name">{user.fullName || user.name || 'User'}</div>
             <div className="floating-user-designation">{user.designation || user.role || 'Staff'}</div>
