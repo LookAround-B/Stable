@@ -3,24 +3,24 @@ import apiClient from './apiClient';
 const searchService = {
   // Universal search across horses, employees, and other entities
   searchAll: async (query) => {
-    if (!query || query.trim().length < 2) {
+    if (!query || query.trim().length < 1) {
       return { horses: [], employees: [], tasks: [], medicines: [] };
     }
 
     try {
       const results = await Promise.all([
         // Search horses by name
-        apiClient.get(`/horses?search=${encodeURIComponent(query)}`).catch(() => ({ data: [] })),
+        apiClient.get(`/horses?search=${encodeURIComponent(query)}`).catch(() => ({ data: { data: [] } })),
         // Search employees by name
-        apiClient.get(`/employees?search=${encodeURIComponent(query)}`).catch(() => ({ data: [] })),
+        apiClient.get(`/employees?search=${encodeURIComponent(query)}`).catch(() => ({ data: { data: [] } })),
         // Search tasks by title
-        apiClient.get(`/tasks?search=${encodeURIComponent(query)}`).catch(() => ({ data: [] })),
+        apiClient.get(`/tasks?search=${encodeURIComponent(query)}`).catch(() => ({ data: { data: [] } })),
       ]);
 
       return {
-        horses: results[0]?.data?.slice(0, 5) || [],
-        employees: results[1]?.data?.slice(0, 5) || [],
-        tasks: results[2]?.data?.slice(0, 5) || [],
+        horses: (results[0]?.data?.data || results[0]?.data || []).slice(0, 5),
+        employees: (results[1]?.data?.data || results[1]?.data || []).slice(0, 5),
+        tasks: (results[2]?.data?.data || results[2]?.data || []).slice(0, 5),
       };
     } catch (error) {
       console.error('Search error:', error);

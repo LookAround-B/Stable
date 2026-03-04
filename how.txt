@@ -3,3 +3,6 @@ cd 'd:\AI Projects\horsestable\backend'; $env:PORT=3000; npm run dev
 cd 'd:\AI Projects\horsestable\frontend'; $env:PORT=3001; npm start
 
 cd 'd:\AI Projects\horsestable\backend'; npm run build; 
+
+
+@(3000, 3001, 3002) | ForEach-Object { (Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }; Start-Sleep 2; "Ready"

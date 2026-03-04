@@ -43,10 +43,21 @@ export default async function handler(
 
 async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { status, skip = 0, take = 1000 } = req.query
+    const { status, skip = 0, take = 1000, search } = req.query
 
     const statusValue = Array.isArray(status) ? status[0] : status
-    const where = statusValue ? { status: statusValue } : {}
+    const searchValue = Array.isArray(search) ? search[0] : search
+    
+    const where: any = statusValue ? { status: statusValue } : {}
+    
+    // Add search filter if provided
+    if (searchValue && searchValue.trim().length > 0) {
+      where.OR = [
+        { name: { contains: searchValue, mode: 'insensitive' } },
+        { breed: { contains: searchValue, mode: 'insensitive' } },
+        { stableNumber: { contains: searchValue, mode: 'insensitive' } },
+      ]
+    }
 
     const horses = await prisma.horse.findMany({
       where,

@@ -15,9 +15,11 @@ const SearchBar = () => {
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (query.trim().length >= 2) {
+      if (query.trim().length >= 1) {
         setIsLoading(true);
+        console.log('🔍 Searching for:', query);
         const searchResults = await SearchService.searchAll(query);
+        console.log('✓ Search results:', searchResults);
         setResults(searchResults);
         setIsOpen(true);
         setIsLoading(false);
@@ -48,7 +50,7 @@ const SearchBar = () => {
         navigate(`/horses/${item.id}`);
         break;
       case 'employee':
-        navigate(`/employees`); // Could enhance to show employee detail view
+        navigate(`/employees?id=${item.id}`);
         break;
       case 'task':
         navigate(`/tasks/${item.id}`);
@@ -77,7 +79,7 @@ const SearchBar = () => {
           placeholder="Search horses, employees, tasks..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => query.trim().length >= 2 && setIsOpen(true)}
+          onFocus={() => query.trim().length >= 1 && setIsOpen(true)}
           className="search-input"
         />
         {query && (

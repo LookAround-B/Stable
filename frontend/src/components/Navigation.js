@@ -25,10 +25,10 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
       </div>
       
       <div className="nav-center">
-        <SearchBar />
       </div>
 
       <div className="nav-right">
+        <SearchBar />
         <button onClick={handleLogout} className="btn-logout">
           Logout
         </button>

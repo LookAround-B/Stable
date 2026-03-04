@@ -45,10 +45,21 @@ export default async function handler(
 
 async function handleGetEmployees(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { designation, skip = 0, take = 1000 } = req.query
+    const { designation, skip = 0, take = 1000, search } = req.query
 
     const designationValue = Array.isArray(designation) ? designation[0] : designation
-    const where = designationValue ? { designation: designationValue } : {}
+    const searchValue = Array.isArray(search) ? search[0] : search
+    
+    const where: any = designationValue ? { designation: designationValue } : {}
+    
+    // Add search filter if provided
+    if (searchValue && searchValue.trim().length > 0) {
+      where.OR = [
+        { fullName: { contains: searchValue, mode: 'insensitive' } },
+        { email: { contains: searchValue, mode: 'insensitive' } },
+        { designation: { contains: searchValue, mode: 'insensitive' } },
+      ]
+    }
 
     const employees = await prisma.employee.findMany({
       where,
