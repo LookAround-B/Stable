@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { uploadBase64Image } from '@/lib/s3'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -89,6 +90,12 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
+    // Upload profile image to R2 if provided as base64
+    let imageUrl: string | null = null
+    if (profileImage && typeof profileImage === 'string' && profileImage.length > 0) {
+      imageUrl = await uploadBase64Image(profileImage, 'profiles/horses')
+    }
+
     const horse = await prisma.horse.create({
       data: {
         name,
@@ -100,7 +107,7 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
         stableNumber: stableNumber || null,
         supervisorId: supervisorId || null,
         status: status || 'Active',
-        profileImage: profileImage || null,
+        profileImage: imageUrl,
       },
       include: {
         supervisor: true,

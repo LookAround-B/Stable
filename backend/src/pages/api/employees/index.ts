@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { uploadBase64Image } from '@/lib/s3'
 
 export default async function handler(
   req: NextApiRequest,
@@ -100,6 +101,12 @@ async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
+    // Upload profile image to R2 if provided as base64
+    let imageUrl: string | null = null
+    if (profileImage && typeof profileImage === 'string' && profileImage.length > 0) {
+      imageUrl = await uploadBase64Image(profileImage, 'profiles/employees')
+    }
+
     // Determine department based on designation
     let department = 'Leadership'
     if (['Stable Manager', 'Instructor', 'Jamedar', 'Groom', 'Riding Boy', 'Rider', 'Farrier'].includes(designation)) {
@@ -126,7 +133,7 @@ async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
         supervisorId: supervisorId || null,
         employmentStatus: 'Active',
         isApproved: false,
-        profileImage: profileImage || null,
+        profileImage: imageUrl,
       },
     })
 

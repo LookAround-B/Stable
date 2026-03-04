@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { uploadBase64Image } from '../../../lib/s3';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set CORS headers FIRST
@@ -47,7 +48,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Build update data
     const updateData: any = { fullName, phoneNumber, designation };
     if (profileImage !== undefined) {
-      updateData.profileImage = profileImage;
+      // If it's a base64 string, upload to R2 and store the CDN URL
+      if (typeof profileImage === 'string' && profileImage.length > 0) {
+        updateData.profileImage = await uploadBase64Image(profileImage, 'profiles/employees');
+      } else {
+        updateData.profileImage = profileImage;
+      }
     }
 
     // Update user profile

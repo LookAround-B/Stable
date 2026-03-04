@@ -63,3 +63,31 @@ export const deleteImage = async (imageUrl: string): Promise<void> => {
   }
 }
 
+/**
+ * Accept a data-URI or plain base64 string, upload it to R2 and return the public CDN URL.
+ * Returns the original string unchanged if R2 is not configured.
+ */
+export const uploadBase64Image = async (
+  base64: string,
+  folder: string
+): Promise<string> => {
+  if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID) {
+    // R2 not configured – fall back to storing base64 as-is
+    return base64
+  }
+
+  // Strip the data-URI prefix if present (data:image/jpeg;base64,…)
+  const matches = base64.match(/^data:([a-zA-Z0-9+/]+\/[a-zA-Z0-9+/]+);base64,(.+)$/)
+  let mimeType = 'image/jpeg'
+  let raw = base64
+  if (matches) {
+    mimeType = matches[1]
+    raw = matches[2]
+  }
+
+  const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg'
+  const buffer = Buffer.from(raw, 'base64')
+  const url = await uploadImage(buffer, `photo.${ext}`, mimeType, folder)
+  return url
+}
+
