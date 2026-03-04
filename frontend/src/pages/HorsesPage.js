@@ -441,6 +441,7 @@ const HorsesPage = () => {
               {searchTerm ? 'No horses match your search' : 'No horses assigned to you'}
             </p>
           ) : (
+            <div className="table-scroll-wrap">
             <table className="horses-table">
               <thead>
                 <tr>
@@ -479,6 +480,7 @@ const HorsesPage = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
@@ -499,6 +501,7 @@ const HorsesPage = () => {
             {searchTerm ? 'No horses match your search' : 'No horses found'}
           </p>
         ) : (
+          <div className="table-scroll-wrap">
           <table className="horses-table">
             <thead>
               <tr>
@@ -544,6 +547,7 @@ const HorsesPage = () => {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

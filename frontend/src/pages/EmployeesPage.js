@@ -494,6 +494,7 @@ const EmployeesPage = () => {
         {filteredEmployees.length === 0 ? (
           <p>No employees found</p>
         ) : (
+          <div className="table-scroll-wrap">
           <table className="employees-table">
             <thead>
               <tr>
@@ -562,9 +563,10 @@ const EmployeesPage = () => {
                 </tr>
               ))}
             </tbody>
-          </table>
-        )}
-      </div>
+            </table>
+            </div>
+          )}
+        </div>
 
       {lightboxSrc && ReactDOM.createPortal(
         <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
