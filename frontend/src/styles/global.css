@@ -810,6 +810,6 @@ textarea{resize:vertical;min-height:80px}
 
 /* 3. Tables horizontally scrollable on mobile */
 @media(max-width:820px){
-  .horses-list,.employees-list,.team-section{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .horses-table,.employees-table{min-width:560px;width:max-content}
+  .horses-table,.employees-table{min-width:560px;width:max-content;display:table}
+  .horses-list table,.employees-list table,.team-section table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
 }
