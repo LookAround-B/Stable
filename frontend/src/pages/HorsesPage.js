@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
@@ -222,7 +223,7 @@ const HorsesPage = () => {
       )}
 
       {/* Modal */}
-      {showModal && (
+      {showModal && ReactDOM.createPortal(
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
@@ -376,7 +377,7 @@ const HorsesPage = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* My Horses Section - Only for staff roles, not admin/supervisory */}
       {!SUPERVISORY_ROLES.includes(user?.designation) && (
@@ -502,12 +503,12 @@ const HorsesPage = () => {
         )}
       </div>
 
-      {lightboxSrc && (
+      {lightboxSrc && ReactDOM.createPortal(
         <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
           <button className="lightbox-close" onClick={() => setLightboxSrc(null)}>✕</button>
           <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };

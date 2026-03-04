@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
@@ -269,7 +270,7 @@ const ProfilePage = () => {
       </div>
 
       {/* Crop Modal */}
-      {cropOpen && rawImage && (
+      {cropOpen && rawImage && ReactDOM.createPortal(
         <div className="crop-modal-overlay" onClick={handleCancelCrop}>
           <div className="crop-modal" onClick={e => e.stopPropagation()}>
             <div className="crop-modal-header">
@@ -309,7 +310,7 @@ const ProfilePage = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };
