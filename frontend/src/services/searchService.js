@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import apiClient from './apiClient';
 
 const searchService = {
   // Universal search across horses, employees, and other entities

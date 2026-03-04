@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, User, CheckSquare, ClipboardList, ShieldCheck,
-  Calendar, Heart, Users, Clipboard, UserCheck, FileText,
+  Calendar, Heart, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
   Search, AlertTriangle, BarChart3, Settings
@@ -16,7 +16,6 @@ const Sidebar = ({ isOpen, onClose }) => {
   const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
 
   // Determine which pages to show based on user role
-  const showPersonalAttendance = false;
   const showTeamAttendance = ['Super Admin', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
   const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Ground Supervisor', 'Groom'].includes(user?.designation);
   const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Groom'].includes(user?.designation);
