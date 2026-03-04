@@ -83,7 +83,7 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { name, gender, dateOfBirth, breed, color, height, stableNumber, supervisorId, status } = req.body
+    const { name, gender, dateOfBirth, breed, color, height, stableNumber, supervisorId, status, profileImage } = req.body
 
     if (!name || !gender || !dateOfBirth) {
       return res.status(400).json({ error: 'Missing required fields' })
@@ -100,6 +100,7 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
         stableNumber: stableNumber || null,
         supervisorId: supervisorId || null,
         status: status || 'Active',
+        profileImage: profileImage || null,
       },
       include: {
         supervisor: true,

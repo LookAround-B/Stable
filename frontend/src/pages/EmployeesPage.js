@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
@@ -56,6 +56,8 @@ const EmployeesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightId, setHighlightId] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [newEmpImage, setNewEmpImage] = useState(null);
+  const empImgRef = useRef(null);
 
   // Define which roles each designation can see
   // Hierarchy: Supers see all, Middles see peers+superiors+subordinates, Staff see parents+superiors+peers
@@ -226,9 +228,11 @@ const EmployeesPage = () => {
         supervisorId: formData.supervisorId || null,
         employmentStatus: 'Active',
         isApproved: false,
+        profileImage: newEmpImage || null,
       });
 
       setMessage('Employee added successfully!');
+      setNewEmpImage(null);
       setFormData({
         fullName: '',
         email: '',
@@ -248,9 +252,36 @@ const EmployeesPage = () => {
     }
   };
 
+  const resizeImage = (file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 700;
+        const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const handleEmpImagePick = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64 = await resizeImage(file);
+    setNewEmpImage(base64);
+    e.target.value = '';
+  };
+
   const closeModal = () => {
     setShowModal(false);
     setMessage('');
+    setNewEmpImage(null);
     setFormData({
       fullName: '',
       email: '',
@@ -328,6 +359,19 @@ const EmployeesPage = () => {
             </div>
 
             <form onSubmit={handleAddEmployee} className="modal-form">
+              {/* Photo picker */}
+              <div className="add-photo-picker">
+                <div className="add-photo-avatar" onClick={() => empImgRef.current?.click()}>
+                  {newEmpImage
+                    ? <img src={newEmpImage} alt="preview" className="add-photo-preview" />
+                    : <span className="add-photo-placeholder">👤</span>
+                  }
+                  <div className="add-photo-overlay">📷</div>
+                </div>
+                <input type="file" ref={empImgRef} accept="image/*" style={{display:'none'}} onChange={handleEmpImagePick} disabled={loading} />
+                <span className="add-photo-label">{newEmpImage ? 'Tap to change photo' : 'Add Photo (optional)'}</span>
+              </div>
+
               <div className="form-group">
                 <label htmlFor="fullName">Full Name *</label>
                 <input

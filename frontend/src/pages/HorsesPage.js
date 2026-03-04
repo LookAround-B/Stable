@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -26,6 +26,8 @@ const HorsesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightId, setHighlightId] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [newHorseImage, setNewHorseImage] = useState(null);
+  const horseImgRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
     gender: 'Male',
@@ -132,9 +134,11 @@ const HorsesPage = () => {
         stableNumber: stableNumber,
         supervisorId: formData.supervisorId || null,
         status: 'Active',
+        profileImage: newHorseImage || null,
       });
 
       setMessage('Horse added successfully!');
+      setNewHorseImage(null);
       
       // Reload horses
       loadHorsesAndSupervisors();
@@ -159,9 +163,36 @@ const HorsesPage = () => {
     }
   };
 
+  const resizeImage = (file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 700;
+        const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const handleHorseImagePick = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64 = await resizeImage(file);
+    setNewHorseImage(base64);
+    e.target.value = '';
+  };
+
   const closeModal = () => {
     setShowModal(false);
     setMessage('');
+    setNewHorseImage(null);
     setFormData({
       name: '',
       gender: 'Male',
@@ -232,6 +263,19 @@ const HorsesPage = () => {
             </div>
 
             <form onSubmit={handleAddHorse} className="modal-form">
+              {/* Photo picker */}
+              <div className="add-photo-picker">
+                <div className="add-photo-avatar" onClick={() => horseImgRef.current?.click()}>
+                  {newHorseImage
+                    ? <img src={newHorseImage} alt="preview" className="add-photo-preview" />
+                    : <span className="add-photo-placeholder">🐴</span>
+                  }
+                  <div className="add-photo-overlay">📷</div>
+                </div>
+                <input type="file" ref={horseImgRef} accept="image/*" style={{display:'none'}} onChange={handleHorseImagePick} disabled={loading} />
+                <span className="add-photo-label">{newHorseImage ? 'Tap to change photo' : 'Add Photo (optional)'}</span>
+              </div>
+
               <div className="form-group">
                 <label htmlFor="name">Horse Name *</label>
                 <input

@@ -93,7 +93,7 @@ async function handleGetEmployees(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { fullName, email, designation, phoneNumber, colorCode, shiftTiming, supervisorId } =
+    const { fullName, email, designation, phoneNumber, colorCode, shiftTiming, supervisorId, profileImage } =
       req.body
 
     if (!fullName || !email || !designation) {
@@ -126,6 +126,7 @@ async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
         supervisorId: supervisorId || null,
         employmentStatus: 'Active',
         isApproved: false,
+        profileImage: profileImage || null,
       },
     })
 
