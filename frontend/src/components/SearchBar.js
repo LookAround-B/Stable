@@ -47,10 +47,10 @@ const SearchBar = () => {
   const handleResultClick = (type, item) => {
     switch (type) {
       case 'horse':
-        navigate(`/horses/${item.id}`);
+        navigate(`/horses?highlight=${item.id}`);
         break;
       case 'employee':
-        navigate(`/employees?id=${item.id}`);
+        navigate(`/employees?highlight=${item.id}`);
         break;
       case 'task':
         navigate(`/tasks/${item.id}`);

@@ -64,93 +64,111 @@ const ProfilePage = () => {
   return (
     <div className="profile-page">
       <div className="profile-container">
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div className="profile-image-section">
-            {user.profileImage ? (
-              <img src={user.profileImage} alt="Profile" className="profile-image" />
-            ) : (
-              <div className="profile-image-placeholder">
-                <span className="placeholder-initial">{user.fullName?.charAt(0)?.toUpperCase() || 'U'}</span>
-              </div>
-            )}
-          </div>
 
-          <div className="profile-info">
-            <h1>{user.fullName || 'User'}</h1>
-            <p className="role-badge">{user.designation}</p>
-          </div>
-        </div>
-
-        {/* Personal Details */}
-        <div className="profile-section">
-          <h2>Personal Information</h2>
-          <div className="info-grid">
-            <div className="info-item">
-              <label>Full Name</label>
-              <p>{user.fullName || '-'}</p>
+        {/* Hero Card */}
+        <div className="profile-hero-card">
+          <div className="profile-hero-bg" />
+          <div className="profile-hero-content">
+            <div className="profile-avatar-wrap">
+              {user.profileImage ? (
+                <img src={user.profileImage} alt="Profile" className="profile-avatar-img" />
+              ) : (
+                <div className="profile-avatar-initials">👨</div>
+              )}
+              <span className={`profile-status-dot ${user.isApproved ? 'online' : 'pending'}`} />
             </div>
-
-            <div className="info-item">
-              <label>Employee ID</label>
-              <p>{user.employeeId || user.id || '-'}</p>
-            </div>
-
-            <div className="info-item">
-              <label>Email</label>
-              <p>
-                <a href={`mailto:${user.email}`}>{user.email || '-'}</a>
-              </p>
-            </div>
-
-            <div className="info-item">
-              <label>Phone Number</label>
-              <p>
-                {user.mobile ? (
-                  <a href={`tel:${user.mobile}`}>{user.mobile}</a>
-                ) : (
-                  '-'
-                )}
-              </p>
-            </div>
-
-            <div className="info-item">
-              <label>Role / Designation</label>
-              <p>{user.designation || '-'}</p>
-            </div>
-
-            <div className="info-item">
-              <label>Status</label>
-              <p>
-                <span className={`status-badge ${user.isApproved ? 'approved' : 'pending'}`}>
-                  {user.isApproved ? '✓ Approved' : '⧖ Pending'}
+            <div className="profile-hero-info">
+              <h1 className="profile-hero-name">{user.fullName || 'User'}</h1>
+              <p className="profile-hero-designation">{user.designation || 'Staff'}</p>
+              <div className="profile-hero-meta">
+                <span className={`profile-status-badge ${user.isApproved ? 'approved' : 'pending'}`}>
+                  {user.isApproved ? '✓ Approved' : '⧖ Pending Approval'}
                 </span>
-              </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Assigned Horses Section (if applicable) */}
+        {/* Info Grid */}
+        <div className="profile-cards-grid">
+          {/* Personal Information */}
+          <div className="profile-info-card">
+            <div className="profile-card-header">
+              <span className="profile-card-icon">👤</span>
+              <h3>Personal Information</h3>
+            </div>
+            <div className="profile-fields">
+              <div className="profile-field">
+                <span className="profile-field-label">Full Name</span>
+                <span className="profile-field-value">{user.fullName || '—'}</span>
+              </div>
+              <div className="profile-field">
+                <span className="profile-field-label">Employee ID</span>
+                <span className="profile-field-value profile-field-mono">{user.employeeId || user.id?.slice(0, 8) || '—'}</span>
+              </div>
+              <div className="profile-field">
+                <span className="profile-field-label">Designation</span>
+                <span className="profile-field-value">{user.designation || '—'}</span>
+              </div>
+              <div className="profile-field">
+                <span className="profile-field-label">Employment Status</span>
+                <span className="profile-field-value">{user.employmentStatus || 'Active'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="profile-info-card">
+            <div className="profile-card-header">
+              <span className="profile-card-icon">📬</span>
+              <h3>Contact Information</h3>
+            </div>
+            <div className="profile-fields">
+              <div className="profile-field">
+                <span className="profile-field-label">Email Address</span>
+                <a href={`mailto:${user.email}`} className="profile-field-value profile-field-link">{user.email || '—'}</a>
+              </div>
+              <div className="profile-field">
+                <span className="profile-field-label">Phone Number</span>
+                {user.phoneNumber || user.mobile ? (
+                  <a href={`tel:${user.phoneNumber || user.mobile}`} className="profile-field-value profile-field-link">
+                    {user.phoneNumber || user.mobile}
+                  </a>
+                ) : (
+                  <span className="profile-field-value">—</span>
+                )}
+              </div>
+              <div className="profile-field">
+                <span className="profile-field-label">Account Type</span>
+                <span className="profile-field-value">{user.googleId ? '🔗 Google Account' : '🔑 Email & Password'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Assigned Horses Section */}
         {ROLES_WITH_HORSES.includes(user.designation) && (
-          <div className="profile-section">
-            <h2>Assigned Horses</h2>
+          <div className="profile-horses-section">
+            <div className="profile-card-header">
+              <span className="profile-card-icon">🐴</span>
+              <h3>Assigned Horses</h3>
+              <span className="profile-horse-count">{assignedHorses.length}</span>
+            </div>
             {loading ? (
               <p className="loading">Loading assigned horses...</p>
             ) : assignedHorses.length > 0 ? (
-              <div className="horses-grid">
+              <div className="profile-horses-grid">
                 {assignedHorses.map(horse => (
-                  <div key={horse.id} className="horse-card">
-                    <div className="horse-header">
-                      <h3>🐴 {horse.name}</h3>
-                      <span className="horse-role">{horse.role}</span>
-                    </div>
-                    <div className="horse-details">
-                      <p>
-                        <strong>Stable #:</strong> {horse.stableNumber}
-                      </p>
-                      <p>
-                        <strong>Breed:</strong> {horse.breed}
-                      </p>
+                  <div key={horse.id} className="profile-horse-card">
+                    <div className="profile-horse-icon">🐴</div>
+                    <div className="profile-horse-details">
+                      <div className="profile-horse-name">{horse.name}</div>
+                      <div className="profile-horse-meta">
+                        <span>Stable #{horse.stableNumber}</span>
+                        <span>·</span>
+                        <span>{horse.breed}</span>
+                      </div>
+                      <span className="profile-horse-role">{horse.role}</span>
                     </div>
                   </div>
                 ))}
@@ -160,6 +178,7 @@ const ProfilePage = () => {
             )}
           </div>
         )}
+
       </div>
     </div>
   );

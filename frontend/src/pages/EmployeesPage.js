@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -38,6 +39,7 @@ const SUPERVISORY_ROLES = [
 
 const EmployeesPage = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
@@ -51,6 +53,7 @@ const EmployeesPage = () => {
   });
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [highlightId, setHighlightId] = useState(null);
 
   // Define which roles each designation can see
   // Hierarchy: Supers see all, Middles see peers+superiors+subordinates, Staff see parents+superiors+peers
@@ -161,6 +164,19 @@ const EmployeesPage = () => {
     loadEmployees();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('highlight');
+    if (id) {
+      setHighlightId(id);
+      setTimeout(() => {
+        const el = document.getElementById('emp-row-' + id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+      setTimeout(() => setHighlightId(null), 2200);
+    }
+  }, [location.search]);
 
   const loadEmployees = async () => {
     try {
@@ -446,7 +462,7 @@ const EmployeesPage = () => {
             </thead>
             <tbody>
               {filteredEmployees.map((employee) => (
-                <tr key={employee.id}>
+                <tr key={employee.id} id={`emp-row-${employee.id}`} className={highlightId === employee.id ? 'row-highlight' : ''}>
                   <td>{employee.fullName}</td>
                   <td>{employee.email}</td>
                   <td>{employee.designation}</td>

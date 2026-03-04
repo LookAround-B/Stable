@@ -1,17 +1,24 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { logout } from '../services/authService';
 import {
   LayoutDashboard, User, CheckSquare, ClipboardList, ShieldCheck,
   Calendar, Heart, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
-  Search, AlertTriangle, BarChart3, Settings
+  Search, AlertTriangle, BarChart3, Settings, LogOut
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
 
@@ -147,6 +154,23 @@ const Sidebar = ({ isOpen, onClose }) => {
           );
         })}
       </ul>
+
+      {/* User card — only shown inside sidebar on mobile */}
+      {user && (
+        <div className="floating-user-card sidebar-user-card">
+          <div className="floating-user-avatar">👨</div>
+          <div className="floating-user-info">
+            <div className="floating-user-name">{user.fullName || user.name || 'User'}</div>
+            <div className="floating-user-designation">{user.designation || user.role || 'Staff'}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout — visible on mobile only */}
+      <button className="sidebar-logout-btn" onClick={handleLogout}>
+        <LogOut size={16} strokeWidth={2} />
+        Logout
+      </button>
     </aside>
   );
 };

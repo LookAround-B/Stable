@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -17,11 +17,13 @@ const SUPERVISORY_ROLES = [
 const HorsesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [horses, setHorses] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [highlightId, setHighlightId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     gender: 'Male',
@@ -46,6 +48,19 @@ const HorsesPage = () => {
   useEffect(() => {
     loadHorsesAndSupervisors();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('highlight');
+    if (id) {
+      setHighlightId(id);
+      setTimeout(() => {
+        const el = document.getElementById('horse-row-' + id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+      setTimeout(() => setHighlightId(null), 2200);
+    }
+  }, [location.search]);
 
   const loadHorsesAndSupervisors = async () => {
     try {
@@ -393,7 +408,7 @@ const HorsesPage = () => {
               </thead>
               <tbody>
                 {filteredMyHorses.map((horse) => (
-                  <tr key={horse.id}>
+                  <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
                     <td>{horse.name}</td>
                     <td>{horse.stableNumber}</td>
                     <td>{horse.gender}</td>
@@ -438,7 +453,7 @@ const HorsesPage = () => {
             </thead>
             <tbody>
               {filteredHorses.map((horse) => (
-                <tr key={horse.id}>
+                <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
                   <td>{horse.name}</td>
                   <td>{horse.stableNumber}</td>
                   <td>{horse.gender}</td>
