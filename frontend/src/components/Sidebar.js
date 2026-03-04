@@ -38,6 +38,75 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showHorses = user?.designation !== 'Guard';
 
+  // Organize menu items by parent category
+  const menuStructure = [
+    {
+      parent: null, // No section header for these
+      items: [
+        { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/profile', icon: User, label: 'My Profile' },
+      ],
+    },
+    {
+      parent: 'Tasks & Approvals',
+      items: [
+        { to: '/tasks', icon: CheckSquare, label: 'Tasks', show: showTasks },
+        { to: '/my-assigned-tasks', icon: ClipboardList, label: 'My Assigned Tasks', show: showMyAssignedTasks },
+        { to: '/pending-approvals', icon: ShieldCheck, label: 'Approvals', show: showApprovals },
+        { to: '/meetings', icon: Calendar, label: 'Meetings', show: showMeetings },
+      ],
+    },
+    {
+      parent: 'Stable Operations',
+      items: [
+        { to: '/medicine-logs', icon: Pill, label: 'Medicine Logs', show: showMedicineLogs },
+        { to: '/horse-care-team', icon: HeartHandshake, label: 'Care Teams', show: showCareTeam },
+        { to: '/medicine-inventory', icon: Pill, label: 'Medicine Inventory', show: showMedicineInventory },
+        { to: '/horse-feeds', icon: Wheat, label: 'Horse Feeds', show: showHorseFeeds },
+        { to: '/feed-inventory', icon: Package, label: 'Feed Inventory', show: showFeedInventory },
+      ],
+    },
+    {
+      parent: 'Ground Operations',
+      items: [
+        { to: '/gate-entry', icon: DoorOpen, label: 'Gate Register', show: showGateEntry },
+        { to: '/daily-attendance', icon: FileText, label: 'Daily Register', show: showDailyAttendance },
+        { to: '/team-attendance', icon: UserCheck, label: 'Mark Team Attendance', show: showTeamAttendance },
+        { to: '/groom-worksheet', icon: FileEdit, label: 'Groom Worksheet', show: showGroomWorksheet },
+        { to: '/daily-work-records', icon: NotebookPen, label: 'Daily Work Records', show: showEIRS },
+        { to: '/inspections', icon: Search, label: 'Inspection Rounds', show: showInspections },
+      ],
+    },
+    {
+      parent: 'Restaurant Operations',
+      items: [
+        { to: '/groceries-inventory', icon: ShoppingCart, label: 'Groceries Inventory', show: showGroceriesInventory },
+      ],
+    },
+    {
+      parent: 'Accounts & Finance',
+      items: [
+        { to: '/invoice-generation', icon: Receipt, label: 'Invoice Generation', show: showInvoiceGeneration },
+        { to: '/expenses', icon: CreditCard, label: 'Expense Tracking', show: showExpenses },
+        { to: '/fines', icon: AlertTriangle, label: 'Fine System', show: showFines },
+      ],
+    },
+    {
+      parent: 'Organization',
+      items: [
+        { to: '/horses', icon: Heart, label: 'Horses', show: showHorses },
+        { to: '/employees', icon: Users, label: 'Team', show: true },
+      ],
+    },
+    {
+      parent: 'System',
+      items: [
+        { to: '/reports', icon: BarChart3, label: 'Reports', show: true },
+        { to: '/settings', icon: Settings, label: 'Settings', show: true },
+      ],
+    },
+  ];
+
   const MenuItem = ({ to, icon: Icon, label }) => (
     <li>
       <Link to={to} className={`menu-item${isActive(to) ? ' active' : ''}`}>
@@ -50,37 +119,34 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <ul className="sidebar-menu">
-        <MenuItem to="/" icon={LayoutDashboard} label="Dashboard" />
-        <MenuItem to="/profile" icon={User} label="My Profile" />
-        {showTasks && <MenuItem to="/tasks" icon={CheckSquare} label="Tasks" />}
-        {showMyAssignedTasks && <MenuItem to="/my-assigned-tasks" icon={ClipboardList} label="My Assigned Tasks" />}
-        {showApprovals && <MenuItem to="/pending-approvals" icon={ShieldCheck} label="Approvals" />}
-        {showMeetings && <MenuItem to="/meetings" icon={Calendar} label="Meetings" />}
-        {showHorses && <MenuItem to="/horses" icon={Heart} label="Horses" />}
-        <MenuItem to="/employees" icon={Users} label="Team" />
+        {menuStructure.map((section, idx) => {
+          // Filter items that should be shown
+          const visibleItems = section.items.filter(item => item.show !== false);
+          
+          // Skip sections with no visible items
+          if (visibleItems.length === 0) return null;
 
-        <li className="menu-section">
-          <span className="section-title">Operations</span>
-        </li>
-
-        {showPersonalAttendance && <MenuItem to="/digital-attendance" icon={Clipboard} label="My Attendance" />}
-        {showTeamAttendance && <MenuItem to="/team-attendance" icon={UserCheck} label="Mark Team Attendance" />}
-        {showDailyAttendance && <MenuItem to="/daily-attendance" icon={FileText} label="Daily Register" />}
-        {showGroomWorksheet && <MenuItem to="/groom-worksheet" icon={FileEdit} label="Groom Worksheet" />}
-        {showGateEntry && <MenuItem to="/gate-entry" icon={DoorOpen} label="Gate Register" />}
-        {showMedicineLogs && <MenuItem to="/medicine-logs" icon={Pill} label="Medicine Logs" />}
-        {showCareTeam && <MenuItem to="/horse-care-team" icon={HeartHandshake} label="Care Teams" />}
-        {showEIRS && <MenuItem to="/daily-work-records" icon={NotebookPen} label="Daily Work Records" />}
-        {showInvoiceGeneration && <MenuItem to="/invoice-generation" icon={Receipt} label="Invoice Generation" />}
-        {showHorseFeeds && <MenuItem to="/horse-feeds" icon={Wheat} label="Horse Feeds" />}
-        {showFeedInventory && <MenuItem to="/feed-inventory" icon={Package} label="Feed Inventory" />}
-        {showMedicineInventory && <MenuItem to="/medicine-inventory" icon={Pill} label="Medicine Inventory" />}
-        {showGroceriesInventory && <MenuItem to="/groceries-inventory" icon={ShoppingCart} label="Groceries Inventory" />}
-        {showExpenses && <MenuItem to="/expenses" icon={CreditCard} label="Expense Tracking" />}
-        {showInspections && <MenuItem to="/inspections" icon={Search} label="Inspection Rounds" />}
-        {showFines && <MenuItem to="/fines" icon={AlertTriangle} label="Fine System" />}
-        <MenuItem to="/reports" icon={BarChart3} label="Reports" />
-        <MenuItem to="/settings" icon={Settings} label="Settings" />
+          return (
+            <React.Fragment key={idx}>
+              {/* Section header (if parent exists) */}
+              {section.parent && (
+                <li className="menu-section">
+                  <span className="section-title">{section.parent}</span>
+                </li>
+              )}
+              
+              {/* Menu items */}
+              {visibleItems.map((item, itemIdx) => (
+                <MenuItem 
+                  key={itemIdx}
+                  to={item.to} 
+                  icon={item.icon} 
+                  label={item.label} 
+                />
+              ))}
+            </React.Fragment>
+          );
+        })}
       </ul>
     </aside>
   );
