@@ -393,6 +393,8 @@ textarea{resize:vertical;min-height:80px}
   border-bottom-left-radius: 40px;
   box-shadow: -8px 0 32px rgba(0,0,0,0.4);
   z-index: 10;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* Main column */
@@ -400,8 +402,12 @@ textarea{resize:vertical;min-height:80px}
   position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;
   width:100%;max-width:440px;
-  padding:32px 24px;
+  padding:24px;
+  max-height:100dvh;
+  overflow-y:auto;
+  box-sizing:border-box;
 }
+.lp-main::-webkit-scrollbar{width:0;background:transparent}
 
 /* ── Card ─────────────────────────────────────────────────── */
 .lp-card{
@@ -642,11 +648,10 @@ textarea{resize:vertical;min-height:80px}
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
-/* Tablet */
+/* Tablet — keep side-by-side, just shrink the image pane */
 @media(max-width:1023px){
-  .lp-split-root{flex-direction:column}
-  .lp-left-pane{flex:none;height:300px;border-right:none;border-bottom:1px solid rgba(255,255,255,.05)}
-  .lp-left-content{position:absolute;inset:0;}
+  .lp-left-pane{flex:5}
+  .lp-right-pane{flex:5;border-radius:0}
   .lp-main{max-width:420px}
 }
 /* Mobile */
