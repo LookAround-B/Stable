@@ -16,19 +16,19 @@
 }
 
 .search-bar-wrapper:hover {
-  background: rgba(0,0,0,.05);
-  border-color: rgba(0,0,0,.1);
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.15);
 }
 
 .search-bar-wrapper:focus-within {
-  background: rgba(0,0,0,.05);
-  border-color: rgba(0,0,0,.18);
-  box-shadow: 0 0 0 3px rgba(0,0,0,.04);
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.25);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.06);
 }
 
 .search-icon {
   flex-shrink: 0;
-  color: rgba(0,0,0,.38);
+  color: rgba(255,255,255,.50);
   pointer-events: none;
 }
 
@@ -37,7 +37,7 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #2d2a24 !important;
+  color: #ffffff !important;
   font-size: 0.8125rem;
   outline: none;
   font-family: inherit;
@@ -48,18 +48,18 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #2d2a24 !important;
+  color: #ffffff !important;
 }
 
 .search-bar-container .search-input::placeholder {
-  color: rgba(0,0,0,.33);
+  color: rgba(255,255,255,.50);
 }
 
 .search-clear {
   flex-shrink: 0;
   background: transparent;
   border: none;
-  color: rgba(0,0,0,.38);
+  color: rgba(255,255,255,.50);
   cursor: pointer;
   padding: 4px;
   display: flex;

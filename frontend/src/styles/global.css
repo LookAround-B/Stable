@@ -134,14 +134,14 @@ textarea{resize:vertical;min-height:80px}
 .main-content::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:var(--r-full)}
 
 /* Navigation */
-.navigation{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(250,248,245,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;gap:16px;box-shadow:0 1px 12px rgba(0,0,0,.06)}
+.navigation{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(20,20,20,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;gap:16px;box-shadow:0 2px 16px rgba(0,0,0,.3)}
 .nav-left{display:flex;align-items:center;gap:14px;min-width:fit-content}
 .nav-center{flex:1;display:flex;justify-content:center}
 .nav-right{display:flex;align-items:center;gap:10px;min-width:fit-content}
 .nav-brand{display:flex;align-items:center;gap:8px}
 .nav-logo-circle{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.14);flex-shrink:0}
-.nav-brand h1{font-size:.875rem;font-weight:700;color:#2d2a24;letter-spacing:-.01em;white-space:nowrap}
-.nav-quote{font-family:'Playfair Display',Georgia,serif;font-size:.8125rem;font-style:italic;font-weight:400;color:#9b8464;letter-spacing:.025em;white-space:nowrap;pointer-events:none;user-select:none}
+.nav-brand h1{font-size:.875rem;font-weight:700;color:#ffffff;letter-spacing:-.01em;white-space:nowrap}
+.nav-quote{font-family:'Playfair Display',Georgia,serif;font-size:.8125rem;font-style:italic;font-weight:400;color:#ffffff;letter-spacing:.025em;white-space:nowrap;pointer-events:none;user-select:none}
 .hamburger-btn{display:none;width:36px;height:36px;border-radius:var(--r-sm);background:transparent;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:background var(--t)}
 .hamburger-btn:hover{background:rgba(0,0,0,.06)}
 .hamburger-line{width:18px;height:1.5px;background:rgba(0,0,0,.5);border-radius:2px;transition:all var(--t)}
