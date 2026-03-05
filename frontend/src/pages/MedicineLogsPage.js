@@ -30,6 +30,14 @@ const MedicineLogsPage = () => {
   const canApprove = ['Stable Manager', 'Director', 'Super Admin', 'School Administrator'].includes(user?.designation);
   const isJamedar = user?.designation === 'Jamedar';
 
+  // Auto-select the correct initial tab based on role
+  useEffect(() => {
+    if (user) {
+      if (!isJamedar && canApprove) setSelectedTab('pending-approval');
+      else if (isJamedar) setSelectedTab('my-logs');
+    }
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const loadLogs = useCallback(async () => {
     try {
       setLoading(true);

@@ -866,6 +866,9 @@ textarea{resize:vertical;min-height:80px}
 /* Records & Sections */
 .records-section,.register-section,.entries-section,.entry-section,.inventory-section,.report-section,.calendar-section,.mark-section,.my-logs-section,.section,.visitor-section,.quick-mark-section,.notes-section,.proof-section,.evidence-section,.mom-section,.mom-list,.mom-form,.rounds-form,.rounds-checkboxes{margin-bottom:24px}
 .section-buttons,.header-buttons,.page-controls,.report-controls{display:flex;gap:8px;flex-wrap:wrap}
+.report-controls{align-items:flex-end}
+.report-actions{display:flex;gap:8px;margin-top:0!important}
+.header-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .date-filter,.date-range,.date-selector,.report-date-range,.month-selector{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .date-display{font-weight:600}
