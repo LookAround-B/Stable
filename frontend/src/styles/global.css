@@ -337,7 +337,7 @@ textarea{resize:vertical;min-height:80px}
 
 /* ── Left Pane ── */
 .lp-left-pane{
-  flex:1;
+  flex: 6; /* Take up 60% of the flex space */
   display:flex;
   align-items:center;
   justify-content:center;
@@ -372,8 +372,7 @@ textarea{resize:vertical;min-height:80px}
   width:100%;
   height:100%;
   object-fit:cover;
-  opacity:0.8; /* Slight dim to make text pop */
-  filter:brightness(0.7) contrast(1.1);
+  opacity:0.85; /* Keep it bright enough while slightly dim */
 }
 
 .lp-left-text{
@@ -382,16 +381,16 @@ textarea{resize:vertical;min-height:80px}
   font-family:'Cormorant Garamond','Playfair Display','Georgia',serif;
   font-style:italic;
   font-weight:300;
-  font-size:6rem;
+  font-size:7rem; /* Make the text slightly bigger too since canvas is wider */
   line-height:1;
   letter-spacing:-.02em;
   color:#fff;
-  text-shadow:0 10px 30px rgba(0,0,0,.8), 0 2px 4px rgba(0,0,0,.5);
+  text-shadow:0 10px 30px rgba(0,0,0,.8), 0 2px 8px rgba(0,0,0,.6);
 }
 
 /* ── Right Pane ── */
 .lp-right-pane{
-  flex:1;
+  flex: 4; /* Take up 40% of the flex space */
   display:flex;
   align-items:center;
   justify-content:center;
@@ -404,7 +403,7 @@ textarea{resize:vertical;min-height:80px}
   position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;
   width:100%;max-width:440px;
-  padding:32px 16px 48px;
+  padding:32px 24px;
 }
 
 /* ── Card ─────────────────────────────────────────────────── */
