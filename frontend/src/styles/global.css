@@ -731,7 +731,7 @@ textarea{resize:vertical;min-height:80px}
 .filter-group select{padding:.4375rem 2.25rem .4375rem .75rem;font-size:.8125rem;min-width:140px}
 .filter-group input{padding:.4375rem .75rem;font-size:.8125rem;min-width:140px}
 .inventory-section,.summary-section{margin-top:20px}
-.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .filter-tabs,.tab-navigation,.tab-buttons,.type-buttons,.mode-buttons,.filter-buttons,.filter-actions{display:flex;gap:4px;flex-wrap:wrap}
 .filter-tabs button,.tab-navigation button,.tab-buttons button,.type-buttons button,.mode-buttons button{
   padding:.4375rem 1rem;border-radius:var(--r-sm);font-size:.8125rem;font-weight:500;background:transparent;color:var(--text-secondary);border:1px solid var(--border);transition:all var(--t)}
@@ -776,6 +776,7 @@ textarea{resize:vertical;min-height:80px}
 .alerts-container{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .loading,.loading-text{text-align:center;padding:48px;color:var(--text-muted);font-size:.875rem;animation:pulse 1.5s ease-in-out infinite}
 .no-data,.no-records,.no-tasks,.no-horses,.no-entries,.no-team,.no-worksheets,.no-invoice,.no-selection,.no-user,.empty,.empty-state{text-align:center;padding:20px 24px;color:var(--text-secondary);font-size:.875rem}
+.no-tasks{padding:6px 24px}
 
 /* Notifications */
 .notification-center{position:relative}
@@ -796,7 +797,11 @@ textarea{resize:vertical;min-height:80px}
 .task-notification,.meeting-notification{padding:10px 14px;background:var(--info-bg);border-radius:var(--r-sm);border:1px solid var(--info-border);margin-bottom:10px}
 
 /* --- SearchableSelect --- */
+.searchable-select{position:relative}
 .ss-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;padding:.625rem .875rem;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-input);cursor:pointer;transition:all var(--t)}
+/* Match native select height inside filter groups */
+.filter-group .searchable-select{min-width:140px}
+.filter-group .ss-trigger{padding:.4375rem .75rem;font-size:.8125rem}
 .ss-trigger:hover{border-color:var(--border-focus)}
 .ss-arrow{transition:transform var(--t)}
 .ss-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--bg-glass);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.4);border-radius:var(--r);box-shadow:var(--shadow-lg);z-index:50;margin-top:4px;animation:slideDown .2s ease}

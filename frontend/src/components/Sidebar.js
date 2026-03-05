@@ -54,6 +54,13 @@ const Sidebar = ({ isOpen, onClose }) => {
       ],
     },
     {
+      parent: 'Organization',
+      items: [
+        { to: '/horses', icon: Heart, label: 'Horses', show: showHorses },
+        { to: '/employees', icon: Users, label: 'Team', show: true },
+      ],
+    },
+    {
       parent: 'Tasks & Approvals',
       items: [
         { to: '/tasks', icon: CheckSquare, label: 'Tasks', show: showTasks },
@@ -95,13 +102,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/invoice-generation', icon: Receipt, label: 'Invoice Generation', show: showInvoiceGeneration },
         { to: '/expenses', icon: CreditCard, label: 'Expense Tracking', show: showExpenses },
         { to: '/fines', icon: AlertTriangle, label: 'Fine System', show: showFines },
-      ],
-    },
-    {
-      parent: 'Organization',
-      items: [
-        { to: '/horses', icon: Heart, label: 'Horses', show: showHorses },
-        { to: '/employees', icon: Users, label: 'Team', show: true },
       ],
     },
     {
