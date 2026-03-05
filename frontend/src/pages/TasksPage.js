@@ -437,23 +437,25 @@ const TasksPage = () => {
 
   return (
     <div className="tasks-page">
-      <h1>Tasks Management</h1>
-      <p className="role-description" style={{ marginBottom: '4px' }}>{getRoleTaskDescription(user?.designation)}</p>
+      <div className="page-header">
+        <div>
+          <h1>Tasks Management</h1>
+          <p className="role-description">{getRoleTaskDescription(user?.designation)}</p>
+        </div>
+        {canCreateTasks && (
+          <button 
+            className="btn-primary"
+            onClick={() => setShowCreateForm(!showCreateForm)}
+          >
+            {showCreateForm ? '✕ Cancel' : '+ Create New Task'}
+          </button>
+        )}
+      </div>
 
       {message && (
         <div className={`message ${message.includes('✗') ? 'error' : 'success'}`}>
           {message}
         </div>
-      )}
-
-      {canCreateTasks && (
-        <button 
-          className="btn-primary"
-          style={{ marginTop: '16px', display: 'block' }}
-          onClick={() => setShowCreateForm(!showCreateForm)}
-        >
-          {showCreateForm ? '✕ Cancel' : '+ Create New Task'}
-        </button>
       )}
 
       {canCreateTasks && showCreateForm && (

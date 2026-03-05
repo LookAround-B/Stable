@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/authService';
+import { LogOut } from 'lucide-react';
 import SearchBar from './SearchBar';
 
 const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
@@ -20,6 +21,7 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
           <span className="hamburger-line"></span>
         </button>
         <div className="nav-brand">
+          <div className="nav-logo-circle" />
           <h1>EFM</h1>
         </div>
       </div>
@@ -29,8 +31,9 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
 
       <div className="nav-right">
         <SearchBar />
-        <button onClick={handleLogout} className="btn-logout">
-          Logout
+        <button onClick={handleLogout} className="btn-logout" title="Logout">
+          <LogOut size={15} strokeWidth={2} />
+          <span>Logout</span>
         </button>
       </div>
     </nav>

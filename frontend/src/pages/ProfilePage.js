@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import { User, Mail, Lock, Link2, Heart, Camera } from 'lucide-react';
 
 const ROLES_WITH_HORSES = [
   'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
@@ -148,12 +149,12 @@ const ProfilePage = () => {
               {user.profileImage ? (
                 <img src={user.profileImage} alt="Profile" className="profile-avatar-img" />
               ) : (
-                <div className="profile-avatar-initials">👨</div>
+                <div className="profile-avatar-initials">{(user.fullName || 'U').charAt(0).toUpperCase()}</div>
               )}
               <span className={`profile-status-dot ${user.isApproved ? 'online' : 'pending'}`} />
               {/* camera overlay */}
               <div className="profile-avatar-overlay">
-                <span className="profile-avatar-camera">📷</span>
+                <span className="profile-avatar-camera"><Camera size={15} strokeWidth={2} /></span>
               </div>
             </div>
             <input
@@ -184,7 +185,7 @@ const ProfilePage = () => {
         <div className="profile-cards-grid">
           <div className="profile-info-card">
             <div className="profile-card-header">
-              <span className="profile-card-icon">👤</span>
+              <span className="profile-card-icon"><User size={15} strokeWidth={2} /></span>
               <h3>Personal Information</h3>
             </div>
             <div className="profile-fields">
@@ -209,7 +210,7 @@ const ProfilePage = () => {
 
           <div className="profile-info-card">
             <div className="profile-card-header">
-              <span className="profile-card-icon">📬</span>
+              <span className="profile-card-icon"><Mail size={15} strokeWidth={2} /></span>
               <h3>Contact Information</h3>
             </div>
             <div className="profile-fields">
@@ -229,7 +230,7 @@ const ProfilePage = () => {
               </div>
               <div className="profile-field">
                 <span className="profile-field-label">Account Type</span>
-                <span className="profile-field-value">{user.googleId ? '🔗 Google Account' : '🔑 Email & Password'}</span>
+                <span className="profile-field-value">{user.googleId ? <><Link2 size={12} style={{display:'inline',verticalAlign:'middle',marginRight:'4px'}} />Google Account</> : <><Lock size={12} style={{display:'inline',verticalAlign:'middle',marginRight:'4px'}} />Email &amp; Password</>}</span>
               </div>
             </div>
           </div>
@@ -239,7 +240,7 @@ const ProfilePage = () => {
         {ROLES_WITH_HORSES.includes(user.designation) && (
           <div className="profile-horses-section">
             <div className="profile-card-header">
-              <span className="profile-card-icon">🐴</span>
+              <span className="profile-card-icon"><Heart size={15} strokeWidth={2} /></span>
               <h3>Assigned Horses</h3>
               <span className="profile-horse-count">{assignedHorses.length}</span>
             </div>
@@ -249,7 +250,7 @@ const ProfilePage = () => {
               <div className="profile-horses-grid">
                 {assignedHorses.map(horse => (
                   <div key={horse.id} className="profile-horse-card">
-                    <div className="profile-horse-icon">🐴</div>
+                    <div className="profile-horse-icon"><Heart size={18} strokeWidth={1.5} style={{color:'#e11d48'}} /></div>
                     <div className="profile-horse-details">
                       <div className="profile-horse-name">{horse.name}</div>
                       <div className="profile-horse-meta">

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import NotificationCenter from './NotificationCenter';
@@ -10,7 +10,6 @@ const MainLayout = () => {
   const location = useLocation();
   const mainContentRef = useRef(null);
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);
@@ -40,21 +39,6 @@ const MainLayout = () => {
         </main>
       </div>
       <NotificationCenter />
-      {/* Desktop floating user card — outside sidebar so position:fixed works correctly */}
-      {user && (
-        <div className="floating-user-card desktop-user-card" onClick={() => navigate('/profile')}>
-          <div className="floating-user-avatar">
-            {user.profileImage
-              ? <img src={user.profileImage} alt={user.fullName} className="floating-user-avatar-img" />
-              : <span className="floating-user-avatar-initial">{(user.fullName || user.name || 'U').charAt(0).toUpperCase()}</span>
-            }
-          </div>
-          <div className="floating-user-info">
-            <div className="floating-user-name">{user.fullName || user.name || 'User'}</div>
-            <div className="floating-user-designation">{user.designation || user.role || 'Staff'}</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -237,21 +237,24 @@ const HorsesPage = () => {
     </div>
   ) : (
     <div className="horses-page">
-      <h1>Horses</h1>
-      <p className="info-text">
-        {canAddHorse 
-          ? 'You can add new horses to the system' 
-          : 'Only Admin and Instructor can add horses'}
-      </p>
-
-      {canAddHorse && (
-        <button 
-          className="btn-add" 
-          onClick={() => setShowModal(true)}
-        >
-          + Add New Horse
-        </button>
-      )}
+      <div className="page-header">
+        <div>
+          <h1>Horses</h1>
+          <p className="info-text">
+            {canAddHorse 
+              ? 'You can add new horses to the system' 
+              : 'Only Admin and Instructor can add horses'}
+          </p>
+        </div>
+        {canAddHorse && (
+          <button 
+            className="btn-add" 
+            onClick={() => setShowModal(true)}
+          >
+            + Add New Horse
+          </button>
+        )}
+      </div>
 
       {/* Modal */}
       {showModal && ReactDOM.createPortal(

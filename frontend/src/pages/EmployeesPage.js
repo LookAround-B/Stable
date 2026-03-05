@@ -333,21 +333,24 @@ const EmployeesPage = () => {
 
   return (
     <div className="employees-page">
-      <h1>Team Members</h1>
-      <p className="info-text">
-        {canAddEmployee 
-          ? 'You can add new employees to the system' 
-          : 'Only Super Admin, Director, or School Administrator can add new employees'}
-      </p>
-
-      {canAddEmployee && (
-        <button 
-          className="btn-add" 
-          onClick={() => setShowModal(true)}
-        >
-          + Add New Employee
-        </button>
-      )}
+      <div className="page-header">
+        <div>
+          <h1>Team Members</h1>
+          <p className="info-text">
+            {canAddEmployee 
+              ? 'You can add new employees to the system' 
+              : 'Only Super Admin, Director, or School Administrator can add new employees'}
+          </p>
+        </div>
+        {canAddEmployee && (
+          <button 
+            className="btn-add" 
+            onClick={() => setShowModal(true)}
+          >
+            + Add New Employee
+          </button>
+        )}
+      </div>
 
       {/* Modal */}
       {showModal && ReactDOM.createPortal(
