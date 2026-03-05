@@ -363,7 +363,8 @@ const MedicineLogsPage = () => {
           {loading && <div className="loading">Loading...</div>}
 
           {!loading && logs.length > 0 ? (
-            <table className="logs-table">
+            <div className="table-wrapper">
+              <table className="logs-table">
               <thead>
                 <tr>
                   <th>Horse</th>
@@ -400,7 +401,8 @@ const MedicineLogsPage = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           ) : (
             !loading && <p className="no-data">No medicine logs yet</p>
           )}

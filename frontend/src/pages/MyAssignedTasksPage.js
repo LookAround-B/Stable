@@ -157,7 +157,7 @@ const MyAssignedTasksPage = () => {
             ]}
           />
         </div>
-        <span className="task-count">{filteredTasks.length} task(s)</span>
+        {/* <span className="task-count">{filteredTasks.length} task(s)</span> */}
       </div>
 
       {loading && filteredTasks.length === 0 ? (

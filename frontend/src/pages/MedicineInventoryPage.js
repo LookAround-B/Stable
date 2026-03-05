@@ -360,7 +360,8 @@ const MedicineInventoryPage = () => {
           {loading && <div className="loading">Loading...</div>}
 
           {!loading && inventoryRecords.length > 0 ? (
-            <table className="inventory-table">
+            <div className="table-wrapper">
+              <table className="inventory-table">
               <thead>
                 <tr>
                   <th>Medicine Type</th>
@@ -398,7 +399,8 @@ const MedicineInventoryPage = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           ) : (
             !loading && <p className="no-data">No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
           )}
@@ -442,7 +444,8 @@ const MedicineInventoryPage = () => {
               <p className="report-date-range">
                 {reportStartDate} to {reportEndDate}
               </p>
-              <table className="report-table">
+              <div className="table-wrapper">
+                <table className="report-table">
                 <thead>
                   <tr>
                     <th>Medicine Type</th>
@@ -462,6 +465,7 @@ const MedicineInventoryPage = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ) : (
             !loading && reportData && <p className="no-data">No data for selected date range</p>
