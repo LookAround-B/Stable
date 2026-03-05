@@ -361,20 +361,24 @@ textarea{resize:vertical;min-height:80px}
 }
 
 .lp-left-content{
-  position:relative;z-index:1;
-  display:flex;flex-direction:column;align-items:center;gap:32px;
+  position:absolute; inset:0; z-index:1;
+  display:flex;align-items:center;justify-content:center;
   animation:lpRise .8s cubic-bezier(.22,.61,.36,1) both;
 }
 
 .lp-left-logo{
-  width:160px;
-  max-width:80vw;
-  height:auto;
-  object-fit:contain;
-  filter:drop-shadow(0 8px 16px rgba(0,0,0,.5));
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0.8; /* Slight dim to make text pop */
+  filter:brightness(0.7) contrast(1.1);
 }
 
 .lp-left-text{
+  position:relative;
+  z-index:2;
   font-family:'Cormorant Garamond','Playfair Display','Georgia',serif;
   font-style:italic;
   font-weight:300;
@@ -382,7 +386,7 @@ textarea{resize:vertical;min-height:80px}
   line-height:1;
   letter-spacing:-.02em;
   color:#fff;
-  text-shadow:0 4px 12px rgba(0,0,0,.3);
+  text-shadow:0 10px 30px rgba(0,0,0,.8), 0 2px 4px rgba(0,0,0,.5);
 }
 
 /* ── Right Pane ── */
@@ -626,17 +630,14 @@ textarea{resize:vertical;min-height:80px}
 /* Tablet */
 @media(max-width:1023px){
   .lp-split-root{flex-direction:column}
-  .lp-left-pane{flex:none;padding:60px 20px;border-right:none;border-bottom:1px solid rgba(255,255,255,.05)}
-  .lp-left-content{flex-direction:row;gap:24px}
-  .lp-left-logo{width:80px}
-  .lp-left-text{font-size:3.5rem}
+  .lp-left-pane{flex:none;height:300px;border-right:none;border-bottom:1px solid rgba(255,255,255,.05)}
+  .lp-left-content{position:absolute;inset:0;}
+  .lp-left-text{font-size:4rem}
   .lp-main{max-width:420px}
 }
 /* Mobile */
 @media(max-width:767px){
-  .lp-left-pane{padding:40px 20px}
-  .lp-left-content{flex-direction:column;gap:16px}
-  .lp-left-logo{width:70px}
+  .lp-left-pane{height:200px;}
   .lp-left-text{font-size:3rem}
   .lp-main{max-width:100%;padding:24px 16px 40px}
   .lp-card{padding:28px 20px 24px}
