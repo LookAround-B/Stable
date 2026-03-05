@@ -437,7 +437,7 @@ const TasksPage = () => {
 
   return (
     <div className="tasks-page">
-      <h1>📋 Tasks Management</h1>
+      <h1>Tasks Management</h1>
       <p className="role-description">{getRoleTaskDescription(user?.designation)}</p>
 
       {message && (
@@ -578,7 +578,7 @@ const TasksPage = () => {
         </select>
         <input
           type="text"
-          placeholder="🔍 Search tasks by name, type, status..."
+          placeholder="Search tasks by name, type, status..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
@@ -656,7 +656,7 @@ const TasksPage = () => {
                     onClick={() => setViewingTaskId(task.id)}
                     disabled={loading}
                   >
-                    👁️ View Evidence
+                    View Evidence
                   </button>
                 </div>
               )}

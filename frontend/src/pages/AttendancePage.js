@@ -113,7 +113,7 @@ const AttendancePage = () => {
 
   return (
     <div className="attendance-page">
-      <h1>📋 Attendance Management</h1>
+      <h1>Attendance Management</h1>
       <p className="subtitle">
         {isManager 
           ? 'Manage your team attendance' 

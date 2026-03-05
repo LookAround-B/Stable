@@ -188,7 +188,7 @@ const HorseFeedsPage = () => {
   ) : (
     <div className="page-container">
       <div className="page-header">
-        <h1>🐴 Horse Feeds</h1>
+        <h1>Horse Feeds</h1>
         <p>Record daily feed consumption for horses</p>
       </div>
 
@@ -223,7 +223,7 @@ const HorseFeedsPage = () => {
             onClick={() => setShowForm(true)}
             disabled={loading}
           >
-            ➕ Add Feed Record
+            + Add Feed Record
           </button>
         )}
       </div>

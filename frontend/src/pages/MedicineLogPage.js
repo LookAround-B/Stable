@@ -128,7 +128,7 @@ const MedicineLogPage = () => {
   if (user?.designation !== 'Jamedar') {
     return (
       <div className="medicine-page">
-        <h1>🚫 Access Denied</h1>
+        <h1>Access Denied</h1>
         <p>Only Jamedar can access the Medicine Log page.</p>
       </div>
     );
@@ -136,7 +136,7 @@ const MedicineLogPage = () => {
 
   return (
     <div className="medicine-page">
-      <h1>💊 Medicine Administration Log</h1>
+      <h1>Medicine Administration Log</h1>
       <p className="subtitle">
         Track all medicine administered to horses
       </p>
@@ -356,7 +356,7 @@ const MedicineLogPage = () => {
 
       {/* Stock Alert Section */}
       <div className="alerts-container">
-        <h2>🚨 Stock Alerts</h2>
+        <h2>Stock Alerts</h2>
         <div className="alert-info">
           <p>
             Medicine logs with stock levels below 20 units will show alerts here.

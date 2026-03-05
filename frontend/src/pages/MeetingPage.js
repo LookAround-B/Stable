@@ -275,7 +275,7 @@ ${momData.decisions.map((d) => `- ${d}`).join('\n')}
 
   return (
     <div className="meeting-page">
-      <h1>📅 Meetings</h1>
+      <h1>Meetings</h1>
 
       <div className="meeting-container">
         {/* Calendar Section */}
@@ -406,11 +406,11 @@ ${momData.decisions.map((d) => `- ${d}`).join('\n')}
                       </span>
                     </div>
                     <div className="meeting-list-date">
-                      📅 {new Date(meeting.meetingDate).toLocaleDateString('en-IN')}{' '}
+                      {new Date(meeting.meetingDate).toLocaleDateString('en-IN')}{' '}
                       {meeting.meetingTime && `at ${meeting.meetingTime}`}
                     </div>
                     <div className="meeting-list-participants">
-                      👥 {meeting.participants.length} attendee
+                      {meeting.participants.length} attendee
                       {meeting.participants.length !== 1 ? 's' : ''}
                     </div>
                   </div>

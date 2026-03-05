@@ -218,7 +218,7 @@ const GateAttendancePage = () => {
   if (user?.designation !== 'Guard') {
     return (
       <div className="gate-page">
-        <h1>🚫 Access Denied</h1>
+        <h1>Access Denied</h1>
         <p>Only Guards can access the Gate Attendance page.</p>
       </div>
     );
@@ -226,7 +226,7 @@ const GateAttendancePage = () => {
 
   return (
     <div className="gate-page">
-      <h1>🚪 Gate Attendance & Visitor Log</h1>
+      <h1>Gate Attendance & Visitor Log</h1>
       <p className="subtitle">Log staff entry/exit and visitor visits</p>
 
       <div className="tab-buttons">
@@ -499,7 +499,7 @@ const GateAttendancePage = () => {
       {/* Logs Table */}
       <div className="logs-container">
         <h2>
-          {activeTab === 'staff' ? '👥 Staff Entry/Exit Logs' : '👤 Visitor Logs'}
+          {activeTab === 'staff' ? 'Staff Entry/Exit Logs' : 'Visitor Logs'}
         </h2>
         {displayLogs.length === 0 ? (
           <p className="no-data">No logs found</p>

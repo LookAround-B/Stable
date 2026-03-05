@@ -293,7 +293,7 @@ const DailyWorkRecordsPage = () => {
               onClick={handleDownloadExcel}
               disabled={loading}
             >
-              📥 Download Excel
+              Download Excel
             </button>
           )}
           {!showForm && canCreateRecords && (

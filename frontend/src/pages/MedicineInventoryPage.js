@@ -196,7 +196,7 @@ const MedicineInventoryPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>💊 Medicine Inventory</h1>
+        <h1>Medicine Inventory</h1>
         <p>Manage and track medicine stock levels</p>
       </div>
 
@@ -211,13 +211,13 @@ const MedicineInventoryPage = () => {
           className={`tab-button ${activeTab === 'inventory' ? 'active' : ''}`}
           onClick={() => setActiveTab('inventory')}
         >
-          📦 Inventory
+          Inventory
         </button>
         <button
           className={`tab-button ${activeTab === 'report' ? 'active' : ''}`}
           onClick={() => setActiveTab('report')}
         >
-          📊 Report
+          Report
         </button>
       </div>
 

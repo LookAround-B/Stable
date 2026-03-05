@@ -213,7 +213,7 @@ const MedicineLogsPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>💊 Medicine Logs</h1>
+        <h1>Medicine Logs</h1>
         <p>Track medicine administration and approvals</p>
       </div>
 
@@ -229,7 +229,7 @@ const MedicineLogsPage = () => {
             className={`tab-button ${selectedTab === 'my-logs' ? 'active' : ''}`}
             onClick={() => setSelectedTab('my-logs')}
           >
-            📝 My Logs
+            My Logs
           </button>
         )}
         {canApprove && (
@@ -237,7 +237,7 @@ const MedicineLogsPage = () => {
             className={`tab-button ${selectedTab === 'pending-approval' ? 'active' : ''}`}
             onClick={() => setSelectedTab('pending-approval')}
           >
-            ⏳ Pending Approval
+            Pending Approval
           </button>
         )}
       </div>

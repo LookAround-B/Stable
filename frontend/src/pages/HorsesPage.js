@@ -228,7 +228,7 @@ const HorsesPage = () => {
   return user?.designation === 'Guard' ? (
     <div className="horses-page">
       <div className="access-denied">
-        <h2>❌ Access Denied</h2>
+        <h2>Access Denied</h2>
         <p>You do not have permission to access horse data.</p>
         <button onClick={() => navigate('/')} className="btn-back">
           Go to Dashboard
@@ -237,7 +237,7 @@ const HorsesPage = () => {
     </div>
   ) : (
     <div className="horses-page">
-      <h1>🐴 Horses</h1>
+      <h1>Horses</h1>
       <p className="info-text">
         {canAddHorse 
           ? 'You can add new horses to the system' 
@@ -426,11 +426,11 @@ const HorsesPage = () => {
       {/* My Horses Section - Only for staff roles, not admin/supervisory */}
       {!SUPERVISORY_ROLES.includes(user?.designation) && (
         <div className="team-section">
-          <h2>🐴 Horses Under My Care</h2>
+          <h2>Horses Under My Care</h2>
           <div className="search-bar">
             <input
               type="text"
-              placeholder="🔍 Search by name, stable number, breed, color, gender..."
+              placeholder="Search by name, stable number, breed, color, gender..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -486,11 +486,11 @@ const HorsesPage = () => {
       )}
 
       <div className="horses-list">
-        <h2>📋 All Horses</h2>
+        <h2>All Horses</h2>
         <div className="search-bar">
           <input
             type="text"
-            placeholder="🔍 Search by name, stable number, breed, color, gender..."
+            placeholder="Search by name, stable number, breed, color, gender..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"

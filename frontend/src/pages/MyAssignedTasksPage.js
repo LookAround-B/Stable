@@ -123,7 +123,7 @@ const MyAssignedTasksPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>📋 My Assigned Tasks</h1>
+        <h1>My Assigned Tasks</h1>
         <p>Complete and submit your assigned tasks with evidence</p>
       </div>
 

@@ -184,7 +184,7 @@ const FeedInventoryPage = () => {
   return (
     <div className="feed-inventory-page">
       <div className="inventory-header">
-        <h1>📦 Feed Inventory Management</h1>
+        <h1>Feed Inventory Management</h1>
       </div>
 
       {message && <div className={`message ${messageType}`}>{message}</div>}
@@ -195,13 +195,13 @@ const FeedInventoryPage = () => {
           className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`}
           onClick={() => setActiveTab('inventory')}
         >
-          📦 Monthly Inventory
+          Monthly Inventory
         </button>
         <button
           className={`tab-btn ${activeTab === 'report' ? 'active' : ''}`}
           onClick={() => setActiveTab('report')}
         >
-          📊 Consumption Report
+          Consumption Report
         </button>
       </div>
 
@@ -314,7 +314,7 @@ const FeedInventoryPage = () => {
 
           {/* Inventory Table */}
           <div className="inventory-table-container">
-            <h3>📋 {MONTH_NAMES[selectedMonth - 1]} {selectedYear} - Feed Stock Status</h3>
+            <h3>{MONTH_NAMES[selectedMonth - 1]} {selectedYear} - Feed Stock Status</h3>
             {loading ? (
               <div className="loading">Loading inventory...</div>
             ) : inventoryRecords.length === 0 ? (
@@ -370,7 +370,7 @@ const FeedInventoryPage = () => {
                             <span className="usage-percent">{percentUsed.toFixed(1)}% used</span>
                           </td>
                           <td>
-                            <button className="btn-sm btn-edit" onClick={() => handleEdit(record)}>✏️ Edit</button>
+                            <button className="btn-sm btn-edit" onClick={() => handleEdit(record)}>Edit</button>
                           </td>
                         </tr>
                       );
@@ -397,11 +397,11 @@ const FeedInventoryPage = () => {
             </div>
             <div className="filter-actions">
               <button className="btn-primary" onClick={loadReport} disabled={loading}>
-                {loading ? 'Loading...' : '📊 Generate Report'}
+                  {loading ? 'Loading...' : 'Generate Report'}
               </button>
               {reportData && (
                 <button className="btn-secondary" onClick={handleDownloadCSV} disabled={downloadingCSV}>
-                  {downloadingCSV ? 'Downloading...' : '📥 Download CSV'}
+                  {downloadingCSV ? 'Downloading...' : 'Download CSV'}
                 </button>
               )}
             </div>
@@ -411,7 +411,7 @@ const FeedInventoryPage = () => {
             <>
               {/* Total Consumption Summary */}
               <div className="report-summary">
-                <h3>📊 Total Feed Consumption ({reportStartDate} to {reportEndDate})</h3>
+                <h3>Total Feed Consumption ({reportStartDate} to {reportEndDate})</h3>
                 <div className="summary-cards">
                   {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
                     <div key={ft} className="summary-card">
@@ -424,7 +424,7 @@ const FeedInventoryPage = () => {
 
               {/* Per-Horse Consumption Table */}
               <div className="inventory-table-container">
-                <h3>🐴 Horse-wise Consumption</h3>
+                <h3>Horse-wise Consumption</h3>
                 <div className="table-wrapper">
                   <table className="inventory-table consumption-table">
                     <thead>
@@ -464,7 +464,7 @@ const FeedInventoryPage = () => {
               {/* Inventory Status */}
               {reportData.inventory && reportData.inventory.length > 0 && (
                 <div className="inventory-table-container">
-                  <h3>📦 Inventory Status for Period</h3>
+                  <h3>Inventory Status for Period</h3>
                   <div className="table-wrapper">
                     <table className="inventory-table">
                       <thead>

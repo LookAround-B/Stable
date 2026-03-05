@@ -481,11 +481,11 @@ const EmployeesPage = () => {
       , document.body)}
 
       <div className="employees-list">
-        <h2>📋 All Employees</h2>
+        <h2>All Employees</h2>
         <div className="search-bar">
           <input
             type="text"
-            placeholder="🔍 Search by name, email, or role..."
+            placeholder="Search by name, email, or role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"

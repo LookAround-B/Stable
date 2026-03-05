@@ -201,7 +201,7 @@ const GroomWorkSheetPage = () => {
 
   return (
     <div className="groom-worksheet-page">
-      <h1>📋 Groom Work Sheet</h1>
+      <h1>Groom Work Sheet</h1>
       <p className="role-description">
         Track groom activities, horse care hours, and supplies used daily.
       </p>
@@ -397,14 +397,14 @@ const GroomWorkSheetPage = () => {
                 <div className="worksheet-info">
                   <h3>{getGroomName(worksheet.groomId)}</h3>
                   <div className="worksheet-meta">
-                    <span>📅 {new Date(worksheet.date).toLocaleDateString()}</span>
-                    <span>⏱️ AM: {worksheet.totalAM}h | PM: {worksheet.totalPM}h | Total: {worksheet.wholeDayHours}h</span>
+                    <span>Date: {new Date(worksheet.date).toLocaleDateString()}</span>
+                    <span>AM: {worksheet.totalAM}h | PM: {worksheet.totalPM}h | Total: {worksheet.wholeDayHours}h</span>
                   </div>
                 </div>
                 <div className="worksheet-summary">
-                  <span className="supply-tag woodchips">🪵 Woodchips: {worksheet.woodchipsUsed}</span>
-                  <span className="supply-tag bichali">🌾 Bichali: {worksheet.bichaliUsed}kg</span>
-                  <span className="supply-tag boosa">📦 Boo Sa: {worksheet.booSaUsed} bags</span>
+                  <span className="supply-tag woodchips">Woodchips: {worksheet.woodchipsUsed}</span>
+                  <span className="supply-tag bichali">Bichali: {worksheet.bichaliUsed}kg</span>
+                  <span className="supply-tag boosa">Boo Sa: {worksheet.booSaUsed} bags</span>
                 </div>
                 <span className="expand-icon">{expandedWorksheet === worksheet.id ? '▲' : '▼'}</span>
               </div>

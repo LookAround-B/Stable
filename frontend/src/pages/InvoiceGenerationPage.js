@@ -381,10 +381,10 @@ const InvoiceGenerationPage = () => {
             </div>
             <div className="invoice-actions">
               <button className="btn btn-success" onClick={handlePrint}>
-                🖨 Print
+                Print
               </button>
               <button className="btn btn-info" onClick={handleDownloadPDF}>
-                📥 Download Excel
+                Download Excel
               </button>
             </div>
           </div>

@@ -116,7 +116,7 @@ const DailyAttendancePage = () => {
 
   return (
     <div className="daily-attendance-page">
-      <h1>📋 Daily Attendance Register</h1>
+      <h1>Daily Attendance Register</h1>
       <p className="role-description">
         Groomers check in/out with the toggle switch. Track daily attendance and work hours.
       </p>

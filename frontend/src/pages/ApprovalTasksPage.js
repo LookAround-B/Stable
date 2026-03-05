@@ -140,13 +140,13 @@ const ApprovalTasksPage = () => {
     <div className="page-container">
       {!PARENT_ROLES.includes(user?.designation) ? (
         <div className="error-message">
-          <h2>⛔ Access Denied</h2>
+          <h2>Access Denied</h2>
           <p>Only Director, School Administrator, and Stable Manager can approve tasks.</p>
         </div>
       ) : (
         <>
           <div className="approval-header">
-            <h1>✅ Task Approvals</h1>
+            <h1>Task Approvals</h1>
             <p>Review and approve tasks created by Instructors</p>
           </div>
 
@@ -159,7 +159,7 @@ const ApprovalTasksPage = () => {
           {/* PENDING TASKS SECTION */}
           <div className="approval-section">
             <div className="section-header">
-              <h2>📋 Pending Review</h2>
+              <h2>Pending Review</h2>
               <span className="task-count">{pendingTasks.length} tasks</span>
             </div>
 
@@ -180,7 +180,7 @@ const ApprovalTasksPage = () => {
           {approvedTasks.length > 0 && (
             <div className="approval-section approved-section">
               <div className="section-header">
-                <h2>✅ Approved Tasks</h2>
+                <h2>Approved Tasks</h2>
                 <span className="task-count">{approvedTasks.length} tasks</span>
               </div>
 

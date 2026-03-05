@@ -199,7 +199,7 @@ const TeamAttendancePage = () => {
                 className="btn btn-download"
                 onClick={handleDownloadExcel}
               >
-                📥 Download Excel
+                Download Excel
               </button>
               <button 
                 className="btn btn-primary"

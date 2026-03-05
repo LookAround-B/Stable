@@ -160,13 +160,13 @@ const RoundCheckPage = () => {
               className="btn-submit" 
               disabled={loading}
             >
-              {loading ? '⏳ Updating...' : '✓ Save Round Status'}
+              {loading ? 'Updating...' : '✓ Save Round Status'}
             </button>
           </div>
         </form>
 
         <div className="info-box">
-          <h3>ℹ️ Instructions</h3>
+          <h3>Instructions</h3>
           <ul>
             <li>Check the boxes for rounds you have completed</li>
             <li>Mark at least one round</li>

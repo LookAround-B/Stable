@@ -223,7 +223,7 @@ const HorseCareTeamPage = () => {
   if (user?.designation !== 'Stable Manager') {
     return (
       <div className="care-team-page">
-        <h1>🚫 Access Denied</h1>
+        <h1>Access Denied</h1>
         <p>Only Stable Manager can access the Horse Care Team page.</p>
       </div>
     );
@@ -232,7 +232,7 @@ const HorseCareTeamPage = () => {
   return user?.designation === 'Guard' ? (
     <div className="care-team-page">
       <div className="access-denied">
-        <h2>❌ Access Denied</h2>
+        <h2>Access Denied</h2>
         <p>You do not have permission to access horse care team data.</p>
         <button onClick={() => navigate('/')} className="btn-back">
           Go to Dashboard
@@ -241,7 +241,7 @@ const HorseCareTeamPage = () => {
     </div>
   ) : (
     <div className="care-team-page">
-      <h1>👥 Horse Care Team Management</h1>
+      <h1>Horse Care Team Management</h1>
       <p className="subtitle">
         Assign care team members to horses for grooming, riding, and medical care
       </p>
@@ -353,7 +353,7 @@ const HorseCareTeamPage = () => {
 
       {/* Care Teams by Horse */}
       <div className="teams-container">
-        <h2>🏇 Horse Care Teams</h2>
+        <h2>Horse Care Teams</h2>
         {horses.length === 0 ? (
           <p className="no-data">No horses available</p>
         ) : (
