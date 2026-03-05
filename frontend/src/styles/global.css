@@ -128,7 +128,7 @@ textarea{resize:vertical;min-height:80px}
 .main-layout{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(ellipse 120% 80% at 15% 20%,rgba(40,35,28,.9) 0%,var(--shell) 60%),radial-gradient(ellipse 80% 60% at 85% 80%,rgba(30,28,22,.8) 0%,transparent 70%)}
 .layout-container{display:flex;flex:1;padding-top:var(--nav-h)}
 /* Main content — glass canvas, curvy all sides */
-.main-content{flex:1;min-width:0;margin-left:calc(var(--sidebar-w) + 6px);margin-right:10px;margin-top:10px;margin-bottom:10px;padding:24px 28px;min-height:calc(100vh - var(--nav-h) - 20px);overflow-y:auto;overflow-x:hidden;background:rgba(243,242,240,.72);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid rgba(255,255,255,.55);border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.6);transition:margin var(--t-slow)}
+.main-content{flex:1;min-width:0;margin-left:calc(var(--sidebar-w) + 6px);margin-right:10px;margin-top:10px;margin-bottom:10px;padding:24px 28px;min-height:calc(100vh - var(--nav-h) - 20px);overflow-y:auto;overflow-x:hidden;background:rgba(243,242,240,.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid rgba(255,255,255,.55);border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.6);transition:margin var(--t-slow)}
 .main-content::-webkit-scrollbar{width:5px}
 .main-content::-webkit-scrollbar-track{background:transparent}
 .main-content::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:var(--r-full)}
@@ -769,7 +769,7 @@ textarea{resize:vertical;min-height:80px}
 .alert-info,.info-box{background:var(--info-bg);color:var(--info);border:1px solid var(--info-border);padding:10px 14px;border-radius:var(--r-sm);font-size:.875rem;margin-bottom:12px}
 .alerts-container{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .loading,.loading-text{text-align:center;padding:48px;color:var(--text-muted);font-size:.875rem;animation:pulse 1.5s ease-in-out infinite}
-.no-data,.no-records,.no-tasks,.no-horses,.no-entries,.no-team,.no-worksheets,.no-invoice,.no-selection,.no-user,.empty,.empty-state{text-align:center;padding:48px 24px;color:var(--text-secondary);font-size:.875rem}
+.no-data,.no-records,.no-tasks,.no-horses,.no-entries,.no-team,.no-worksheets,.no-invoice,.no-selection,.no-user,.empty,.empty-state{text-align:center;padding:20px 24px;color:var(--text-secondary);font-size:.875rem}
 
 /* Notifications */
 .notification-center{position:relative}
@@ -854,7 +854,8 @@ textarea{resize:vertical;min-height:80px}
 
 /* Records & Sections */
 .records-section,.register-section,.entries-section,.entry-section,.inventory-section,.report-section,.calendar-section,.mark-section,.my-logs-section,.section,.visitor-section,.quick-mark-section,.notes-section,.proof-section,.evidence-section,.mom-section,.mom-list,.mom-form,.rounds-form,.rounds-checkboxes{margin-bottom:24px}
-.section-buttons,.header-buttons,.page-controls,.quick-actions,.report-controls{display:flex;gap:8px;flex-wrap:wrap}
+.section-buttons,.header-buttons,.page-controls,.report-controls{display:flex;gap:8px;flex-wrap:wrap}
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .date-filter,.date-range,.date-selector,.report-date-range,.month-selector{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .date-display{font-weight:600}
 .timestamp,.submitted-at,.last-updated{font-size:.75rem;color:var(--text-muted)}
