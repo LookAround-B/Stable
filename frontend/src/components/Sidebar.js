@@ -50,7 +50,6 @@ const Sidebar = ({ isOpen, onClose }) => {
       parent: null, // No section header for these
       items: [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/profile', icon: User, label: 'My Profile' },
       ],
     },
     {
@@ -155,9 +154,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         })}
       </ul>
 
-      {/* User card — only shown inside sidebar on mobile */}
+      {/* User card — only shown inside sidebar on mobile, clickable to go to /profile */}
       {user && (
-        <div className="floating-user-card sidebar-user-card mobile-only-card">
+        <Link to="/profile" className="floating-user-card sidebar-user-card mobile-only-card" style={{textDecoration:'none', color:'inherit'}}>
           <div className="floating-user-avatar">
             {user.profileImage
               ? <img src={user.profileImage} alt={user.fullName} className="floating-user-avatar-img" />
@@ -168,7 +167,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="floating-user-name">{user.fullName || user.name || 'User'}</div>
             <div className="floating-user-designation">{user.designation || user.role || 'Staff'}</div>
           </div>
-        </div>
+        </Link>
       )}
 
       {/* Logout — visible on mobile only */}

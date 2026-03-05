@@ -112,7 +112,11 @@
 /* Reset */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{font-size:14px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;line-height:1.5;overflow-y:scroll;letter-spacing:-.01em}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;line-height:1.5;overflow-y:scroll;letter-spacing:-.01em;margin:0;padding:0}
+
+@media(max-width:480px){
+  body{background:#f3f2f0}
+}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 ul,ol{list-style:none}
@@ -134,14 +138,14 @@ textarea{resize:vertical;min-height:80px}
 .main-content::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:var(--r-full)}
 
 /* Navigation */
-.navigation{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(20,20,20,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;gap:16px;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.navigation{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(250,248,245,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100;gap:16px;box-shadow:0 1px 12px rgba(0,0,0,.06)}
 .nav-left{display:flex;align-items:center;gap:14px;min-width:fit-content}
 .nav-center{flex:1;display:flex;justify-content:center}
 .nav-right{display:flex;align-items:center;gap:10px;min-width:fit-content}
 .nav-brand{display:flex;align-items:center;gap:8px}
 .nav-logo-circle{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.14);flex-shrink:0}
-.nav-brand h1{font-size:.875rem;font-weight:700;color:#ffffff;letter-spacing:-.01em;white-space:nowrap}
-.nav-quote{font-family:'Playfair Display',Georgia,serif;font-size:.8125rem;font-style:italic;font-weight:400;color:#ffffff;letter-spacing:.025em;white-space:nowrap;pointer-events:none;user-select:none}
+.nav-brand h1{font-size:.875rem;font-weight:700;color:#2d2a24;letter-spacing:-.01em;white-space:nowrap}
+.nav-quote{font-family:'Playfair Display',Georgia,serif;font-size:.8125rem;font-style:italic;font-weight:400;color:#3d3a33;letter-spacing:.025em;white-space:nowrap;pointer-events:none;user-select:none}
 .hamburger-btn{display:none;width:36px;height:36px;border-radius:var(--r-sm);background:transparent;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:background var(--t)}
 .hamburger-btn:hover{background:rgba(0,0,0,.06)}
 .hamburger-line{width:18px;height:1.5px;background:rgba(0,0,0,.5);border-radius:2px;transition:all var(--t)}
@@ -1115,6 +1119,7 @@ textarea{resize:vertical;min-height:80px}
 @media(max-width:768px){
   :root{--nav-h:56px}
   .navigation{padding:0 16px}
+  .nav-center{display:none}
   .nav-brand h1{font-size:1rem}
   .dashboard-grid,.horses-grid,.inspections-grid,.tasks-grid,.approval-grid,.stats-grid,.summary-cards{grid-template-columns:1fr}
   .stats-container{grid-template-columns:repeat(2,1fr)}
@@ -1144,9 +1149,13 @@ textarea{resize:vertical;min-height:80px}
 
 /* Phone */
 @media(max-width:480px){
-  :root{--nav-h:52px}
-  .main-content{padding:12px}
-  .navigation{padding:0 12px}
+  :root{--nav-h:145px}
+  .navigation{display:flex;flex-wrap:wrap;flex-direction:row;height:auto;padding:12px;gap:12px;align-items:center;align-content:flex-start;margin:0;width:100vw;left:0}
+  .nav-left{order:1;flex:0 1 auto}
+  .nav-center{order:3;flex-basis:100%;display:flex;justify-content:center;padding:12px 0;border-top:1px solid rgba(0,0,0,.05)}
+  .nav-quote{font-size:.85rem;white-space:normal;text-align:center;max-width:100%;color:#2a2420}
+  .nav-right{order:2;flex:0 1 auto;margin-left:auto}
+  .main-content{padding:12px;margin-top:-37px;margin-left:0;margin-right:0;margin-bottom:0;background:rgba(243,242,240,.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:0;box-shadow:none;border:none}
   .card,.stat-card,.form-container,.form-card,.settings-section,.login-container,.login-form{padding:16px;border-radius:var(--r-lg)}
   .login-container,.login-form{padding:28px 20px;margin:16px}
   .card-value{font-size:1.5rem}
