@@ -27,6 +27,7 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
       </div>
       
       <div className="nav-center">
+        <span className="nav-quote">&ldquo;Horse Teaches Us About Life, Patience, and Love.&rdquo;</span>
       </div>
 
       <div className="nav-right">
