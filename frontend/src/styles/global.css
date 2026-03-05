@@ -330,9 +330,14 @@ textarea{resize:vertical;min-height:80px}
 /* Split Root */
 .lp-split-root{
   display:flex;
-  min-height:100vh;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
   background:#0a0a0a;
   font-family:'Inter',sans-serif;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
 }
 
 /* ── Left Pane ── */
@@ -655,16 +660,19 @@ textarea{resize:vertical;min-height:80px}
   }
   .lp-right-pane{
     position:relative;z-index:10;
-    min-height:100vh;
+    height:100vh;
+    height:100dvh;
+    overflow:hidden;
+    display:flex;
     background:transparent;
-    align-items:center; /* center vertically instead of flex-start to prevent overflow */
+    align-items:center;
     justify-content:center;
-    padding:24px; /* small padding so it doesn't touch edges */
+    padding:16px;
     box-sizing: border-box;
     border-radius: 0;
     box-shadow: none;
   }
-  .lp-main{max-width:100%;padding:0;width:100%;margin-bottom:12vh;} /* adjusted padding */
+  .lp-main{max-width:100%;padding:0;width:100%;margin:0;} /* zeroed margins */
   .lp-card{
     padding:32px 24px;
     background:rgba(255,255,255,0.88);
