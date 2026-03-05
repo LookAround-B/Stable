@@ -87,11 +87,10 @@ const LoginPage = () => {
   /* ── Render ────────────────────────────────────────────── */
   return (
     <div className="lp-split-root">
-      {/* ── Left Pane (Image and Name) ── */}
+      {/* ── Left Pane (Image) ── */}
       <div className="lp-left-pane">
         <div className="lp-left-content">
           <img src="/EFM.png" alt="EFM Logo" className="lp-left-logo" />
-          <div className="lp-left-text">EFM</div>
         </div>
       </div>
 

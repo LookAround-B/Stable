@@ -372,20 +372,8 @@ textarea{resize:vertical;min-height:80px}
   width:100%;
   height:100%;
   object-fit:cover;
-  opacity:0.85; /* Keep it bright enough while slightly dim */
-}
-
-.lp-left-text{
-  position:relative;
-  z-index:2;
-  font-family:'Cormorant Garamond','Playfair Display','Georgia',serif;
-  font-style:italic;
-  font-weight:300;
-  font-size:7rem; /* Make the text slightly bigger too since canvas is wider */
-  line-height:1;
-  letter-spacing:-.02em;
-  color:#fff;
-  text-shadow:0 10px 30px rgba(0,0,0,.8), 0 2px 8px rgba(0,0,0,.6);
+  opacity:0.9;
+  filter:grayscale(100%) contrast(1.1);
 }
 
 /* ── Right Pane ── */
@@ -631,19 +619,62 @@ textarea{resize:vertical;min-height:80px}
   .lp-split-root{flex-direction:column}
   .lp-left-pane{flex:none;height:300px;border-right:none;border-bottom:1px solid rgba(255,255,255,.05)}
   .lp-left-content{position:absolute;inset:0;}
-  .lp-left-text{font-size:4rem}
   .lp-main{max-width:420px}
 }
 /* Mobile */
 @media(max-width:767px){
-  .lp-left-pane{height:200px;}
-  .lp-left-text{font-size:3rem}
-  .lp-main{max-width:100%;padding:24px 16px 40px}
-  .lp-card{padding:28px 20px 24px}
-  .lp-monogram{display:none;} /* hide monogram on mobile form since it's above */
+  .lp-split-root{display:block;position:relative}
+  .lp-left-pane{
+    position:fixed;top:0;left:0;width:100%;height:100vh;
+    border:none;z-index:0;flex:none;
+  }
+  .lp-left-logo{
+    opacity:1;
+    filter:grayscale(100%) brightness(0.65) contrast(1.1); /* darker to make white card pop */
+  }
+  .lp-right-pane{
+    position:relative;z-index:10;
+    min-height:100vh;
+    background:transparent;
+    align-items:flex-start;
+    padding-top:6vh;
+  }
+  .lp-main{max-width:100%;padding:16px 16px 40px}
+  .lp-card{
+    padding:32px 24px;
+    background:rgba(255,255,255,0.88);
+    backdrop-filter:blur(24px);
+    -webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.6);
+    box-shadow:0 16px 40px rgba(0,0,0,0.5);
+  }
+  .lp-monogram{display:block;font-size:3.5rem} 
   .lp-subtitle{font-size:.75rem}
   .lp-brand{margin-bottom:24px}
-  .lp-demo-row{padding:10px 12px}
+  
+  .lp-demo{
+    background:rgba(15,15,15,0.85);
+    backdrop-filter:blur(24px);
+    -webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.15);
+    padding:20px;
+    border-radius:16px;
+    margin-top:24px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.4);
+  }
+  .lp-demo-title{color:rgba(255,255,255,0.7);margin-bottom:14px}
+  .lp-demo-row{
+    background:rgba(255,255,255,0.06);
+    border-color:rgba(255,255,255,0.1);
+  }
+  .lp-demo-row:hover{background:rgba(255,255,255,0.12)}
+  .lp-demo-role{color:rgba(255,255,255,0.9)}
+  .lp-demo-email{color:rgba(255,255,255,0.6)}
+  .lp-footer{
+    color:rgba(255,255,255,0.75);
+    text-shadow:0 1px 4px rgba(0,0,0,0.9);
+    font-weight:500;
+  }
 }
 /* Very small */
 @media(max-width:380px){
