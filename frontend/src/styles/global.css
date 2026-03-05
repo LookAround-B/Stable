@@ -656,9 +656,9 @@ textarea{resize:vertical;min-height:80px}
 }
 /* Mobile */
 @media(max-width:767px){
-  .lp-split-root{display:block;position:relative}
+  .lp-split-root{position:fixed;inset:0;overflow:hidden;display:block}
   .lp-left-pane{
-    position:fixed;top:0;left:0;width:100%;height:100vh;
+    position:fixed;top:0;left:0;width:100%;height:100%;
     border:none;z-index:0;flex:none;
   }
   .lp-left-logo{
@@ -666,9 +666,8 @@ textarea{resize:vertical;min-height:80px}
     filter:grayscale(100%) brightness(0.65) contrast(1.1); /* darker to make white card pop */
   }
   .lp-right-pane{
-    position:relative;z-index:10;
-    height:100vh;
-    height:100dvh;
+    position:absolute;inset:0;z-index:10;
+    height:100%;
     overflow:hidden;
     display:flex;
     background:transparent;
@@ -679,7 +678,7 @@ textarea{resize:vertical;min-height:80px}
     border-radius: 0;
     box-shadow: none;
   }
-  .lp-main{max-width:100%;padding:0;width:100%;margin:0;} /* zeroed margins */
+  .lp-main{max-width:100%;padding:0;width:100%;margin:0;max-height:100dvh;overflow-y:auto;} /* locked */
   .lp-card{
     padding:32px 24px;
     background:rgba(255,255,255,0.22);
