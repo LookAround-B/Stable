@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 
@@ -16,9 +17,12 @@ const TeamAttendancePage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   useEffect(() => {
     loadData();
+    setCurrentPage(1); // Reset pagination when date changes
     // Check if selected date is Monday and auto-set status to WOFF
     const dateObj = new Date(selectedDate);
     const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 1 = Monday
@@ -170,6 +174,12 @@ const TeamAttendancePage = () => {
     console.log('📥 Downloaded attendance to:', filename);
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(attendanceRecords.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedRecords = attendanceRecords.slice(startIndex, endIndex);
+
   return (
     <div className="team-attendance-container">
       <div className="attendance-header">
@@ -310,6 +320,7 @@ const TeamAttendancePage = () => {
           {loading ? (
             <div className="loading">Loading attendance records...</div>
           ) : attendanceRecords.length > 0 ? (
+            <>
             <div className="records-table-wrapper">
               <table className="records-table">
                 <thead>
@@ -322,7 +333,7 @@ const TeamAttendancePage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {attendanceRecords.map((record) => (
+                  {paginatedRecords.map((record) => (
                     <tr key={record.id}>
                       <td className="employee-name">{record.employee?.fullName || 'Unknown'}</td>
                       <td>{record.employee?.designation || 'Unknown'}</td>
@@ -339,7 +350,19 @@ const TeamAttendancePage = () => {
                   ))}
                 </tbody>
               </table>
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => {
+                  setRowsPerPage(newRows);
+                  setCurrentPage(1);
+                }}
+                total={attendanceRecords.length}
+              />
             </div>
+            </>
           ) : (
             <div className="no-records">
               No attendance records found for {new Date(selectedDate).toLocaleDateString()}

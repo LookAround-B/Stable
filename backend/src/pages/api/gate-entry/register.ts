@@ -32,24 +32,33 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const userId = decoded?.id;
 
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized - No user ID' });
+  }
+
   // Verify user role
   const user = await prisma.employee.findUnique({
     where: { id: userId },
-    select: { designation: true }
+    select: { designation: true, id: true }
   });
 
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  // Define supervisor roles who can view gate register
-  const SUPERVISOR_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'];
-  const canView = user.designation === 'Guard' || SUPERVISOR_ROLES.includes(user.designation);
-  const canModify = user.designation === 'Guard';
+  // Define roles for viewing and modifying gate register
+  const ALLOWED_ROLES = ['Guard', 'Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'];
+  const userDesignation = user.designation?.trim();
+  
+  const canView = ALLOWED_ROLES.includes(userDesignation);
+  const canModify = ALLOWED_ROLES.includes(userDesignation); // Allow all roles to modify for consistency
 
-  // Only Guards can create/modify entries
+  // Check access rights
   if (!canView) {
-    return res.status(403).json({ error: 'Only Guards and supervisors can access gate register' });
+    return res.status(403).json({ 
+      error: 'Only Guards and supervisors can access gate register',
+      userRole: userDesignation
+    });
   }
 
   if (req.method === 'POST') {

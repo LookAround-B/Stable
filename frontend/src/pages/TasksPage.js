@@ -548,7 +548,9 @@ const TasksPage = () => {
                   required
                 />
               </div>
+            </div>
 
+            <div className="form-row">
               <div className="form-group checkbox">
                 <label>
                   <input
@@ -559,9 +561,6 @@ const TasksPage = () => {
                   />
                   Make Photo Evidence Compulsory
                 </label>
-                <small style={{display: 'block', marginTop: '4px', color: '#666'}}>
-                  If checked, the employee must upload a photo when completing this task
-                </small>
               </div>
             </div>
 

@@ -396,6 +396,7 @@ const GateAttendancePage = () => {
                     required
                     disabled={loading}
                     placeholder="Enter visitor's full name"
+                    maxLength="100"
                   />
                 </div>
 
@@ -411,6 +412,7 @@ const GateAttendancePage = () => {
                     required
                     disabled={loading}
                     placeholder="e.g., Veterinary Checkup, Supplies"
+                    maxLength="150"
                   />
                 </div>
 
@@ -425,6 +427,7 @@ const GateAttendancePage = () => {
                     }
                     disabled={loading}
                     placeholder="Visitor's phone number (optional)"
+                    maxLength="20"
                   />
                 </div>
 
@@ -474,6 +477,7 @@ const GateAttendancePage = () => {
                     disabled={loading}
                     placeholder="Any additional notes about the visit"
                     rows={2}
+                    maxLength="250"
                   />
                 </div>
 

@@ -3,13 +3,11 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import NotificationCenter from './NotificationCenter';
-import { useAuth } from '../context/AuthContext';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const mainContentRef = useRef(null);
-  const { user } = useAuth();
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);

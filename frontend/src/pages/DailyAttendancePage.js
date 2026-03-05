@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import Pagination from '../components/Pagination';
 
 const DailyAttendancePage = () => {
   const { user } = useAuth();
@@ -10,6 +11,8 @@ const DailyAttendancePage = () => {
   const [message, setMessage] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const loadAttendance = useCallback(async () => {
     try {
@@ -43,7 +46,13 @@ const DailyAttendancePage = () => {
   useEffect(() => {
     loadAttendance();
     loadEmployees();
+    setCurrentPage(1); // Reset pagination when date changes
   }, [selectedDate, loadAttendance, loadEmployees]);
+
+  // Reset pagination when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Handle check-in/out toggle
   const handleAttendanceToggle = async (employeeId, isCheckedIn) => {
@@ -105,6 +114,12 @@ const DailyAttendancePage = () => {
     emp.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredEmployees.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
+
   const canManageAttendance = [
     'Super Admin',
     'Director',
@@ -125,12 +140,12 @@ const DailyAttendancePage = () => {
 
       <div className="attendance-header">
         <div className="header-left">
-          <label>
+          <label style={{display: 'flex', alignItems: 'center', gap: '12px', marginRight: '24px'}}>
             Select Date:
             <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </label>
 
-          <label>
+          <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
             Search:
             <input 
               type="text" 
@@ -143,6 +158,7 @@ const DailyAttendancePage = () => {
       </div>
 
       {/* Attendance Table with Toggle */}
+      <>
       <div className="attendance-table-wrapper">
         <table className="attendance-table">
           <thead>
@@ -162,7 +178,7 @@ const DailyAttendancePage = () => {
                 </td>
               </tr>
             ) : (
-              filteredEmployees.map((groom) => {
+              paginatedEmployees.map((groom) => {
                 const checked = isCheckedIn(groom.id);
                 return (
                   <tr key={groom.id} className={checked ? 'checked-in' : 'checked-out'}>
@@ -190,7 +206,19 @@ const DailyAttendancePage = () => {
             )}
           </tbody>
         </table>
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(newRows) => {
+            setRowsPerPage(newRows);
+            setCurrentPage(1);
+          }}
+          total={filteredEmployees.length}
+        />
       </div>
+      </>
     </div>
   );
 };

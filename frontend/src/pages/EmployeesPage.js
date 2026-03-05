@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 
 // All 18 roles in the system
@@ -58,6 +59,8 @@ const EmployeesPage = () => {
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [newEmpImage, setNewEmpImage] = useState(null);
   const empImgRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Define which roles each designation can see
   // Hierarchy: Supers see all, Middles see peers+superiors+subordinates, Staff see parents+superiors+peers
@@ -181,6 +184,11 @@ const EmployeesPage = () => {
       setTimeout(() => setHighlightId(null), 2200);
     }
   }, [location.search]);
+
+  // Reset pagination when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const loadEmployees = async () => {
     try {
@@ -330,6 +338,12 @@ const EmployeesPage = () => {
       emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic for employees
+  const totalPages = Math.ceil(filteredEmployees.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
 
   return (
     <div className="employees-page">
@@ -497,6 +511,7 @@ const EmployeesPage = () => {
         {filteredEmployees.length === 0 ? (
           <p>No employees found</p>
         ) : (
+          <>
           <div className="table-scroll-wrap">
           <table className="employees-table">
             <thead>
@@ -511,7 +526,7 @@ const EmployeesPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredEmployees.map((employee) => (
+              {paginatedEmployees.map((employee) => (
                 <tr key={employee.id} id={`emp-row-${employee.id}`} className={highlightId === employee.id ? 'row-highlight' : ''}>
                   <td>
                     <div className="emp-name-cell">
@@ -567,7 +582,19 @@ const EmployeesPage = () => {
               ))}
             </tbody>
             </table>
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => {
+                setRowsPerPage(newRows);
+                setCurrentPage(1);
+              }}
+              total={filteredEmployees.length}
+            />
             </div>
+          </>
           )}
         </div>
 

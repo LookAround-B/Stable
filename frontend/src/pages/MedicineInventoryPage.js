@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../components/Pagination';
 import medicineInventoryService from '../services/medicineInventoryService';
 
 const MEDICINE_LABELS = {
@@ -22,6 +23,8 @@ const MedicineInventoryPage = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
   const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'report'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Inventory state
   const [inventoryRecords, setInventoryRecords] = useState([]);
@@ -54,6 +57,7 @@ const MedicineInventoryPage = () => {
   const loadInventory = useCallback(async () => {
     try {
       setLoading(true);
+      setCurrentPage(1); // Reset pagination
       const result = await medicineInventoryService.getInventory({
         month: selectedMonth,
         year: selectedYear,
@@ -182,6 +186,12 @@ const MedicineInventoryPage = () => {
 
   const totalOpeningStock = inventoryRecords.reduce((sum, record) => sum + (record.openingStock || 0), 0);
   const totalPurchased = inventoryRecords.reduce((sum, record) => sum + (record.unitsPurchased || 0), 0);
+
+  // Pagination logic
+  const totalPages = Math.ceil(inventoryRecords.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
 
   if (!user || !['Stable Manager', 'Super Admin', 'Director', 'School Administrator', 'Jamedar'].includes(user.designation)) {
     return (
@@ -360,6 +370,7 @@ const MedicineInventoryPage = () => {
           {loading && <div className="loading">Loading...</div>}
 
           {!loading && inventoryRecords.length > 0 ? (
+            <>
             <div className="table-wrapper">
               <table className="inventory-table">
               <thead>
@@ -373,7 +384,7 @@ const MedicineInventoryPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {inventoryRecords.map((record) => (
+                {paginatedRecords.map((record) => (
                   <tr key={record.id}>
                     <td>{MEDICINE_LABELS[record.medicineType]}</td>
                     <td>{record.openingStock}</td>
@@ -400,7 +411,19 @@ const MedicineInventoryPage = () => {
                 ))}
               </tbody>
               </table>
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => {
+                  setRowsPerPage(newRows);
+                  setCurrentPage(1);
+                }}
+                total={inventoryRecords.length}
+              />
             </div>
+            </>
           ) : (
             !loading && <p className="no-data">No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
           )}

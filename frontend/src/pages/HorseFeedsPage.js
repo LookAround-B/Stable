@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 
 const HorseFeedsPage = () => {
@@ -17,6 +18,8 @@ const HorseFeedsPage = () => {
   const [summaryData, setSummaryData] = useState({});
 
   const feedTypes = ['balance', 'barley', 'oats', 'soya', 'lucerne', 'linseed', 'rOil', 'biotin', 'joint', 'epsom', 'heylase'];
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Display names for feed types
   const getFeedTypeDisplayName = (feedType) => {
@@ -66,6 +69,7 @@ const HorseFeedsPage = () => {
 
       console.log('Summary response:', response.data);
       setSummaryData(response.data.data || {});
+      setCurrentPage(1); // Reset pagination
       setMessage('');
     } catch (error) {
       console.error('Error loading summary:', error);
@@ -165,6 +169,13 @@ const HorseFeedsPage = () => {
     }
   };
 
+  // Pagination logic - convert Object.entries to array and paginate
+  const summaryDataArray = Object.entries(summaryData).map(([horseId, data]) => ({ horseId, data }));
+  const totalPages = Math.ceil(summaryDataArray.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedSummary = summaryDataArray.slice(startIndex, endIndex);
+
   if (!user || !['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
     return (
       <div className="page-container">
@@ -222,6 +233,7 @@ const HorseFeedsPage = () => {
             className="btn btn-primary"
             onClick={() => setShowForm(true)}
             disabled={loading}
+            style={{marginLeft: 'auto'}}
           >
             + Add Feed Record
           </button>
@@ -322,6 +334,7 @@ const HorseFeedsPage = () => {
         {loading ? (
           <div className="loading">Loading summary...</div>
         ) : Object.keys(summaryData).length > 0 ? (
+          <>
           <div className="summary-table-wrapper">
             <table className="summary-table">
               <thead>
@@ -343,7 +356,7 @@ const HorseFeedsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(summaryData).map(([horseId, data]) => {
+                {paginatedSummary.map(({ horseId, data }) => {
                   const total = (
                     (data.balance || 0) +
                     (data.barley || 0) +
@@ -380,6 +393,18 @@ const HorseFeedsPage = () => {
               </tbody>
             </table>
           </div>
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => {
+                setRowsPerPage(newRows);
+                setCurrentPage(1);
+              }}
+              total={summaryDataArray.length}
+            />
+          </>
         ) : (
           <div className="no-records">No feed data available for the selected date range</div>
         )}

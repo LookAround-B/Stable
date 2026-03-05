@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
 import {
-  LayoutDashboard, User, CheckSquare, ClipboardList, ShieldCheck,
+  LayoutDashboard, CheckSquare, ClipboardList, ShieldCheck,
   Calendar, Heart, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,

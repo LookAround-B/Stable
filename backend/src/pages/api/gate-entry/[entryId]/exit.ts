@@ -37,14 +37,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const userId = decoded?.id;
 
-  // Verify user is a Guard
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized - No user ID' });
+  }
+
+  // Verify user is a Guard or supervisor
   const user = await prisma.employee.findUnique({
     where: { id: userId },
-    select: { designation: true }
+    select: { designation: true, id: true }
   });
 
-  if (!user || user.designation !== 'Guard') {
-    return res.status(403).json({ error: 'Only Guards can record exits' });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // Allow Guards and supervisors to record exits
+  const ALLOWED_ROLES = ['Guard', 'Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'];
+  const userDesignation = user.designation?.trim();
+  const canRecord = ALLOWED_ROLES.includes(userDesignation);
+
+  if (!canRecord) {
+    return res.status(403).json({ 
+      error: 'Only Guards and supervisors can record exits',
+      userRole: userDesignation
+    });
   }
 
   try {

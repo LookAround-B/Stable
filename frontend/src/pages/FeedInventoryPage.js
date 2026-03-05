@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../components/Pagination';
 import feedInventoryService from '../services/feedInventoryService';
+import { RotateCw } from 'lucide-react';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance',
@@ -25,6 +27,8 @@ const FeedInventoryPage = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
   const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'report'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Inventory state
   const [inventoryRecords, setInventoryRecords] = useState([]);
@@ -57,6 +61,7 @@ const FeedInventoryPage = () => {
   const loadInventory = useCallback(async () => {
     try {
       setLoading(true);
+      setCurrentPage(1); // Reset pagination
       const result = await feedInventoryService.getInventory({
         month: selectedMonth,
         year: selectedYear,
@@ -170,6 +175,12 @@ const FeedInventoryPage = () => {
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(inventoryRecords.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
+
   const isAuthorized = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
 
   if (!isAuthorized) {
@@ -231,7 +242,7 @@ const FeedInventoryPage = () => {
                 {showForm ? 'Cancel' : '+ Add Stock Entry'}
               </button>
               <button className="btn-secondary" onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0}>
-                🔄 Recalculate Usage
+                <RotateCw size={16} style={{display: 'inline', marginRight: '6px'}} /> Recalculate Usage
               </button>
             </div>
           </div>
@@ -323,6 +334,7 @@ const FeedInventoryPage = () => {
                 <p>Click "Add Stock Entry" to start tracking feed inventory.</p>
               </div>
             ) : (
+              <>
               <div className="table-wrapper">
                 <table className="inventory-table">
                   <thead>
@@ -340,7 +352,7 @@ const FeedInventoryPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {inventoryRecords.map((record) => {
+                    {paginatedRecords.map((record) => {
                       const totalAvailable = record.openingStock + record.unitsBrought;
                       const percentUsed = totalAvailable > 0 ? (record.totalUsed / totalAvailable) * 100 : 0;
                       const isLow = record.unitsLeft < totalAvailable * 0.2;
@@ -378,6 +390,18 @@ const FeedInventoryPage = () => {
                   </tbody>
                 </table>
               </div>
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(newRows) => {
+                    setRowsPerPage(newRows);
+                    setCurrentPage(1);
+                  }}
+                  total={inventoryRecords.length}
+                />
+              </>
             )}
           </div>
         </div>

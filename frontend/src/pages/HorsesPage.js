@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 
 const SUPERVISORY_ROLES = [
@@ -27,6 +28,8 @@ const HorsesPage = () => {
   const [highlightId, setHighlightId] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [newHorseImage, setNewHorseImage] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
   const horseImgRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -224,6 +227,12 @@ const HorsesPage = () => {
     (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Pagination
+  const totalPages = Math.ceil(filteredHorses.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedHorses = filteredHorses.slice(startIndex, endIndex);
 
   return user?.designation === 'Guard' ? (
     <div className="horses-page">
@@ -495,7 +504,10 @@ const HorsesPage = () => {
             type="text"
             placeholder="Search by name, stable number, breed, color, gender..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="search-input"
           />
         </div>
@@ -504,6 +516,7 @@ const HorsesPage = () => {
             {searchTerm ? 'No horses match your search' : 'No horses found'}
           </p>
         ) : (
+          <>
           <div className="table-scroll-wrap">
           <table className="horses-table">
             <thead>
@@ -518,7 +531,7 @@ const HorsesPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredHorses.map((horse) => (
+              {paginatedHorses.map((horse) => (
                 <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
                   <td>
                     <div className="emp-name-cell">
@@ -551,6 +564,18 @@ const HorsesPage = () => {
             </tbody>
           </table>
           </div>
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(newRows) => {
+              setRowsPerPage(newRows);
+              setCurrentPage(1);
+            }}
+            total={filteredHorses.length}
+          />
+          </>
         )}
       </div>
 

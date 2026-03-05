@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import fineService from '../services/fineService';
+import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
@@ -17,6 +18,8 @@ const FinePage = () => {
   const [resolvingFine, setResolvingFine] = useState(null);
   const [message, setMessage] = useState('');
   const [employees, setEmployees] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -138,6 +141,7 @@ const FinePage = () => {
   const loadFines = useCallback(async () => {
     try {
       setLoading(true);
+      setCurrentPage(1); // Reset pagination
       console.log('Loading fines with filters:', filters);
       const data = await fineService.getAllFines(filters);
       console.log('Fines data received:', data);
@@ -348,6 +352,12 @@ const FinePage = () => {
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(fines.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedFines = fines.slice(startIndex, endIndex);
+
   return (
     <div className="fine-page">
       <div className="fine-header">
@@ -469,6 +479,7 @@ const FinePage = () => {
         {!loading && fines.length === 0 && <p>No fines found</p>}
 
         <div className="fines-table-container">
+          <>
           <table className="fines-table">
             <thead>
               <tr>
@@ -482,7 +493,7 @@ const FinePage = () => {
               </tr>
             </thead>
             <tbody>
-              {fines.map((fine) => (
+              {paginatedFines.map((fine) => (
                 <tr key={fine.id}>
                   <td>{formatDate(fine.createdAt)}</td>
                   <td>{fine.issuedTo?.fullName}</td>
@@ -544,6 +555,18 @@ const FinePage = () => {
               ))}
             </tbody>
           </table>
+          </>
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(newRows) => {
+              setRowsPerPage(newRows);
+              setCurrentPage(1);
+            }}
+            total={fines.length}
+          />
         </div>
       </div>
 

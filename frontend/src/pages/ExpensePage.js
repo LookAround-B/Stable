@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
+import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 
@@ -13,6 +14,8 @@ const ExpensePage = () => {
   const [message, setMessage] = useState('');
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -135,6 +138,7 @@ const ExpensePage = () => {
   const loadExpenses = useCallback(async () => {
     try {
       setLoading(true);
+      setCurrentPage(1); // Reset pagination
       console.log('Loading expenses with filters:', filters);
       const data = await expenseService.getAllExpenses(filters);
       console.log('Expenses data received:', data);
@@ -456,6 +460,12 @@ const ExpensePage = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN');
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(expenses.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedExpenses = expenses.slice(startIndex, endIndex);
 
   return (
     <div className="expense-page">
@@ -790,6 +800,7 @@ const ExpensePage = () => {
         )}
 
         {!loading && expenses.length > 0 && (
+          <>
           <div className="table-responsive">
             <table className="expenses-table">
               <thead>
@@ -805,7 +816,7 @@ const ExpensePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((expense) => (
+                {paginatedExpenses.map((expense) => (
                   <tr key={expense.id}>
                     <td>{formatDate(expense.date)}</td>
                     <td>
@@ -843,6 +854,18 @@ const ExpensePage = () => {
               </tbody>
             </table>
           </div>
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => {
+                setRowsPerPage(newRows);
+                setCurrentPage(1);
+              }}
+              total={expenses.length}
+            />
+          </>
         )}
       </div>
     </div>

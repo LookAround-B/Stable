@@ -340,6 +340,7 @@ const GateEntryRegisterPage = () => {
                   value={formData.vehicleNo}
                   onChange={handleFormChange}
                   placeholder="Vehicle registration number"
+                  maxLength="15"
                   className="form-input"
                 />
               </div>
@@ -353,6 +354,7 @@ const GateEntryRegisterPage = () => {
                   value={formData.notes}
                   onChange={handleFormChange}
                   placeholder="Any additional notes"
+                  maxLength="250"
                   className="form-input"
                 />
               </div>
