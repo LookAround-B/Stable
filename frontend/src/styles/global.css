@@ -321,7 +321,7 @@ textarea{resize:vertical;min-height:80px}
 .dashboard-page .dashboard-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
 
 /* --- Page Containers --- */
-.page-container,.dashboard-page,.horses-page,.employees-page,.tasks-page,.reports-page,.settings-page,.expense-page,.fine-page,.inspection-page,.horse-feeds-page,.feed-inventory-page,.medicine-page,.groceries-inventory-container,.horse-detail-page,.task-detail-page,.profile-page,.profile-setup-page,.groom-worksheet-page,.care-team-page,.daily-work-records-page,.invoice-generation-page,.meeting-page,.round-check-page,.round-tracking-page,.pending-approval-page,.my-logs-section,.attendance-page,.daily-attendance-page,.digital-attendance-container,.team-attendance-container,.gate-page,.gate-entry-container,.medicine-inventory-page{
+.page-container,.dashboard-page,.horses-page,.employees-page,.tasks-page,.reports-page,.settings-page,.expense-page,.fine-page,.inspection-page,.horse-feeds-page,.feed-inventory-page,.medicine-page,.groceries-inventory-container,.horse-detail-page,.task-detail-page,.profile-page,.profile-setup-page,.groom-worksheet-page,.care-team-page,.daily-work-records-page,.invoice-generation-page,.meeting-page,.round-check-page,.round-tracking-page,.my-logs-section,.attendance-page,.daily-attendance-page,.digital-attendance-container,.team-attendance-container,.gate-page,.gate-entry-container,.medicine-inventory-page{
   max-width:1280px;margin:0 auto;animation:fadeInUp .45s var(--ease) both}
 
 /* Login — premium B&W SaaS redesign
@@ -1028,7 +1028,22 @@ textarea{resize:vertical;min-height:80px}
 .preview-title{font-weight:600;margin-bottom:8px}
 .success-icon{font-size:2rem;margin-bottom:8px}
 /* .google-login-container and .test-credentials replaced by .lp-* classes */
-.pending-container,.pending-form,.pending-message,.pending-contact,.pending-steps,.pending-icon,.pending-info,.pending-note{margin-bottom:12px}
+/* Pending Approval Page — inherits lp-* base styles from login */
+.pa-card{width:100%;max-width:420px}
+.pa-status-badge{display:inline-block;margin-bottom:14px;padding:.3rem .9rem;border-radius:var(--r-full);background:rgba(245,158,11,.12);color:#92400e;border:1px solid rgba(245,158,11,.35);font-size:.6875rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.pa-greeting{font-size:.875rem;color:rgba(0,0,0,.6);margin-bottom:20px;line-height:1.6}
+.pa-success{text-align:center}
+.pa-success-icon{width:52px;height:52px;border-radius:50%;background:rgba(16,185,129,.12);border:2px solid rgba(16,185,129,.4);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#059669;margin:0 auto 14px}
+.pa-success-title{font-size:1.125rem;font-weight:700;letter-spacing:-.02em;margin-bottom:8px;color:#0a0a0a}
+.pa-success-text{font-size:.875rem;color:rgba(0,0,0,.55);margin-bottom:20px;line-height:1.6}
+.pa-info-grid{width:100%;display:flex;flex-direction:column;gap:0;border:1px solid rgba(0,0,0,.08);border-radius:var(--r);overflow:hidden;margin-bottom:20px;text-align:left}
+.pa-info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid rgba(0,0,0,.06);font-size:.8125rem}
+.pa-info-row:last-child{border-bottom:none}
+.pa-info-label{color:rgba(0,0,0,.45);font-weight:500}
+.pa-info-value{color:#0a0a0a;font-weight:600}
+.pa-pending{color:#92400e}
+.pa-logout-link{background:none;border:none;color:rgba(0,0,0,.4);font-size:.8125rem;cursor:pointer;margin-top:16px;width:100%;text-align:center;padding:8px;letter-spacing:.02em;transition:color .15s}
+.pa-logout-link:hover{color:#0a0a0a}
 .new-visitor-form{margin-bottom:20px}
 .access-denied{text-align:center;padding:48px;color:var(--error)}
 .exited-text{color:var(--text-muted);font-style:italic}
