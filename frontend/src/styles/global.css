@@ -657,12 +657,14 @@ textarea{resize:vertical;min-height:80px}
     position:relative;z-index:10;
     min-height:100vh;
     background:transparent;
-    align-items:flex-start;
-    padding-top:6vh;
+    align-items:center; /* center vertically instead of flex-start to prevent overflow */
+    justify-content:center;
+    padding:24px; /* small padding so it doesn't touch edges */
+    box-sizing: border-box;
     border-radius: 0;
     box-shadow: none;
   }
-  .lp-main{max-width:100%;padding:16px 16px 40px}
+  .lp-main{max-width:100%;padding:0;width:100%;margin-bottom:12vh;} /* adjusted padding */
   .lp-card{
     padding:32px 24px;
     background:rgba(255,255,255,0.88);

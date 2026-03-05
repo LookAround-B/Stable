@@ -86,7 +86,7 @@ const LoginPage = () => {
       {/* ── Left Pane (Image) ── */}
       <div className="lp-left-pane">
         <div className="lp-left-content">
-          <img src="/EFM.png" alt="EFM Logo" className="lp-left-logo" />
+          <img src="/EFM.jpg" alt="EFM Logo" className="lp-left-logo" />
         </div>
       </div>
 
