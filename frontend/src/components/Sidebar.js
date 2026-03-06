@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
 import {
   LayoutDashboard, CheckSquare, ClipboardList, ShieldCheck,
-  Calendar, Heart, Users, UserCheck, FileText,
+  Calendar, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
   Search, AlertTriangle, BarChart3, Settings, LogOut
 } from 'lucide-react';
+import { FaHorse } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
@@ -55,7 +56,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       parent: 'Organization',
       items: [
-        { to: '/horses', icon: Heart, label: 'Horses', show: showHorses },
+        { to: '/horses', icon: FaHorse, label: 'Horses', show: showHorses },
         { to: '/employees', icon: Users, label: 'Team', show: true },
       ],
     },
@@ -112,14 +113,24 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
   ];
 
-  const MenuItem = ({ to, icon: Icon, label }) => (
-    <li>
-      <Link to={to} className={`menu-item${isActive(to) ? ' active' : ''}`}>
-        <span className="menu-icon-circle"><Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} /></span>
-        <span className="menu-label">{label}</span>
-      </Link>
-    </li>
-  );
+  const MenuItem = ({ to, icon: Icon, label }) => {
+    const isFontAwesome = Icon.$$typeof ? false : Icon.render === undefined && typeof Icon === 'function';
+    
+    return (
+      <li>
+        <Link to={to} className={`menu-item${isActive(to) ? ' active' : ''}`}>
+          <span className="menu-icon-circle">
+            {isFontAwesome || Icon.name?.includes('Fa') ? (
+              <Icon size={18} style={{opacity: isActive(to) ? 1 : 0.65}} />
+            ) : (
+              <Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} />
+            )}
+          </span>
+          <span className="menu-label">{label}</span>
+        </Link>
+      </li>
+    );
+  };
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>

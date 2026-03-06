@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import { User, Mail, Lock, Link2, Heart, Camera } from 'lucide-react';
+import { User, Mail, Lock, Link2, Camera } from 'lucide-react';
+import { FaHorse } from 'react-icons/fa';
 
 const ROLES_WITH_HORSES = [
   'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
@@ -240,7 +241,7 @@ const ProfilePage = () => {
         {ROLES_WITH_HORSES.includes(user.designation) && (
           <div className="profile-horses-section">
             <div className="profile-card-header">
-              <span className="profile-card-icon"><Heart size={15} strokeWidth={2} /></span>
+              <span className="profile-card-icon"><FaHorse size={15} style={{color:'#e11d48'}} /></span>
               <h3>Assigned Horses</h3>
               <span className="profile-horse-count">{assignedHorses.length}</span>
             </div>
@@ -250,7 +251,7 @@ const ProfilePage = () => {
               <div className="profile-horses-grid">
                 {assignedHorses.map(horse => (
                   <div key={horse.id} className="profile-horse-card">
-                    <div className="profile-horse-icon"><Heart size={18} strokeWidth={1.5} style={{color:'#e11d48'}} /></div>
+                    <div className="profile-horse-icon"><FaHorse size={18} style={{color:'#e11d48'}} /></div>
                     <div className="profile-horse-details">
                       <div className="profile-horse-name">{horse.name}</div>
                       <div className="profile-horse-meta">

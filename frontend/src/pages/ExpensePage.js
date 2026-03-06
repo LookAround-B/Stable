@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import Pagination from '../components/Pagination';
-import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 
 const ExpensePage = () => {
@@ -424,6 +423,45 @@ const ExpensePage = () => {
     console.log('📥 Downloaded expenses to:', filename);
   };
 
+  const handleDownloadCSV = () => {
+    if (expenses.length === 0) {
+      alert('No expenses to download');
+      return;
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return '';
+      return new Date(dateString).toLocaleDateString('en-GB');
+    };
+
+    const csvData = expenses.map((expense) => ({
+      'Date': formatDate(expense.date),
+      'Type': expense.type || '',
+      'Description': expense.description || '',
+      'Amount': parseFloat(expense.amount || 0).toFixed(2),
+      'Assigned Horse': expense.horse?.name || '-',
+      'Assigned Employee': expense.employee?.fullName || '-',
+      'Created By': expense.createdBy?.fullName || '',
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const escape = (val) => {
+      const s = String(val ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = [headers.map(escape).join(','), ...csvData.map(row => headers.map(h => escape(row[h])).join(','))];
+    const csvContent = '\uFEFF' + rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Expenses_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this expense?')) {
       try {
@@ -502,30 +540,34 @@ const ExpensePage = () => {
 
         <div className="filter-group">
           <label>Horse</label>
-          <SearchableSelect
+          <select
             name="horseId"
             value={filters.horseId}
             onChange={handleFilterChange}
-            placeholder="All Horses"
-            options={[
-              { value: '', label: 'All Horses' },
-              ...horses.map(h => ({ value: h.id, label: h.name }))
-            ]}
-          />
+          >
+            <option value="">All Horses</option>
+            {horses.map(h => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="filter-group">
           <label>Employee</label>
-          <SearchableSelect
+          <select
             name="employeeId"
             value={filters.employeeId}
             onChange={handleFilterChange}
-            placeholder="All Employees"
-            options={[
-              { value: '', label: 'All Employees' },
-              ...employees.map(emp => ({ value: emp.id, label: emp.fullName }))
-            ]}
-          />
+          >
+            <option value="">All Employees</option>
+            {employees.map(emp => (
+              <option key={emp.id} value={emp.id}>
+                {emp.fullName}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
@@ -630,7 +672,7 @@ const ExpensePage = () => {
                     Select a horse for this expense
                   </div>
                 )}
-                <SearchableSelect
+                <select
                   id="horse-select"
                   name="horseId"
                   value={formData.horseId}
@@ -638,12 +680,14 @@ const ExpensePage = () => {
                     console.log(`🐴 Horse selected: ${e.target.value}`);
                     handleFormChange(e);
                   }}
-                  placeholder={editingExpense ? '-- Change Horse --' : 'Select Horse'}
-                  options={[
-                    { value: '', label: editingExpense ? '-- Change Horse --' : 'Select Horse' },
-                    ...horses.map(h => ({ value: h.id, label: h.name }))
-                  ]}
-                />
+                >
+                  <option value="">Select Horse</option>
+                  {horses.map(h => (
+                    <option key={h.id} value={h.id}>
+                      {h.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">
@@ -663,7 +707,7 @@ const ExpensePage = () => {
                     Select an employee for this expense
                   </div>
                 )}
-                <SearchableSelect
+                <select
                   id="employee-select"
                   name="employeeId"
                   value={formData.employeeId}
@@ -671,12 +715,14 @@ const ExpensePage = () => {
                     console.log(`👤 Employee selected: ${e.target.value}`);
                     handleFormChange(e);
                   }}
-                  placeholder={editingExpense ? '-- Change Employee --' : 'Select Employee'}
-                  options={[
-                    { value: '', label: editingExpense ? '-- Change Employee --' : 'Select Employee' },
-                    ...employees.map(emp => ({ value: emp.id, label: emp.fullName }))
-                  ]}
-                />
+                >
+                  <option value="">Select Employee</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.fullName}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -744,10 +790,18 @@ const ExpensePage = () => {
               <button
                 className="btn-primary"
                 onClick={handleDownloadExcel}
-                style={{ padding: '8px 16px', fontSize: '13px' }}
                 title="Download filtered expenses as Excel"
               >
-                📥 Download Excel
+                Download Excel
+              </button>
+            )}
+            {expenses.length > 0 && (
+              <button
+                className="btn-secondary"
+                onClick={handleDownloadCSV}
+                title="Download filtered expenses as CSV"
+              >
+                Download CSV
               </button>
             )}
             {(filters.type || filters.horseId || filters.employeeId || filters.startDate || filters.endDate) && (

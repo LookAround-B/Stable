@@ -214,6 +214,57 @@ const GateAttendancePage = () => {
     console.log('📥 Downloaded gate attendance to:', fileName);
   };
 
+  const handleDownloadCSV = () => {
+    if (displayLogs.length === 0) {
+      alert(`No ${activeTab} logs to download`);
+      return;
+    }
+
+    let csvData;
+    let fileName;
+
+    if (activeTab === 'staff') {
+      csvData = displayLogs.map((log) => ({
+        'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '',
+        'Employee Name': log.personName || '-',
+        'Designation': log.designation || '-',
+        'Entry Time': formatTime(log.entryTime),
+        'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited',
+        'Shift': log.shift || '-',
+        'Notes': log.notes || '',
+      }));
+      fileName = `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.csv`;
+    } else {
+      csvData = displayLogs.map((log) => ({
+        'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '',
+        'Visitor Name': log.personName || '-',
+        'Purpose': log.purpose || '-',
+        'Entry Time': formatTime(log.entryTime),
+        'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited',
+        'Contact': log.contact || '-',
+        'Notes': log.notes || '',
+      }));
+      fileName = `VisitorLog_${new Date().toISOString().slice(0, 10)}.csv`;
+    }
+
+    const headers = Object.keys(csvData[0]);
+    const escape = (val) => {
+      const s = String(val ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = [headers.map(escape).join(','), ...csvData.map(row => headers.map(h => escape(row[h])).join(','))];
+    const csvContent = '\uFEFF' + rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Only Guards can access this page
   if (user?.designation !== 'Guard') {
     return (
@@ -258,6 +309,12 @@ const GateAttendancePage = () => {
               onClick={handleDownloadExcel}
             >
               📥 Download Excel
+            </button>
+            <button
+              className="btn-download"
+              onClick={handleDownloadCSV}
+            >
+              📥 Download CSV
             </button>
           </div>
 
@@ -375,6 +432,12 @@ const GateAttendancePage = () => {
               onClick={handleDownloadExcel}
             >
               📥 Download Excel
+            </button>
+            <button
+              className="btn-download"
+              onClick={handleDownloadCSV}
+            >
+              📥 Download CSV
             </button>
           </div>
 

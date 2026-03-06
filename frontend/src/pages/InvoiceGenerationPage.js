@@ -132,6 +132,44 @@ const InvoiceGenerationPage = () => {
     XLSX.writeFile(workbook, fileName);
   };
 
+  const handleDownloadCSV = () => {
+    if (!invoice) return;
+
+    const escape = (val) => {
+      const s = String(val ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const summaryRows = [
+      ['Invoice Report'],
+      [`Instructor: ${invoice.instructor.fullName}`],
+      [`Period: ${new Date(invoice.periodStart).toLocaleDateString('en-IN')} to ${new Date(invoice.periodEnd).toLocaleDateString('en-IN')}`],
+      [`Total Sessions: ${invoice.summary.totalSessions}`],
+      [`Total Hours: ${invoice.summary.totalHours}`],
+      [],
+      ['Date', 'Horse', 'Rider', 'Work Type', 'Duration (min)', 'Notes'],
+      ...invoice.records.map(record => [
+        new Date(record.date).toLocaleDateString('en-IN'),
+        record.horse.name,
+        record.rider.fullName,
+        record.workType,
+        record.duration,
+        record.notes || '-',
+      ]),
+    ];
+
+    const csvContent = '\uFEFF' + summaryRows.map(row => row.map(escape).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Invoice_${invoice.instructor.fullName}_${new Date(invoice.periodStart).toLocaleDateString('en-IN').replace(/\//g, '-')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handlePrint = () => {
     if (!invoice) return;
 
@@ -323,7 +361,7 @@ const InvoiceGenerationPage = () => {
               />
             </div>
 
-            <div className="filter-group">
+            <div className="filter-group" style={{ marginLeft: 'auto' }}>
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -332,38 +370,6 @@ const InvoiceGenerationPage = () => {
                 {loading ? 'Generating...' : 'Generate Invoice'}
               </button>
             </div>
-          </div>
-
-          <div className="quick-actions">
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() =>
-                setFilters((prev) => ({
-                  ...prev,
-                  startDate: getMonthStart(),
-                  endDate: getMonthEnd(),
-                }))
-              }
-            >
-              This Month
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => {
-                const today = new Date();
-                const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-                setFilters((prev) => ({
-                  ...prev,
-                  startDate: lastMonth.toISOString().split('T')[0],
-                  endDate: lastMonthEnd.toISOString().split('T')[0],
-                }));
-              }}
-            >
-              Last Month
-            </button>
           </div>
         </form>
       </div>
@@ -385,6 +391,9 @@ const InvoiceGenerationPage = () => {
               </button>
               <button className="btn btn-info" onClick={handleDownloadPDF}>
                 Download Excel
+              </button>
+              <button className="btn btn-secondary" onClick={handleDownloadCSV}>
+                Download CSV
               </button>
             </div>
           </div>

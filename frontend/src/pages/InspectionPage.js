@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import inspectionService from '../services/inspectionService';
-import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 
 const InspectionPage = () => {
@@ -343,6 +342,45 @@ const InspectionPage = () => {
     console.log('📥 Downloaded inspections to:', filename);
   };
 
+  const handleDownloadCSV = () => {
+    if (inspections.length === 0) {
+      alert('No inspections to download');
+      return;
+    }
+
+    const formatDateShort = (dateString) => {
+      if (!dateString) return '';
+      return new Date(dateString).toLocaleDateString('en-GB');
+    };
+
+    const csvData = inspections.map((inspection) => ({
+      'Date': formatDateShort(inspection.createdAt),
+      'Round': inspection.round,
+      'Horse': inspection.horse?.name || '-',
+      'Location': inspection.location,
+      'Description': inspection.description,
+      'Severity': inspection.severityLevel,
+      'Reported By': inspection.jamedar?.fullName || '',
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const escape = (val) => {
+      const s = String(val ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = [headers.map(escape).join(','), ...csvData.map(row => headers.map(h => escape(row[h])).join(','))];
+    const csvContent = '\uFEFF' + rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Inspections_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -391,16 +429,14 @@ const InspectionPage = () => {
 
         <div className="filter-group">
           <label>Horse</label>
-          <SearchableSelect
-            name="horseId"
-            value={filters.horseId}
-            onChange={handleFilterChange}
-            placeholder="All Horses"
-            options={[
-              { value: '', label: 'All Horses' },
-              ...horses.map(h => ({ value: h.id, label: h.name }))
-            ]}
-          />
+          <select name="horseId" value={filters.horseId} onChange={handleFilterChange}>
+            <option value="">All Horses</option>
+            {horses.map(h => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="filter-group">
@@ -491,17 +527,19 @@ const InspectionPage = () => {
 
             <div className="form-group">
               <label htmlFor="horse-select">Horse</label>
-              <SearchableSelect
+              <select
                 id="horse-select"
                 name="horseId"
                 value={formData.horseId}
                 onChange={handleFormChange}
-                placeholder="Select Horse"
-                options={[
-                  { value: '', label: 'Select Horse' },
-                  ...horses.map(h => ({ value: h.id, label: h.name }))
-                ]}
-              />
+              >
+                <option value="">Select Horse</option>
+                {horses.map(h => (
+                  <option key={h.id} value={h.id}>
+                    {h.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
@@ -568,6 +606,16 @@ const InspectionPage = () => {
                 📥 Download Excel
               </button>
             )}
+            {inspections.length > 0 && (
+              <button
+                className="btn-secondary"
+                onClick={handleDownloadCSV}
+                style={{ padding: '8px 16px', fontSize: '13px' }}
+                title="Download filtered inspections as CSV"
+              >
+                📥 Download CSV
+              </button>
+            )}
             {(filters.round || filters.horseId || filters.severityLevel || filters.startDate || filters.endDate) && (
               <button
                 className="btn-secondary"
@@ -595,7 +643,7 @@ const InspectionPage = () => {
             <p style={{ color: '#999', marginBottom: '10px' }}>
               {Object.values(filters).some(v => v) 
                 ? '❌ No inspections found with these filters' 
-                : '📭 No inspections created yet'}
+                : 'No inspections created yet'}
             </p>
           </div>
         )}

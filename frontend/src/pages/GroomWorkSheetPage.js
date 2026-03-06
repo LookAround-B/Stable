@@ -12,7 +12,7 @@ const GroomWorkSheetPage = () => {
   const [message, setMessage] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [expandedWorksheet, setExpandedWorksheet] = useState(null);
+
   const [filterGroomId, setFilterGroomId] = useState('all');
 
   const [newWorksheet, setNewWorksheet] = useState({
@@ -182,11 +182,6 @@ const GroomWorkSheetPage = () => {
     return horse ? horse.name : 'Unknown';
   };
 
-  const getGroomName = (id) => {
-    const emp = employees.find((e) => e.id === id);
-    return emp ? emp.fullName : 'Unknown';
-  };
-
   const getGroomers = () => {
     return employees.filter((e) => e.designation === 'Groom');
   };
@@ -210,7 +205,7 @@ const GroomWorkSheetPage = () => {
 
       <div className="worksheet-header">
         <div className="header-left">
-          <label>
+          <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
             Select Date:
             <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </label>
@@ -268,9 +263,6 @@ const GroomWorkSheetPage = () => {
             <div className="entries-section">
               <div className="entries-header">
                 <h4>Horse Entries</h4>
-                <button type="button" className="btn-add-entry" onClick={handleAddEntry}>
-                  + Add Horse
-                </button>
               </div>
 
               {newWorksheet.entries.map((entry, index) => (
@@ -301,7 +293,7 @@ const GroomWorkSheetPage = () => {
                       </div>
 
                       <div className="form-group">
-                        <label>AM Hours</label>
+                        <label>Morning Hours</label>
                         <input
                           type="number"
                           step="0.5"
@@ -312,7 +304,7 @@ const GroomWorkSheetPage = () => {
                       </div>
 
                       <div className="form-group">
-                        <label>PM Hours</label>
+                        <label>Afternoon/Evening Hours</label>
                         <input
                           type="number"
                           step="0.5"
@@ -377,6 +369,10 @@ const GroomWorkSheetPage = () => {
                   </div>
                 </div>
               ))}
+
+              <button type="button" className="btn-primary" onClick={handleAddEntry} style={{marginTop: '16px'}}>
+                + Add Horse
+              </button>
             </div>
 
             <button type="submit" className="btn-submit" disabled={loading}>
@@ -393,41 +389,38 @@ const GroomWorkSheetPage = () => {
         ) : (
           worksheets.map((worksheet) => (
             <div key={worksheet.id} className="worksheet-card">
-              <div className="worksheet-header-card" onClick={() => setExpandedWorksheet(expandedWorksheet === worksheet.id ? null : worksheet.id)}>
-                <div className="worksheet-info">
-                  <h3>{getGroomName(worksheet.groomId)}</h3>
-                  <div className="worksheet-meta">
-                    <span>Date: {new Date(worksheet.date).toLocaleDateString()}</span>
-                    <span>AM: {worksheet.totalAM}h | PM: {worksheet.totalPM}h | Total: {worksheet.wholeDayHours}h</span>
+              <div className="worksheet-details">
+                  <div className="summary-table-wrapper">
+                    <table className="summary-table">
+                      <thead>
+                        <tr>
+                          <th>Horse</th>
+                          <th>Morning Hours</th>
+                          <th>Afternoon/Evening Hours</th>
+                          <th>Total Hours</th>
+                          <th>Woodchips</th>
+                          <th>Bichali (kg)</th>
+                          <th>Boo Sa (bags)</th>
+                          <th>Remarks</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {worksheet.entries.map((entry, idx) => (
+                          <tr key={idx}>
+                            <td>{getHorseName(entry.horseId)}</td>
+                            <td>{entry.amHours}</td>
+                            <td>{entry.pmHours}</td>
+                            <td className="total">{entry.wholeDayHours}</td>
+                            <td>{entry.woodchipsUsed || '-'}</td>
+                            <td>{entry.bichaliUsed || '-'}</td>
+                            <td>{entry.booSaUsed || '-'}</td>
+                            <td>{entry.remarks || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                <div className="worksheet-summary">
-                  <span className="supply-tag woodchips">Woodchips: {worksheet.woodchipsUsed}</span>
-                  <span className="supply-tag bichali">Bichali: {worksheet.bichaliUsed}kg</span>
-                  <span className="supply-tag boosa">Boo Sa: {worksheet.booSaUsed} bags</span>
-                </div>
-                <span className="expand-icon">{expandedWorksheet === worksheet.id ? '▲' : '▼'}</span>
-              </div>
-
-              {expandedWorksheet === worksheet.id && (
-                <div className="worksheet-details">
-                  {worksheet.entries.map((entry, idx) => (
-                    <div key={idx} className="entry-detail">
-                      <div className="horse-name">{getHorseName(entry.horseId)}</div>
-                      <div className="entry-stats">
-                        <span>AM: {entry.amHours}h</span>
-                        <span>PM: {entry.pmHours}h</span>
-                        <span>Total: {entry.wholeDayHours}h</span>
-                        {entry.woodchipsUsed > 0 && <span>Woodchips: {entry.woodchipsUsed}</span>}
-                        {entry.bichaliUsed > 0 && <span>Bichali: {entry.bichaliUsed}kg</span>}
-                        {entry.booSaUsed > 0 && <span>Boo Sa: {entry.booSaUsed}</span>}
-                      </div>
-                      {entry.remarks && <div className="entry-remark">{entry.remarks}</div>}
-                    </div>
-                  ))}
-                  {worksheet.remarks && <div className="worksheet-remark">📝 {worksheet.remarks}</div>}
-                </div>
-              )}
             </div>
           ))
         )}
