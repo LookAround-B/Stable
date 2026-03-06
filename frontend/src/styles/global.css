@@ -588,7 +588,7 @@ p {
   display: flex;
   flex-direction: column;
   z-index: 110;
-  padding: 10px 8px 16px;
+  padding: 0 8px 16px;
   box-shadow: var(--glass-shadow);
   transition: transform var(--t-slow);
 }
