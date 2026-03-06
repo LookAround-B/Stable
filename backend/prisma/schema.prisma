@@ -705,9 +705,10 @@ model GroceriesInventory {
   name                  String      // Name of grocery item
   quantity              Float       // Quantity purchased/in stock
   unit                  String      @default("kg") // kg, liters, boxes, units, etc.
-  price                 Float       // Price per unit
-  totalPrice            Float       // quantity * price
+  price                 Float       @default(0) // Price per unit
+  totalPrice            Float       @default(0) // quantity * price
   description           String?     // Optional description
+  purchaseDate          DateTime?   // Date of purchase/inventory entry
   employeeId            String?     // Who got it (optional)
   employee              Employee?   @relation("groceriesInventory", fields: [employeeId], references: [id], onDelete: SetNull)
   createdById           String      // Who created this entry (Senior/Junior Executive Admin)
@@ -718,4 +719,5 @@ model GroceriesInventory {
   @@index([createdById])
   @@index([employeeId])
   @@index([createdAt])
+  @@index([purchaseDate])
 }

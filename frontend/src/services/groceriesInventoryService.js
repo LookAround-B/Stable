@@ -1,9 +1,14 @@
 import apiClient from "./apiClient";
 
 const groceriesInventoryService = {
-  // Get all groceries
-  getGroceries: async () => {
-    const response = await apiClient.get("/groceries-inventory");
+  // Get groceries with optional filters
+  getGroceries: async ({ month, year, search } = {}) => {
+    const params = new URLSearchParams();
+    if (month) params.append("month", month);
+    if (year) params.append("year", year);
+    if (search) params.append("search", search);
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const response = await apiClient.get(`/groceries-inventory${query}`);
     return response.data;
   },
 
