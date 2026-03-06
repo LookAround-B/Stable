@@ -434,7 +434,7 @@ const InspectionPage = () => {
             {horses.map((h, i) => (
               <React.Fragment key={h.id}>
                 <option value={h.id}>{h.name}</option>
-                {i < horses.length - 1 && <hr />}
+                {i < horses.length - 1 && <option disabled>─────────────────</option>}
               </React.Fragment>
             ))}
           </select>
@@ -538,7 +538,7 @@ const InspectionPage = () => {
                 {horses.map((h, i) => (
                   <React.Fragment key={h.id}>
                     <option value={h.id}>{h.name}</option>
-                    {i < horses.length - 1 && <hr />}
+                    {i < horses.length - 1 && <option disabled>─────────────────</option>}
                   </React.Fragment>
                 ))}
               </select>

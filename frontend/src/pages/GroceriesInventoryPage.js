@@ -283,7 +283,7 @@ const GroceriesInventoryPage = () => {
                   {employees.map((e, i) => (
                     <React.Fragment key={e.id}>
                       <option value={e.id}>{e.fullName} ({e.designation})</option>
-                      {i < employees.length - 1 && <hr />}
+                      {i < employees.length - 1 && <option disabled>─────────────────</option>}
                     </React.Fragment>
                   ))}
                 </select>
