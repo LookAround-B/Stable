@@ -191,7 +191,7 @@ const GroceriesInventoryPage = () => {
       )}
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center", marginBottom: "16px" }}>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center", marginBottom: "16px", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Month</label>
           <select value={selectedMonth} onChange={e => { setSelectedMonth(parseInt(e.target.value)); setCurrentPage(1); }}
@@ -212,7 +212,7 @@ const GroceriesInventoryPage = () => {
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
             style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem" }} />
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", marginLeft: "auto" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <label style={{ fontSize: "0.75rem", opacity: 0 }}>.</label>
             <button onClick={handleDownloadExcel} style={{ padding: "8px 16px", fontSize: "0.875rem", background: "#111", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 500 }}>Download Excel</button>
