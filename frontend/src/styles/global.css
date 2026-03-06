@@ -458,6 +458,40 @@ p {
   display: none;
 }
 
+.nav-center-mobile {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.nav-center-mobile .search-bar-container {
+  width: 100%;
+}
+
+.nav-center-mobile .search-bar-wrapper {
+  width: 100%;
+}
+
+.nav-quote-mobile {
+  display: none;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: .01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 6px 0 2px;
+  border-top: 1px solid rgba(0,0,0,.06);
+  pointer-events: none;
+  user-select: none;
+}
+
 .nav-left {
   display: flex;
   align-items: center;
@@ -5144,6 +5178,11 @@ p {
 @media(max-width:1024px) {
   .mobile-only-nav {
     display: flex;
+    flex-wrap: wrap;
+  }
+
+  .nav-quote-mobile {
+    display: block;
   }
 
   .main-layout,
@@ -5436,7 +5475,7 @@ p {
 /* Phone */
 @media(max-width:480px) {
   :root {
-    --nav-h: 145px
+    --nav-h: 95px
   }
 
   .navigation {
@@ -5444,8 +5483,8 @@ p {
     flex-wrap: wrap;
     flex-direction: row;
     height: auto;
-    padding: 12px;
-    gap: 12px;
+    padding: 10px 12px 4px;
+    gap: 8px;
     align-items: center;
     align-content: flex-start;
     margin: 0;
@@ -5455,21 +5494,31 @@ p {
 
   .nav-left {
     order: 1;
-    flex: 0 1 auto
+    flex: 0 0 auto
+  }
+
+  .nav-center-mobile {
+    order: 2;
+    flex: 1;
+    min-width: 0
   }
 
   .nav-center {
+    display: none
+  }
+
+  .nav-quote-mobile {
     order: 3;
     flex-basis: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 12px 0;
-    border-top: 1px solid rgba(0, 0, 0, .05)
+    font-size: 0.78rem;
+    padding: 4px 0 2px
   }
 
   .nav-quote {
-    font-size: .95rem;
-    white-space: normal;
+    font-size: .85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-align: center;
     max-width: 100%;
     color: #2a2420;

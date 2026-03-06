@@ -1,4 +1,5 @@
 import React from 'react';
+import SearchBar from './SearchBar';
 
 const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
   return (
@@ -9,6 +10,12 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
           <span className="hamburger-line"></span>
           <span className="hamburger-line"></span>
         </button>
+      </div>
+      <div className="nav-center-mobile">
+        <SearchBar />
+      </div>
+      <div className="nav-quote-mobile">
+        &ldquo;Horses Teaches Us About Life, Patience, and Love.&rdquo;
       </div>
     </nav>
   );
