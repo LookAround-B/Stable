@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchBar from './SearchBar';
 
-const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
+const Navigation = ({ onToggleSidebar, sidebarOpen, quote }) => {
   return (
     <nav className="navigation mobile-only-nav">
       <div className="nav-left">
@@ -19,7 +19,7 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
         <SearchBar />
       </div>
       <div className="nav-quote-mobile">
-        &ldquo;Horses Teaches Us About Life, Patience, and Love.&rdquo;
+        &ldquo;{quote}&rdquo;
       </div>
     </nav>
   );
