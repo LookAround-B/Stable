@@ -458,6 +458,55 @@ p {
   display: none;
 }
 
+/* Nav branding (logo + title on navbar when sidebar closed) */
+.nav-branding {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.nav-branding-hidden {
+  opacity: 0;
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.nav-branding-icon {
+  width: 32px;
+  height: 32px;
+  background: #222;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nav-branding-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.nav-branding-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.03em;
+  color: #1a1a1a;
+  line-height: 1.1;
+}
+
+.nav-branding-subtitle {
+  font-size: 0.55rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(0,0,0,0.45);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
 .nav-center-mobile {
   flex: 1;
   min-width: 0;
@@ -5181,8 +5230,24 @@ p {
     flex-wrap: wrap;
   }
 
+  .nav-branding {
+    display: flex;
+  }
+
   .nav-quote-mobile {
     display: block;
+  }
+
+  /* Sidebar logo smooth entrance */
+  .sidebar .sidebar-logo {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.35s ease 0.1s, transform 0.35s ease 0.1s;
+  }
+
+  .sidebar.sidebar-open .sidebar-logo {
+    opacity: 1;
+    transform: translateX(0);
   }
 
   .main-layout,

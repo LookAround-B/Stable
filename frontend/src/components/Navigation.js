@@ -10,6 +10,13 @@ const Navigation = ({ onToggleSidebar, sidebarOpen }) => {
           <span className="hamburger-line"></span>
           <span className="hamburger-line"></span>
         </button>
+        <div className={`nav-branding ${sidebarOpen ? 'nav-branding-hidden' : ''}`}>
+          <div className="nav-branding-icon"></div>
+          <div className="nav-branding-text">
+            <span className="nav-branding-title">EFM</span>
+            <span className="nav-branding-subtitle">Equestrian Facility Management</span>
+          </div>
+        </div>
       </div>
       <div className="nav-center-mobile">
         <SearchBar />
