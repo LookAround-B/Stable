@@ -202,7 +202,7 @@ const GroceriesInventoryPage = () => {
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Year</label>
           <select value={selectedYear} onChange={e => { setSelectedYear(parseInt(e.target.value)); setCurrentPage(1); }}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem" }}>
+            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", minWidth: "100px" }}>
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
@@ -213,8 +213,7 @@ const GroceriesInventoryPage = () => {
             style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem" }} />
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", paddingBottom: "0px" }}>
-          <button className="btn btn-download" onClick={handleDownloadExcel} style={{ padding: "8px 14px", fontSize: "0.8rem" }}>📥 Excel</button>
-          <button className="btn btn-download" onClick={handleDownloadCSV} style={{ padding: "8px 14px", fontSize: "0.8rem" }}>📥 CSV</button>
+          <button onClick={handleDownloadExcel} style={{ padding: "8px 16px", fontSize: "0.875rem", background: "#111", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 500 }}>Download Excel</button>
           <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}
             style={{ padding: "8px 16px", fontSize: "0.875rem" }}>
             {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
