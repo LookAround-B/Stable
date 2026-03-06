@@ -141,7 +141,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className={`sidebar-logo ${isScrolled ? 'scrolled' : ''}`}>
         <div className="logo-icon"></div>
-        <span className="sidebar-logo-text">EFM</span>
+        <div className="sidebar-branding">
+          <span className="sidebar-logo-text">EFM</span>
+          <span className="sidebar-logo-subtitle">Equestrian Facility Management</span>
+        </div>
       </div>
       <ul className="sidebar-menu" onScroll={handleScroll}>
         {menuStructure.map((section, idx) => {

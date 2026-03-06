@@ -659,6 +659,23 @@ p {
   color: #fff;
 }
 
+.sidebar-branding {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.sidebar-logo-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
 /* Sidebar menu */
 .sidebar-menu {
   display: flex;
