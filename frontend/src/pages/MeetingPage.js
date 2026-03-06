@@ -208,7 +208,7 @@ const MeetingPage = () => {
         </div>
         {canCreateMeeting && (
           <button
-            style={{ padding: '10px 20px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+            style={{ padding: '10px 20px', background: '#f0f0ef', color: '#111', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
             onClick={() => { setFormData(prev => ({ ...prev, meetingDate: new Date().toISOString().split('T')[0] })); setShowCreateForm(true) }}
           >
             + New Meeting
