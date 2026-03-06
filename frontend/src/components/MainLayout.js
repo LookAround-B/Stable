@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import Sidebar from './Sidebar';
-import NotificationCenter from './NotificationCenter';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -36,7 +35,6 @@ const MainLayout = () => {
           <Outlet />
         </main>
       </div>
-      <NotificationCenter />
     </div>
   );
 };
