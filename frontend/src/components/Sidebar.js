@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
@@ -12,9 +12,14 @@ import {
 import { FaHorse } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const handleScroll = (e) => {
+    setIsScrolled(e.target.scrollTop > 0);
+  };
 
   const handleLogout = () => {
     logout();
@@ -115,13 +120,13 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const MenuItem = ({ to, icon: Icon, label }) => {
     const isFontAwesome = Icon.$$typeof ? false : Icon.render === undefined && typeof Icon === 'function';
-    
+
     return (
       <li>
         <Link to={to} className={`menu-item${isActive(to) ? ' active' : ''}`}>
           <span className="menu-icon-circle">
             {isFontAwesome || Icon.name?.includes('Fa') ? (
-              <Icon size={18} style={{opacity: isActive(to) ? 1 : 0.65}} />
+              <Icon size={18} style={{ opacity: isActive(to) ? 1 : 0.65 }} />
             ) : (
               <Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} />
             )}
@@ -134,11 +139,15 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
-      <ul className="sidebar-menu">
+      <div className={`sidebar-logo ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="logo-icon"></div>
+        <span className="sidebar-logo-text">EFM</span>
+      </div>
+      <ul className="sidebar-menu" onScroll={handleScroll}>
         {menuStructure.map((section, idx) => {
           // Filter items that should be shown
           const visibleItems = section.items.filter(item => item.show !== false);
-          
+
           // Skip sections with no visible items
           if (visibleItems.length === 0) return null;
 
@@ -150,14 +159,14 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <span className="section-title">{section.parent}</span>
                 </li>
               )}
-              
+
               {/* Menu items */}
               {visibleItems.map((item, itemIdx) => (
-                <MenuItem 
+                <MenuItem
                   key={itemIdx}
-                  to={item.to} 
-                  icon={item.icon} 
-                  label={item.label} 
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
                 />
               ))}
             </React.Fragment>
@@ -167,7 +176,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* User card — only shown inside sidebar on mobile, clickable to go to /profile */}
       {user && (
-        <Link to="/profile" className="floating-user-card sidebar-user-card mobile-only-card" style={{textDecoration:'none', color:'inherit'}}>
+        <Link to="/profile" className="floating-user-card sidebar-user-card mobile-only-card" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="floating-user-avatar">
             {user.profileImage
               ? <img src={user.profileImage} alt={user.fullName} className="floating-user-avatar-img" />
