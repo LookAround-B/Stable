@@ -5136,6 +5136,7 @@ p {
     margin-bottom: 0;
     border-radius: 0;
     height: calc(100vh - var(--nav-h));
+    width: 100%;
     padding: 0;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -5159,7 +5160,8 @@ p {
     border-radius: 0 16px 16px 0;
     box-shadow: none;
     transform: translateX(-110%);
-    width: var(--sidebar-w);
+    width: min(var(--sidebar-w), 85vw);
+    max-width: 85vw;
     background: var(--shell-nav);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
