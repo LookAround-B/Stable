@@ -341,15 +341,15 @@ const MeetingPage = () => {
       {/* DETAIL DRAWER */}
       {showDetailPanel && selectedMeeting && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }} onClick={() => setShowDetailPanel(false)}>
-          <div style={{ width: '100%', maxWidth: '520px', height: '100%', background: 'var(--bg-primary,#1c1c2e)', overflowY: 'auto', boxShadow: '-8px 0 40px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+          <div style={{ width: '100%', maxWidth: '520px', height: '100%', background: '#f5f5f0', overflowY: 'auto', boxShadow: '-8px 0 40px rgba(0,0,0,0.25)', color: '#111' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '24px', borderBottom: '1px solid rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '8px' }}>
                   <span style={statusBadgeStyle(selectedMeeting.status)}>{selectedMeeting.status}</span>
                 </div>
                 <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.3 }}>{selectedMeeting.title}</h2>
               </div>
-              <button onClick={() => setShowDetailPanel(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: 'inherit', cursor: 'pointer', borderRadius: '8px', padding: '6px 12px', fontSize: '1rem' }}>&#10005;</button>
+              <button onClick={() => setShowDetailPanel(false)} style={{ background: 'rgba(0,0,0,0.07)', border: 'none', color: '#111', cursor: 'pointer', borderRadius: '8px', padding: '6px 12px', fontSize: '1rem' }}>&#10005;</button>
             </div>
 
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -373,7 +373,7 @@ const MeetingPage = () => {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {selectedMeeting.participants.map(p => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '4px 12px 4px 4px' }}>
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '20px', padding: '4px 12px 4px 4px' }}>
                     <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', flexShrink: 0 }}>
                       {p.employee.profileImage
                         ? <img src={p.employee.profileImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -389,12 +389,12 @@ const MeetingPage = () => {
             </div>
 
             {(user.id === selectedMeeting.createdBy?.id || parentRoles.includes(user.designation)) && (
-              <div style={{ padding: '0 24px 28px', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '20px' }}>
+              <div style={{ padding: '0 24px 28px', borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '20px' }}>
                 {isMeetingPast(selectedMeeting) ? (
                   <>
                     <button
                       onClick={() => setShowMOMForm(!showMOMForm)}
-                      style={{ padding: '10px 18px', background: showMOMForm ? 'rgba(255,255,255,0.08)' : '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', width: '100%' }}
+                      style={{ padding: '10px 18px', background: showMOMForm ? 'rgba(0,0,0,0.07)' : '#3b82f6', color: showMOMForm ? '#111' : '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', width: '100%' }}
                     >
                       {showMOMForm ? 'x Hide MOM' : 'Add / Edit Minutes of Meeting'}
                     </button>
@@ -412,14 +412,14 @@ const MeetingPage = () => {
                                 type="text" placeholder={placeholder} value={momInputs[inputKey]}
                                 onChange={e => setMOMInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
                                 onKeyPress={e => e.key === 'Enter' && handler()}
-                                style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'inherit', fontSize: '0.875rem' }}
+                                style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.15)', background: '#fff', color: '#111', fontSize: '0.875rem' }}
                               />
                               <button onClick={handler} style={{ padding: '8px 14px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}>+</button>
                             </div>
                             {momData[key].length > 0 && (
                               <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                 {momData[key].map((item, i) => (
-                                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '7px 10px', fontSize: '0.83rem' }}>
+                                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.05)', borderRadius: '8px', padding: '7px 10px', fontSize: '0.83rem' }}>
                                     <span style={{ flex: 1 }}>{item}</span>
                                     <button onClick={() => handleRemoveMOMItem(key, i)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', opacity: 0.4, fontSize: '0.85rem' }}>x</button>
                                   </li>
@@ -433,7 +433,7 @@ const MeetingPage = () => {
                             {loading ? 'Saving...' : 'Save MOM'}
                           </button>
                           {(momData.pointsDiscussed.length > 0 || momData.memberInputs.length > 0 || momData.decisions.length > 0) && (
-                            <button onClick={handleGenerateGmail} style={{ padding: '10px 16px', background: 'rgba(255,255,255,0.07)', color: 'inherit', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}>Send to Gmail</button>
+                            <button onClick={handleGenerateGmail} style={{ padding: '10px 16px', background: 'rgba(0,0,0,0.06)', color: '#111', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}>Send to Gmail</button>
                           )}
                         </div>
                       </div>
