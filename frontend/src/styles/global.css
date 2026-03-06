@@ -5121,6 +5121,7 @@ p {
   .main-layout,
   .layout-container {
     background: #f3f2f0;
+    width: 100%;
   }
 
   .navigation {
@@ -5157,11 +5158,13 @@ p {
     left: 0;
     top: var(--nav-h);
     bottom: 0;
+    padding: 0 4px 16px 0;
     border-radius: 0 16px 16px 0;
     box-shadow: none;
     transform: translateX(-110%);
     width: min(var(--sidebar-w), 85vw);
     max-width: 85vw;
+    z-index: 100;
     background: var(--shell-nav);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
