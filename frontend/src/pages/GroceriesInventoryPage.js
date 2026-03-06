@@ -206,18 +206,24 @@ const GroceriesInventoryPage = () => {
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: "200px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px", minWidth: "200px" }}>
           <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Search</label>
           <input type="text" placeholder="Search by item name..." value={search}
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
             style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem" }} />
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", paddingBottom: "0px" }}>
-          <button onClick={handleDownloadExcel} style={{ padding: "8px 16px", fontSize: "0.875rem", background: "#111", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 500 }}>Download Excel</button>
-          <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}
-            style={{ padding: "8px 16px", fontSize: "0.875rem" }}>
-            {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
-          </button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <label style={{ fontSize: "0.75rem", opacity: 0 }}>.</label>
+            <button onClick={handleDownloadExcel} style={{ padding: "8px 16px", fontSize: "0.875rem", background: "#111", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 500 }}>Download Excel</button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <label style={{ fontSize: "0.75rem", opacity: 0 }}>.</label>
+            <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}
+              style={{ padding: "8px 16px", fontSize: "0.875rem" }}>
+              {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
+            </button>
+          </div>
         </div>
       </div>
 
