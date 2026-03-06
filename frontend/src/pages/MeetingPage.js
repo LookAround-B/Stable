@@ -453,10 +453,10 @@ const MeetingPage = () => {
       {/* CREATE MODAL */}
       {showCreateForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowCreateForm(false)}>
-          <div style={{ background: 'var(--bg-primary,#1c1c2e)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: '#f5f5f0', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', color: '#111' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>New Meeting</h2>
-              <button onClick={() => setShowCreateForm(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: 'inherit', cursor: 'pointer', borderRadius: '8px', padding: '6px 12px' }}>&#10005;</button>
+              <button onClick={() => setShowCreateForm(false)} style={{ background: 'rgba(0,0,0,0.08)', border: 'none', color: '#111', cursor: 'pointer', borderRadius: '8px', padding: '6px 12px' }}>&#10005;</button>
             </div>
             <form onSubmit={handleCreateMeeting} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FieldWrap label="Meeting Title *">
@@ -477,14 +477,14 @@ const MeetingPage = () => {
                 <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Meeting purpose and agenda" rows={3} style={{ ...inputSt, resize: 'vertical' }} />
               </FieldWrap>
               <FieldWrap label={`Participants${formData.participants.length > 0 ? ` (${formData.participants.length} selected)` : ''}`}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '160px', overflowY: 'auto', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '160px', overflowY: 'auto', padding: '8px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)' }}>
                   {employees.map(emp => {
                     const sel = formData.participants.includes(emp.id)
                     return (
                       <div
                         key={emp.id}
                         onClick={() => setFormData(prev => ({ ...prev, participants: sel ? prev.participants.filter(id => id !== emp.id) : [...prev.participants, emp.id] }))}
-                        style={{ padding: '5px 10px', borderRadius: '20px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: sel ? 600 : 400, background: sel ? '#3b82f6' : 'rgba(255,255,255,0.07)', color: sel ? '#fff' : 'inherit', border: sel ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)', transition: 'all 0.15s', userSelect: 'none' }}
+                        style={{ padding: '5px 10px', borderRadius: '20px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: sel ? 600 : 400, background: sel ? '#3b82f6' : 'rgba(0,0,0,0.06)', color: sel ? '#fff' : '#111', border: sel ? '1px solid #3b82f6' : '1px solid rgba(0,0,0,0.12)', transition: 'all 0.15s', userSelect: 'none' }}
                       >
                         {emp.fullName}
                       </div>
@@ -496,7 +496,7 @@ const MeetingPage = () => {
                 <button type="submit" disabled={loading} style={{ flex: 1, padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}>
                   {loading ? 'Creating...' : 'Create Meeting'}
                 </button>
-                <button type="button" onClick={() => setShowCreateForm(false)} style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.07)', color: 'inherit', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                <button type="button" onClick={() => setShowCreateForm(false)} style={{ padding: '12px 20px', background: 'rgba(0,0,0,0.06)', color: '#111', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
               </div>
             </form>
           </div>
@@ -536,8 +536,8 @@ const FieldWrap = ({ label, children }) => (
 )
 
 const inputSt = {
-  padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.15)',
-  background: 'rgba(255,255,255,0.05)', color: 'inherit', fontSize: '0.875rem', width: '100%', boxSizing: 'border-box',
+  padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.15)',
+  background: '#fff', color: '#111', fontSize: '0.875rem', width: '100%', boxSizing: 'border-box',
 }
 
 export default MeetingPage
