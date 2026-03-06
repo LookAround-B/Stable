@@ -76,7 +76,7 @@ const SearchBar = () => {
         <Search size={18} className="search-icon" />
         <input
           type="text"
-          placeholder="Search horses, employees, tasks..."
+          placeholder="Search horses, emp.."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim().length >= 1 && setIsOpen(true)}

@@ -512,10 +512,12 @@ p {
   min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .nav-center-mobile .search-bar-container {
-  width: 100%;
+  width: auto;
+  max-width: 180px;
 }
 
 .nav-center-mobile .search-bar-wrapper {
@@ -5296,8 +5298,8 @@ p {
     border-radius: 0;
     box-shadow: none;
     transform: translateX(-110%);
-    width: min(var(--sidebar-w), 85vw);
-    max-width: 85vw;
+    width: min(var(--sidebar-w), 65vw);
+    max-width: 65vw;
     z-index: 200;
     background: var(--shell-nav);
     backdrop-filter: blur(20px);
