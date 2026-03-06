@@ -1794,14 +1794,25 @@ p {
 }
 
 @media (max-width:480px) {
+  .pagination-wrapper {
+    margin-top: 16px;
+    margin-bottom: 12px;
+    padding: 0 4px
+  }
+
   .pagination-container {
     flex-wrap: wrap;
     gap: 6px;
-    padding: 8px
+    padding: 8px;
+    border-radius: 12px;
+    width: 100%;
+    justify-content: center
   }
 
   .pagination-numbers {
-    order: 1
+    order: 1;
+    flex-wrap: wrap;
+    justify-content: center
   }
 
   .pagination-divider {
@@ -1819,6 +1830,23 @@ p {
     justify-content: center;
     margin-left: 0;
     margin-top: 4px
+  }
+
+  .pagination-btn,
+  .pagination-page-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 12px
+  }
+
+  .pagination-input {
+    width: 32px;
+    height: 26px
+  }
+
+  .pagination-select {
+    height: 26px;
+    font-size: 11px
   }
 }
 
@@ -5136,9 +5164,11 @@ p {
     margin-top: var(--nav-h);
     margin-bottom: 0;
     border-radius: 0;
-    height: calc(100vh - var(--nav-h));
+    height: auto;
+    min-height: calc(100vh - var(--nav-h));
     width: 100%;
     padding: 0;
+    overflow: visible;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background: #f3f2f0;
@@ -5156,21 +5186,20 @@ p {
 
   .sidebar {
     left: 0;
-    top: var(--nav-h);
+    top: 0;
     bottom: 0;
     padding: 0 4px 16px 0;
-    border-radius: 0 16px 16px 0;
+    border-radius: 0;
     box-shadow: none;
     transform: translateX(-110%);
     width: min(var(--sidebar-w), 85vw);
     max-width: 85vw;
-    z-index: 100;
+    z-index: 200;
     background: var(--shell-nav);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--shell-border);
-    border-left: none;
-    border-top: none;
+    border: none;
+    border-right: 1px solid var(--shell-border);
   }
 
   .sidebar.sidebar-open {
@@ -5182,9 +5211,9 @@ p {
     display: block;
     position: fixed;
     inset: 0;
-    top: var(--nav-h);
-    background: rgba(0, 0, 0, .4);
-    z-index: 38;
+    top: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 150;
     animation: fadeIn .18s ease
   }
 
@@ -5455,13 +5484,16 @@ p {
 
   .main-content {
     padding: 12px;
-    margin-top: -37px;
+    margin-top: var(--nav-h);
     margin-left: 0;
     margin-right: 0;
     margin-bottom: 0;
-    background: rgba(243, 242, 240, .97);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    height: auto;
+    min-height: calc(100vh - var(--nav-h));
+    overflow: visible;
+    background: #f3f2f0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border-radius: 0;
     box-shadow: none;
     border: none
