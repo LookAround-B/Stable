@@ -280,7 +280,12 @@ const GroceriesInventoryPage = () => {
                 <select name="employeeId" value={formData.employeeId} onChange={handleInputChange}
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }}>
                   <option value="">-- None --</option>
-                  {employees.map(e => <option key={e.id} value={e.id}>{e.fullName} ({e.designation})</option>)}
+                  {employees.map((e, i) => (
+                    <React.Fragment key={e.id}>
+                      <option value={e.id}>{e.fullName} ({e.designation})</option>
+                      {i < employees.length - 1 && <hr />}
+                    </React.Fragment>
+                  ))}
                 </select>
               </div>
             </div>

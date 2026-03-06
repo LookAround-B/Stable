@@ -546,10 +546,11 @@ const ExpensePage = () => {
             onChange={handleFilterChange}
           >
             <option value="">All Horses</option>
-            {horses.map(h => (
-              <option key={h.id} value={h.id}>
-                {h.name}
-              </option>
+            {horses.map((h, i) => (
+              <React.Fragment key={h.id}>
+                <option value={h.id}>{h.name}</option>
+                {i < horses.length - 1 && <hr />}
+              </React.Fragment>
             ))}
           </select>
         </div>
@@ -562,10 +563,11 @@ const ExpensePage = () => {
             onChange={handleFilterChange}
           >
             <option value="">All Employees</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>
-                {emp.fullName}
-              </option>
+            {employees.map((emp, i) => (
+              <React.Fragment key={emp.id}>
+                <option value={emp.id}>{emp.fullName}</option>
+                {i < employees.length - 1 && <hr />}
+              </React.Fragment>
             ))}
           </select>
         </div>
@@ -682,10 +684,11 @@ const ExpensePage = () => {
                   }}
                 >
                   <option value="">Select Horse</option>
-                  {horses.map(h => (
-                    <option key={h.id} value={h.id}>
-                      {h.name}
-                    </option>
+                  {horses.map((h, i) => (
+                    <React.Fragment key={h.id}>
+                      <option value={h.id}>{h.name}</option>
+                      {i < horses.length - 1 && <hr />}
+                    </React.Fragment>
                   ))}
                 </select>
               </div>
@@ -717,10 +720,11 @@ const ExpensePage = () => {
                   }}
                 >
                   <option value="">Select Employee</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.fullName}
-                    </option>
+                  {employees.map((emp, i) => (
+                    <React.Fragment key={emp.id}>
+                      <option value={emp.id}>{emp.fullName}</option>
+                      {i < employees.length - 1 && <hr />}
+                    </React.Fragment>
                   ))}
                 </select>
               </div>

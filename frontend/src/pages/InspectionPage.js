@@ -431,10 +431,11 @@ const InspectionPage = () => {
           <label>Horse</label>
           <select name="horseId" value={filters.horseId} onChange={handleFilterChange}>
             <option value="">All Horses</option>
-            {horses.map(h => (
-              <option key={h.id} value={h.id}>
-                {h.name}
-              </option>
+            {horses.map((h, i) => (
+              <React.Fragment key={h.id}>
+                <option value={h.id}>{h.name}</option>
+                {i < horses.length - 1 && <hr />}
+              </React.Fragment>
             ))}
           </select>
         </div>
@@ -534,10 +535,11 @@ const InspectionPage = () => {
                 onChange={handleFormChange}
               >
                 <option value="">Select Horse</option>
-                {horses.map(h => (
-                  <option key={h.id} value={h.id}>
-                    {h.name}
-                  </option>
+                {horses.map((h, i) => (
+                  <React.Fragment key={h.id}>
+                    <option value={h.id}>{h.name}</option>
+                    {i < horses.length - 1 && <hr />}
+                  </React.Fragment>
                 ))}
               </select>
             </div>
