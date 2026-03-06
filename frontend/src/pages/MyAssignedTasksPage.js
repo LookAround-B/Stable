@@ -140,7 +140,7 @@ const MyAssignedTasksPage = () => {
         </div>
       )}
 
-      <div className="page-controls">
+      <div className="page-controls" style={{ marginBottom: '20px' }}>
         <div className="filter-group">
           <label>Filter by Status</label>
           <select 
@@ -210,7 +210,7 @@ const MyAssignedTasksPage = () => {
                 )}
               </div>
 
-              <div className="card-actions">
+              <div className="card-actions" style={{ marginTop: '12px' }}>
                 {task.status === 'Pending' && (
                   <button
                     className="btn btn-start"
