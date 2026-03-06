@@ -414,6 +414,28 @@ p {
   gap: 16px;
 }
 
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid #e53e3e;
+  background: transparent;
+  color: #e53e3e;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  background: #e53e3e;
+  color: #fff;
+}
+
 .main-content-inner {
   flex: 1;
   overflow-y: auto;
@@ -5284,6 +5306,10 @@ p {
 
   .main-header {
     padding: 12px 16px 14px;
+  }
+
+  .desktop-only-header {
+    display: none;
   }
 
   .main-content-inner {
