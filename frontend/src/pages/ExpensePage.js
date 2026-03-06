@@ -528,7 +528,7 @@ const ExpensePage = () => {
           />
         </div>
 
-        <div className="filter-group">
+        <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
           <label>From Date</label>
           <input
             type="date"
@@ -538,7 +538,7 @@ const ExpensePage = () => {
           />
         </div>
 
-        <div className="filter-group">
+        <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
           <label>To Date</label>
           <input
             type="date"

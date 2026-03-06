@@ -451,7 +451,7 @@ const FinePage = () => {
           </select>
         </div>
 
-        <div className="filter-group">
+        <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
           <label>Start Date</label>
           <input
             type="date"
@@ -461,7 +461,7 @@ const FinePage = () => {
           />
         </div>
 
-        <div className="filter-group">
+        <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
           <label>End Date</label>
           <input
             type="date"

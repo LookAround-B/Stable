@@ -210,7 +210,7 @@ const HorseFeedsPage = () => {
       )}
 
       <div className="page-controls">
-        <label>
+        <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
           From Date:
           <input
             type="date"
@@ -219,7 +219,7 @@ const HorseFeedsPage = () => {
           />
         </label>
 
-        <label>
+        <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
           To Date:
           <input
             type="date"

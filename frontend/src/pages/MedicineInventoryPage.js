@@ -433,19 +433,19 @@ const MedicineInventoryPage = () => {
       {activeTab === 'report' && (
         <div className="report-section">
           <div className="report-controls">
-            <div className="date-range">
-              <label>Start Date:</label>
+            <div className="date-range" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+              <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>Start Date:
               <input
                 type="date"
                 value={reportStartDate}
                 onChange={(e) => setReportStartDate(e.target.value)}
-              />
-              <label>End Date:</label>
+              /></label>
+              <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>End Date:
               <input
                 type="date"
                 value={reportEndDate}
                 onChange={(e) => setReportEndDate(e.target.value)}
-              />
+              /></label>
             </div>
             <div className="report-actions">
               <button className="btn-primary" onClick={handleLoadReport} disabled={loading}>

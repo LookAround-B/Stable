@@ -411,11 +411,11 @@ const FeedInventoryPage = () => {
       {activeTab === 'report' && (
         <div className="report-section">
           <div className="filters-section">
-            <div className="filter-group">
+            <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
               <label>Start Date</label>
               <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} />
             </div>
-            <div className="filter-group">
+            <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
               <label>End Date</label>
               <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} />
             </div>
