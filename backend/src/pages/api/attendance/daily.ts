@@ -134,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           where: { id: existing.id },
           data: {
             checkInTime: checkInTime ? new Date(checkInTime) : existing.checkInTime,
-            checkOutTime: checkOutTime ? new Date(checkOutTime) : existing.checkOutTime,
+            checkOutTime: checkOutTime ? new Date(checkOutTime) : null,
             status,
             remarks: remarks || existing.remarks,
             updatedAt: new Date(),

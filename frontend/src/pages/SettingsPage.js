@@ -3,7 +3,7 @@ import React from 'react';
 const SettingsPage = () => {
   return (
     <div className="settings-page">
-      <h1>Settings</h1>
+      <h1 style={{ marginBottom: '24px' }}>Settings</h1>
       <div className="settings-sections">
         <div className="settings-section">
           <h2>Task Configuration</h2>

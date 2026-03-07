@@ -57,7 +57,21 @@ const DailyAttendancePage = () => {
   // Handle check-in/out toggle
   const handleAttendanceToggle = async (employeeId, isCheckedIn) => {
     try {
-      setLoading(true);
+      // Optimistic update — show the change immediately
+      const optimisticRecord = {
+        employeeId,
+        checkInTime: isCheckedIn ? new Date().toISOString() : null,
+        checkOutTime: isCheckedIn ? null : new Date().toISOString(),
+        status: 'Present',
+        remarks: isCheckedIn ? 'Checked in' : 'Checked out',
+      };
+      const existingBefore = attendance.find(a => a.employeeId === employeeId);
+      if (existingBefore) {
+        setAttendance(prev => prev.map(a => a.employeeId === employeeId ? { ...a, ...optimisticRecord } : a));
+      } else {
+        setAttendance(prev => [...prev, { id: `temp-${employeeId}`, ...optimisticRecord }]);
+      }
+
       const now = new Date();
       const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
@@ -72,25 +86,22 @@ const DailyAttendancePage = () => {
 
       const response = await apiClient.post('/attendance/daily', payload);
       
-      // Update local state
-      const existingRecord = attendance.find(a => a.employeeId === employeeId);
-      if (existingRecord) {
-        setAttendance(
-          attendance.map(a =>
-            a.employeeId === employeeId ? response.data.data : a
-          )
-        );
-      } else {
-        setAttendance([...attendance, response.data.data]);
-      }
+      // Replace optimistic record with real server data
+      setAttendance(prev => {
+        const exists = prev.find(a => a.employeeId === employeeId);
+        if (exists) {
+          return prev.map(a => a.employeeId === employeeId ? response.data.data : a);
+        }
+        return [...prev, response.data.data];
+      });
 
       setMessage(isCheckedIn ? '✓ Checked in successfully' : '✓ Checked out successfully');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error updating attendance:', error);
+      // Revert optimistic update on failure
+      loadAttendance();
       setMessage('Failed to update attendance');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -189,15 +200,17 @@ const DailyAttendancePage = () => {
                     <td className="time-cell">{getCheckInTime(groom.id)}</td>
                     <td className="time-cell">{getCheckOutTime(groom.id)}</td>
                     <td className="status-cell">
-                      <label className="toggle-switch">
+                      <label className="attendance-toggle" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: canManageAttendance ? 'pointer' : 'default' }}>
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={() => handleAttendanceToggle(groom.id, !checked)}
-                          disabled={loading || !canManageAttendance}
+                          disabled={!canManageAttendance}
+                          style={{ width: '16px', height: '16px', accentColor: '#10b981', cursor: 'inherit' }}
                         />
-                        <span className="slider"></span>
-                        <span className="toggle-label">{checked ? 'IN' : 'OUT'}</span>
+                        <span className={`toggle-label ${checked ? 'checked-in-label' : 'checked-out-label'}`}>
+                          {checked ? 'IN' : 'OUT'}
+                        </span>
                       </label>
                     </td>
                   </tr>

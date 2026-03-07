@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import Pagination from '../components/Pagination';
+import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 
 const ExpensePage = () => {
@@ -528,48 +529,44 @@ const ExpensePage = () => {
       <div className="filters-section">
         <div className="filter-group">
           <label>Expense Type</label>
-          <select name="type" value={filters.type} onChange={handleFilterChange}>
-            <option value="">All Types</option>
-            {EXPENSE_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            name="type"
+            value={filters.type}
+            onChange={handleFilterChange}
+            placeholder="All Types"
+            options={[
+              { value: '', label: 'All Types' },
+              ...EXPENSE_TYPES.map((type) => ({ value: type, label: type }))
+            ]}
+          />
         </div>
 
         <div className="filter-group">
           <label>Horse</label>
-          <select
+          <SearchableSelect
             name="horseId"
             value={filters.horseId}
             onChange={handleFilterChange}
-          >
-            <option value="">All Horses</option>
-            {horses.map((h, i) => (
-              <React.Fragment key={h.id}>
-                <option value={h.id}>{h.name}</option>
-                {i < horses.length - 1 && <option disabled>─────────────────</option>}
-              </React.Fragment>
-            ))}
-          </select>
+            placeholder="All Horses"
+            options={[
+              { value: '', label: 'All Horses' },
+              ...horses.map((h) => ({ value: h.id, label: h.name }))
+            ]}
+          />
         </div>
 
         <div className="filter-group">
           <label>Employee</label>
-          <select
+          <SearchableSelect
             name="employeeId"
             value={filters.employeeId}
             onChange={handleFilterChange}
-          >
-            <option value="">All Employees</option>
-            {employees.map((emp, i) => (
-              <React.Fragment key={emp.id}>
-                <option value={emp.id}>{emp.fullName}</option>
-                {i < employees.length - 1 && <option disabled>─────────────────</option>}
-              </React.Fragment>
-            ))}
-          </select>
+            placeholder="All Employees"
+            options={[
+              { value: '', label: 'All Employees' },
+              ...employees.map((emp) => ({ value: emp.id, label: emp.fullName }))
+            ]}
+          />
         </div>
 
         <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>

@@ -2970,7 +2970,10 @@ p {
   -webkit-backdrop-filter: blur(20px);
   border-radius: var(--r-lg);
   border: 1px solid rgba(255, 255, 255, .55);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .05)
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  overflow: visible;
+  position: relative;
+  z-index: 10
 }
 
 .filter-group {
@@ -3118,6 +3121,30 @@ p {
   font-size: .8125rem;
   color: var(--text-secondary);
   font-weight: 500
+}
+
+.status-cell .toggle-label {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: var(--r-full);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.checked-in .status-cell .toggle-label,
+.toggle-label.checked-in-label {
+  background: rgba(16, 185, 129, .12);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, .3);
+}
+
+.checked-out .status-cell .toggle-label,
+.toggle-label.checked-out-label {
+  background: rgba(239, 68, 68, .1);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, .25);
 }
 
 .mode-selection {
@@ -3540,7 +3567,14 @@ p {
 }
 
 .ss-arrow {
-  transition: transform var(--t)
+  font-size: .65rem;
+  color: var(--text-muted);
+  transition: transform var(--t);
+  flex-shrink: 0;
+}
+
+.searchable-select.open .ss-arrow {
+  transform: rotate(180deg);
 }
 
 .ss-dropdown {
@@ -3548,14 +3582,27 @@ p {
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, .4);
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: var(--r);
   box-shadow: var(--shadow-lg);
-  z-index: 50;
+  z-index: 9999;
   margin-top: 4px;
-  animation: slideDown .2s ease
+  animation: slideDown .2s ease;
+  color: #000
+}
+
+.ss-dropdown-up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+  animation: slideUp .2s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .ss-search-wrapper {
@@ -3563,18 +3610,43 @@ p {
   border-bottom: 1px solid rgba(0, 0, 0, .06)
 }
 
-.ss-search {
+.ss-dropdown .ss-search {
   width: 100%;
-  padding: .5rem;
+  padding: .5rem !important;
+  padding-left: .5rem !important;
   border: 1px solid var(--border);
-  border-radius: var(--r-sm)
+  border-radius: var(--r-sm);
+  box-sizing: border-box;
+  text-align: left;
+  min-width: 0 !important
 }
 
 .ss-list {
   max-height: 200px;
   overflow-y: auto;
   padding: 4px;
+  list-style: none;
+  margin: 0;
   -webkit-overflow-scrolling: touch
+}
+
+.ss-option {
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  font-size: .875rem;
+  font-weight: 600;
+  color: #000;
+  cursor: pointer;
+  transition: all var(--t)
+}
+
+.ss-option:hover {
+  background: rgba(0, 0, 0, .06)
+}
+
+.ss-option.selected {
+  background: rgba(0, 0, 0, .1);
+  font-weight: 700
 }
 
 .ss-list button {
@@ -3583,11 +3655,13 @@ p {
   padding: 8px 12px;
   border-radius: var(--r-sm);
   font-size: .875rem;
+  font-weight: 600;
+  color: #000;
   transition: all var(--t)
 }
 
 .ss-list button:hover {
-  background: rgba(0, 0, 0, .04)
+  background: rgba(0, 0, 0, .06)
 }
 
 .ss-no-results {
@@ -3906,7 +3980,9 @@ p {
 .mom-form,
 .rounds-form,
 .rounds-checkboxes {
-  margin-bottom: 24px
+  margin-bottom: 24px;
+  overflow: visible;
+  max-width: 100%;
 }
 
 .report-section {
@@ -3979,6 +4055,25 @@ p {
   font-weight: 700;
   margin-bottom: 20px;
   letter-spacing: -.03em
+}
+
+.team-attendance-container .attendance-form {
+  max-width: 100%;
+  overflow: visible;
+}
+
+.team-attendance-container .form-row {
+  flex-wrap: wrap;
+}
+
+.team-attendance-container .form-group {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.team-attendance-container input[type="date"] {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .attendance-content,
@@ -4802,7 +4897,7 @@ p {
 }
 
 .status-cell {
-  padding: 12px 20px !important
+  padding: 2px 4px !important
 }
 
 .actions {
@@ -4866,12 +4961,22 @@ p {
 
 .toggle-switch {
   position: relative;
-  width: 44px;
-  height: 24px;
-  background: rgba(0, 0, 0, .12);
-  border-radius: var(--r-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
   transition: all var(--t)
+}
+
+.toggle-switch input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0
+}
+
+.toggle-switch > .slider {
+  display: none
 }
 
 .toggle-switch.active {

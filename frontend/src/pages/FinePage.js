@@ -441,14 +441,16 @@ const FinePage = () => {
       <div className="filters-section">
         <div className="filter-group">
           <label>Status</label>
-          <select name="status" value={filters.status} onChange={handleFilterChange}>
-            <option value="">All Status</option>
-            {STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            name="status"
+            value={filters.status}
+            onChange={handleFilterChange}
+            placeholder="All Status"
+            options={[
+              { value: '', label: 'All Status' },
+              ...STATUS_OPTIONS.map((status) => ({ value: status, label: status }))
+            ]}
+          />
         </div>
 
         <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>

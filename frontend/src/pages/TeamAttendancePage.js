@@ -349,7 +349,7 @@ const TeamAttendancePage = () => {
 
         {/* Records Section */}
         <div className="records-section">
-          <div className="section-header">
+          <div className="section-header" style={{ justifyContent: 'flex-start', gap: '20px' }}>
             <h3>Team Attendance Records</h3>
             <div className="search-group">
               <label>Date:</label>
@@ -358,6 +358,7 @@ const TeamAttendancePage = () => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="form-input"
+                style={{ paddingLeft: '12px' }}
               />
             </div>
           </div>

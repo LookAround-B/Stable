@@ -27,6 +27,7 @@ const SearchableSelect = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [openUp, setOpenUp] = useState(false);
   const wrapperRef = useRef(null);
   const searchRef = useRef(null);
 
@@ -64,7 +65,14 @@ const SearchableSelect = ({
   };
 
   const handleToggle = () => {
-    if (!disabled) setOpen((prev) => !prev);
+    if (!disabled) {
+      if (!open && wrapperRef.current) {
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setOpenUp(spaceBelow < 260);
+      }
+      setOpen((prev) => !prev);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -105,12 +113,12 @@ const SearchableSelect = ({
         <span className={`ss-label ${!selectedLabel ? 'ss-placeholder' : ''}`}>
           {selectedLabel || placeholder}
         </span>
-        <span className="ss-arrow">{open ? '▲' : '▼'}</span>
+        <span className="ss-arrow">▼</span>
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="ss-dropdown" role="listbox">
+        <div className={`ss-dropdown ${openUp ? 'ss-dropdown-up' : ''}`} role="listbox">
           {/* Search box */}
           <div className="ss-search-wrapper">
             <input
