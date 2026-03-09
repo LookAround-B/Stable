@@ -1034,7 +1034,7 @@ p {
   -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--r-lg);
   padding: 12px 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--glass-border);
   transition: box-shadow var(--t), border-color var(--t), background var(--t)
 }
@@ -1046,7 +1046,7 @@ p {
   -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--r-lg);
   padding: 12px 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--glass-border);
   transition: box-shadow var(--t), border-color var(--t), background var(--t);
   display: flex;
@@ -1060,8 +1060,8 @@ p {
 .task-card:hover,
 .approval-card:hover {
   background: var(--bg-card-hover);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2)
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.1)
 }
 
 .card h2,
@@ -3050,10 +3050,14 @@ p {
   min-width: 140px
 }
 
-.inventory-section,
-.summary-section {
+.inventory-section {
   margin-top: 20px;
-  overflow-x: hidden
+  overflow-x: hidden;
+  padding: 0 4px
+}
+
+.summary-section {
+  margin-top: 20px
 }
 
 .filter-row {
@@ -4439,7 +4443,8 @@ p {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px
+  margin-bottom: 20px;
+  padding: 4px 4px 0
 }
 
 .entry-card {
