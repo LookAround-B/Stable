@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
+import SearchableSelect from '../components/SearchableSelect';
 import medicineInventoryService from '../services/medicineInventoryService';
 
 const MEDICINE_LABELS = {
@@ -234,19 +235,18 @@ const MedicineInventoryPage = () => {
       {activeTab === 'inventory' && (
         <div className="inventory-section">
           <div className="month-selector">
-            <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))}>
-              {MONTH_NAMES.map((month, idx) => (
-                <option key={idx} value={idx + 1}>
-                  {month}
-                </option>
-              ))}
-            </select>
-            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}>
-              {[2023, 2024, 2025, 2026, 2027].map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
+            <SearchableSelect
+              value={selectedMonth.toString()}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              options={MONTH_NAMES.map((month, idx) => ({ value: (idx + 1).toString(), label: month }))}
+              placeholder="Select month..."
+            />
+            <SearchableSelect
+              value={selectedYear.toString()}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              options={[2023, 2024, 2025, 2026, 2027].map((year) => ({ value: year.toString(), label: year.toString() }))}
+              placeholder="Select year..."
+            />
             </select>
             <button className="btn-primary" onClick={() => !showForm && setShowForm(true)} disabled={loading || showForm}>
               + Add Record
@@ -257,23 +257,18 @@ const MedicineInventoryPage = () => {
             <form onSubmit={handleSubmit} className="inventory-form">
               <div className="form-group">
                 <label>Medicine Type *</label>
-                <select
+                <SearchableSelect
                   name="medicineType"
                   value={formData.medicineType}
                   onChange={(e) => {
                     const { name, value } = e.target;
                     setFormData((prev) => ({ ...prev, [name]: value }));
                   }}
+                  options={MEDICINE_TYPES.map((type) => ({ value: type, label: MEDICINE_LABELS[type] }))}
+                  placeholder="Select medicine type..."
                   disabled={editingRecord !== null}
                   required
-                >
-                  <option value="">Select Medicine Type</option>
-                  {MEDICINE_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {MEDICINE_LABELS[type]}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="form-group">
@@ -310,21 +305,22 @@ const MedicineInventoryPage = () => {
 
               <div className="form-group">
                 <label>Unit</label>
-                <select
+                <SearchableSelect
                   name="unit"
                   value={formData.unit}
                   onChange={(e) => {
                     const { name, value } = e.target;
                     setFormData((prev) => ({ ...prev, [name]: value }));
                   }}
-                >
-                  <option value="ml">ml</option>
-                  <option value="g">g</option>
-                  <option value="tablets">tablets</option>
-                  <option value="bottles">bottles</option>
-                  <option value="vials">vials</option>
-                  <option value="boxes">boxes</option>
-                </select>
+                  options={[
+                    { value: 'ml', label: 'ml' },
+                    { value: 'g', label: 'g' },
+                    { value: 'tablets', label: 'tablets' },
+                    { value: 'bottles', label: 'bottles' },
+                    { value: 'vials', label: 'vials' },
+                    { value: 'boxes', label: 'boxes' },
+                  ]}
+                />
               </div>
 
               <div className="form-group">

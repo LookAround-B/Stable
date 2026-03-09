@@ -421,19 +421,15 @@ const EmployeesPage = () => {
 
               <div className="form-group">
                 <label htmlFor="designation">Designation/Role *</label>
-                <select
-                  id="designation"
+                <SearchableSelect
                   name="designation"
                   value={formData.designation}
                   onChange={handleInputChange}
+                  options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))}
+                  placeholder="Select designation..."
                   disabled={loading}
-                >
-                  {EMPLOYEE_DESIGNATIONS.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
+                  required
+                />
               </div>
 
               <div className="form-group">

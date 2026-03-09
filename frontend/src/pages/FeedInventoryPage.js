@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
+import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
 import { RotateCw } from 'lucide-react';
 
@@ -223,19 +224,23 @@ const FeedInventoryPage = () => {
           <div className="filters-section">
             <div className="filter-group">
               <label>Month</label>
-              <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
-                {MONTH_NAMES.map((name, i) => (
-                  <option key={i} value={i + 1}>{name}</option>
-                ))}
-              </select>
+              <SearchableSelect
+                name="month"
+                value={selectedMonth.toString()}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
+                placeholder="Select month..."
+              />
             </div>
             <div className="filter-group">
               <label>Year</label>
-              <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
-                {[2024, 2025, 2026, 2027].map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+              <SearchableSelect
+                name="year"
+                value={selectedYear.toString()}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))}
+                placeholder="Select year..."
+              />
             </div>
             <div className="filter-actions">
               <button className="btn-primary" onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm}>
@@ -256,16 +261,14 @@ const FeedInventoryPage = () => {
                   {!editingRecord && (
                     <div className="form-group">
                       <label>Feed Type *</label>
-                      <select
+                      <SearchableSelect
+                        name="feedType"
                         value={formData.feedType}
                         onChange={(e) => setFormData({ ...formData, feedType: e.target.value })}
+                        options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))}
+                        placeholder="Select feed type..."
                         required
-                      >
-                        <option value="">Select feed type...</option>
-                        {availableFeedTypes.map((ft) => (
-                          <option key={ft} value={ft}>{FEED_LABELS[ft]}</option>
-                        ))}
-                      </select>
+                      />
                     </div>
                   )}
                   <div className="form-group">
@@ -293,13 +296,18 @@ const FeedInventoryPage = () => {
                   </div>
                   <div className="form-group">
                     <label>Unit</label>
-                    <select value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })}>
-                      <option value="kg">Kilograms (kg)</option>
-                      <option value="liters">Liters</option>
-                      <option value="packets">Packets</option>
-                      <option value="bags">Bags</option>
-                      <option value="units">Units</option>
-                    </select>
+                    <SearchableSelect
+                      name="unit"
+                      value={formData.unit}
+                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                      options={[
+                        { value: 'kg', label: 'Kilograms (kg)' },
+                        { value: 'liters', label: 'Liters' },
+                        { value: 'packets', label: 'Packets' },
+                        { value: 'bags', label: 'Bags' },
+                        { value: 'units', label: 'Units' },
+                      ]}
+                    />
                   </div>
                   <div className="form-group full-width">
                     <label>Notes</label>

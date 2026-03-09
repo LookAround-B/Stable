@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import SearchableSelect from '../components/SearchableSelect';
 import inspectionService from '../services/inspectionService';
 import * as XLSX from 'xlsx';
 
@@ -417,39 +418,35 @@ const InspectionPage = () => {
       <div className="filters-section">
         <div className="filter-group">
           <label>Round</label>
-          <select name="round" value={filters.round} onChange={handleFilterChange}>
-            <option value="">All Rounds</option>
-            {ROUNDS.map((round) => (
-              <option key={round} value={round}>
-                {round}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            name="round"
+            value={filters.round}
+            onChange={handleFilterChange}
+            options={[{ value: '', label: 'All Rounds' }, ...ROUNDS.map((round) => ({ value: round, label: round }))]}
+            placeholder="Select round..."
+          />
         </div>
 
         <div className="filter-group">
           <label>Horse</label>
-          <select name="horseId" value={filters.horseId} onChange={handleFilterChange}>
-            <option value="">All Horses</option>
-            {horses.map((h, i) => (
-              <React.Fragment key={h.id}>
-                <option value={h.id}>{h.name}</option>
-                {i < horses.length - 1 && <option disabled>─────────────────</option>}
-              </React.Fragment>
-            ))}
-          </select>
+          <SearchableSelect
+            name="horseId"
+            value={filters.horseId}
+            onChange={handleFilterChange}
+            options={[{ value: '', label: 'All Horses' }, ...horses.map((h) => ({ value: h.id, label: h.name }))]}
+            placeholder="Select horse..."
+          />
         </div>
 
         <div className="filter-group">
           <label>Severity</label>
-          <select name="severityLevel" value={filters.severityLevel} onChange={handleFilterChange}>
-            <option value="">All Severity Levels</option>
-            {SEVERITY_LEVELS.map((level) => (
-              <option key={level} value={level}>
-                {level}
-              </option>
-            ))}
-          </select>
+          <SearchableSelect
+            name="severityLevel"
+            value={filters.severityLevel}
+            onChange={handleFilterChange}
+            options={[{ value: '', label: 'All Severity Levels' }, ...SEVERITY_LEVELS.map((level) => ({ value: level, label: level }))]}
+            placeholder="Select severity..."
+          />
         </div>
 
         <div className="filter-group">
@@ -480,19 +477,16 @@ const InspectionPage = () => {
           <form onSubmit={handleSubmit} className="inspection-form">
             <div className="form-group">
               <label htmlFor="round-select">Round *</label>
-              <select
-                id="round-select"
+            <div className="form-group">
+              <label htmlFor="round-select">Round *</label>
+              <SearchableSelect
                 name="round"
                 value={formData.round}
                 onChange={handleFormChange}
+                options={ROUNDS.map((round) => ({ value: round, label: round }))}
+                placeholder="Select round..."
                 required
-              >
-                {ROUNDS.map((round) => (
-                  <option key={round} value={round}>
-                    {round}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="form-group">
@@ -528,20 +522,13 @@ const InspectionPage = () => {
 
             <div className="form-group">
               <label htmlFor="horse-select">Horse</label>
-              <select
-                id="horse-select"
+              <SearchableSelect
                 name="horseId"
                 value={formData.horseId}
                 onChange={handleFormChange}
-              >
-                <option value="">Select Horse</option>
-                {horses.map((h, i) => (
-                  <React.Fragment key={h.id}>
-                    <option value={h.id}>{h.name}</option>
-                    {i < horses.length - 1 && <option disabled>─────────────────</option>}
-                  </React.Fragment>
-                ))}
-              </select>
+                options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: h.name }))]}
+                placeholder="Select horse..."
+              />
             </div>
 
             <div className="form-group">
@@ -561,19 +548,14 @@ const InspectionPage = () => {
 
             <div className="form-group">
               <label htmlFor="severity-select">Severity Level *</label>
-              <select
-                id="severity-select"
+              <SearchableSelect
                 name="severityLevel"
                 value={formData.severityLevel}
                 onChange={handleFormChange}
+                options={SEVERITY_LEVELS.map((level) => ({ value: level, label: level }))}
+                placeholder="Select severity..."
                 required
-              >
-                {SEVERITY_LEVELS.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="form-actions">

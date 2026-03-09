@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
+import SearchableSelect from "../components/SearchableSelect";
 import Pagination from "../components/Pagination";
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -194,17 +195,21 @@ const GroceriesInventoryPage = () => {
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center", marginBottom: "16px", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Month</label>
-          <select value={selectedMonth} onChange={e => { setSelectedMonth(parseInt(e.target.value)); setCurrentPage(1); }}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem" }}>
-            {MONTH_NAMES.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
-          </select>
+          <SearchableSelect
+            value={selectedMonth.toString()}
+            onChange={e => { setSelectedMonth(parseInt(e.target.value)); setCurrentPage(1); }}
+            options={MONTH_NAMES.map((m, i) => ({ value: (i+1).toString(), label: m }))}
+            placeholder="Select month..."
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Year</label>
-          <select value={selectedYear} onChange={e => { setSelectedYear(parseInt(e.target.value)); setCurrentPage(1); }}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", minWidth: "100px" }}>
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+          <SearchableSelect
+            value={selectedYear.toString()}
+            onChange={e => { setSelectedYear(parseInt(e.target.value)); setCurrentPage(1); }}
+            options={years.map(y => ({ value: y.toString(), label: y.toString() }))}
+            placeholder="Select year..."
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px", minWidth: "200px" }}>
           <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Search</label>
@@ -259,10 +264,13 @@ const GroceriesInventoryPage = () => {
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Unit</label>
-                <select name="unit" value={formData.unit} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }}>
-                  {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
+                <SearchableSelect
+                  name="unit"
+                  value={formData.unit}
+                  onChange={handleInputChange}
+                  options={UNIT_OPTIONS.map(u => ({ value: u, label: u }))}
+                  placeholder="Select unit..."
+                />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Price per Unit (₹)</label>
@@ -277,16 +285,13 @@ const GroceriesInventoryPage = () => {
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Assigned To</label>
-                <select name="employeeId" value={formData.employeeId} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }}>
-                  <option value="">-- None --</option>
-                  {employees.map((e, i) => (
-                    <React.Fragment key={e.id}>
-                      <option value={e.id}>{e.fullName} ({e.designation})</option>
-                      {i < employees.length - 1 && <option disabled>─────────────────</option>}
-                    </React.Fragment>
-                  ))}
-                </select>
+                <SearchableSelect
+                  name="employeeId"
+                  value={formData.employeeId}
+                  onChange={handleInputChange}
+                  options={[{ value: '', label: '-- None --' }, ...employees.map((e) => ({ value: e.id, label: `${e.fullName} (${e.designation})` }))]}
+                  placeholder="Select employee..."
+                />
               </div>
             </div>
             <div style={{ marginTop: "12px" }}>

@@ -488,21 +488,30 @@ const TasksPage = () => {
             <div className="form-row">
               <div className="form-group">
                 <label>Task Type *</label>
-                <select name="type" value={formData.type} onChange={handleInputChange} required>
-                  {TASK_TYPES.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  options={TASK_TYPES.map(type => ({ value: type, label: type }))}
+                  placeholder="Select task type..."
+                  required
+                />
               </div>
 
               <div className="form-group">
                 <label>Priority</label>
-                <select name="priority" value={formData.priority} onChange={handleInputChange}>
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
+                <SearchableSelect
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                  options={[
+                    { value: 'Low', label: 'Low' },
+                    { value: 'Medium', label: 'Medium' },
+                    { value: 'High', label: 'High' },
+                    { value: 'Urgent', label: 'Urgent' },
+                  ]}
+                  placeholder="Select priority..."
+                />
               </div>
             </div>
 
@@ -572,12 +581,17 @@ const TasksPage = () => {
       )}
 
       <div className="task-filters">
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="All">All Tasks</option>
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
+        <SearchableSelect
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          options={[
+            { value: 'All', label: 'All Tasks' },
+            { value: 'Pending', label: 'Pending' },
+            { value: 'In Progress', label: 'In Progress' },
+            { value: 'Completed', label: 'Completed' },
+          ]}
+          placeholder="Filter by status..."
+        />
         <input
           type="text"
           placeholder="Search tasks by name, type, status..."

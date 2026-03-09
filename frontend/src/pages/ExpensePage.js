@@ -597,20 +597,14 @@ const ExpensePage = () => {
           <form onSubmit={handleSubmit} className="expense-form">
             <div className="form-group">
               <label htmlFor="type-select">Expense Type *</label>
-              <select
-                id="type-select"
+              <SearchableSelect
                 name="type"
                 value={formData.type}
                 onChange={handleFormChange}
+                options={EXPENSE_TYPES.map((type) => ({ value: type, label: type }))}
+                placeholder="Select expense type..."
                 required
-              >
-                <option value="">Select Type</option>
-                {EXPENSE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="form-group">
@@ -671,23 +665,16 @@ const ExpensePage = () => {
                     Select a horse for this expense
                   </div>
                 )}
-                <select
-                  id="horse-select"
+                <SearchableSelect
                   name="horseId"
                   value={formData.horseId}
                   onChange={(e) => {
                     console.log(`🐴 Horse selected: ${e.target.value}`);
                     handleFormChange(e);
                   }}
-                >
-                  <option value="">Select Horse</option>
-                  {horses.map((h, i) => (
-                    <React.Fragment key={h.id}>
-                      <option value={h.id}>{h.name}</option>
-                      {i < horses.length - 1 && <option disabled>─────────────────</option>}
-                    </React.Fragment>
-                  ))}
-                </select>
+                  options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: h.name }))]}
+                  placeholder="Select horse..."
+                />
               </div>
 
               <div className="form-group">
@@ -707,23 +694,16 @@ const ExpensePage = () => {
                     Select an employee for this expense
                   </div>
                 )}
-                <select
-                  id="employee-select"
+                <SearchableSelect
                   name="employeeId"
                   value={formData.employeeId}
                   onChange={(e) => {
                     console.log(`👤 Employee selected: ${e.target.value}`);
                     handleFormChange(e);
                   }}
-                >
-                  <option value="">Select Employee</option>
-                  {employees.map((emp, i) => (
-                    <React.Fragment key={emp.id}>
-                      <option value={emp.id}>{emp.fullName}</option>
-                      {i < employees.length - 1 && <option disabled>─────────────────</option>}
-                    </React.Fragment>
-                  ))}
-                </select>
+                  options={[{ value: '', label: 'Select Employee' }, ...employees.map((emp) => ({ value: emp.id, label: emp.fullName }))]}
+                  placeholder="Select employee..."
+                />
               </div>
             </div>
 

@@ -665,15 +665,17 @@ const FinePage = () => {
               <div className="modal-body">
                 <div className="form-group">
                   <label>Status</label>
-                  <select
+                  <SearchableSelect
                     name="status"
                     value={resolveData.status}
                     onChange={handleResolveDataChange}
+                    options={[
+                      { value: 'Resolved', label: 'Resolved' },
+                      { value: 'Dismissed', label: 'Dismissed' },
+                    ]}
+                    placeholder="Select status..."
                     required
-                  >
-                    <option value="Resolved">Resolved</option>
-                    <option value="Dismissed">Dismissed</option>
-                  </select>
+                  />
                 </div>
                 <div className="form-group">
                   <label>Resolution Notes (optional)</label>
