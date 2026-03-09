@@ -2157,9 +2157,9 @@ p {
 .groceries-header h1,
 .worksheet-header h1,
 .approval-header h1 {
-  font-size: 1.25rem;
+  font-size: 1.875rem;
   font-weight: 700;
-  letter-spacing: -.03em
+  letter-spacing: -.04em
 }
 
 .page-header p,
@@ -2199,7 +2199,7 @@ p {
   margin-bottom: 28px;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 20px;
+  padding: 20px 20px 28px 0;
   background: transparent;
   border-radius: var(--r-lg);
   border: none
@@ -3839,7 +3839,9 @@ p {
 }
 
 .task-card {
-  position: relative
+  position: relative;
+  flex: 0 1 calc(25% - 12px);
+  min-width: 250px
 }
 
 .task-header {
@@ -3965,7 +3967,6 @@ p {
 /* Lists */
 .horses-list,
 .employees-list,
-.tasks-list,
 .reports-list,
 .expenses-list,
 .worksheets-list,
@@ -3978,6 +3979,13 @@ p {
   display: flex;
   flex-direction: column;
   gap: 8px
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px
 }
 
 .logs-container {
@@ -4117,8 +4125,8 @@ p {
 }
 
 .summary-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 20px
 }
@@ -5585,7 +5593,7 @@ p {
   .page-header h1,
   .expense-header h1,
   .fine-header h1 {
-    font-size: 1.25rem
+    font-size: 1.5rem
   }
 
   .filters-section,
@@ -5872,7 +5880,7 @@ p {
   .expense-header h1,
   .attendance-header h1,
   .gate-header h1 {
-    font-size: 1.125rem
+    font-size: 1.5rem
   }
 
   .section-header h2 {
@@ -5978,7 +5986,7 @@ p {
   }
 
   .page-header h1 {
-    font-size: 1rem
+    font-size: 1.25rem
   }
 
   .btn,

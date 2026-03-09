@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SearchableSelect from '../components/SearchableSelect';
 import apiClient from '../services/apiClient';
 
 const MyAssignedTasksPage = () => {
@@ -143,18 +144,19 @@ const MyAssignedTasksPage = () => {
       <div className="page-controls" style={{ marginBottom: '20px' }}>
         <div className="filter-group">
           <label>Filter by Status</label>
-          <select 
-            value={filterStatus} 
+          <SearchableSelect
+            value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="status-select"
-          >
-            <option value="All">All Tasks</option>
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Pending Review">Pending Review</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-          </select>
+            options={[
+              { value: 'All', label: 'All Tasks' },
+              { value: 'Pending', label: 'Pending' },
+              { value: 'In Progress', label: 'In Progress' },
+              { value: 'Pending Review', label: 'Pending Review' },
+              { value: 'Approved', label: 'Approved' },
+              { value: 'Rejected', label: 'Rejected' },
+            ]}
+            placeholder="Select status..."
+          />
         </div>
         {/* <span className="task-count">{filteredTasks.length} task(s)</span> */}
       </div>

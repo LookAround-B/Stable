@@ -210,15 +210,17 @@ const GroomWorkSheetPage = () => {
             <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </label>
 
-          <SearchableSelect
-            value={filterGroomId}
-            onChange={(e) => setFilterGroomId(e.target.value)}
-            placeholder="All Grooms"
-            options={[
-              { value: 'all', label: 'All Grooms' },
-              ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))
-            ]}
-          />
+          <div style={{ minWidth: '300px' }}>
+            <SearchableSelect
+              value={filterGroomId}
+              onChange={(e) => setFilterGroomId(e.target.value)}
+              placeholder="All Grooms"
+              options={[
+                { value: 'all', label: 'All Grooms' },
+                ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))
+              ]}
+            />
+          </div>
         </div>
 
         {canCreateWorksheet && (
