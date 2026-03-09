@@ -3088,11 +3088,11 @@ p {
   gap: 0;
   border-bottom: 1px solid var(--border);
   margin-bottom: 16px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch
+  overflow: visible
 }
 
-.tabs button {
+.tabs button,
+.tab-button {
   padding: .625rem 1.125rem;
   background: none;
   color: var(--text-secondary);
@@ -3102,10 +3102,16 @@ p {
   margin-bottom: -1px;
   transition: all var(--t);
   white-space: nowrap;
-  flex-shrink: 0
+  flex-shrink: 0;
+  border: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none !important
 }
 
-.tabs button.active {
+.tabs button.active,
+.tab-button.active {
   color: var(--text);
   border-bottom-color: var(--gray-900)
 }
