@@ -7,7 +7,7 @@ const DailyAttendancePage = () => {
   const { user } = useAuth();
   const [attendance, setAttendance] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -142,10 +142,14 @@ const DailyAttendancePage = () => {
 
   return (
     <div className="daily-attendance-page">
-      <h1>Daily Attendance Register</h1>
-      <p className="role-description">
-        Groomers check in/out with the toggle switch. Track daily attendance and work hours.
-      </p>
+      <div className="page-header">
+        <div>
+          <h1>Daily Attendance Register</h1>
+          <p className="info-text">
+            Groomers check in/out with the toggle switch. Track daily attendance and work hours.
+          </p>
+        </div>
+      </div>
 
       {message && <div className={`message ${message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}
 

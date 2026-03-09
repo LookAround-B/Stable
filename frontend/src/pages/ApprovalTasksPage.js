@@ -129,7 +129,7 @@ const ApprovalTasksPage = () => {
         )}
         {isApproved && (
           <div className="card-footer">
-            <span className="status-badge approved">✓ Approved</span>
+            <span className="status-badge approved">✔ Approved</span>
           </div>
         )}
       </div>

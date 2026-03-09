@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import ConfirmModal from '../components/ConfirmModal';
 import medicineLogService from '../services/medicineLogService';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
@@ -14,6 +15,9 @@ const MedicineLogsPage = () => {
   const [horses, setHorses] = useState([]);
   const [selectedTab, setSelectedTab] = useState('my-logs'); // 'my-logs', 'pending-approval'
   const [selectedLogForDetail, setSelectedLogForDetail] = useState(null);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [formData, setFormData] = useState({
     horseId: '',
@@ -141,18 +145,22 @@ const MedicineLogsPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
-      try {
-        setLoading(true);
-        await medicineLogService.deleteMedicineLog(id);
-        showMessage('Record deleted successfully');
-        loadLogs();
-      } catch (error) {
-        showMessage('Failed to delete record', 'error');
-      } finally {
-        setLoading(false);
-      }
+  const handleDelete = (id) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
+    try {
+      setLoading(true);
+      await medicineLogService.deleteMedicineLog(id);
+      showMessage('Record deleted successfully');
+      loadLogs();
+    } catch (error) {
+      showMessage('Failed to delete record', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -188,7 +196,7 @@ const MedicineLogsPage = () => {
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { bg: '#fff3cd', text: '#856404', label: '⏳ Pending' },
-      approved: { bg: '#d4edda', text: '#155724', label: '✓ Approved' },
+      approved: { bg: '#d4edda', text: '#155724', label: '✔ Approved' },
       rejected: { bg: '#f8d7da', text: '#721c24', label: '✕ Rejected' },
     };
     const config = statusConfig[status] || { bg: '#e2e3e5', text: '#383d41', label: status };
@@ -477,6 +485,16 @@ const MedicineLogsPage = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Delete Record"
+        message="Are you sure you want to delete this record?"
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
 };

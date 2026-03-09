@@ -6,23 +6,21 @@ import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 
+const QUOTES = [
+  "To understand the soul of a horse is the closest human beings can come to knowing perfection.",
+  "Ask me to show you poetry in motion and I will show you a horse.",
+  "A pony is a childhood dream. A horse is an adulthood treasure.",
+  "The history of mankind is carried on the back of a horse."
+];
+
+const getRandomQuote = () => QUOTES[Math.floor(Math.random() * QUOTES.length)];
+
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [quote, setQuote] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const innerContentRef = useRef(null);
-
-  const quotes = [
-    "To understand the soul of a horse is the closest human beings can come to knowing perfection.",
-    "Ask me to show you poetry in motion and I will show you a horse.",
-    "A pony is a childhood dream. A horse is an adulthood treasure.",
-    "The history of mankind is carried on the back of a horse."
-  ];
-
-  const getRandomQuote = () => {
-    return quotes[Math.floor(Math.random() * quotes.length)];
-  };
 
   const handleLogout = () => {
     logout();
@@ -72,6 +70,7 @@ const MainLayout = () => {
           <div className="main-content-inner" ref={innerContentRef}>
             <Outlet />
           </div>
+          <div className="powered-by">Powered by LookAround</div>
         </main>
       </div>
     </div>

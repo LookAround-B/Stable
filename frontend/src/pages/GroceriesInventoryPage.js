@@ -4,6 +4,7 @@ import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
 import Pagination from "../components/Pagination";
+import ConfirmModal from "../components/ConfirmModal";
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const UNIT_OPTIONS = ["g","kg","ml","l","ltr","pcs","units","packets","packs","boxes","bottles","cans","jars","sachets","strips"];
@@ -18,6 +19,9 @@ const GroceriesInventoryPage = () => {
   const [messageType, setMessageType] = useState("success");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -123,8 +127,13 @@ const GroceriesInventoryPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this grocery entry?")) return;
+  const handleDelete = (id) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
     try {
       await groceriesInventoryService.deleteGrocery(id);
       showMsg("Deleted successfully");
@@ -151,28 +160,6 @@ const GroceriesInventoryPage = () => {
     ws["!cols"] = [{ wch: 12 },{ wch: 25 },{ wch: 10 },{ wch: 10 },{ wch: 15 },{ wch: 12 },{ wch: 25 },{ wch: 15 }];
     XLSX.utils.book_append_sheet(wb, ws, "Groceries");
     XLSX.writeFile(wb, `GroceriesInventory_${MONTH_NAMES[selectedMonth-1]}_${selectedYear}.xlsx`);
-  };
-
-  const handleDownloadCSV = () => {
-    if (filteredGroceries.length === 0) { alert("No data to download"); return; }
-    const rows = filteredGroceries.map(g => ({
-      "Date": formatDate(g.purchaseDate || g.createdAt),
-      "Item Name": g.name,
-      "Quantity": g.quantity,
-      "Unit": g.unit,
-      "Price/Unit": g.price || 0,
-      "Total": g.totalPrice || 0,
-      "Description": g.description || "",
-      "Added By": g.createdBy?.fullName || "",
-    }));
-    const headers = Object.keys(rows[0]);
-    const esc = (v) => { const s = String(v ?? ""); return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s; };
-    const csv = "\uFEFF" + [headers.map(esc).join(","), ...rows.map(r => headers.map(h => esc(r[h])).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url;
-    a.download = `GroceriesInventory_${MONTH_NAMES[selectedMonth-1]}_${selectedYear}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   };
 
   const years = [];
@@ -366,6 +353,16 @@ const GroceriesInventoryPage = () => {
           />
         </>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Delete Entry"
+        message="Delete this grocery entry?"
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
 };

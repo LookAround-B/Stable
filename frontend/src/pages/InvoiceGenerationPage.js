@@ -296,7 +296,11 @@ const InvoiceGenerationPage = () => {
 
   return (
     <div className="invoice-generation-page">
-      <h1>Invoice Generation</h1>
+      <div className="page-header">
+        <div>
+          <h1>Invoice Generation</h1>
+        </div>
+      </div>
 
       {message && (
         <div className={`message ${messageType}`}>

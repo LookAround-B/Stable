@@ -170,7 +170,7 @@ const ProfilePage = () => {
               <p className="profile-hero-designation">{user.designation || 'Staff'}</p>
               <div className="profile-hero-meta">
                 <span className={`profile-status-badge ${user.isApproved ? 'approved' : 'pending'}`}>
-                  {user.isApproved ? '✓ Approved' : '⧖ Pending Approval'}
+                  {user.isApproved ? '✔ Approved' : '⧖ Pending Approval'}
                 </span>
               </div>
               {uploadMsg && (

@@ -196,10 +196,12 @@ const GroomWorkSheetPage = () => {
 
   return (
     <div className="groom-worksheet-page">
-      <h1>Groom Work Sheet</h1>
-      <p className="role-description">
-        Track groom activities, horse care hours, and supplies used daily.
-      </p>
+      <div className="page-header">
+        <div>
+          <h1>Groom Work Sheet</h1>
+          <p className="info-text">Track groom activities, horse care hours, and supplies used daily.</p>
+        </div>
+      </div>
 
       {message && <div className={`message ${message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}
 

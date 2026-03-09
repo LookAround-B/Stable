@@ -40,7 +40,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showFeedInventory = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showMedicineInventory = ['Stable Manager', 'Super Admin', 'Director', 'School Administrator', 'Jamedar'].includes(user?.designation);
-  const showGroceriesInventory = ['Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(user?.designation);
+  const showGroceriesInventory = ['Super Admin', 'Director', 'School Administrator', 'Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(user?.designation);
   const showExpenses = ['Senior Executive Accounts', 'Executive Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showFines = true;

@@ -344,7 +344,7 @@ const MedicineLogPage = () => {
                     <span
                       className={`badge ${log.isApproved ? 'approved' : 'pending'}`}
                     >
-                      {log.isApproved ? '✓ Approved' : '⏳ Pending'}
+                      {log.isApproved ? '✔ Approved' : '⏳ Pending'}
                     </span>
                   </td>
                 </tr>

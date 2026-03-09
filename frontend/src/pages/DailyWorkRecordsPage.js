@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import ConfirmModal from '../components/ConfirmModal';
 import * as XLSX from 'xlsx';
 
 // Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)
@@ -27,6 +28,9 @@ const DailyWorkRecordsPage = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const canCreateRecords = CAN_CREATE_RECORDS.includes(user?.designation);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [formData, setFormData] = useState({
     horseId: '',
@@ -187,8 +191,13 @@ const DailyWorkRecordsPage = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) return;
+  const handleDelete = (id) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
 
     try {
       setLoading(true);
@@ -480,6 +489,16 @@ const DailyWorkRecordsPage = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Delete Record"
+        message="Are you sure you want to delete this record?"
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
 };

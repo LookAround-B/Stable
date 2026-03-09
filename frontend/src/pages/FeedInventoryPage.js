@@ -222,7 +222,7 @@ const FeedInventoryPage = () => {
         <div className="inventory-section">
           {/* Month/Year Selector */}
           <div className="filters-section">
-            <div className="filter-group">
+            <div className="filter-group" style={{minWidth: '160px'}}>
               <label>Month</label>
               <SearchableSelect
                 name="month"

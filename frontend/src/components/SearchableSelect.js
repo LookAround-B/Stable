@@ -113,7 +113,7 @@ const SearchableSelect = ({
         <span className={`ss-label ${!selectedLabel ? 'ss-placeholder' : ''}`}>
           {selectedLabel || placeholder}
         </span>
-        <span className="ss-arrow">▼</span>
+        <span className="ss-arrow"></span>
       </button>
 
       {/* Dropdown */}

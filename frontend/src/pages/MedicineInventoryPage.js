@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import ConfirmModal from '../components/ConfirmModal';
 import medicineInventoryService from '../services/medicineInventoryService';
 
 const MEDICINE_LABELS = {
@@ -48,6 +49,9 @@ const MedicineInventoryPage = () => {
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportData, setReportData] = useState(null);
   const [downloadingCSV, setDownloadingCSV] = useState(false);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);
@@ -125,18 +129,22 @@ const MedicineInventoryPage = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
-      try {
-        setLoading(true);
-        await medicineInventoryService.deleteInventory(id);
-        showMessage('Record deleted successfully');
-        loadInventory();
-      } catch (error) {
-        showMessage('Failed to delete record', 'error');
-      } finally {
-        setLoading(false);
-      }
+  const handleDelete = (id) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
+    try {
+      setLoading(true);
+      await medicineInventoryService.deleteInventory(id);
+      showMessage('Record deleted successfully');
+      loadInventory();
+    } catch (error) {
+      showMessage('Failed to delete record', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -490,6 +498,16 @@ const MedicineInventoryPage = () => {
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Delete Record"
+        message="Are you sure you want to delete this record?"
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
 };

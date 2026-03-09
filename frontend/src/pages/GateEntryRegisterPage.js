@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import ConfirmModal from '../components/ConfirmModal';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -24,6 +25,9 @@ const GateEntryRegisterPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -133,8 +137,13 @@ const GateEntryRegisterPage = () => {
     }
   };
 
-  const handleExit = async (entryId) => {
-    if (!window.confirm('Are you sure you want to mark this entry as exited?')) return;
+  const handleExit = (entryId) => {
+    setConfirmModal({ isOpen: true, id: entryId });
+  };
+
+  const confirmExit = async () => {
+    const entryId = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
 
     try {
       await apiClient.post(`/gate-entry/${entryId}/exit`);
@@ -445,6 +454,16 @@ const GateEntryRegisterPage = () => {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmExit}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Confirm Exit"
+        message="Are you sure you want to mark this entry as exited?"
+        confirmText="Confirm"
+        confirmVariant="primary"
+      />
     </div>
   );
 };

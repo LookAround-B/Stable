@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import fineService from '../services/fineService';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import ConfirmModal from '../components/ConfirmModal';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -21,6 +22,9 @@ const FinePage = () => {
   const [employees, setEmployees] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   // Filters
   const [filters, setFilters] = useState({
@@ -317,8 +321,13 @@ const FinePage = () => {
     }
   };
 
-  const handleDeleteFine = async (fineId) => {
-    if (!window.confirm('Are you sure you want to delete this fine?')) return;
+  const handleDeleteFine = (fineId) => {
+    setConfirmModal({ isOpen: true, id: fineId });
+  };
+
+  const confirmDelete = async () => {
+    const fineId = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
 
     try {
       setLoading(true);
@@ -706,6 +715,16 @@ const FinePage = () => {
         </div>,
         document.body
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Delete Fine"
+        message="Are you sure you want to delete this fine?"
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
 };

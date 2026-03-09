@@ -261,7 +261,7 @@ const AttendancePage = () => {
                   <td>{log.notes || '—'}</td>
                   <td>
                     <span className={`badge ${log.isApproved ? 'approved' : 'pending'}`}>
-                      {log.isApproved ? '✓ Approved' : '⏳ Pending'}
+                      {log.isApproved ? '✔ Approved' : '⏳ Pending'}
                     </span>
                   </td>
                 </tr>

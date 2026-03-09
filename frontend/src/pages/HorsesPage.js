@@ -33,7 +33,7 @@ const HorsesPage = () => {
   const horseImgRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
-    gender: 'Male',
+    gender: 'Stallion',
     breed: '',
     color: '',
     dateOfBirth: '',
@@ -198,7 +198,7 @@ const HorsesPage = () => {
     setNewHorseImage(null);
     setFormData({
       name: '',
-      gender: 'Male',
+      gender: 'Stallion',
       breed: '',
       color: '',
       dateOfBirth: '',
@@ -314,8 +314,9 @@ const HorsesPage = () => {
                     onChange={handleInputChange}
                     disabled={loading}
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value="Mare">Mare (Female)</option>
+                    <option value="Stallion">Stallion (Male)</option>
+                    <option value="Gelding">Gelding</option>
                   </select>
                 </div>
 
@@ -484,7 +485,7 @@ const HorsesPage = () => {
                       </div>
                     </td>
                     <td>{horse.stableNumber}</td>
-                    <td>{horse.gender}</td>
+                    <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{horse.gender}</span></td>
                     <td>{horse.breed || ''}</td>
                     <td>{horse.color || ''}</td>
                     <td>{horse.status}</td>
@@ -549,7 +550,7 @@ const HorsesPage = () => {
                     </div>
                   </td>
                   <td>{horse.stableNumber}</td>
-                  <td>{horse.gender}</td>
+                  <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{horse.gender}</span></td>
                   <td>{horse.breed || ''}</td>
                   <td>{horse.color || ''}</td>
                   <td>

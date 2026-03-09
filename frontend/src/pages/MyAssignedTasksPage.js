@@ -235,7 +235,7 @@ const MyAssignedTasksPage = () => {
 
                 {(task.status === 'Pending Review' || task.status === 'Approved' || task.status === 'Rejected') && (
                   <div className="status-info">
-                    {task.status === 'Approved' && <p className="approved">✓ Approved</p>}
+                    {task.status === 'Approved' && <p className="approved">✔ Approved</p>}
                     {task.status === 'Rejected' && <p className="rejected">✗ Rejected</p>}
                     {task.status === 'Pending Review' && <p className="pending">⏳ Awaiting Review</p>}
                   </div>

@@ -24,36 +24,43 @@ const Pagination = ({
     }
   };
 
-  // Generate page numbers (show 5 pages max)
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxPagesToShow = 5;
-    
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      const half = Math.floor(maxPagesToShow / 2);
-      let start = currentPage - half;
-      let end = currentPage + half;
-
-      if (start < 1) {
-        start = 1;
-        end = maxPagesToShow;
-      } else if (end > totalPages) {
-        end = totalPages;
-        start = totalPages - maxPagesToShow + 1;
-      }
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
+  // Generate page items: 1 2 .. [current] .. last
+  const getPageItems = () => {
+    if (totalPages <= 3) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    return pages;
+
+    const items = [];
+
+    // Always show page 1
+    items.push(1);
+
+    // Always show page 2 (if not last)
+    if (totalPages > 2) items.push(2);
+
+    // Ellipsis before current if current is far from start
+    if (currentPage > 3) items.push('...');
+
+    // Show current page if it's not already shown (not 1 or 2 or last)
+    if (currentPage > 2 && currentPage < totalPages) items.push(currentPage);
+
+    // Ellipsis after current if current is far from end
+    if (currentPage < totalPages - 1) items.push('...');
+
+    // Always show last page
+    items.push(totalPages);
+
+    // Remove duplicate page numbers and consecutive ellipsis
+    const seen = new Set();
+    return items.filter((item, i) => {
+      if (item === '...') return items[i - 1] !== '...';
+      if (seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    });
   };
 
-  const pageNumbers = getPageNumbers();
+  const pageItems = getPageItems();
 
   if (totalPages <= 1) return null;
 
@@ -70,19 +77,23 @@ const Pagination = ({
           ‹
         </button>
 
-        {/* Page Numbers */}
+        {/* Page Numbers with ellipsis */}
         <div className="pagination-numbers">
-          {pageNumbers.map((page) => (
-            <button
-              key={page}
-              onClick={() => onPageChange(page)}
-              className={`pagination-page-btn ${currentPage === page ? 'active' : ''}`}
-              aria-label={`Go to page ${page}`}
-              aria-current={currentPage === page ? 'page' : undefined}
-            >
-              {page}
-            </button>
-          ))}
+          {pageItems.map((item, idx) =>
+            item === '...' ? (
+              <span key={`ellipsis-${idx}`} className="pagination-ellipsis">…</span>
+            ) : (
+              <button
+                key={item}
+                onClick={() => onPageChange(item)}
+                className={`pagination-page-btn ${currentPage === item ? 'active' : ''}`}
+                aria-label={`Go to page ${item}`}
+                aria-current={currentPage === item ? 'page' : undefined}
+              >
+                {item}
+              </button>
+            )
+          )}
         </div>
 
         {/* Next Button */}

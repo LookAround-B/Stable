@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import ConfirmModal from '../components/ConfirmModal';
 
 // All 18 roles in the system
 const EMPLOYEE_DESIGNATIONS = [
@@ -61,6 +62,9 @@ const EmployeesPage = () => {
   const empImgRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null, id: null, name: '' });
 
   // Define which roles each designation can see
   // Hierarchy: Supers see all, Middles see peers+superiors+subordinates, Staff see parents+superiors+peers
@@ -299,36 +303,39 @@ const EmployeesPage = () => {
     });
   };
 
-  const handleApproveEmployee = async (employeeId) => {
-    if (!window.confirm('Are you sure you want to approve this employee?')) {
-      return;
-    }
-
-    try {
-      await apiClient.patch(`/employees/${employeeId}/approve`);
-      setMessage('Employee approved successfully!');
-      loadEmployees(); // Reload list
-    } catch (error) {
-      console.error('Error approving employee:', error);
-      setMessage('Error approving employee: ' + (error.response?.data?.error || error.message));
-    }
+  const handleApproveEmployee = (employeeId) => {
+    setConfirmModal({ isOpen: true, type: 'approve', id: employeeId, name: '' });
   };
 
-  const handleDeleteEmployee = async (employeeId, employeeName) => {
-    if (!window.confirm(`Are you sure you want to permanently delete "${employeeName}"? This will remove all their records and cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteEmployee = (employeeId, employeeName) => {
+    setConfirmModal({ isOpen: true, type: 'delete', id: employeeId, name: employeeName });
+  };
 
-    try {
-      setLoading(true);
-      const response = await apiClient.delete(`/employees/${employeeId}`);
-      setMessage(response.data.message || 'Employee deleted successfully!');
-      loadEmployees();
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-      setMessage('Error: ' + (error.response?.data?.error || error.message));
-    } finally {
-      setLoading(false);
+  const confirmAction = async () => {
+    const { type, id } = confirmModal;
+    setConfirmModal({ isOpen: false, type: null, id: null, name: '' });
+
+    if (type === 'approve') {
+      try {
+        await apiClient.patch(`/employees/${id}/approve`);
+        setMessage('Employee approved successfully!');
+        loadEmployees();
+      } catch (error) {
+        console.error('Error approving employee:', error);
+        setMessage('Error approving employee: ' + (error.response?.data?.error || error.message));
+      }
+    } else if (type === 'delete') {
+      try {
+        setLoading(true);
+        const response = await apiClient.delete(`/employees/${id}`);
+        setMessage(response.data.message || 'Employee deleted successfully!');
+        loadEmployees();
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        setMessage('Error: ' + (error.response?.data?.error || error.message));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -540,7 +547,7 @@ const EmployeesPage = () => {
                     </div>
                   </td>
                   <td>{employee.email}</td>
-                  <td>{employee.designation}</td>
+                  <td><span className={`role-badge role-${(employee.designation||'').toLowerCase().replace(/\s+/g, '-')}`}>{employee.designation}</span></td>
                   <td>
                     {employee.supervisor 
                       ? `${employee.supervisor.fullName} (${employee.supervisor.designation})`
@@ -549,7 +556,7 @@ const EmployeesPage = () => {
                   </td>
                   <td>
                     <span className={employee.isApproved ? 'status-approved' : 'status-pending'}>
-                      {employee.isApproved ? '✓ Approved' : '⏳ Pending'}
+                      {employee.isApproved ? '✔ Approved' : '⏳ Pending'}
                     </span>
                   </td>
                   <td>{employee.phoneNumber || 'N/A'}</td>
@@ -600,6 +607,18 @@ const EmployeesPage = () => {
           <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
         </div>
       , document.body)}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmAction}
+        onCancel={() => setConfirmModal({ isOpen: false, type: null, id: null, name: '' })}
+        title={confirmModal.type === 'approve' ? 'Approve Employee' : 'Delete Employee'}
+        message={confirmModal.type === 'approve' 
+          ? 'Are you sure you want to approve this employee?' 
+          : `Are you sure you want to permanently delete "${confirmModal.name}"? This will remove all their records and cannot be undone.`}
+        confirmText={confirmModal.type === 'approve' ? 'Approve' : 'Delete'}
+        confirmVariant={confirmModal.type === 'approve' ? 'primary' : 'danger'}
+      />
     </div>
   );
 };

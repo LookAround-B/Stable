@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import SearchableSelect from '../components/SearchableSelect';
+import ConfirmModal from '../components/ConfirmModal';
 import inspectionService from '../services/inspectionService';
 import * as XLSX from 'xlsx';
 
@@ -15,6 +16,9 @@ const InspectionPage = () => {
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const [message, setMessage] = useState('');
   const [horses, setHorses] = useState([]);
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   // Filters
   const [filters, setFilters] = useState({
@@ -180,8 +184,13 @@ const InspectionPage = () => {
     setFullScreenImage(null);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this inspection?')) return;
+  const handleDelete = (id) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
 
     try {
       setLoading(true);
@@ -891,6 +900,16 @@ const InspectionPage = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
+        title="Delete Inspection"
+        message="Are you sure you want to delete this inspection?"
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
 };
