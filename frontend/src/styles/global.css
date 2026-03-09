@@ -92,7 +92,8 @@
   --shadow-md: 0 4px 16px rgba(0, 0, 0, .09), 0 2px 6px rgba(0, 0, 0, .05);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, .11), 0 4px 12px rgba(0, 0, 0, .06);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, .14), 0 8px 24px rgba(0, 0, 0, .08);
-  --shadow-glass: 0 2px 12px rgba(0, 0, 0, .07), 0 1px 4px rgba(0, 0, 0, .04);
+  --shadow-glass: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
   /* Radii */
   --r-xs: 4px;
@@ -2245,7 +2246,7 @@ p {
   border: 1px solid rgba(255, 255, 255, .65);
   border-radius: var(--r-lg);
   padding: 18px 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, .06), inset 0 1px 0 rgba(255, 255, 255, .85);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all var(--t);
   display: flex;
   flex-direction: column;
@@ -2254,7 +2255,7 @@ p {
 
 .dash-stat-card:hover {
   background: rgba(255, 255, 255, .88);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .09), inset 0 1px 0 rgba(255, 255, 255, .9);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transform: translateY(-1px)
 }
 
@@ -3049,7 +3050,8 @@ p {
 .filter-actions {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap
+  flex-wrap: wrap;
+  align-self: flex-end
 }
 
 .filter-tabs button,
@@ -3305,7 +3307,9 @@ p {
   z-index: 9000;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  animation: fadeIn .18s ease
+  animation: fadeIn .18s ease;
+  padding: 16px;
+  box-sizing: border-box
 }
 
 .modal,
@@ -3313,9 +3317,10 @@ p {
   background: var(--bg-card);
   border-radius: var(--r-xl);
   padding: 28px;
-  max-width: 540px;
-  width: 90%;
-  max-height: 86vh;
+  max-width: 600px;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 32px);
   overflow-y: auto;
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--border);
@@ -4685,7 +4690,8 @@ p {
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: background var(--t)
+  transition: background var(--t);
+  box-shadow: var(--shadow-card)
 }
 
 .profile-horse-card:hover {
@@ -4835,8 +4841,8 @@ p {
   background: var(--bg-card);
   border-radius: var(--r-xl);
   padding: 22px 24px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm)
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-card)
 }
 
 .settings-section h2 {
@@ -5896,14 +5902,15 @@ p {
   .modal,
   .modal-content {
     width: 100%;
-    border-radius: var(--r-lg) var(--r-lg) 0 0;
-    max-height: 92vh;
-    margin-top: auto;
-    padding: 20px 16px
+    border-radius: var(--r-lg);
+    max-height: calc(100vh - 32px);
+    padding: 20px 16px;
+    overflow-y: auto
   }
 
   .modal-overlay {
-    align-items: flex-end
+    align-items: center;
+    padding: 16px
   }
 
   .worksheet-summary {

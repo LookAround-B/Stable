@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import fineService from '../services/fineService';
 import Pagination from '../components/Pagination';
@@ -485,7 +486,7 @@ const FinePage = () => {
           <table className="fines-table">
             <thead>
               <tr>
-                <th>Date</th>
+                <th>Date & Time</th>
                 <th>Issued To</th>
                 <th>Amount</th>
                 <th>Reason</th>
@@ -573,17 +574,18 @@ const FinePage = () => {
       </div>
 
       {/* Full Screen Image Viewer */}
-      {fullScreenImage && (
+      {fullScreenImage && ReactDOM.createPortal(
         <div className="full-screen-image-viewer" onClick={() => setFullScreenImage(null)}>
           <div className="close-button" onClick={() => setFullScreenImage(null)}>
             ✕
           </div>
           <img src={fullScreenImage} alt="Evidence" />
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Fine Details Modal */}
-      {viewingFine && (
+      {viewingFine && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => setViewingFine(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -648,11 +650,12 @@ const FinePage = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Resolve Fine Modal */}
-      {resolvingFine && (
+      {resolvingFine && ReactDOM.createPortal(
         <div className="modal-overlay" onClick={() => setResolvingFine(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -700,7 +703,8 @@ const FinePage = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
