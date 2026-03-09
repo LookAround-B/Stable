@@ -247,7 +247,6 @@ const MedicineInventoryPage = () => {
               options={[2023, 2024, 2025, 2026, 2027].map((year) => ({ value: year.toString(), label: year.toString() }))}
               placeholder="Select year..."
             />
-            </select>
             <button className="btn-primary" onClick={() => !showForm && setShowForm(true)} disabled={loading || showForm}>
               + Add Record
             </button>

@@ -477,8 +477,6 @@ const InspectionPage = () => {
           <form onSubmit={handleSubmit} className="inspection-form">
             <div className="form-group">
               <label htmlFor="round-select">Round *</label>
-            <div className="form-group">
-              <label htmlFor="round-select">Round *</label>
               <SearchableSelect
                 name="round"
                 value={formData.round}
