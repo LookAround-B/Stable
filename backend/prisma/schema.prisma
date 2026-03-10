@@ -65,7 +65,7 @@ model Employee {
   medicineLogsApproved  MedicineLog[] @relation("medicineLogsApproved")
   groceriesInventory    GroceriesInventory[] @relation("groceriesInventory")
   groceriesInventoryCreated GroceriesInventory[] @relation("groceriesInventoryCreated")
-
+  permissions           EmployeePermission?
 
   @@index([designation])
   @@index([department])
@@ -720,4 +720,22 @@ model GroceriesInventory {
   @@index([employeeId])
   @@index([createdAt])
   @@index([purchaseDate])
+}
+
+// Employee Permissions - Granular access control per employee
+model EmployeePermission {
+  id                    String      @id @default(cuid())
+  employeeId            String      @unique
+  employee              Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  viewDashboard         Boolean     @default(false)
+  manageEmployees       Boolean     @default(false)
+  viewReports           Boolean     @default(false)
+  issueFines            Boolean     @default(false)
+  manageInventory       Boolean     @default(false)
+  manageSchedules       Boolean     @default(false)
+  viewPayroll           Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([employeeId])
 }

@@ -36,6 +36,7 @@ import FinePage from './pages/FinePage';
 import ApprovalTasksPage from './pages/ApprovalTasksPage';
 import MyAssignedTasksPage from './pages/MyAssignedTasksPage';
 import MeetingPage from './pages/MeetingPage';
+import PermissionsPage from './pages/PermissionsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -83,6 +84,7 @@ function App() {
             <Route path="/pending-approvals" element={<ApprovalTasksPage />} />
             <Route path="/my-assigned-tasks" element={<MyAssignedTasksPage />} />
             <Route path="/meetings" element={<MeetingPage />} />
+            <Route path="/permissions" element={<PermissionsPage />} />
           </Route>
           
           <Route path="*" element={<NotFoundPage />} />

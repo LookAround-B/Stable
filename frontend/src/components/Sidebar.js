@@ -9,7 +9,7 @@ import {
   Calendar, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
-  Search, AlertTriangle, BarChart3, Settings, LogOut
+  Search, AlertTriangle, BarChart3, Settings, LogOut, Shield
 } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 
@@ -51,6 +51,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
   const showMyAssignedTasks = true;
   const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
+  const showPermissions = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const showHorses = user?.designation !== 'Guard';
 
   // Organize menu items by parent category
@@ -116,6 +117,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       parent: 'System',
       items: [
         { to: '/reports', icon: BarChart3, label: 'Reports', show: true },
+        { to: '/permissions', icon: Shield, label: 'Permissions', show: showPermissions },
         { to: '/settings', icon: Settings, label: 'Settings', show: true },
       ],
     },
