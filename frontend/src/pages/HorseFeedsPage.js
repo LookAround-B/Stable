@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const HorseFeedsPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -189,7 +191,7 @@ const HorseFeedsPage = () => {
   return user?.designation === 'Guard' ? (
     <div className="horse-feeds-page">
       <div className="access-denied">
-        <h2>✖ Access Denied</h2>
+        <h2>✖ {t('Access Denied')}</h2>
         <p>You do not have permission to access horse feed data.</p>
         <button onClick={() => navigate('/')} className="btn-back">
           Go to Dashboard
@@ -199,7 +201,7 @@ const HorseFeedsPage = () => {
   ) : (
     <div className="page-container">
       <div className="page-header">
-        <h1>Horse Feeds</h1>
+        <h1>{t('Horse Feeds')}</h1>
         <p>Record daily feed consumption for horses</p>
       </div>
 
@@ -243,7 +245,7 @@ const HorseFeedsPage = () => {
       {showForm && (
         <div className="form-section">
           <div className="form-card">
-            <h2>New Feed Record</h2>
+            <h2>{t('New Feed Record')}</h2>
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">

@@ -444,6 +444,53 @@ p {
   color: #fff;
 }
 
+/* ── Language Dropdown ────────────────────────────────────────── */
+.lang-dropdown {
+  min-width: 120px;
+  z-index: 100;
+}
+
+.lang-dropdown .ss-trigger.lang-trigger {
+  padding: .375rem .65rem;
+  height: 32px;
+  font-size: .8125rem;
+  gap: 6px;
+}
+
+.lang-trigger-icon {
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.lang-trigger-label {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lang-dropdown .ss-dropdown.lang-dropdown-menu {
+  min-width: 120px;
+}
+
+.lang-dropdown--compact {
+  min-width: 100px;
+}
+
+.lang-dropdown--compact .ss-trigger.lang-trigger {
+  padding: .25rem .5rem;
+  height: 28px;
+  font-size: .75rem;
+}
+
+/* Mobile nav right slot */
+.nav-right-mobile {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+/* ────────────────────────────────────────────────────────────── */
+
 .main-content-inner {
   flex: 1;
   overflow-y: auto;

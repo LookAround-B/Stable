@@ -5,6 +5,7 @@ import fineService from '../services/fineService';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import { useI18n } from '../context/I18nContext';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -12,6 +13,7 @@ const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'St
 
 const FinePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [fines, setFines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -371,7 +373,7 @@ const FinePage = () => {
   return (
     <div className="fine-page">
       <div className="fine-header">
-        <h1>Fine System</h1>
+        <h1>{t('Fine System')}</h1>
         {canIssueFines && (
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
             {showForm ? '✕ Cancel' : '+ Issue Fine'}
@@ -384,7 +386,7 @@ const FinePage = () => {
       {/* Issue Fine Form */}
       {canIssueFines && showForm && (
         <div className="fine-form-section">
-          <h2>Issue New Fine</h2>
+          <h2>{t('Issue New Fine')}</h2>
           <form onSubmit={handleSubmitForm}>
             <div className="form-group">
               <label>Employee</label>
@@ -598,7 +600,7 @@ const FinePage = () => {
         <div className="modal-overlay" onClick={() => setViewingFine(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Fine Details</h2>
+              <h2>{t('Fine Details')}</h2>
               <button className="btn-close" onClick={() => setViewingFine(null)}>
                 ✕
               </button>
@@ -668,7 +670,7 @@ const FinePage = () => {
         <div className="modal-overlay" onClick={() => setResolvingFine(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Resolve Fine</h2>
+              <h2>{t('Resolve Fine')}</h2>
               <button className="btn-close" onClick={() => setResolvingFine(null)}>
                 ✕
               </button>

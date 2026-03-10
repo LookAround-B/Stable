@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import apiClient from '../services/apiClient'
+import { useI18n } from '../context/I18nContext'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const STATUS_COLORS = {
@@ -11,6 +12,7 @@ const STATUS_COLORS = {
 
 const MeetingPage = () => {
   const { user } = useAuth()
+  const { t } = useI18n()
   const [meetings, setMeetings] = useState([])
   const [employees, setEmployees] = useState([])
   const [selectedMeeting, setSelectedMeeting] = useState(null)
@@ -203,7 +205,7 @@ const MeetingPage = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Meetings</h1>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>{t('Meetings')}</h1>
           <p style={{ margin: '4px 0 0', opacity: 0.55, fontSize: '0.875rem' }}>Schedule and track team meetings</p>
         </div>
         {canCreateMeeting && (
@@ -455,7 +457,7 @@ const MeetingPage = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowCreateForm(false)}>
           <div style={{ background: '#f5f5f0', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', color: '#111' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>New Meeting</h2>
+              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>{t('New Meeting')}</h2>
               <button onClick={() => setShowCreateForm(false)} style={{ background: 'rgba(0,0,0,0.08)', border: 'none', color: '#111', cursor: 'pointer', borderRadius: '8px', padding: '6px 12px' }}>&#10005;</button>
             </div>
             <form onSubmit={handleCreateMeeting} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

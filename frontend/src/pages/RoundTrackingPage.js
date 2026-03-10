@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import roundCheckService from '../services/roundCheckService';
+import { useI18n } from '../context/I18nContext';
 
 const RoundTrackingPage = () => {
+  const { t } = useI18n();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [roundChecks, setRoundChecks] = useState([]);
   const [missingJamedars, setMissingJamedars] = useState([]);
@@ -61,7 +63,7 @@ const RoundTrackingPage = () => {
   return (
     <div className="round-tracking-page">
       <div className="tracking-header">
-        <h1>Jamedar Round Tracking</h1>
+        <h1>{t('Jamedar Round Tracking')}</h1>
         <p className="subtitle">Monitor all Jamedars' daily round completions</p>
       </div>
 

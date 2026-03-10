@@ -4,9 +4,11 @@ import ConfirmModal from '../components/ConfirmModal';
 import medicineLogService from '../services/medicineLogService';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const MedicineLogsPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
@@ -229,7 +231,7 @@ const MedicineLogsPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>Medicine Logs</h1>
+        <h1>{t('Medicine Logs')}</h1>
         <p>Track medicine administration and approvals</p>
       </div>
 

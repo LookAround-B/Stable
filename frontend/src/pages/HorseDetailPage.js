@@ -1,10 +1,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 
 const HorseDetailPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   // Guards cannot access horse data
@@ -12,7 +14,7 @@ const HorseDetailPage = () => {
     return (
       <div className="horse-detail-page">
         <div className="access-denied">
-          <h2>❌ Access Denied</h2>
+          <h2>❌ {t('Access Denied')}</h2>
           <p>You do not have permission to access horse details.</p>
           <button onClick={() => navigate('/')} className="btn-back">
             Go to Dashboard
@@ -24,7 +26,7 @@ const HorseDetailPage = () => {
 
   return (
     <div className="horse-detail-page">
-      <h1>Horse Details</h1>
+      <h1>{t('Horse Details')}</h1>
       <p>Loading horse details for ID: {id}</p>
     </div>
   );

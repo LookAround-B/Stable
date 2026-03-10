@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const TASK_TYPES = [
   'Feed',
@@ -44,6 +45,7 @@ const getRoleTaskDescription = (role) => {
 
 const TasksPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [tasks, setTasks] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -439,7 +441,7 @@ const TasksPage = () => {
     <div className="tasks-page">
       <div className="page-header">
         <div>
-          <h1>Tasks Management</h1>
+          <h1>{t('Tasks Management')}</h1>
           <p className="role-description">{getRoleTaskDescription(user?.designation)}</p>
         </div>
         {canCreateTasks && (
@@ -460,7 +462,7 @@ const TasksPage = () => {
 
       {canCreateTasks && showCreateForm && (
         <div className="task-create-form">
-          <h2>Create New Task</h2>
+          <h2>{t('Create New Task')}</h2>
           <form onSubmit={handleCreateTask}>
             <div className="form-group">
               <label>Task Name *</label>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import SearchableSelect from '../components/SearchableSelect';
 import apiClient from '../services/apiClient';
+import { useI18n } from '../context/I18nContext';
 
 const MyAssignedTasksPage = () => {
+  const { t } = useI18n();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -124,7 +126,7 @@ const MyAssignedTasksPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>My Assigned Tasks</h1>
+        <h1>{t('My Assigned Tasks')}</h1>
         <p>Complete and submit your assigned tasks with evidence</p>
       </div>
 
@@ -250,7 +252,7 @@ const MyAssignedTasksPage = () => {
         <div className="modal-overlay" onClick={() => setSelectedTaskId(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Submit Task Completion</h2>
+              <h2>{t('Submit Task Completion')}</h2>
               <button className="close-btn" onClick={() => setSelectedTaskId(null)}>✕</button>
             </div>
 

@@ -5,6 +5,7 @@ import { logout } from '../services/authService';
 import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const QUOTES = [
   "To understand the soul of a horse is the closest human beings can come to knowing perfection.",
@@ -21,6 +22,7 @@ const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const innerContentRef = useRef(null);
+
 
   const handleLogout = () => {
     logout();
@@ -61,6 +63,7 @@ const MainLayout = () => {
               <span className="nav-quote">"{quote}"</span>
             </div>
             <div className="main-header-right">
+              <LanguageSwitcher />
               <SearchBar />
               <button className="logout-btn" onClick={handleLogout}>
                 Logout <LogOut size={16} />

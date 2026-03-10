@@ -4,6 +4,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
 import { RotateCw } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance',
@@ -24,6 +25,7 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 
 const FeedInventoryPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -187,7 +189,7 @@ const FeedInventoryPage = () => {
   if (!isAuthorized) {
     return (
       <div className="feed-inventory-page">
-        <h1>Feed Inventory</h1>
+        <h1>{t('Feed Inventory')}</h1>
         <p>You do not have permission to view this page.</p>
       </div>
     );
@@ -196,7 +198,7 @@ const FeedInventoryPage = () => {
   return (
     <div className="feed-inventory-page">
       <div className="inventory-header">
-        <h1>Feed Inventory Management</h1>
+        <h1>{t('Feed Inventory Management')}</h1>
       </div>
 
       {message && <div className={`message ${messageType}`}>{message}</div>}

@@ -4,6 +4,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import medicineInventoryService from '../services/medicineInventoryService';
+import { useI18n } from '../context/I18nContext';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -21,6 +22,7 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 
 const MedicineInventoryPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -215,7 +217,7 @@ const MedicineInventoryPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>Medicine Inventory</h1>
+        <h1>{t('Medicine Inventory')}</h1>
         <p>Manage and track medicine stock levels</p>
       </div>
 

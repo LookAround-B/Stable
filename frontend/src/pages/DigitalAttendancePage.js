@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import { useI18n } from '../context/I18nContext';
 
 const DigitalAttendancePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -111,7 +113,7 @@ const DigitalAttendancePage = () => {
   return (
     <div className="digital-attendance-container">
       <div className="attendance-header">
-        <h2>Digital Attendance</h2>
+        <h2>{t('Digital Attendance')}</h2>
         <p className="subtitle">Manual attendance logging for {user?.fullName || 'Staff'}</p>
       </div>
 

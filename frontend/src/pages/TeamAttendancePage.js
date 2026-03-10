@@ -3,8 +3,10 @@ import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
+import { useI18n } from '../context/I18nContext';
 
 const TeamAttendancePage = () => {
+  const { t } = useI18n();
   const [teamMembers, setTeamMembers] = useState([]);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -222,7 +224,7 @@ const TeamAttendancePage = () => {
   return (
     <div className="team-attendance-container">
       <div className="attendance-header">
-        <h2>Mark Team Attendance</h2>
+        <h2>{t('Mark Team Attendance')}</h2>
         <p className="subtitle">Mark attendance for team members</p>
       </div>
 

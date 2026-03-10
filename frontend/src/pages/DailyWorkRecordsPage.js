@@ -4,6 +4,7 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import * as XLSX from 'xlsx';
+import { useI18n } from '../context/I18nContext';
 
 // Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)
 const getTodayString = () => {
@@ -18,6 +19,7 @@ const CAN_CREATE_RECORDS = ['Instructor'];
 
 const DailyWorkRecordsPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -276,7 +278,7 @@ const DailyWorkRecordsPage = () => {
 
   return (
     <div className="daily-work-records-page">
-      <h1>Daily Work Records (EIRS)</h1>
+      <h1>{t('Daily Work Records (EIRS)')}</h1>
 
       {message && (
         <div className={`message ${messageType}`}>
@@ -320,7 +322,7 @@ const DailyWorkRecordsPage = () => {
       {showForm && canCreateRecords && (
         <div className="form-container">
           <div className="form-card">
-            <h2>{editingId ? 'Edit Work Record' : 'New Work Record'}</h2>
+            <h2>{editingId ? t('Edit Work Record') : t('New Work Record')}</h2>
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">

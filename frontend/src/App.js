@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
+import { I18nProvider } from './context/I18nContext';
 import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
@@ -43,6 +44,7 @@ function App() {
   const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '123456789.apps.googleusercontent.com';
 
   return (
+    <I18nProvider>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <Router>
@@ -88,6 +90,7 @@ function App() {
       </Router>
     </AuthProvider>
     </GoogleOAuthProvider>
+    </I18nProvider>
   );
 }
 export default App;

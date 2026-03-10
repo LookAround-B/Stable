@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
+import { useI18n } from '../context/I18nContext';
 
 const DailyAttendancePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [attendance, setAttendance] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [, setLoading] = useState(false);
@@ -144,7 +146,7 @@ const DailyAttendancePage = () => {
     <div className="daily-attendance-page">
       <div className="page-header">
         <div>
-          <h1>Daily Attendance Register</h1>
+          <h1>{t('Daily Attendance Register')}</h1>
           <p className="info-text">
             Groomers check in/out with the toggle switch. Track daily attendance and work hours.
           </p>

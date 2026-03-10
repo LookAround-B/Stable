@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
+import { useI18n } from '../context/I18nContext';
 import {
   LayoutDashboard, CheckSquare, ClipboardList, ShieldCheck,
   Calendar, Users, UserCheck, FileText,
@@ -16,6 +17,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const handleScroll = (e) => {
     setIsScrolled(e.target.scrollTop > 0);
@@ -131,7 +133,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} />
             )}
           </span>
-          <span className="menu-label">{label}</span>
+          <span className="menu-label">{t(label)}</span>
         </Link>
       </li>
     );
@@ -156,7 +158,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               {/* Section header (if parent exists) */}
               {section.parent && (
                 <li className="menu-section">
-                  <span className="section-title">{section.parent}</span>
+                  <span className="section-title">{t(section.parent)}</span>
                 </li>
               )}
 
@@ -193,7 +195,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       {/* Logout — visible on mobile only */}
       <button className="sidebar-logout-btn" onClick={handleLogout}>
         <LogOut size={16} strokeWidth={2} />
-        Logout
+        {t('Logout')}
       </button>
     </aside>
   );

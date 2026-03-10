@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
+import { useI18n } from '../context/I18nContext';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showStaffForm, setShowStaffForm] = useState(false);
@@ -269,7 +271,7 @@ const GateAttendancePage = () => {
   if (user?.designation !== 'Guard') {
     return (
       <div className="gate-page">
-        <h1>Access Denied</h1>
+        <h1>{t('Access Denied')}</h1>
         <p>Only Guards can access the Gate Attendance page.</p>
       </div>
     );
@@ -277,7 +279,7 @@ const GateAttendancePage = () => {
 
   return (
     <div className="gate-page">
-      <h1>Gate Attendance & Visitor Log</h1>
+      <h1>{t('Gate Attendance & Visitor Log')}</h1>
       <p className="subtitle">Log staff entry/exit and visitor visits</p>
 
       <div className="tab-buttons">

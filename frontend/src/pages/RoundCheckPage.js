@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import roundCheckService from '../services/roundCheckService';
+import { useI18n } from '../context/I18nContext';
 
 const RoundCheckPage = () => {
+  const { t } = useI18n();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [roundCheck, setRoundCheck] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +78,7 @@ const RoundCheckPage = () => {
   return (
     <div className="round-check-page">
       <div className="round-check-header">
-        <h1>My Daily Rounds</h1>
+        <h1>{t('My Daily Rounds')}</h1>
         <p className="subtitle">Mark which rounds you have completed today</p>
       </div>
 

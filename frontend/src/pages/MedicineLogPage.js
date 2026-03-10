@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const MedicineLogPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -128,7 +130,7 @@ const MedicineLogPage = () => {
   if (user?.designation !== 'Jamedar') {
     return (
       <div className="medicine-page">
-        <h1>Access Denied</h1>
+        <h1>{t('Access Denied')}</h1>
         <p>Only Jamedar can access the Medicine Log page.</p>
       </div>
     );
@@ -136,7 +138,7 @@ const MedicineLogPage = () => {
 
   return (
     <div className="medicine-page">
-      <h1>Medicine Administration Log</h1>
+      <h1>{t('Medicine Administration Log')}</h1>
       <p className="subtitle">
         Track all medicine administered to horses
       </p>
@@ -299,7 +301,7 @@ const MedicineLogPage = () => {
 
       {/* Medicine Logs Table */}
       <div className="logs-container">
-        <h2>Medicine Administration Records</h2>
+        <h2>{t('Medicine Administration Records')}</h2>
         {filteredLogs.length === 0 ? (
           <p className="no-data">No medicine logs found</p>
         ) : (
@@ -356,7 +358,7 @@ const MedicineLogPage = () => {
 
       {/* Stock Alert Section */}
       <div className="alerts-container">
-        <h2>Stock Alerts</h2>
+        <h2>{t('Stock Alerts')}</h2>
         <div className="alert-info">
           <p>
             Medicine logs with stock levels below 20 units will show alerts here.

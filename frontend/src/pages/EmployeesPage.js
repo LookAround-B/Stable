@@ -6,6 +6,7 @@ import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import { useI18n } from '../context/I18nContext';
 
 // All 18 roles in the system
 const EMPLOYEE_DESIGNATIONS = [
@@ -42,6 +43,7 @@ const SUPERVISORY_ROLES = [
 
 const EmployeesPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [employees, setEmployees] = useState([]);
@@ -356,7 +358,7 @@ const EmployeesPage = () => {
     <div className="employees-page">
       <div className="page-header">
         <div>
-          <h1>Team Members</h1>
+          <h1>{t('Team Members')}</h1>
           <p className="info-text">
             {canAddEmployee 
               ? 'You can add new employees to the system' 
@@ -378,7 +380,7 @@ const EmployeesPage = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>Add New Employee</h2>
+              <h2>{t('Add New Employee')}</h2>
               <button className="close-btn" onClick={closeModal}>✕</button>
             </div>
 
@@ -501,7 +503,7 @@ const EmployeesPage = () => {
       , document.body)}
 
       <div className="employees-list">
-        <h2>All Employees</h2>
+        <h2>{t('All Employees')}</h2>
         <div className="search-bar">
           <input
             type="text"

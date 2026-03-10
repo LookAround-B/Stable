@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
+import { useI18n } from '../context/I18nContext';
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -232,7 +234,7 @@ const InvoiceGenerationPage = () => {
         </style>
       </head>
       <body>
-        <h1>EIRS Invoice</h1>
+        <h1>{t('EIRS Invoice')}</h1>
         
         <div class="header-info">
           <p><strong>Instructor:</strong> ${invoiceData.instructor.fullName}</p>
@@ -241,7 +243,7 @@ const InvoiceGenerationPage = () => {
           <p><strong>Generated:</strong> ${new Date(invoiceData.generatedDate).toLocaleString()}</p>
         </div>
 
-        <h2>Work Sessions</h2>
+        <h2>{t('Work Sessions')}</h2>
         <table>
           <thead>
             <tr>
@@ -258,7 +260,7 @@ const InvoiceGenerationPage = () => {
           </tbody>
         </table>
 
-        <h2>Summary by Work Type</h2>
+        <h2>{t('Summary by Work Type')}</h2>
         <table>
           <thead>
             <tr>
@@ -298,7 +300,7 @@ const InvoiceGenerationPage = () => {
     <div className="invoice-generation-page">
       <div className="page-header">
         <div>
-          <h1>Invoice Generation</h1>
+          <h1>{t('Invoice Generation')}</h1>
         </div>
       </div>
 

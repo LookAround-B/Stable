@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [worksheets, setWorksheets] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -198,7 +200,7 @@ const GroomWorkSheetPage = () => {
     <div className="groom-worksheet-page">
       <div className="page-header">
         <div>
-          <h1>Groom Work Sheet</h1>
+          <h1>{t('Groom Work Sheet')}</h1>
           <p className="info-text">Track groom activities, horse care hours, and supplies used daily.</p>
         </div>
       </div>

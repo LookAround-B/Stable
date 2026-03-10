@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import { useI18n } from '../context/I18nContext';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [entries, setEntries] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [visitorsList, setVisitorsList] = useState([]);
@@ -182,7 +184,7 @@ const GateEntryRegisterPage = () => {
   return (
     <div className="gate-entry-container">
       <div className="gate-header">
-        <h2>Gate Entry/Exit Register</h2>
+        <h2>{t('Gate Entry/Exit Register')}</h2>
         <p className="subtitle">Recorded by Guard: {user?.fullName || 'Guard'}</p>
       </div>
 

@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',
@@ -18,6 +19,7 @@ const SUPERVISORY_ROLES = [
 
 const HorsesPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const [showModal, setShowModal] = useState(false);
@@ -237,7 +239,7 @@ const HorsesPage = () => {
   return user?.designation === 'Guard' ? (
     <div className="horses-page">
       <div className="access-denied">
-        <h2>Access Denied</h2>
+        <h2>{t('Access Denied')}</h2>
         <p>You do not have permission to access horse data.</p>
         <button onClick={() => navigate('/')} className="btn-back">
           Go to Dashboard
@@ -248,7 +250,7 @@ const HorsesPage = () => {
     <div className="horses-page">
       <div className="page-header">
         <div>
-          <h1>Horses</h1>
+          <h1>{t('Horses')}</h1>
           <p className="info-text">
             {canAddHorse 
               ? 'You can add new horses to the system' 
@@ -270,7 +272,7 @@ const HorsesPage = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>Add New Horse</h2>
+              <h2>{t('Add New Horse')}</h2>
               <button className="close-btn" onClick={closeModal}>✕</button>
             </div>
 
@@ -439,7 +441,7 @@ const HorsesPage = () => {
       {/* My Horses Section - Only for staff roles, not admin/supervisory */}
       {!SUPERVISORY_ROLES.includes(user?.designation) && (
         <div className="team-section">
-          <h2>Horses Under My Care</h2>
+          <h2>{t('Horses Under My Care')}</h2>
           <div className="search-bar">
             <input
               type="text"
@@ -499,7 +501,7 @@ const HorsesPage = () => {
       )}
 
       <div className="horses-list">
-        <h2>All Horses</h2>
+        <h2>{t('All Horses')}</h2>
         <div className="search-bar">
           <input
             type="text"

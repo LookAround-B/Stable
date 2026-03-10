@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { useI18n } from '../context/I18nContext';
 
 const AttendancePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -113,7 +115,7 @@ const AttendancePage = () => {
 
   return (
     <div className="attendance-page">
-      <h1>Attendance Management</h1>
+      <h1>{t('Attendance Management')}</h1>
       <p className="subtitle">
         {isManager 
           ? 'Manage your team attendance' 
@@ -230,7 +232,7 @@ const AttendancePage = () => {
 
       {/* Attendance Logs Table */}
       <div className="logs-container">
-        <h2>Recent Attendance</h2>
+        <h2>{t('Recent Attendance')}</h2>
         {attendanceLogs.length === 0 ? (
           <p className="no-data">No attendance logs found</p>
         ) : (

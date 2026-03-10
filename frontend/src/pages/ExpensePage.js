@@ -5,9 +5,11 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import * as XLSX from 'xlsx';
+import { useI18n } from '../context/I18nContext';
 
 const ExpensePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -517,7 +519,7 @@ const ExpensePage = () => {
   return (
     <div className="expense-page">
       <div className="expense-header">
-        <h1>Expense Tracking</h1>
+        <h1>{t('Expense Tracking')}</h1>
         {isAccountsUser && (
           <button
             className="btn-primary"
@@ -601,7 +603,7 @@ const ExpensePage = () => {
       {/* Form */}
       {showForm && isAccountsUser && (
         <div className="expense-form-section">
-          <h2>{editingExpense ? 'Edit Expense' : 'New Expense'}</h2>
+          <h2>{editingExpense ? t('Edit Expense') : t('New Expense')}</h2>
           <form onSubmit={handleSubmit} className="expense-form">
             <div className="form-group">
               <label htmlFor="type-select">Expense Type *</label>

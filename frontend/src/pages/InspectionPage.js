@@ -4,9 +4,11 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import inspectionService from '../services/inspectionService';
 import * as XLSX from 'xlsx';
+import { useI18n } from '../context/I18nContext';
 
 const InspectionPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -410,7 +412,7 @@ const InspectionPage = () => {
   return (
     <div className="inspection-page">
       <div className="inspection-header">
-        <h1>Jamedar Inspection Rounds</h1>
+        <h1>{t('Jamedar Inspection Rounds')}</h1>
         {isJamedar && (
           <button 
             className="btn-primary"
@@ -482,7 +484,7 @@ const InspectionPage = () => {
       {/* Form */}
       {showForm && isJamedar && (
         <div className="inspection-form-section">
-          <h2>{editingInspection ? 'Edit Inspection' : 'Report Issue'}</h2>
+          <h2>{editingInspection ? t('Edit Inspection') : t('Report Issue')}</h2>
           <form onSubmit={handleSubmit} className="inspection-form">
             <div className="form-group">
               <label htmlFor="round-select">Round *</label>
@@ -710,7 +712,7 @@ const InspectionPage = () => {
         <div className="modal-overlay" onClick={closeViewModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Inspection Details</h2>
+              <h2>{t('Inspection Details')}</h2>
               <button className="modal-close" onClick={closeViewModal}>✕</button>
             </div>
 
@@ -855,7 +857,7 @@ const InspectionPage = () => {
         <div className="modal-overlay" onClick={() => setResolvingInspection(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Resolve Inspection</h2>
+              <h2>{t('Resolve Inspection')}</h2>
               <button className="modal-close" onClick={() => setResolvingInspection(null)}>✕</button>
             </div>
 
