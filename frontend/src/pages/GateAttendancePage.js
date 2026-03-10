@@ -334,7 +334,7 @@ const GateAttendancePage = () => {
                     disabled={loading}
                     options={[
                       { value: '', label: '-- Select Employee --' },
-                      ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                      ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
                     ]}
                   />
                 </div>

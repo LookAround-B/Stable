@@ -146,7 +146,7 @@ const AttendancePage = () => {
                   disabled={loading}
                   options={[
                     { value: '', label: '-- Select Employee --' },
-                    ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                    ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
                   ]}
                 />
               </div>
@@ -254,7 +254,7 @@ const AttendancePage = () => {
                   <td>
                     <strong>{log.employee.fullName}</strong>
                     <br />
-                    <small>{log.employee.designation}</small>
+                    <small>{t(log.employee.designation)}</small>
                   </td>
                   <td>{new Date(log.date).toLocaleDateString('en-IN')}</td>
                   <td>{formatTime(log.timeIn)}</td>

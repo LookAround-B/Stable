@@ -174,7 +174,7 @@ const MyAssignedTasksPage = () => {
           {filteredTasks.map((task) => (
             <div key={task.id} className="task-card">
               <div className="card-status" style={{ backgroundColor: getStatusColor(task.status), padding: '4px 12px', borderRadius: '20px', color: '#fff', fontSize: '0.78rem', fontWeight: 600, display: 'inline-block', marginBottom: '8px' }}>
-                {task.status}
+                {t(task.status)}
               </div>
 
               <div className="card-content">

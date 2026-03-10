@@ -398,7 +398,7 @@ const FinePage = () => {
                 required
                 options={[
                   { value: '', label: 'Select Employee' },
-                  ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                  ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
                 ]}
               />
             </div>
@@ -518,7 +518,7 @@ const FinePage = () => {
                       className="status-badge"
                       style={{ backgroundColor: getStatusColor(fine.status) }}
                     >
-                      {fine.status}
+                      {t(fine.status)}
                     </span>
                   </td>
                   <td>
@@ -633,7 +633,7 @@ const FinePage = () => {
                     className="status-badge"
                     style={{ backgroundColor: getStatusColor(viewingFine.status) }}
                   >
-                    {viewingFine.status}
+                    {t(viewingFine.status)}
                   </span>
                 </p>
               </div>

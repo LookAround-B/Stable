@@ -36,11 +36,11 @@ const CAN_REVIEW_TASKS = [
   'Jamedar'
 ];
 
-const getRoleTaskDescription = (role) => {
+const getRoleTaskDescription = (role, t) => {
   if (CAN_CREATE_TASKS.includes(role)) {
-    return `Create and manage tasks - You can assign tasks to team members`;
+    return t('Create and manage tasks - You can assign tasks to team members');
   }
-  return `View and complete your assigned tasks`;
+  return t('View and complete your assigned tasks');
 };
 
 const TasksPage = () => {
@@ -442,7 +442,7 @@ const TasksPage = () => {
       <div className="page-header">
         <div>
           <h1>{t('Tasks Management')}</h1>
-          <p className="role-description">{getRoleTaskDescription(user?.designation)}</p>
+          <p className="role-description">{getRoleTaskDescription(user?.designation, t)}</p>
         </div>
         {canCreateTasks && (
           <button 
@@ -587,16 +587,16 @@ const TasksPage = () => {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           options={[
-            { value: 'All', label: 'All Tasks' },
-            { value: 'Pending', label: 'Pending' },
-            { value: 'In Progress', label: 'In Progress' },
-            { value: 'Completed', label: 'Completed' },
+            { value: 'All', label: t('All Tasks') },
+            { value: 'Pending', label: t('Pending') },
+            { value: 'In Progress', label: t('In Progress') },
+            { value: 'Completed', label: t('Completed') },
           ]}
-          placeholder="Filter by status..."
+          placeholder={t('Filter by status...')}
         />
         <input
           type="text"
-          placeholder="Search tasks by name, type, status..."
+          placeholder={t('Search tasks by name, type, status...')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
@@ -605,7 +605,7 @@ const TasksPage = () => {
 
       <div className="tasks-list">
         {filteredTasks.length === 0 ? (
-          <p className="no-tasks">No tasks found</p>
+          <p className="no-tasks">{t('No tasks found')}</p>
         ) : (
           filteredTasks.map((task) => (
             <div key={task.id} className="task-card">
@@ -628,7 +628,7 @@ const TasksPage = () => {
                     className="status-badge"
                     style={{ backgroundColor: getStatusColor(task.status) }}
                   >
-                    {task.status}
+                    {t(task.status)}
                   </span>
                 </p>
                 {task.description && <p><strong>Details:</strong> {task.description}</p>}
@@ -795,7 +795,7 @@ const TasksPage = () => {
                               className="status-badge"
                               style={{ backgroundColor: getStatusColor(task.status) }}
                             >
-                              {task.status}
+                              {t(task.status)}
                             </span>
                           </p>
                         </div>

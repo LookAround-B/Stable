@@ -244,7 +244,7 @@ const DigitalAttendancePage = () => {
                       <td>{new Date(record.date).toLocaleDateString()}</td>
                       <td>
                         <span className={`status-badge ${getStatusBadgeClass(record.status)}`}>
-                          {record.status}
+                          {t(record.status)}
                         </span>
                       </td>
                       <td>{record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString() : '-'}</td>

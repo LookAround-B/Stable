@@ -1,6 +1,5 @@
 import React from 'react';
 import SearchBar from './SearchBar';
-import LanguageSwitcher from './LanguageSwitcher';
 
 const Navigation = ({ onToggleSidebar, sidebarOpen, quote }) => {
   return (
@@ -18,9 +17,6 @@ const Navigation = ({ onToggleSidebar, sidebarOpen, quote }) => {
       </div>
       <div className="nav-center-mobile">
         <SearchBar />
-      </div>
-      <div className="nav-right-mobile">
-        <LanguageSwitcher compact />
       </div>
       <div className="nav-quote-mobile">
         &ldquo;{quote}&rdquo;

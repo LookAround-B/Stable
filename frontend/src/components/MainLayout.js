@@ -6,6 +6,7 @@ import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useI18n } from '../context/I18nContext';
 
 const QUOTES = [
   "To understand the soul of a horse is the closest human beings can come to knowing perfection.",
@@ -22,6 +23,7 @@ const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const innerContentRef = useRef(null);
+  const { t } = useI18n();
 
 
   const handleLogout = () => {
@@ -66,14 +68,14 @@ const MainLayout = () => {
               <LanguageSwitcher />
               <SearchBar />
               <button className="logout-btn" onClick={handleLogout}>
-                Logout <LogOut size={16} />
+                {t('Logout')} <LogOut size={16} />
               </button>
             </div>
           </header>
           <div className="main-content-inner" ref={innerContentRef}>
             <Outlet />
           </div>
-          <div className="powered-by">Powered by LookAround</div>
+          <div className="powered-by">{t('Powered by LookAround')}</div>
         </main>
       </div>
     </div>

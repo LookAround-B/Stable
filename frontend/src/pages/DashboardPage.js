@@ -37,14 +37,15 @@ const StatCard = ({ icon: Icon, label, value, sub, accent, to }) => {
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [taskStats, setTaskStats] = useState({ pending: 0, completed: 0, total: 0 });
   const [horsesCount, setHorsesCount] = useState(0);
   const [employeesCount, setEmployeesCount] = useState(0);
   const [auditLogsCount, setAuditLogsCount] = useState(0);
   const [approvalsCount, setApprovalsCount] = useState(0);
 
-  const today = new Date().toLocaleDateString('en-US', {
+  const dateLocales = { en: 'en-US', hi: 'hi-IN', te: 'te-IN', kn: 'kn-IN' };
+  const today = new Date().toLocaleDateString(dateLocales[lang] || 'en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
@@ -115,37 +116,37 @@ const DashboardPage = () => {
         </>;
       case 'Zamindar':
         return <>
-          <StatCard icon={ClipboardList} label={t("PENDING TASKS")} value={taskStats.total} sub="Total assigned" accent="#6366f1" />
-          <StatCard icon={Clock} label={t("PENDING APPROVALS")} value={taskStats.pending} sub="In queue" accent="#f59e0b" />
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub="Under management" accent="#10b981" to="/horses" />
+          <StatCard icon={ClipboardList} label={t("PENDING TASKS")} value={taskStats.total} sub={t("Total assigned")} accent="#6366f1" />
+          <StatCard icon={Clock} label={t("PENDING APPROVALS")} value={taskStats.pending} sub={t("In queue")} accent="#f59e0b" />
+          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("Under management")} accent="#10b981" to="/horses" />
           <StatCard icon={Users} label={t("TOTAL EMPLOYEES")} value={employeesCount} sub={t("Active team members")} accent="#0ea5e9" to="/employees" />
         </>;
       case 'Instructor':
         return <>
-          <StatCard icon={ClipboardList} label="Training Tasks" value={taskStats.total} sub="Assigned to you" accent="#6366f1" />
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub="Active horses" accent="#10b981" to="/horses" />
-          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub="This period" accent="#0ea5e9" />
+          <StatCard icon={ClipboardList} label={t("Training Tasks")} value={taskStats.total} sub={t("Assigned to you")} accent="#6366f1" />
+          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("Active horses")} accent="#10b981" to="/horses" />
+          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub={t("This period")} accent="#0ea5e9" />
         </>;
       case 'Health Advisor':
         return <>
-          <StatCard icon={ScrollText} label="Health Records" value={horsesCount} sub="Total horses tracked" accent="#6366f1" to="/horses" />
+          <StatCard icon={ScrollText} label={t("Health Records")} value={horsesCount} sub={t("Total horses tracked")} accent="#6366f1" to="/horses" />
           <StatCard icon={Clock} label={t("PENDING TASKS")} value={taskStats.pending} sub={t("Awaiting action")} accent="#f59e0b" />
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub="In facility" accent="#10b981" to="/horses" />
+          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("In facility")} accent="#10b981" to="/horses" />
         </>;
       case 'Jamedar':
         return <>
-          <StatCard icon={ClipboardList} label="Assigned Tasks" value={taskStats.total} sub="Total workload" accent="#6366f1" />
-          <StatCard icon={Clock} label={t("Pending")} value={taskStats.pending} sub="Not yet done" accent="#f59e0b" />
-          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub="Finished tasks" accent="#10b981" />
-          <StatCard icon={BarChart3} label="Completion Rate" value={`${completionRate}%`} sub="Overall progress" accent="#0ea5e9" />
+          <StatCard icon={ClipboardList} label={t("Assigned Tasks")} value={taskStats.total} sub={t("Total workload")} accent="#6366f1" />
+          <StatCard icon={Clock} label={t("Pending")} value={taskStats.pending} sub={t("Not yet done")} accent="#f59e0b" />
+          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub={t("Finished tasks")} accent="#10b981" />
+          <StatCard icon={BarChart3} label={t("Completion Rate")} value={`${completionRate}%`} sub={t("Overall progress")} accent="#0ea5e9" />
         </>;
       case 'Groomer':
       default:
         return <>
-          <StatCard icon={ClipboardList} label="Daily Tasks" value={taskStats.total} sub="Assigned today" accent="#6366f1" />
-          <StatCard icon={Clock} label={t("Pending")} value={taskStats.pending} sub="Still to do" accent="#f59e0b" />
-          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub="Done today" accent="#10b981" />
-          <StatCard icon={BarChart3} label="Completion Rate" value={`${completionRate}%`} sub="Your progress" accent="#0ea5e9" />
+          <StatCard icon={ClipboardList} label={t("Daily Tasks")} value={taskStats.total} sub={t("Assigned today")} accent="#6366f1" />
+          <StatCard icon={Clock} label={t("Pending")} value={taskStats.pending} sub={t("Still to do")} accent="#f59e0b" />
+          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub={t("Done today")} accent="#10b981" />
+          <StatCard icon={BarChart3} label={t("Completion Rate")} value={`${completionRate}%`} sub={t("Your progress")} accent="#0ea5e9" />
         </>;
     }
   };
@@ -156,7 +157,7 @@ const DashboardPage = () => {
         <div>
           <p className="dash-greeting">{getGreeting()}</p>
           <h1 className="dash-name">{user?.fullName || 'User'}</h1>
-          <p className="dash-role">{user?.designation}</p>
+          <p className="dash-role">{t(user?.designation)}</p>
         </div>
         <div className="dash-date">{today}</div>
       </div>

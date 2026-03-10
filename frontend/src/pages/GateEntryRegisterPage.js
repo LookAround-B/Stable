@@ -270,7 +270,7 @@ const GateEntryRegisterPage = () => {
                     className="form-input"
                     options={[
                       { value: '', label: '-- Choose Staff --' },
-                      ...staffList.map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                      ...staffList.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))
                     ]}
                   />
                 </div>

@@ -286,7 +286,7 @@ const HorseCareTeamPage = () => {
                   <strong>Age:</strong> {selectedHorse.age || 'N/A'} years
                 </p>
                 <p>
-                  <strong>Breed:</strong> {selectedHorse.breed || 'N/A'}
+                  <strong>Breed:</strong> {selectedHorse.breed ? t(selectedHorse.breed) : 'N/A'}
                 </p>
                 <p>
                   <strong>Current Team:</strong>{' '}
@@ -331,7 +331,7 @@ const HorseCareTeamPage = () => {
                 disabled={loading || !formData.role}
                 options={[
                   { value: '', label: '-- Select Staff --' },
-                  ...getAvailableStaff(formData.role).map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                  ...getAvailableStaff(formData.role).map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))
                 ]}
               />
             </div>
@@ -371,7 +371,7 @@ const HorseCareTeamPage = () => {
 
                   <div className="horse-details">
                     <p>
-                      <strong>Breed:</strong> {horse.breed || 'N/A'}
+                      <strong>Breed:</strong> {horse.breed ? t(horse.breed) : 'N/A'}
                     </p>
                     <p>
                       <strong>Age:</strong> {horse.age || 'N/A'} years
@@ -394,7 +394,7 @@ const HorseCareTeamPage = () => {
                               {member.staff.fullName}
                             </span>
                             <span className="staff-designation">
-                              {member.staff.designation}
+                              {t(member.staff.designation)}
                             </span>
                           </li>
                         ))}

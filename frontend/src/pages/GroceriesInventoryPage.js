@@ -278,7 +278,7 @@ const GroceriesInventoryPage = () => {
                   name="employeeId"
                   value={formData.employeeId}
                   onChange={handleInputChange}
-                  options={[{ value: '', label: '-- None --' }, ...employees.map((e) => ({ value: e.id, label: `${e.fullName} (${e.designation})` }))]}
+                  options={[{ value: '', label: '-- None --' }, ...employees.map((e) => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]}
                   placeholder="Select employee..."
                 />
               </div>

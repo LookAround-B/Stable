@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import { User, Mail, Lock, Link2, Camera } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
+import { useI18n } from '../context/I18nContext';
 
 const ROLES_WITH_HORSES = [
   'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
@@ -42,6 +43,7 @@ async function getCroppedImg(imageSrc, croppedAreaPixels) {
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
+  const { t } = useI18n();
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -167,7 +169,7 @@ const ProfilePage = () => {
             />
             <div className="profile-hero-info">
               <h1 className="profile-hero-name">{user.fullName || 'User'}</h1>
-              <p className="profile-hero-designation">{user.designation || 'Staff'}</p>
+              <p className="profile-hero-designation">{t(user.designation || 'Staff')}</p>
               <div className="profile-hero-meta">
                 <span className={`profile-status-badge ${user.isApproved ? 'approved' : 'pending'}`}>
                   {user.isApproved ? '✔ Approved' : '⧖ Pending Approval'}
@@ -199,12 +201,12 @@ const ProfilePage = () => {
                 <span className="profile-field-value profile-field-mono">{user.employeeId || user.id?.slice(0, 8) || '—'}</span>
               </div>
               <div className="profile-field">
-                <span className="profile-field-label">Designation</span>
-                <span className="profile-field-value">{user.designation || '—'}</span>
+                <span className="profile-field-label">{t('Designation')}</span>
+                <span className="profile-field-value">{user.designation ? t(user.designation) : '—'}</span>
               </div>
               <div className="profile-field">
-                <span className="profile-field-label">Employment Status</span>
-                <span className="profile-field-value">{user.employmentStatus || 'Active'}</span>
+                <span className="profile-field-label">{t('Employment Status')}</span>
+                <span className="profile-field-value">{t(user.employmentStatus || 'Active')}</span>
               </div>
             </div>
           </div>
@@ -257,7 +259,7 @@ const ProfilePage = () => {
                       <div className="profile-horse-meta">
                         <span>Stable #{horse.stableNumber}</span>
                         <span>·</span>
-                        <span>{horse.breed}</span>
+                        <span>{horse.breed ? t(horse.breed) : ''}</span>
                       </div>
                       <span className="profile-horse-role">{horse.role}</span>
                     </div>

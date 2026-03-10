@@ -366,7 +366,7 @@ const DailyWorkRecordsPage = () => {
                     { value: '', label: 'Select a rider' },
                     ...employees
                       .filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation))
-                      .map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                      .map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
                   ]}
                 />
               </div>

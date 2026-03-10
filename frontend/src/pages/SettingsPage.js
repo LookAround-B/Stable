@@ -2,6 +2,7 @@ import React from 'react';
 import { useI18n } from '../context/I18nContext';
 
 const SettingsPage = () => {
+  // eslint-disable-next-line no-unused-vars
   const { t } = useI18n();
   return (
     <div className="settings-page">

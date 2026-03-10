@@ -242,7 +242,7 @@ const HorsesPage = () => {
         <h2>{t('Access Denied')}</h2>
         <p>You do not have permission to access horse data.</p>
         <button onClick={() => navigate('/')} className="btn-back">
-          Go to Dashboard
+          {t('Go to Dashboard')}
         </button>
       </div>
     </div>
@@ -253,8 +253,8 @@ const HorsesPage = () => {
           <h1>{t('Horses')}</h1>
           <p className="info-text">
             {canAddHorse 
-              ? 'You can add new horses to the system' 
-              : 'Only Admin and Instructor can add horses'}
+              ? t('You can add new horses to the system') 
+              : t('Only Admin and Instructor can add horses')}
           </p>
         </div>
         {canAddHorse && (
@@ -262,7 +262,7 @@ const HorsesPage = () => {
             className="btn-add" 
             onClick={() => setShowModal(true)}
           >
-            + Add New Horse
+            {t('+ Add New Horse')}
           </button>
         )}
       </div>
@@ -287,11 +287,11 @@ const HorsesPage = () => {
                   <div className="add-photo-overlay">📷</div>
                 </div>
                 <input type="file" ref={horseImgRef} accept="image/*" style={{display:'none'}} onChange={handleHorseImagePick} disabled={loading} />
-                <span className="add-photo-label">{newHorseImage ? 'Tap to change photo' : 'Add Photo (optional)'}</span>
+                <span className="add-photo-label">{newHorseImage ? t('Tap to change photo') : t('Add Photo (optional)')}</span>
               </div>
 
               <div className="form-group">
-                <label htmlFor="name">Horse Name *</label>
+                <label htmlFor="name">{t('Horse Name *')}</label>
                 <input
                   id="name"
                   type="text"
@@ -308,7 +308,7 @@ const HorsesPage = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="gender">Gender *</label>
+                  <label htmlFor="gender">{t('Gender *')}</label>
                   <select
                     id="gender"
                     name="gender"
@@ -323,7 +323,7 @@ const HorsesPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="dateOfBirth">Date of Birth</label>
+                  <label htmlFor="dateOfBirth">{t('Date of Birth')}</label>
                   <input
                     id="dateOfBirth"
                     type="date"
@@ -337,7 +337,7 @@ const HorsesPage = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="breed">Breed</label>
+                  <label htmlFor="breed">{t('Breed')}</label>
                   <input
                     id="breed"
                     type="text"
@@ -350,7 +350,7 @@ const HorsesPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="color">Color</label>
+                  <label htmlFor="color">{t('Color')}</label>
                   <input
                     id="color"
                     type="text"
@@ -365,7 +365,7 @@ const HorsesPage = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="height">Height (hands)</label>
+                  <label htmlFor="height">{t('Height (hands)')}</label>
                   <input
                     id="height"
                     type="number"
@@ -379,7 +379,7 @@ const HorsesPage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="stableNumber">Unique Stable Number (Optional)</label>
+                  <label htmlFor="stableNumber">{t('Unique Stable Number (Optional)')}</label>
                   <input
                     id="stableNumber"
                     type="text"
@@ -394,7 +394,7 @@ const HorsesPage = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="supervisorId">Assign to Manager</label>
+                  <label htmlFor="supervisorId">{t('Assign to Manager')}</label>
                   <SearchableSelect
                     id="supervisorId"
                     name="supervisorId"
@@ -404,7 +404,7 @@ const HorsesPage = () => {
                     disabled={loading}
                     options={[
                       { value: '', label: '-- No Assignment --' },
-                      ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                      ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))
                     ]}
                   />
                 </div>
@@ -423,14 +423,14 @@ const HorsesPage = () => {
                   onClick={closeModal}
                   disabled={loading}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </button>
                 <button 
                   type="submit" 
                   className="btn-submit" 
                   disabled={loading}
                 >
-                  {loading ? 'Adding...' : 'Add Horse'}
+                  {loading ? t('Adding...') : t('Add Horse')}
                 </button>
               </div>
             </form>
@@ -445,7 +445,7 @@ const HorsesPage = () => {
           <div className="search-bar">
             <input
               type="text"
-              placeholder="Search by name, stable number, breed, color, gender..."
+              placeholder={t("Search by name, stable number, breed, color, gender...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -453,19 +453,19 @@ const HorsesPage = () => {
           </div>
           {filteredMyHorses.length === 0 ? (
             <p className="info-text">
-              {searchTerm ? 'No horses match your search' : 'No horses assigned to you'}
+              {searchTerm ? t('No horses match your search') : t('No horses assigned to you')}
             </p>
           ) : (
             <div className="table-scroll-wrap">
             <table className="horses-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Stable Number</th>
-                  <th>Gender</th>
-                  <th>Breed</th>
-                  <th>Color</th>
-                  <th>Status</th>
+                  <th>{t('Name')}</th>
+                  <th>{t('Stable Number')}</th>
+                  <th>{t('Gender')}</th>
+                  <th>{t('Breed')}</th>
+                  <th>{t('Color')}</th>
+                  <th>{t('Status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -487,10 +487,10 @@ const HorsesPage = () => {
                       </div>
                     </td>
                     <td>{horse.stableNumber}</td>
-                    <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{horse.gender}</span></td>
-                    <td>{horse.breed || ''}</td>
-                    <td>{horse.color || ''}</td>
-                    <td>{horse.status}</td>
+                    <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
+                    <td>{horse.breed ? t(horse.breed) : ''}</td>
+                    <td>{horse.color ? t(horse.color) : ''}</td>
+                    <td>{t(horse.status)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -505,7 +505,7 @@ const HorsesPage = () => {
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Search by name, stable number, breed, color, gender..."
+            placeholder={t("Search by name, stable number, breed, color, gender...")}
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -516,7 +516,7 @@ const HorsesPage = () => {
         </div>
         {filteredHorses.length === 0 ? (
           <p className="info-text">
-            {searchTerm ? 'No horses match your search' : 'No horses found'}
+            {searchTerm ? t('No horses match your search') : t('No horses found')}
           </p>
         ) : (
           <>
@@ -524,13 +524,13 @@ const HorsesPage = () => {
           <table className="horses-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Stable Number</th>
-                <th>Gender</th>
-                <th>Breed</th>
-                <th>Color</th>
-                <th>Manager</th>
-                <th>Status</th>
+                <th>{t('Name')}</th>
+                <th>{t('Stable Number')}</th>
+                <th>{t('Gender')}</th>
+                <th>{t('Breed')}</th>
+                <th>{t('Color')}</th>
+                <th>{t('Manager')}</th>
+                <th>{t('Status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -552,16 +552,16 @@ const HorsesPage = () => {
                     </div>
                   </td>
                   <td>{horse.stableNumber}</td>
-                  <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{horse.gender}</span></td>
-                  <td>{horse.breed || ''}</td>
-                  <td>{horse.color || ''}</td>
+                  <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
+                  <td>{horse.breed ? t(horse.breed) : ''}</td>
+                  <td>{horse.color ? t(horse.color) : ''}</td>
                   <td>
                     {horse.supervisor
-                      ? `${horse.supervisor.fullName} (${horse.supervisor.designation})`
+                      ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})`
                       : '-'
                     }
                   </td>
-                  <td>{horse.status}</td>
+                  <td>{t(horse.status)}</td>
                 </tr>
               ))}
             </tbody>

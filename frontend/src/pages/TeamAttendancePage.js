@@ -384,10 +384,10 @@ const TeamAttendancePage = () => {
                   {paginatedRecords.map((record) => (
                     <tr key={record.id}>
                       <td className="employee-name">{record.employee?.fullName || 'Unknown'}</td>
-                      <td>{record.employee?.designation || 'Unknown'}</td>
+                      <td>{record.employee?.designation ? t(record.employee.designation) : 'Unknown'}</td>
                       <td>
                         <span className={`status-badge ${getStatusBadgeClass(record.status)}`}>
-                          {record.status}
+                          {t(record.status)}
                         </span>
                       </td>
                       <td>{record.remarks || '-'}</td>

@@ -361,8 +361,8 @@ const EmployeesPage = () => {
           <h1>{t('Team Members')}</h1>
           <p className="info-text">
             {canAddEmployee 
-              ? 'You can add new employees to the system' 
-              : 'Only Super Admin, Director, or School Administrator can add new employees'}
+              ? t('You can add new employees to the system') 
+              : t('Only Super Admin, Director, or School Administrator can add new employees')}
           </p>
         </div>
         {canAddEmployee && (
@@ -370,7 +370,7 @@ const EmployeesPage = () => {
             className="btn-add" 
             onClick={() => setShowModal(true)}
           >
-            + Add New Employee
+            {t('+ Add New Employee')}
           </button>
         )}
       </div>
@@ -395,11 +395,11 @@ const EmployeesPage = () => {
                   <div className="add-photo-overlay">📷</div>
                 </div>
                 <input type="file" ref={empImgRef} accept="image/*" style={{display:'none'}} onChange={handleEmpImagePick} disabled={loading} />
-                <span className="add-photo-label">{newEmpImage ? 'Tap to change photo' : 'Add Photo (optional)'}</span>
+                <span className="add-photo-label">{newEmpImage ? t('Tap to change photo') : t('Add Photo (optional)')}</span>
               </div>
 
               <div className="form-group">
-                <label htmlFor="fullName">Full Name *</label>
+                <label htmlFor="fullName">{t('Full Name *')}</label>
                 <input
                   id="fullName"
                   type="text"
@@ -415,7 +415,7 @@ const EmployeesPage = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">Email Address *</label>
+                <label htmlFor="email">{t('Email Address *')}</label>
                 <input
                   id="email"
                   type="email"
@@ -429,7 +429,7 @@ const EmployeesPage = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="designation">Designation/Role *</label>
+                <label htmlFor="designation">{t('Designation/Role *')}</label>
                 <SearchableSelect
                   name="designation"
                   value={formData.designation}
@@ -442,7 +442,7 @@ const EmployeesPage = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="supervisorId">Supervisor (Optional)</label>
+                <label htmlFor="supervisorId">{t('Supervisor (Optional)')}</label>
                 <SearchableSelect
                   id="supervisorId"
                   name="supervisorId"
@@ -452,13 +452,13 @@ const EmployeesPage = () => {
                   disabled={loading}
                   options={[
                     { value: '', label: '-- Select Supervisor --' },
-                    ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${s.designation})` }))
+                    ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))
                   ]}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="phoneNumber">Phone Number</label>
+                <label htmlFor="phoneNumber">{t('Phone Number')}</label>
                 <input
                   id="phoneNumber"
                   type="tel"
@@ -487,14 +487,14 @@ const EmployeesPage = () => {
                   onClick={closeModal}
                   disabled={loading}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </button>
                 <button 
                   type="submit" 
                   className="btn-submit" 
                   disabled={loading}
                 >
-                  {loading ? 'Adding...' : 'Add Employee'}
+                  {loading ? t('Adding...') : t('Add Employee')}
                 </button>
               </div>
             </form>
@@ -507,27 +507,27 @@ const EmployeesPage = () => {
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Search by name, email, or role..."
+            placeholder={t("Search by name, email, or role...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
         </div>
         {filteredEmployees.length === 0 ? (
-          <p>No employees found</p>
+          <p>{t('No employees found')}</p>
         ) : (
           <>
           <div className="table-scroll-wrap">
           <table className="employees-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Supervisor</th>
-                <th>Status</th>
-                <th>Contact</th>
-                {(canAddEmployee || canDeleteEmployee) && <th>Actions</th>}
+                <th>{t('Name')}</th>
+                <th>{t('Email')}</th>
+                <th>{t('Role')}</th>
+                <th>{t('Supervisor')}</th>
+                <th>{t('Status')}</th>
+                <th>{t('Contact')}</th>
+                {(canAddEmployee || canDeleteEmployee) && <th>{t('Actions')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -549,19 +549,19 @@ const EmployeesPage = () => {
                     </div>
                   </td>
                   <td>{employee.email}</td>
-                  <td><span className={`role-badge role-${(employee.designation||'').toLowerCase().replace(/\s+/g, '-')}`}>{employee.designation}</span></td>
+                  <td><span className={`role-badge role-${(employee.designation||'').toLowerCase().replace(/\s+/g, '-')}`}>{t(employee.designation)}</span></td>
                   <td>
                     {employee.supervisor 
-                      ? `${employee.supervisor.fullName} (${employee.supervisor.designation})`
+                      ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})`
                       : '-'
                     }
                   </td>
                   <td>
                     <span className={employee.isApproved ? 'status-approved' : 'status-pending'}>
-                      {employee.isApproved ? '✔ Approved' : '⏳ Pending'}
+                      {employee.isApproved ? t('✔ Approved') : t('⏳ Pending')}
                     </span>
                   </td>
-                  <td>{employee.phoneNumber || 'N/A'}</td>
+                  <td>{employee.phoneNumber || t('N/A')}</td>
                   {(canAddEmployee || canDeleteEmployee) && (
                     <td>
                       {canAddEmployee && !employee.isApproved && (
@@ -569,7 +569,7 @@ const EmployeesPage = () => {
                           className="btn-approve"
                           onClick={() => handleApproveEmployee(employee.id)}
                         >
-                          ✓ Approve
+                          {t('✓ Approve')}
                         </button>
                       )}
                       {canDeleteEmployee && employee.id !== user?.id && (
@@ -578,7 +578,7 @@ const EmployeesPage = () => {
                           onClick={() => handleDeleteEmployee(employee.id, employee.fullName)}
                           style={{ marginLeft: '8px', background: '#e74c3c', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
                         >
-                          🗑 Delete
+                          {t('🗑 Delete')}
                         </button>
                       )}
                     </td>
@@ -614,11 +614,11 @@ const EmployeesPage = () => {
         isOpen={confirmModal.isOpen}
         onConfirm={confirmAction}
         onCancel={() => setConfirmModal({ isOpen: false, type: null, id: null, name: '' })}
-        title={confirmModal.type === 'approve' ? 'Approve Employee' : 'Delete Employee'}
+        title={confirmModal.type === 'approve' ? t('Approve Employee') : t('Delete Employee')}
         message={confirmModal.type === 'approve' 
-          ? 'Are you sure you want to approve this employee?' 
+          ? t('Are you sure you want to approve this employee?') 
           : `Are you sure you want to permanently delete "${confirmModal.name}"? This will remove all their records and cannot be undone.`}
-        confirmText={confirmModal.type === 'approve' ? 'Approve' : 'Delete'}
+        confirmText={confirmModal.type === 'approve' ? t('Approve') : t('Delete')}
         confirmVariant={confirmModal.type === 'approve' ? 'primary' : 'danger'}
       />
     </div>

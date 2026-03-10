@@ -667,7 +667,7 @@ const InspectionPage = () => {
                   <p>
                     <strong>Case:</strong>{' '}
                     <span className={`status-badge ${inspection.status === 'Resolved' ? 'resolved' : 'open'}`}>
-                      {inspection.status || 'Open'}
+                      {t(inspection.status || 'Open')}
                     </span>
                   </p>
                 </div>
@@ -763,7 +763,7 @@ const InspectionPage = () => {
 
                   <div className="detail-row">
                     <label>Reported By:</label>
-                    <span>{viewingInspection.jamedar?.fullName} ({viewingInspection.jamedar?.designation})</span>
+                    <span>{viewingInspection.jamedar?.fullName} ({t(viewingInspection.jamedar?.designation)})</span>
                   </div>
 
                   <div className="detail-row-full">
@@ -774,7 +774,7 @@ const InspectionPage = () => {
                   <div className="detail-row">
                     <label>Status:</label>
                     <span className={`status-badge ${viewingInspection.status === 'Resolved' ? 'resolved' : 'open'}`}>
-                      {viewingInspection.status || 'Open'}
+                      {t(viewingInspection.status || 'Open')}
                     </span>
                   </div>
 
@@ -789,7 +789,7 @@ const InspectionPage = () => {
                     <>
                       <div className="detail-row">
                         <label>Resolved By:</label>
-                        <span>{viewingInspection.resolvedBy.fullName} ({viewingInspection.resolvedBy.designation})</span>
+                        <span>{viewingInspection.resolvedBy.fullName} ({t(viewingInspection.resolvedBy.designation)})</span>
                       </div>
                       <div className="detail-row">
                         <label>Resolved At:</label>

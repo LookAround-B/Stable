@@ -772,6 +772,41 @@ p {
   width: 0;
 }
 
+/* Sidebar language switcher — mobile only */
+.sidebar-lang-switcher {
+  display: none;
+  padding: 4px 8px 0;
+}
+
+.sidebar-lang-switcher .lang-dropdown {
+  min-width: unset;
+  width: 100%;
+}
+
+.sidebar-lang-switcher .lang-dropdown .ss-trigger.lang-trigger {
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar-lang-switcher .ss-arrow {
+  transform: rotate(225deg);
+  margin-bottom: -3px;
+}
+
+.sidebar-lang-switcher .searchable-select.open .ss-arrow {
+  transform: rotate(45deg);
+  margin-bottom: 3px;
+}
+
+.sidebar-lang-switcher .lang-dropdown .ss-dropdown.lang-dropdown-menu {
+  width: 100%;
+  min-width: unset;
+  bottom: 100%;
+  top: auto;
+  margin-bottom: 4px;
+  margin-top: 0;
+}
+
 /* Sidebar logout button — mobile only */
 .sidebar-logout-btn {
   display: none;
@@ -5880,6 +5915,10 @@ p {
 
   .sidebar-logout-btn {
     display: flex
+  }
+
+  .sidebar-lang-switcher {
+    display: block
   }
 
   /* User card inside sidebar on mobile — sticky at bottom, still floating */

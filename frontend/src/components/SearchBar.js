@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchService from '../services/searchService';
 import { Search, X } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 import './SearchBar.css';
 
 const SearchBar = () => {
@@ -11,6 +12,7 @@ const SearchBar = () => {
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef(null);
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   // Debounced search
   useEffect(() => {
@@ -76,7 +78,7 @@ const SearchBar = () => {
         <Search size={18} className="search-icon" />
         <input
           type="text"
-          placeholder="Search horses, emp.."
+          placeholder={t("Search horses, emp..")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim().length >= 1 && setIsOpen(true)}
@@ -95,14 +97,14 @@ const SearchBar = () => {
           {isLoading ? (
             <div className="search-loading">
               <div className="spinner"></div>
-              Searching...
+              {t('Searching...')}
             </div>
           ) : totalResults > 0 ? (
             <>
               {/* Horses Results */}
               {results.horses.length > 0 && (
                 <div className="results-section">
-                  <div className="results-section-title">🐴 Horses</div>
+                  <div className="results-section-title">🐴 {t('Horses')}</div>
                   <ul className="results-list">
                     {results.horses.map((horse) => (
                       <li key={horse.id}>
@@ -122,7 +124,7 @@ const SearchBar = () => {
               {/* Employees Results */}
               {results.employees.length > 0 && (
                 <div className="results-section">
-                  <div className="results-section-title">👥 Employees</div>
+                  <div className="results-section-title">👥 {t('Employees')}</div>
                   <ul className="results-list">
                     {results.employees.map((employee) => (
                       <li key={employee.id}>
@@ -144,7 +146,7 @@ const SearchBar = () => {
               {/* Tasks Results */}
               {results.tasks.length > 0 && (
                 <div className="results-section">
-                  <div className="results-section-title">✓ Tasks</div>
+                  <div className="results-section-title">✓ {t('Tasks')}</div>
                   <ul className="results-list">
                     {results.tasks.map((task) => (
                       <li key={task.id}>
@@ -167,7 +169,7 @@ const SearchBar = () => {
             </>
           ) : (
             <div className="search-empty">
-              No results found for "{query}"
+              {t('No results found for')} "{query}"
             </div>
           )}
         </div>

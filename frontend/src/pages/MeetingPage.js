@@ -319,7 +319,7 @@ const MeetingPage = () => {
                 <span style={{ fontSize: '0.75rem', background: 'rgba(59,130,246,0.18)', color: '#3b82f6', padding: '2px 8px', borderRadius: '20px', fontWeight: 600 }}>{selectedDateMeetings.length}</span>
               </div>
               {selectedDateMeetings.map(m => (
-                <MeetingCard key={m.id} meeting={m} selected={selectedMeeting?.id === m.id} onClick={() => handleSelectMeeting(m)} statusBadgeStyle={statusBadgeStyle} />
+                <MeetingCard key={m.id} meeting={m} selected={selectedMeeting?.id === m.id} onClick={() => handleSelectMeeting(m)} statusBadgeStyle={statusBadgeStyle} t={t} />
               ))}
             </div>
           )}
@@ -334,7 +334,7 @@ const MeetingPage = () => {
             ) : filteredMeetings.length === 0 ? (
               <div style={{ padding: '24px', textAlign: 'center', opacity: 0.4, fontSize: '0.875rem' }}>No meetings found</div>
             ) : filteredMeetings.map(m => (
-              <MeetingCard key={m.id} meeting={m} selected={selectedMeeting?.id === m.id} onClick={() => handleSelectMeeting(m)} statusBadgeStyle={statusBadgeStyle} />
+              <MeetingCard key={m.id} meeting={m} selected={selectedMeeting?.id === m.id} onClick={() => handleSelectMeeting(m)} statusBadgeStyle={statusBadgeStyle} t={t} />
             ))}
           </div>
         </div>
@@ -347,7 +347,7 @@ const MeetingPage = () => {
             <div style={{ padding: '24px', borderBottom: '1px solid rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '8px' }}>
-                  <span style={statusBadgeStyle(selectedMeeting.status)}>{selectedMeeting.status}</span>
+                  <span style={statusBadgeStyle(selectedMeeting.status)}>{t(selectedMeeting.status)}</span>
                 </div>
                 <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.3 }}>{selectedMeeting.title}</h2>
               </div>
@@ -508,7 +508,7 @@ const MeetingPage = () => {
   )
 }
 
-const MeetingCard = ({ meeting, selected, onClick, statusBadgeStyle }) => (
+const MeetingCard = ({ meeting, selected, onClick, statusBadgeStyle, t }) => (
   <div
     onClick={onClick}
     style={{
@@ -520,7 +520,7 @@ const MeetingCard = ({ meeting, selected, onClick, statusBadgeStyle }) => (
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '5px' }}>
       <span style={{ fontWeight: 600, fontSize: '0.875rem', lineHeight: 1.3 }}>{meeting.title}</span>
-      <span style={statusBadgeStyle(meeting.status)}>{meeting.status}</span>
+      <span style={statusBadgeStyle(meeting.status)}>{t(meeting.status)}</span>
     </div>
     <div style={{ display: 'flex', gap: '12px', fontSize: '0.77rem', opacity: 0.55, flexWrap: 'wrap' }}>
       <span>{new Date(meeting.meetingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
