@@ -1394,8 +1394,6 @@ p {
 .btn-add,
 .btn-add-entry,
 .btn-add-worksheet,
-.btn-complete,
-.btn-start,
 .btn-submit-modal,
 .btn-submit-task,
 .btn-save,
@@ -1411,8 +1409,6 @@ p {
 .btn-login:hover,
 .btn-add:hover,
 .btn-add-entry:hover,
-.btn-complete:hover,
-.btn-start:hover,
 .btn-submit-modal:hover,
 .btn-submit-task:hover,
 .btn-save:hover {
@@ -1423,6 +1419,37 @@ p {
 .btn-primary:active,
 .btn-submit:active {
   transform: scale(.98)
+}
+
+/* Action button colors (red, yellow, green) */
+.btn-start {
+  background: var(--warning, #eab308);
+  color: #fff;
+}
+.btn-start:hover {
+  background: #ca8a04;
+}
+
+.btn-complete {
+  background: var(--success, #22c55e);
+  color: #fff;
+}
+.btn-complete:hover {
+  background: #16a34a;
+}
+
+.btn-reject,
+.btn-danger,
+.btn-delete,
+.btn-remove {
+  background: var(--error, #ef4444);
+  color: #fff;
+}
+.btn-reject:hover,
+.btn-danger:hover,
+.btn-delete:hover,
+.btn-remove:hover {
+  background: var(--error-hover, #dc2626);
 }
 
 .btn-secondary,
