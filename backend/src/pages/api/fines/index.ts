@@ -113,7 +113,7 @@ async function handleRoutes(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { issuedToId, reason, evidenceImage } = req.body
+    const { issuedToId, reason, amount, evidenceImage } = req.body
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -187,6 +187,7 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
         issuedById,
         issuedToId,
         reason,
+        amount: amount ? parseFloat(amount) : null,
         evidenceImage: imageUrl,
         status: 'Open',
       },

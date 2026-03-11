@@ -511,7 +511,7 @@ const FinePage = () => {
                 <tr key={fine.id}>
                   <td>{formatDate(fine.createdAt)}</td>
                   <td>{fine.issuedTo?.fullName}</td>
-                  <td>₹ {parseFloat(fine.amount).toFixed(2)}</td>
+                  <td>₹ {fine.amount != null ? parseFloat(fine.amount).toFixed(2) : '0.00'}</td>
                   <td>{fine.reason.substring(0, 50)}...</td>
                   <td>
                     <span
@@ -620,7 +620,7 @@ const FinePage = () => {
               </div>
               <div className="detail-group">
                 <label>Amount:</label>
-                <p>₹ {parseFloat(viewingFine.amount).toFixed(2)}</p>
+                <p>₹ {viewingFine.amount != null ? parseFloat(viewingFine.amount).toFixed(2) : '0.00'}</p>
               </div>
               <div className="detail-group">
                 <label>Reason:</label>
