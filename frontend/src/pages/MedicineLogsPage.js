@@ -256,13 +256,15 @@ const MedicineLogsPage = () => {
 
       {selectedTab === 'my-logs' && isJamedar && (
         <div className="my-logs-section">
-          <button
-            className="btn-primary"
-            onClick={() => setShowForm(!showForm)}
-            disabled={loading}
-          >
-            {showForm ? '✕ Cancel' : '+ Add Medicine Log'}
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button
+              className="btn-primary"
+              onClick={() => setShowForm(!showForm)}
+              disabled={loading}
+            >
+              {showForm ? '✕ Cancel' : '+ Add Medicine Log'}
+            </button>
+          </div>
 
           {showForm && (
             <form onSubmit={handleSubmit} className="medicine-form">

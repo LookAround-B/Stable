@@ -189,9 +189,9 @@ const GroceriesInventoryPage = () => {
       )}
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center", marginBottom: "16px", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Month</label>
+      <div className="groceries-filters">
+        <div className="filter-group">
+          <label>Month</label>
           <SearchableSelect
             value={selectedMonth.toString()}
             onChange={e => { setSelectedMonth(parseInt(e.target.value)); setCurrentPage(1); }}
@@ -199,8 +199,8 @@ const GroceriesInventoryPage = () => {
             placeholder="Select month..."
           />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Year</label>
+        <div className="filter-group">
+          <label>Year</label>
           <SearchableSelect
             value={selectedYear.toString()}
             onChange={e => { setSelectedYear(parseInt(e.target.value)); setCurrentPage(1); }}
@@ -208,36 +208,28 @@ const GroceriesInventoryPage = () => {
             placeholder="Select year..."
           />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px", minWidth: "200px" }}>
-          <label style={{ fontSize: "0.75rem", opacity: 0.7 }}>Search</label>
+        <div className="filter-group groceries-search-group">
+          <label>Search</label>
           <input type="text" placeholder="Search by item name..." value={search}
-            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-            style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem" }} />
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", marginLeft: "auto" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <label style={{ fontSize: "0.75rem", opacity: 0 }}>.</label>
-            <button onClick={handleDownloadExcel} style={{ padding: "8px 16px", fontSize: "0.875rem", background: "#111", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 500 }}>Download Excel</button>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <label style={{ fontSize: "0.75rem", opacity: 0 }}>.</label>
-            <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}
-              style={{ padding: "8px 16px", fontSize: "0.875rem" }}>
-              {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
-            </button>
-          </div>
+        <div className="groceries-filter-actions">
+          <button className="btn-primary" onClick={handleDownloadExcel}>Download Excel</button>
+          <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
+            {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
+          </button>
         </div>
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px" }}>
-        <div style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", padding: "12px 20px", minWidth: "130px" }}>
-          <div style={{ fontSize: "0.75rem", opacity: 0.7 }}>Total Items</div>
-          <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>{filteredGroceries.length}</div>
+      <div className="groceries-summary">
+        <div className="groceries-summary-card">
+          <div className="groceries-summary-label">Total Items</div>
+          <div className="groceries-summary-value">{filteredGroceries.length}</div>
         </div>
-        <div style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", padding: "12px 20px", minWidth: "160px" }}>
-          <div style={{ fontSize: "0.75rem", opacity: 0.7 }}>Total Value</div>
-          <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>₹{totalValue.toFixed(2)}</div>
+        <div className="groceries-summary-card">
+          <div className="groceries-summary-label">Total Value</div>
+          <div className="groceries-summary-value">₹{totalValue.toFixed(2)}</div>
         </div>
       </div>
 
@@ -314,7 +306,7 @@ const GroceriesInventoryPage = () => {
         </div>
       ) : (
         <>
-          <div style={{ overflowX: "auto" }}>
+          <div className="table-wrapper">
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
               <thead>
                 <tr style={{ borderBottom: "2px solid rgba(0,0,0,0.15)" }}>

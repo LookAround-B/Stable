@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
@@ -26,7 +26,6 @@ const FEED_TYPES = Object.keys(FEED_LABELS);
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 const FeedInventoryPage = () => {
-  const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
   const [loading, setLoading] = useState(false);

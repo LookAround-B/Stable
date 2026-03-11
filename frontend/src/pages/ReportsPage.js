@@ -297,7 +297,7 @@ const ReportsPage = () => {
                 { label: t('Weekly Off'), value: attendanceStats.woff, color: '#8b5cf6' },
                 { label: t('Half Day'), value: attendanceStats.halfDay, color: '#3b82f6' },
               ]} />
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
+              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
                   <thead>
                     <tr>
@@ -338,7 +338,7 @@ const ReportsPage = () => {
                 { label: t('In Progress'), value: taskStats.inProgress, color: '#3b82f6' },
                 { label: t('Rejected'), value: taskStats.rejected, color: '#ef4444' },
               ]} />
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
+              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
                   <thead>
                     <tr>
@@ -381,7 +381,7 @@ const ReportsPage = () => {
                   label: t(type), value: `₹ ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, color: '#f59e0b',
                 })),
               ]} />
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
+              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
                   <thead>
                     <tr>
@@ -426,7 +426,7 @@ const ReportsPage = () => {
               ]} />
 
               <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>{t('Inspection Rounds')}</h3>
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)', marginBottom: '30px' }}>
+              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)', marginBottom: '30px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
                   <thead>
                     <tr>
@@ -459,7 +459,7 @@ const ReportsPage = () => {
               </div>
 
               <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>{t('Medicine Logs')}</h3>
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
+              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
                   <thead>
                     <tr>

@@ -29,6 +29,10 @@ export default async function handler(
   }
 
   switch (req.method) {
+    case 'GET':
+      return handleGetReports(req, res)
+    case 'POST':
+      return handleCreateReport(req, res)
     default:
       return res.status(405).json({ error: 'Method not allowed' })
   }

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 
 const ApprovalTasksPage = () => {
-  const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
   const [pendingTasks, setPendingTasks] = useState([]);
@@ -15,7 +13,7 @@ const ApprovalTasksPage = () => {
   const [message, setMessage] = useState('');
 
   // Only parent roles can approve tasks
-  const PARENT_ROLES = ['Director', 'School Administrator', 'Stable Manager'];
+  // const PARENT_ROLES = ['Director', 'School Administrator', 'Stable Manager'];
 
   useEffect(() => {
     loadAllTasks();
@@ -74,89 +72,77 @@ const ApprovalTasksPage = () => {
   };
 
   const renderTaskCard = (task, isApproved = false) => {
-    // Find the approval record (prefer "Approved" status)
     const approval = task.approvals?.find(a => a.status === 'Approved') || task.approvals?.[0];
     const approverName = approval?.approver?.fullName;
     
-    // Debug: log the task data to see what we're getting
-    if (isApproved) {
-      console.log('Approved Task:', {
-        name: task.name,
-        hasApprovals: !!task.approvals,
-        approvalsLength: task.approvals?.length,
-        approval: approval,
-        approverName: approverName
-      });
-    }
-    
     return (
-      <div key={task.id} className="approval-card" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: '10px', padding: '18px', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{task.name}</h3>
-          <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#6366f122', color: '#6366f1' }}>{task.type}</span>
+      <div key={task.id} className="approval-card card">
+        <div className="approval-card-header">
+          <h3 className="approval-card-title">{task.name}</h3>
+          <span className="approval-type-badge">{task.type}</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '12px', fontSize: '0.85rem' }}>
-          <div><span style={{ color: 'var(--text-secondary)' }}>Assigned to:</span> <strong>{task.assignedEmployee?.fullName || 'Unknown'}</strong></div>
-          <div><span style={{ color: 'var(--text-secondary)' }}>Created by:</span> <strong>{task.createdBy?.fullName || 'Unknown'}</strong></div>
-          <div><span style={{ color: 'var(--text-secondary)' }}>Horse:</span> <strong>{task.horse?.name || 'N/A'}</strong></div>
-          <div><span style={{ color: 'var(--text-secondary)' }}>Priority:</span> <strong>{task.priority}</strong></div>
-          <div><span style={{ color: 'var(--text-secondary)' }}>Scheduled:</span> <strong>{new Date(task.scheduledTime).toLocaleString('en-IN')}</strong></div>
+        <div className="approval-card-details">
+          <div><span className="detail-label">Assigned to:</span> <strong>{task.assignedEmployee?.fullName || 'Unknown'}</strong></div>
+          <div><span className="detail-label">Created by:</span> <strong>{task.createdBy?.fullName || 'Unknown'}</strong></div>
+          <div><span className="detail-label">Horse:</span> <strong>{task.horse?.name || 'N/A'}</strong></div>
+          <div><span className="detail-label">Priority:</span> <strong>{task.priority}</strong></div>
+          <div><span className="detail-label">Scheduled:</span> <strong>{new Date(task.scheduledTime).toLocaleString('en-IN')}</strong></div>
           {task.completedTime && (
-            <div><span style={{ color: 'var(--text-secondary)' }}>Completed:</span> <strong>{new Date(task.completedTime).toLocaleString('en-IN')}</strong></div>
+            <div><span className="detail-label">Completed:</span> <strong>{new Date(task.completedTime).toLocaleString('en-IN')}</strong></div>
           )}
           {isApproved && approverName && (
-            <div><span style={{ color: 'var(--text-secondary)' }}>Approved by:</span> <strong>{approverName}</strong></div>
+            <div><span className="detail-label">Approved by:</span> <strong>{approverName}</strong></div>
           )}
         </div>
 
         {task.description && (
-          <div style={{ marginBottom: '10px', fontSize: '0.85rem' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Description:</span>
-            <p style={{ margin: '4px 0 0', color: 'var(--text-primary)' }}>{task.description}</p>
+          <div className="approval-card-desc">
+            <span className="detail-label">Description:</span>
+            <p>{task.description}</p>
           </div>
         )}
 
         {task.completionNotes && (
-          <div style={{ marginBottom: '10px', fontSize: '0.85rem', background: 'var(--bg-secondary)', borderRadius: '6px', padding: '8px 12px' }}>
-            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Employee Notes:</span>
-            <p style={{ margin: '4px 0 0', color: 'var(--text-primary)' }}>{task.completionNotes}</p>
+          <div className="approval-card-notes">
+            <span className="detail-label">Employee Notes:</span>
+            <p>{task.completionNotes}</p>
           </div>
         )}
 
         {task.proofImage && (
-          <div style={{ marginBottom: '12px' }}>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 500 }}>Evidence Photo:</p>
+          <div className="approval-card-evidence">
+            <p className="detail-label">Evidence Photo:</p>
             <img
               src={task.proofImage}
               alt="Task proof"
-              style={{ maxWidth: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-primary)', cursor: 'pointer' }}
+              className="approval-evidence-img"
               onClick={() => window.open(task.proofImage, '_blank')}
             />
           </div>
         )}
 
         {!isApproved && (
-          <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+          <div className="approval-card-actions">
             <button
               onClick={() => handleApproveTask(task.id)}
               disabled={loading}
-              style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#22c55e', color: '#fff', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontSize: '0.875rem' }}
+              className="btn-approve"
             >
               ✓ {t('Approve')}
             </button>
             <button
               onClick={() => handleRejectTask(task.id)}
               disabled={loading}
-              style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontSize: '0.875rem' }}
+              className="btn-reject"
             >
               ✕ {t('Reject')}
             </button>
           </div>
         )}
         {isApproved && (
-          <div style={{ marginTop: '8px' }}>
-            <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#22c55e22', color: '#16a34a' }}>✔ Approved</span>
+          <div className="approval-card-status">
+            <span className="status-approved-badge">✔ Approved</span>
           </div>
         )}
       </div>

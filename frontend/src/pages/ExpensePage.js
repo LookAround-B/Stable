@@ -585,7 +585,7 @@ const ExpensePage = () => {
           />
         </div>
 
-        <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+        <div className="filter-group">
           <label>From Date</label>
           <input
             type="date"
@@ -595,7 +595,7 @@ const ExpensePage = () => {
           />
         </div>
 
-        <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+        <div className="filter-group">
           <label>To Date</label>
           <input
             type="date"
@@ -778,11 +778,10 @@ const ExpensePage = () => {
         </div>
       )}
 
-      {/* Expenses List */}
       <div className="expenses-list">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div className="section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
           <h2 style={{ margin: 0 }}>Expenses ({expenses.length})</h2>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="header-buttons">
             {expenses.length > 0 && (
               <button
                 className="btn-primary"
@@ -813,7 +812,6 @@ const ExpensePage = () => {
                     endDate: '',
                   });
                 }}
-                style={{ padding: '8px 16px', fontSize: '13px' }}
               >
                 Clear Filters
               </button>

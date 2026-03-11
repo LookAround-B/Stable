@@ -7554,3 +7554,1181 @@ p {
   gap: 6px;
   margin-bottom: 20px;
 }
+
+/* ============================================================
+   COMPREHENSIVE RESPONSIVE FIXES
+   Fixes: input fields, touch targets, form layouts, table
+   actions, sidebar padding, summary cards, alignment
+   ============================================================ */
+
+/* ── Header buttons container ── */
+.header-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Approval Task Cards ── */
+.approval-card.card {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, rgba(0,0,0,0.1));
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.approval-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.approval-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 0;
+  word-break: break-word;
+  flex: 1;
+}
+
+.approval-type-badge {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(99,102,241,0.12);
+  color: #6366f1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.approval-card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.detail-label {
+  color: var(--text-secondary, #666);
+  font-weight: 400;
+}
+
+.approval-card-desc {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+
+.approval-card-desc p {
+  margin: 4px 0 0;
+}
+
+.approval-card-notes {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  background: var(--bg-muted, #f5f5f5);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.approval-card-notes p {
+  margin: 4px 0 0;
+}
+
+.approval-card-evidence {
+  margin-bottom: 12px;
+}
+
+.approval-evidence-img {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border, rgba(0,0,0,0.1));
+  cursor: pointer;
+  display: block;
+}
+
+.approval-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-approve {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #22c55e;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+  min-height: 38px;
+  transition: opacity 0.2s;
+}
+
+.btn-approve:hover { opacity: 0.9; }
+.btn-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-reject {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+  min-height: 38px;
+  transition: opacity 0.2s;
+}
+
+.btn-reject:hover { opacity: 0.9; }
+.btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.approval-card-status {
+  margin-top: 8px;
+}
+
+.status-approved-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(34,197,94,0.12);
+  color: #16a34a;
+}
+
+.approval-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Groceries Page ── */
+.groceries-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.groceries-search-group {
+  flex: 1;
+  min-width: 160px;
+}
+
+.groceries-filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.groceries-summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.groceries-summary-card {
+  background: var(--bg-card, rgba(255,255,255,0.65));
+  border: 1px solid var(--border, rgba(0,0,0,0.1));
+  border-radius: 10px;
+  padding: 12px 20px;
+  min-width: 130px;
+}
+
+.groceries-summary-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.groceries-summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* ── 1. Global input/select/textarea sizing improvements ── */
+input,
+textarea,
+select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── 2. Task filters: search input responsiveness ── */
+.task-filters .search-input {
+  min-width: 0;
+}
+
+/* ── 3. Summary cards: always side-by-side ── */
+.summary-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.summary-section .summary-card {
+  padding: 14px 16px;
+}
+
+/* ── 4. Inventory form: Opening Stock & Units Purchased side-by-side ── */
+.inventory-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inventory-form .form-group {
+  margin-bottom: 12px;
+}
+
+/* ── 5. Tables: better action button sizing for touch ── */
+.fines-table td,
+.expenses-table td,
+.inventory-table td,
+.report-table td,
+.medicine-table td,
+.groceries-table td {
+  vertical-align: middle;
+}
+
+.fines-table .btn-link,
+.expenses-table .btn-link,
+.inventory-table .btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  min-width: 44px;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: var(--r-sm);
+  transition: background var(--t);
+  white-space: nowrap;
+}
+
+.fines-table .btn-link:hover,
+.expenses-table .btn-link:hover,
+.inventory-table .btn-link:hover {
+  background: var(--bg-muted);
+}
+
+/* Table actions container: ensure wrapping and proper spacing */
+.fines-table td:last-child,
+.expenses-table td:last-child,
+.inventory-table td:last-child {
+  white-space: nowrap;
+}
+
+.fines-table td .btn-edit,
+.fines-table td .btn-delete,
+.inventory-table td .btn-edit,
+.inventory-table td .btn-delete,
+.expenses-table td .btn-edit,
+.expenses-table td .btn-delete {
+  min-height: 34px;
+  min-width: 60px;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+}
+
+/* ── 6. SearchableSelect: full-width on mobile ── */
+.searchable-select {
+  max-width: 100%;
+}
+
+/* ── 7. Page header alignment ── */
+.page-header,
+.expense-header,
+.fine-header,
+.inspection-header {
+  align-items: flex-start;
+}
+
+.page-header > div:first-child,
+.page-header > div:first-child h1 {
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* ── 8. Role description text ── */
+.role-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* ── 9. Improved task card layout ── */
+.task-card .task-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-card .task-header h3 {
+  min-width: 0;
+  word-break: break-word;
+  flex: 1;
+}
+
+.task-card .priority-badge,
+.task-card .status-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.task-divider {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 10px 0;
+}
+
+.task-details-heading {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.task-details p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border-subtle);
+  margin: 0;
+}
+
+.task-details p:last-child {
+  border-bottom: none;
+}
+
+.task-details p strong {
+  color: var(--text-secondary);
+  font-weight: 500;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.task-details p span {
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* ── 10. Permissions page sidebar padding fix ── */
+.perm-sidebar {
+  padding: 0;
+}
+
+.perm-card {
+  padding: 14px 16px;
+}
+
+.perm-card-icon {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+/* ── 11. Settings page padding ── */
+.settings-section {
+  padding: 16px;
+}
+
+/* ============================================================
+   TABLET RESPONSIVE (max-width: 1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+  /* Search input in task filters */
+  .task-filters .search-input,
+  .task-filters input[type="text"] {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  /* Inventory form: 2 col layout */
+  .inventory-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+  }
+
+  .inventory-form .form-group:first-child,
+  .inventory-form .form-group:nth-child(5),
+  .inventory-form .form-actions {
+    grid-column: 1 / -1;
+  }
+
+  /* Summary cards side-by-side */
+  .summary-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Meeting page: stack columns */
+  .meeting-page-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Groceries: wrap filters */
+  .groceries-filter-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   TABLET PORTRAIT RESPONSIVE (max-width: 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Fix form row stacking */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Task filters: full-width stacked */
+  .task-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .task-filters .searchable-select,
+  .task-filters .search-input {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .task-filters .search-input input {
+    width: 100%;
+  }
+
+  /* Inventory form: stack on smaller tablets */
+  .inventory-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-form .form-group:first-child,
+  .inventory-form .form-group:nth-child(5),
+  .inventory-form .form-actions {
+    grid-column: 1;
+  }
+
+  /* Summary cards: 3-col still */
+  .summary-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Table: ensure horizontal scroll with decent min-width */
+  .fines-table {
+    min-width: 700px;
+  }
+
+  .expenses-table {
+    min-width: 650px;
+  }
+
+  .inventory-table,
+  .report-table {
+    min-width: 580px;
+  }
+
+  /* Inspection header buttons */
+  .inspections-list > div:first-child {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .inspections-list > div:first-child > div {
+    flex-wrap: wrap;
+  }
+
+  /* Permissions: perm card adjustments */
+  .perm-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .perm-card-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .perm-toggle-wrap {
+    gap: 6px;
+  }
+
+  /* Report controls */
+  .report-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .report-controls .date-range {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .report-controls .date-range label {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 4px !important;
+  }
+
+  .report-controls .date-range input[type="date"] {
+    width: 100%;
+  }
+
+  .report-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Approval cards: single-column details */
+  .approval-card-details {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  /* Approval card evidence image */
+  .approval-evidence-img {
+    max-height: 180px;
+  }
+
+  /* Groceries filters: stack */
+  .groceries-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .groceries-search-group {
+    min-width: 0;
+  }
+
+  .groceries-filter-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .groceries-filter-actions .btn-primary {
+    flex: 1;
+  }
+
+  .groceries-summary {
+    gap: 8px;
+  }
+
+  .groceries-summary-card {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+  }
+
+  /* Meeting drawer full-width on tablet */
+  .meeting-detail-drawer {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Meeting create modal */
+  .meeting-create-modal {
+    max-width: 100% !important;
+    margin: 12px;
+    padding: 20px !important;
+  }
+}
+
+/* ============================================================
+   PHONE RESPONSIVE (max-width: 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+  /* All inputs/selects/textareas: full-width & properly sized */
+  input,
+  textarea,
+  select,
+  .searchable-select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Approval card: tighter on phone */
+  .approval-card.card {
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .approval-card-title {
+    font-size: 0.9375rem;
+  }
+
+  .approval-card-details {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    font-size: 0.8125rem;
+  }
+
+  .approval-card-actions {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .approval-card-actions .btn-approve,
+  .approval-card-actions .btn-reject {
+    flex: 1;
+    padding: 10px 12px;
+    text-align: center;
+    min-height: 42px;
+    font-size: 0.875rem;
+  }
+
+  .approval-evidence-img {
+    max-height: 160px;
+    width: 100%;
+  }
+
+  /* Groceries summary: side-by-side */
+  .groceries-summary {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .groceries-summary-card {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  .groceries-summary-label {
+    font-size: 0.6875rem;
+  }
+
+  .groceries-summary-value {
+    font-size: 1.25rem;
+  }
+
+  /* Groceries table: min width for scroll */
+  .groceries-inventory-container table {
+    min-width: 700px;
+  }
+
+  /* Fix form-group input override for selects */
+  .form-group .searchable-select {
+    width: 100% !important;
+  }
+
+  /* Task cards: full-width */
+  .tasks-list,
+  .tasks-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Task card details: keep two-column layout */
+  .task-details p {
+    font-size: 0.8125rem;
+    gap: 8px;
+  }
+
+  /* Summary section: always show side-by-side on phone too */
+  .summary-section {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .summary-section .summary-card {
+    padding: 12px 10px;
+  }
+
+  .summary-section .summary-card h3 {
+    font-size: 0.6875rem;
+  }
+
+  .summary-section .summary-card .summary-value {
+    font-size: 1.25rem;
+  }
+
+  /* Fix page padding */
+  .main-content-inner {
+    padding: 0 12px 16px 12px;
+  }
+
+  /* Month selector: flex-wrap properly */
+  .month-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .month-selector > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .month-selector .searchable-select {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 100px;
+  }
+
+  .month-selector .btn-primary {
+    flex: 1 1 100%;
+  }
+
+  /* Filters: full-width stacked */
+  .filters-section,
+  .filter-container {
+    padding: 12px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* Table action buttons: larger touch targets */
+  .fines-table .btn-link,
+  .expenses-table .btn-link,
+  .inventory-table .btn-link {
+    min-height: 36px;
+    min-width: 48px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+
+  .fines-table td .btn-edit,
+  .fines-table td .btn-delete,
+  .inventory-table td .btn-edit,
+  .inventory-table td .btn-delete,
+  .expenses-table td .btn-edit,
+  .expenses-table td .btn-delete {
+    min-height: 38px;
+    min-width: 64px;
+    padding: 8px 14px;
+    font-size: 0.875rem;
+  }
+
+  /* Inspection form / Fine form: better layout */
+  .inspection-form-section,
+  .fine-form-section,
+  .expense-form-section {
+    padding: 16px;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    margin-bottom: 16px;
+  }
+
+  /* Permissions page mobile improvements */
+  .perm-card {
+    padding: 12px;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  .perm-card-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 6px;
+  }
+
+  .perm-card-name {
+    font-size: 0.8125rem;
+  }
+
+  .perm-card-desc {
+    font-size: 0.75rem;
+    display: none;
+  }
+
+  .perm-toggle {
+    width: 40px;
+    height: 22px;
+  }
+
+  .perm-toggle-dot {
+    width: 16px;
+    height: 16px;
+  }
+
+  .perm-toggle-dot.on {
+    transform: translateX(18px);
+  }
+
+  .perm-footer {
+    padding: 10px 12px;
+  }
+
+  .perm-main-header {
+    padding: 14px 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .perm-main-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .perm-cards-area {
+    padding: 12px;
+  }
+
+  /* Sidebar logout button: proper padding */
+  .sidebar-logout-btn {
+    margin: 8px 6px;
+    width: calc(100% - 12px);
+  }
+
+  /* Sidebar language switcher padding */
+  .sidebar-lang-switcher {
+    padding: 4px 6px 0;
+  }
+
+  /* Dashboard stats grid: 2 cols on phone */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .dash-stat-card {
+    padding: 14px 14px;
+  }
+
+  .dash-stat-value {
+    font-size: 1.625rem;
+  }
+
+  .dash-stat-label {
+    font-size: 0.625rem;
+  }
+
+  /* Dashboard header */
+  .dash-header {
+    padding: 12px 0 20px 0;
+    margin-bottom: 16px;
+  }
+
+  .dash-name {
+    font-size: 1.5rem;
+  }
+
+  .dash-date {
+    font-size: 0.75rem;
+  }
+
+  /* Page headers */
+  .page-header h1,
+  .expense-header h1,
+  .fine-header h1,
+  .inspection-header h1 {
+    font-size: 1.375rem;
+  }
+
+  /* Fine form: inputs stacked */
+  .fine-form-section form,
+  .expense-form-section form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* Inspection list header */
+  .inspections-list > div:first-child {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+
+  .inspections-list > div:first-child > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .inspections-list > div:first-child .btn-primary,
+  .inspections-list > div:first-child .btn-secondary {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  /* Meeting, attendance, work record forms */
+  .meeting-page .form-row,
+  .attendance-page .form-row,
+  .daily-attendance-page .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Card actions: proper gap */
+  .card-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .card-actions .btn-view,
+  .card-actions .btn-edit,
+  .card-actions .btn-delete {
+    min-height: 36px;
+    min-width: 44px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+
+  /* Modals: full-width on phone */
+  .modal,
+  .modal-content {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    margin: 12px;
+    padding: 16px;
+    max-height: calc(100vh - 48px);
+    border-radius: var(--r-lg);
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-header {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .modal-footer {
+    padding-top: 12px;
+  }
+
+  /* Navigation search bar */
+  .nav-center-mobile .search-bar-container {
+    max-width: 160px;
+  }
+
+  /* Proof/evidence thumbnails */
+  .proof-thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+  }
+
+  /* Fullscreen overlay */
+  .fullscreen-overlay,
+  .full-screen-image-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fullscreen-overlay img,
+  .full-screen-image-viewer img {
+    max-width: 95vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
+  .close-fullscreen,
+  .close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+  }
+}
+
+/* ============================================================
+   SMALL PHONE (max-width: 360px)
+   ============================================================ */
+@media (max-width: 360px) {
+  /* Summary cards: still 3-col but tighter */
+  .summary-section {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .summary-section .summary-card {
+    padding: 10px 8px;
+  }
+
+  .summary-section .summary-card h3 {
+    font-size: 0.625rem;
+  }
+
+  .summary-section .summary-card .summary-value {
+    font-size: 1.125rem;
+  }
+
+  /* Dashboard: still 2-col */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .dash-stat-card {
+    padding: 12px 10px;
+  }
+
+  .dash-stat-value {
+    font-size: 1.375rem;
+  }
+
+  /* Task card details */
+  .task-details p {
+    font-size: 0.75rem;
+  }
+
+  /* Page header */
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  /* Inventory forms */
+  .month-selector .searchable-select {
+    flex: 1 1 100%;
+  }
+
+  /* Filter sections */
+  .filters-section,
+  .filter-container,
+  .task-filters {
+    padding: 10px;
+  }
+}
+
+/* ============================================================
+   INTERMEDIATE PHONE (max-width: 600px, min-width: 481px)
+   For larger phones that aren't quite tablets
+   ============================================================ */
+@media (max-width: 600px) and (min-width: 481px) {
+  /* Inventory form: 2-col layout */
+  .inventory-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+  }
+
+  .inventory-form .form-group:first-child,
+  .inventory-form .form-group:nth-child(5),
+  .inventory-form .form-actions {
+    grid-column: 1 / -1;
+  }
+
+  /* Tasks grid */
+  .tasks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Dashboard: 2-col */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================================
+   LANDSCAPE PHONE (max-height: 500px)
+   ============================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sidebar {
+    padding-bottom: 8px;
+  }
+
+  .sidebar-menu {
+    padding-bottom: 8px;
+  }
+
+  .modal,
+  .modal-content {
+    max-height: calc(100vh - 16px);
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .sidebar,
+  .navigation,
+  .sidebar-overlay,
+  .hamburger-btn,
+  .floating-user-card,
+  .sidebar-lang-switcher,
+  .sidebar-logout-btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-add,
+  .btn-delete,
+  .pagination-wrapper {
+    display: none !important;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+  }
+}

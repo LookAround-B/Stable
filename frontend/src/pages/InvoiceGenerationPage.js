@@ -319,7 +319,7 @@ const InvoiceGenerationPage = () => {
 
       <div className="card" style={{ padding: '24px', marginBottom: '24px', overflow: 'visible' }}>
         <form onSubmit={handleGenerateInvoice}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }} className="invoice-filters">
             {user?.designation !== 'Instructor' && (
               <div className="filter-group" style={{ flex: '1 1 200px', minWidth: '180px' }}>
                 <label htmlFor="instructorId">Select Instructor</label>
@@ -414,7 +414,7 @@ const InvoiceGenerationPage = () => {
 
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Work Sessions</h3>
-            <div style={{ overflowX: 'auto' }}>
+            <div className="table-wrapper">
             <table className="records-table">
               <thead>
                 <tr>
@@ -441,7 +441,7 @@ const InvoiceGenerationPage = () => {
             </table>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '24px' }}>
+            <div className="invoice-summary-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '24px' }}>
               <div>
                 <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Summary by Work Type</h3>
                 <table className="records-table">

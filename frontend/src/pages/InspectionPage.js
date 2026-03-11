@@ -594,14 +594,13 @@ const InspectionPage = () => {
 
       {/* Inspections List */}
       <div className="inspections-list">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div className="section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
           <h2 style={{ margin: 0 }}>Inspections ({inspections.length})</h2>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="header-buttons">
             {inspections.length > 0 && (
               <button
                 className="btn-primary"
                 onClick={handleDownloadExcel}
-                style={{ padding: '8px 16px', fontSize: '13px' }}
                 title="Download filtered inspections as Excel"
               >
                 📥 Download Excel
@@ -611,7 +610,6 @@ const InspectionPage = () => {
               <button
                 className="btn-secondary"
                 onClick={handleDownloadCSV}
-                style={{ padding: '8px 16px', fontSize: '13px' }}
                 title="Download filtered inspections as CSV"
               >
                 📥 Download CSV
@@ -629,7 +627,6 @@ const InspectionPage = () => {
                     endDate: '',
                   });
                 }}
-                style={{ padding: '8px 16px', fontSize: '13px' }}
               >
                 Clear Filters
               </button>

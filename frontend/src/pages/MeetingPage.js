@@ -4,6 +4,7 @@ import { CardListSkeleton } from '../components/Skeleton'
 import apiClient from '../services/apiClient'
 import { useI18n } from '../context/I18nContext'
 import usePermissions from '../hooks/usePermissions'
+import { Navigate } from 'react-router-dom'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const STATUS_COLORS = {
@@ -206,7 +207,7 @@ const MeetingPage = () => {
   if (!p.viewMeetings) return <Navigate to="/" replace />
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="page-container meeting-page">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
@@ -224,7 +225,7 @@ const MeetingPage = () => {
       </div>
 
       {/* Main grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'start' }}>
+      <div className="meeting-page-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'start' }}>
 
         {/* CALENDAR */}
         <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', overflow: 'hidden' }}>
@@ -348,7 +349,7 @@ const MeetingPage = () => {
       {/* DETAIL DRAWER */}
       {showDetailPanel && selectedMeeting && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }} onClick={() => setShowDetailPanel(false)}>
-          <div style={{ width: '100%', maxWidth: '520px', height: '100%', background: '#f5f5f0', overflowY: 'auto', boxShadow: '-8px 0 40px rgba(0,0,0,0.25)', color: '#111' }} onClick={e => e.stopPropagation()}>
+          <div className="meeting-detail-drawer" style={{ width: '100%', maxWidth: '520px', height: '100%', background: '#f5f5f0', overflowY: 'auto', boxShadow: '-8px 0 40px rgba(0,0,0,0.25)', color: '#111' }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '24px', borderBottom: '1px solid rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '8px' }}>
@@ -460,7 +461,7 @@ const MeetingPage = () => {
       {/* CREATE MODAL */}
       {showCreateForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowCreateForm(false)}>
-          <div style={{ background: '#f5f5f0', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', color: '#111' }} onClick={e => e.stopPropagation()}>
+          <div className="meeting-create-modal" style={{ background: '#f5f5f0', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', color: '#111' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>{t('New Meeting')}</h2>
               <button onClick={() => setShowCreateForm(false)} style={{ background: 'rgba(0,0,0,0.08)', border: 'none', color: '#111', cursor: 'pointer', borderRadius: '8px', padding: '6px 12px' }}>&#10005;</button>

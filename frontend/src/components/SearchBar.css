@@ -219,4 +219,42 @@
   .search-bar-container .search-input::placeholder {
     font-size: 0.75rem;
   }
+
+  .search-results-dropdown {
+    position: fixed;
+    top: auto;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar-container {
+    max-width: 100%;
+  }
+
+  .search-bar-wrapper {
+    padding: 5px 10px;
+    gap: 6px;
+  }
+
+  .search-bar-container .search-input {
+    font-size: 0.75rem;
+    min-width: 0;
+  }
+
+  .search-results-dropdown {
+    left: 4px;
+    right: 4px;
+    max-height: 55vh;
+    border-radius: 10px;
+  }
+
+  .result-item {
+    padding: 10px;
+    font-size: 0.8125rem;
+    min-height: 40px;
+  }
 }

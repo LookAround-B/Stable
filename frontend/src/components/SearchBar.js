@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchService from '../services/searchService';
-import { Search, X } from 'lucide-react';
+import { Search, X, Users, CheckSquare } from 'lucide-react';
+import { FaHorse } from 'react-icons/fa';
 import { useI18n } from '../context/I18nContext';
 import './SearchBar.css';
 
@@ -104,7 +105,9 @@ const SearchBar = () => {
               {/* Horses Results */}
               {results.horses.length > 0 && (
                 <div className="results-section">
-                  <div className="results-section-title">🐴 {t('Horses')}</div>
+                  <div className="results-section-title">
+                    <FaHorse size={14} style={{ marginRight: '6px' }} /> {t('Horses')}
+                  </div>
                   <ul className="results-list">
                     {results.horses.map((horse) => (
                       <li key={horse.id}>
@@ -124,7 +127,9 @@ const SearchBar = () => {
               {/* Employees Results */}
               {results.employees.length > 0 && (
                 <div className="results-section">
-                  <div className="results-section-title">👥 {t('Employees')}</div>
+                  <div className="results-section-title">
+                    <Users size={14} style={{ marginRight: '6px' }} /> {t('Employees')}
+                  </div>
                   <ul className="results-list">
                     {results.employees.map((employee) => (
                       <li key={employee.id}>
@@ -146,7 +151,9 @@ const SearchBar = () => {
               {/* Tasks Results */}
               {results.tasks.length > 0 && (
                 <div className="results-section">
-                  <div className="results-section-title">✓ {t('Tasks')}</div>
+                  <div className="results-section-title">
+                    <CheckSquare size={14} style={{ marginRight: '6px' }} /> {t('Tasks')}
+                  </div>
                   <ul className="results-list">
                     {results.tasks.map((task) => (
                       <li key={task.id}>
