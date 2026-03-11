@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '../context/I18nContext';
 import apiClient from '../services/apiClient';
+import { StatsSkeleton, TableSkeleton } from '../components/Skeleton';
 import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
@@ -263,35 +264,18 @@ const ReportsPage = () => {
             type="date"
             value={dateRange.startDate}
             onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-primary)', fontSize: '0.875rem', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t('To')}:</label>
-          <input
-            type="date"
-            value={dateRange.endDate}
-            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-primary)', fontSize: '0.875rem', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
+            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-primary)', fontSize: '0.875rem', background: '#fff', color: '#111' }}
           />
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid var(--border-primary)', marginBottom: '20px', overflowX: 'auto', position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-secondary, #f5f5f5)', paddingTop: '4px' }}>
+      <div className="tabs">
         {tabs.map(tab => (
           <button
             key={tab.id}
+            className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              height: '36px', padding: '0 16px', border: 'none', lineHeight: '1',
-              background: activeTab === tab.id ? 'var(--bg-primary)' : 'transparent',
-              borderBottom: activeTab === tab.id ? '2px solid var(--accent-primary)' : '2px solid transparent',
-              color: activeTab === tab.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              fontWeight: activeTab === tab.id ? 600 : 400,
-              cursor: 'pointer', fontSize: '0.875rem', whiteSpace: 'nowrap', marginBottom: '-2px', transition: 'all 0.2s',
-              flexShrink: 0,
-            }}
           >
             {tab.label}
           </button>
@@ -299,7 +283,7 @@ const ReportsPage = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>{t('Loading...')}</div>
+        <div><StatsSkeleton count={4} /><TableSkeleton cols={5} rows={6} /></div>
       ) : (
         <>
           {/* ====== ATTENDANCE ====== */}

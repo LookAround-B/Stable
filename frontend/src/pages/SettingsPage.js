@@ -1,7 +1,34 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { useI18n } from '../context/I18nContext';
+
+/* SETTINGS PAGE TEMPORARILY DISABLED - uncomment to re-enable
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+*/
+
+const SettingsPage = () => {
+  const { t } = useI18n();
+  return (
+    <div className="page-container" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <div className="page-header">
+        <div>
+          <h1>{t('Settings')}</h1>
+          <p>{t('Settings are currently unavailable')}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsPage;
+
+/*
+===== FULL SETTINGS PAGE - COMMENTED OUT =====
+
+See git history to restore the full functional settings page.
+
+
 
 const DEFAULT_SETTINGS = [
   { key: 'stable_name', value: 'Horse Stable', description: 'Name of the stable facility', label: 'Stable Name', type: 'text' },
@@ -285,3 +312,4 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+*/

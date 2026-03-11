@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
@@ -406,7 +407,7 @@ const MedicineInventoryPage = () => {
             </div>
           </div>
 
-          {loading && <div className="loading">Loading...</div>}
+          {loading && <TableSkeleton cols={5} rows={5} />}
 
           {!loading && inventoryRecords.length > 0 ? (
             <>

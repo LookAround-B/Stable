@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
+import { TableSkeleton } from '../components/Skeleton';
 import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
@@ -301,7 +302,7 @@ const GroceriesInventoryPage = () => {
 
       {/* Table */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "40px", opacity: 0.6 }}>Loading...</div>
+        <TableSkeleton cols={8} rows={5} />
       ) : filteredGroceries.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px", opacity: 0.6 }}>
           {search ? `No items matching "${search}"` : `No grocery entries for ${MONTH_NAMES[selectedMonth-1]} ${selectedYear}.`}

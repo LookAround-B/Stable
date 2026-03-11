@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
+import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
@@ -815,7 +816,7 @@ const ExpensePage = () => {
           </div>
         </div>
 
-        {loading && <p style={{ textAlign: 'center', color: '#666' }}>⏳ Loading expenses...</p>}
+        {loading && <TableSkeleton cols={6} rows={5} />}
         
         {!loading && expenses.length === 0 && (
           <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>

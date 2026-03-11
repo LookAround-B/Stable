@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
+import { TableSkeleton } from '../components/Skeleton';
 import fineService from '../services/fineService';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
@@ -489,7 +490,7 @@ const FinePage = () => {
       {/* Fines List */}
       <div className="fines-list-section">
         <h2>Fines ({fines.length})</h2>
-        {loading && <p>Loading...</p>}
+        {loading && <TableSkeleton cols={5} rows={5} />}
         {!loading && fines.length === 0 && <p>No fines found</p>}
 
         <div className="fines-table-container">
