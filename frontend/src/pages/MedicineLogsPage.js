@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { TableSkeleton } from '../components/Skeleton';
 import ConfirmModal from '../components/ConfirmModal';
 import medicineLogService from '../services/medicineLogService';
 import apiClient from '../services/apiClient';
@@ -363,7 +364,7 @@ const MedicineLogsPage = () => {
             </form>
           )}
 
-          {loading && <div className="loading">Loading...</div>}
+          {loading && <TableSkeleton cols={6} rows={5} />}
 
           {!loading && logs.length > 0 ? (
             <div className="table-wrapper">
@@ -414,7 +415,7 @@ const MedicineLogsPage = () => {
 
       {selectedTab === 'pending-approval' && canApprove && (
         <div className="approval-section">
-          {loading && <div className="loading">Loading...</div>}
+          {loading && <TableSkeleton cols={4} rows={4} />}
 
           {!loading && logs.length > 0 ? (
             <div className="pending-logs">

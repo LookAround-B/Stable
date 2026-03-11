@@ -3,6 +3,15 @@ import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
 
+// Increase body size limit to 10MB for base64 image uploads
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor']
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -110,7 +119,7 @@ async function handleRoutes(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { issuedToId, reason, evidenceImage } = req.body
+    const { issuedToId, reason, amount, evidenceImage } = req.body
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -184,6 +193,7 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
         issuedById,
         issuedToId,
         reason,
+        amount: amount ? parseFloat(amount) : null,
         evidenceImage: imageUrl,
         status: 'Open',
       },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { TableSkeleton } from '../components/Skeleton';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
@@ -442,7 +442,7 @@ const DailyWorkRecordsPage = () => {
       <div className="records-list">
         <h2>Records for {new Date(selectedDate).toLocaleDateString()}</h2>
 
-        {loading && <div className="loading">Loading...</div>}
+        {loading && <TableSkeleton cols={6} rows={5} />}
 
         {!loading && records.length === 0 && (
           <div className="no-records">No records for this date</div>

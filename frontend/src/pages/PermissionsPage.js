@@ -253,13 +253,13 @@ const PermissionsPage = () => {
       <div className="perm-main">
         <div className="perm-main-header">
           <div>
-            <h1>Permissions</h1>
-            <p className="perm-subtitle">Select employees, then configure their access rights</p>
+            <h1>Employee Permissions</h1>
+            <p className="perm-subtitle">Select employees and configure their access rights by role</p>
           </div>
           {selectedIds.size > 0 && (
             <div className="perm-selection-badge">
               <Users size={13} />
-              <span>{selectedIds.size} selected</span>
+              <span>{selectedIds.size} {selectedIds.size === 1 ? 'employee' : 'employees'} selected</span>
             </div>
           )}
         </div>
@@ -302,16 +302,16 @@ const PermissionsPage = () => {
         <div className="perm-footer">
           <div className="perm-footer-hint">
             <Info size={13} />
-            <span>Changes apply to all selected employees</span>
+            <span>Changes will apply to all {selectedIds.size > 0 ? `${selectedIds.size} selected ${selectedIds.size === 1 ? 'employee' : 'employees'}` : 'selected employees'}</span>
           </div>
           {message && <span className="perm-footer-msg">{message}</span>}
           <button
             className={`btn-save ${savedFlash ? 'perm-saved-flash' : ''}`}
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || selectedIds.size === 0}
           >
             {savedFlash ? <Check size={14} /> : <Save size={14} />}
-            {savedFlash ? 'Saved!' : saving ? 'Saving…' : 'Save Permissions'}
+            {savedFlash ? 'Permissions Saved!' : saving ? 'Saving…' : 'Save Permissions'}
           </button>
         </div>
       </div>

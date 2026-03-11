@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
+import { TableSkeleton } from '../components/Skeleton';
 import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
@@ -174,9 +175,11 @@ const GroceriesInventoryPage = () => {
 
   return (
     <div className="page-container" style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <div style={{ marginBottom: "20px" }}>
-        <h1 style={{ margin: "0 0 4px", fontSize: "1.5rem" }}>🛒 {t('Groceries Inventory')}</h1>
-        <p style={{ margin: 0, opacity: 0.7, fontSize: "0.875rem" }}>Track grocery items and purchases</p>
+      <div className="page-header">
+        <div>
+          <h1><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '8px', marginBottom: '2px' }}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>{t('Groceries Inventory')}</h1>
+          <p>{t('Track grocery items and purchases')}</p>
+        </div>
       </div>
 
       {message && (
@@ -304,7 +307,7 @@ const GroceriesInventoryPage = () => {
 
       {/* Table */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "40px", opacity: 0.6 }}>Loading...</div>
+        <TableSkeleton cols={8} rows={5} />
       ) : filteredGroceries.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px", opacity: 0.6 }}>
           {search ? `No items matching "${search}"` : `No grocery entries for ${MONTH_NAMES[selectedMonth-1]} ${selectedYear}.`}

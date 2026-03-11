@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
@@ -170,9 +172,43 @@ const MedicineInventoryPage = () => {
   const handleLoadReport = async () => {
     try {
       setLoading(true);
-      const result = await medicineInventoryService.getReport(reportStartDate, reportEndDate);
-      setReportData(result.data || {});
+      // Fetch all records and filter client-side by date range (inventory stored by month/year)
+      const result = await medicineInventoryService.getInventory();
+      const allRecords = result?.data || [];
+
+      const start = new Date(reportStartDate);
+      const end = new Date(reportEndDate);
+      const startYear = start.getFullYear();
+      const startMonth = start.getMonth() + 1;
+      const endYear = end.getFullYear();
+      const endMonth = end.getMonth() + 1;
+
+      const filtered = allRecords.filter(rec => {
+        const recYear = rec.year;
+        const recMonth = rec.month;
+        const afterStart = recYear > startYear || (recYear === startYear && recMonth >= startMonth);
+        const beforeEnd = recYear < endYear || (recYear === endYear && recMonth <= endMonth);
+        return afterStart && beforeEnd;
+      });
+
+      // Group by medicineType and aggregate
+      const grouped = {};
+      filtered.forEach(rec => {
+        if (!grouped[rec.medicineType]) {
+          grouped[rec.medicineType] = { openingStock: 0, unitsPurchased: 0, totalUsed: 0, unitsLeft: 0, unit: rec.unit };
+        }
+        grouped[rec.medicineType].openingStock += rec.openingStock || 0;
+        grouped[rec.medicineType].unitsPurchased += rec.unitsPurchased || 0;
+        grouped[rec.medicineType].totalUsed += rec.totalUsed || 0;
+        grouped[rec.medicineType].unitsLeft += rec.unitsLeft || 0;
+      });
+
+      setReportData(grouped);
+      if (Object.keys(grouped).length === 0) {
+        showMessage('No inventory data found for the selected date range', 'info');
+      }
     } catch (error) {
+      console.error('Report error:', error);
       showMessage('Failed to load report', 'error');
     } finally {
       setLoading(false);
@@ -365,7 +401,7 @@ const MedicineInventoryPage = () => {
             </div>
           </div>
 
-          {loading && <div className="loading">Loading...</div>}
+          {loading && <TableSkeleton cols={5} rows={5} />}
 
           {!loading && inventoryRecords.length > 0 ? (
             <>
@@ -472,16 +508,20 @@ const MedicineInventoryPage = () => {
                     <th>Medicine Type</th>
                     <th>Opening Stock</th>
                     <th>Units Purchased</th>
-                    <th>Total</th>
+                    <th>Total Used</th>
+                    <th>Units Left</th>
+                    <th>Unit</th>
                   </tr>
                 </thead>
                 <tbody>
                   {Object.entries(reportData).map(([type, data]) => (
                     <tr key={type}>
-                      <td>{MEDICINE_LABELS[type]}</td>
-                      <td>{data.openingStock || 0}</td>
-                      <td>{data.unitsPurchased || 0}</td>
-                      <td>{(data.openingStock || 0) + (data.unitsPurchased || 0)}</td>
+                      <td>{MEDICINE_LABELS[type] || type}</td>
+                      <td>{(data.openingStock || 0).toFixed(2)}</td>
+                      <td>{(data.unitsPurchased || 0).toFixed(2)}</td>
+                      <td>{(data.totalUsed || 0).toFixed(2)}</td>
+                      <td>{(data.unitsLeft || 0).toFixed(2)}</td>
+                      <td>{data.unit || '-'}</td>
                     </tr>
                   ))}
                 </tbody>

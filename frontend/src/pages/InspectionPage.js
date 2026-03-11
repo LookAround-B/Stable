@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { CardGridSkeleton } from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import inspectionService from '../services/inspectionService';
@@ -440,6 +441,7 @@ const InspectionPage = () => {
             onChange={handleFilterChange}
             options={[{ value: '', label: 'All Rounds' }, ...ROUNDS.map((round) => ({ value: round, label: round }))]}
             placeholder="Select round..."
+            searchable={false}
           />
         </div>
 
@@ -462,6 +464,7 @@ const InspectionPage = () => {
             onChange={handleFilterChange}
             options={[{ value: '', label: 'All Severity Levels' }, ...SEVERITY_LEVELS.map((level) => ({ value: level, label: level }))]}
             placeholder="Select severity..."
+            searchable={false}
           />
         </div>
 
@@ -634,7 +637,7 @@ const InspectionPage = () => {
           </div>
         </div>
 
-        {loading && <p style={{ textAlign: 'center', color: '#666' }}>⏳ Loading inspections...</p>}
+        {loading && <CardGridSkeleton count={6} withImage />}
         
         {!loading && inspections.length === 0 && (
           <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>

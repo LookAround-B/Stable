@@ -599,13 +599,17 @@ const TasksPage = () => {
           ]}
           placeholder={t('Filter by status...')}
         />
-        <input
-          type="text"
-          placeholder={t('Search tasks by name, type, status...')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
+        <div className="search-input">
+          <span className="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input
+            type="text"
+            placeholder={t('Search tasks by name, type, status...')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="tasks-list">
@@ -623,20 +627,23 @@ const TasksPage = () => {
                   {task.priority}
                 </span>
               </div>
-              <div className="task-details">
-                <p><strong>Type:</strong> {task.type}</p>
-                <p><strong>Horse:</strong> {getHorseName(task.horseId)}</p>
-                <p><strong>Assigned To:</strong> {getEmployeeName(task.assignedEmployeeId)}</p>
-                <p>
-                  <strong>Status:</strong>
-                  <span
-                    className="status-badge"
-                    style={{ backgroundColor: getStatusColor(task.status) }}
-                  >
-                    {t(task.status)}
-                  </span>
-                </p>
-                {task.description && <p><strong>Details:</strong> {task.description}</p>}
+              <div className="task-status-row">
+                <span
+                  className="status-badge"
+                  style={{ backgroundColor: getStatusColor(task.status) }}
+                >
+                  {t(task.status)}
+                </span>
+              </div>
+              <hr className="task-divider" />
+              <div className="task-details-section">
+                <h4 className="task-details-heading">{t('Details')}</h4>
+                <div className="task-details">
+                  <p><strong>Type:</strong> <span>{task.type}</span></p>
+                  <p><strong>Horse:</strong> <span>{getHorseName(task.horseId)}</span></p>
+                  <p><strong>Assigned To:</strong> <span>{getEmployeeName(task.assignedEmployeeId)}</span></p>
+                  {task.description && <p><strong>Description:</strong> <span>{task.description}</span></p>}
+                </div>
               </div>
 
               {/* Action Buttons for Assigned Employee */}

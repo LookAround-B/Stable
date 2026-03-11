@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
+import { TableSkeleton } from '../components/Skeleton';
 import fineService from '../services/fineService';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
@@ -494,7 +495,7 @@ const FinePage = () => {
       {/* Fines List */}
       <div className="fines-list-section">
         <h2>Fines ({fines.length})</h2>
-        {loading && <p>Loading...</p>}
+        {loading && <TableSkeleton cols={5} rows={5} />}
         {!loading && fines.length === 0 && <p>No fines found</p>}
 
         <div className="fines-table-container">
@@ -516,7 +517,7 @@ const FinePage = () => {
                 <tr key={fine.id}>
                   <td>{formatDate(fine.createdAt)}</td>
                   <td>{fine.issuedTo?.fullName}</td>
-                  <td>₹ {parseFloat(fine.amount).toFixed(2)}</td>
+                  <td>₹ {parseFloat(fine.amount || 0).toFixed(2)}</td>
                   <td>{fine.reason.substring(0, 50)}...</td>
                   <td>
                     <span
@@ -625,7 +626,7 @@ const FinePage = () => {
               </div>
               <div className="detail-group">
                 <label>Amount:</label>
-                <p>₹ {parseFloat(viewingFine.amount).toFixed(2)}</p>
+                <p>₹ {parseFloat(viewingFine.amount || 0).toFixed(2)}</p>
               </div>
               <div className="detail-group">
                 <label>Reason:</label>

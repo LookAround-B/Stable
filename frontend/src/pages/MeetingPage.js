@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { Navigate } from 'react-router-dom'
+import { CardListSkeleton } from '../components/Skeleton'
 import apiClient from '../services/apiClient'
 import { useI18n } from '../context/I18nContext'
 import usePermissions from '../hooks/usePermissions'
@@ -335,7 +335,7 @@ const MeetingPage = () => {
               <span style={{ fontSize: '0.75rem', background: 'rgba(59,130,246,0.18)', color: '#3b82f6', padding: '2px 8px', borderRadius: '20px', fontWeight: 600 }}>{filteredMeetings.length}</span>
             </div>
             {loading ? (
-              <div style={{ padding: '24px', textAlign: 'center', opacity: 0.45, fontSize: '0.875rem' }}>Loading...</div>
+              <div style={{ padding: '12px' }}><CardListSkeleton count={3} /></div>
             ) : filteredMeetings.length === 0 ? (
               <div style={{ padding: '24px', textAlign: 'center', opacity: 0.4, fontSize: '0.875rem' }}>No meetings found</div>
             ) : filteredMeetings.map(m => (

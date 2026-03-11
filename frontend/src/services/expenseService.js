@@ -14,7 +14,7 @@ export const expenseService = {
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
       if (filters.page) params.append('page', filters.page);
-      if (filters.limit) params.append('limit', filters.limit);
+      params.append('limit', filters.limit || '1000');
       
       const url = `${API_BASE_URL}/expenses?${params.toString()}`;
       console.log('🔍 Fetching expenses from:', url);

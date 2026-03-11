@@ -20,11 +20,10 @@ const SearchableSelect = ({
   value,
   onChange,
   options = [],
-  placeholder = 'Select…',
+  placeholder = 'Select...',
   disabled = false,
   required = false,
-  className = '',
-}) => {
+  className = '',  searchable = true,}) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [openUp, setOpenUp] = useState(false);
@@ -120,17 +119,19 @@ const SearchableSelect = ({
       {open && (
         <div className={`ss-dropdown ${openUp ? 'ss-dropdown-up' : ''}`} role="listbox">
           {/* Search box */}
+          {searchable && (
           <div className="ss-search-wrapper">
             <input
               ref={searchRef}
               type="text"
               className="ss-search"
-              placeholder="Search…"
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
             />
           </div>
+          )}
 
           {/* Options */}
           <ul className="ss-list">

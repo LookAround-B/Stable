@@ -97,7 +97,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       items: [
         { to: '/reports', icon: BarChart3, label: 'Reports', show: p.viewReports },
         { to: '/permissions', icon: Shield, label: 'Permissions', show: p.viewPermissions },
-        { to: '/settings', icon: Settings, label: 'Settings', show: true },
+        { to: '/settings', icon: Settings, label: 'Settings', show: false },
       ],
     },
   ];

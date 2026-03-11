@@ -9,6 +9,7 @@ const MyAssignedTasksPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [submissionData, setSubmissionData] = useState({
@@ -108,8 +109,14 @@ const MyAssignedTasksPage = () => {
   };
 
   const filteredTasks = tasks.filter((task) => {
-    if (filterStatus === 'All') return true;
-    return task.status === filterStatus;
+    const statusMatch = filterStatus === 'All' || task.status === filterStatus;
+    const searchMatch = 
+      task.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.horse?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.createdBy?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
+    return statusMatch && (searchTerm === '' || searchMatch);
   });
 
   const getStatusColor = (status) => {
@@ -143,24 +150,31 @@ const MyAssignedTasksPage = () => {
         </div>
       )}
 
-      <div className="page-controls" style={{ marginBottom: '20px' }}>
-        <div className="filter-group">
-          <label>Filter by Status</label>
-          <SearchableSelect
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            options={[
-              { value: 'All', label: 'All Tasks' },
-              { value: 'Pending', label: 'Pending' },
-              { value: 'In Progress', label: 'In Progress' },
-              { value: 'Pending Review', label: 'Pending Review' },
-              { value: 'Approved', label: 'Approved' },
-              { value: 'Rejected', label: 'Rejected' },
-            ]}
-            placeholder="Select status..."
+      <div className="task-filters">
+        <SearchableSelect
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          options={[
+            { value: 'All', label: t('All Tasks') },
+            { value: 'Pending', label: t('Pending') },
+            { value: 'In Progress', label: t('In Progress') },
+            { value: 'Pending Review', label: t('Pending Review') },
+            { value: 'Approved', label: t('Approved') },
+            { value: 'Rejected', label: t('Rejected') },
+          ]}
+          placeholder={t('Filter by status...')}
+        />
+        <div className="search-input">
+          <span className="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input
+            type="text"
+            placeholder={t('Search tasks by name, type, horse...')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {/* <span className="task-count">{filteredTasks.length} task(s)</span> */}
       </div>
 
       {loading && filteredTasks.length === 0 ? (
@@ -173,20 +187,32 @@ const MyAssignedTasksPage = () => {
         <div className="tasks-grid">
           {filteredTasks.map((task) => (
             <div key={task.id} className="task-card">
-              <div className="card-status" style={{ backgroundColor: getStatusColor(task.status), padding: '4px 12px', borderRadius: '20px', color: '#fff', fontSize: '0.78rem', fontWeight: 600, display: 'inline-block', marginBottom: '8px' }}>
-                {t(task.status)}
+              <div className="task-header">
+                <h3>{task.name}</h3>
+                <span
+                  className="priority-badge"
+                  style={{ backgroundColor: getStatusColor(task.priority === 'High' ? 'Rejected' : task.priority === 'Medium' ? 'In Progress' : 'Approved'), padding: '4px 12px', borderRadius: '20px', color: '#fff', fontSize: '0.78rem', fontWeight: 600 }}
+                >
+                  {task.priority}
+                </span>
+              </div>
+              <p className="task-type" style={{ fontWeight: 700, color: '#000', fontSize: '1.0625rem' }}>{task.type}</p>
+
+              <div className="task-status-row">
+                <div className="card-status" style={{ backgroundColor: getStatusColor(task.status), padding: '4px 12px', borderRadius: '20px', color: '#fff', fontSize: '0.78rem', fontWeight: 600, display: 'inline-block' }}>
+                  {t(task.status)}
+                </div>
               </div>
 
-              <div className="card-content">
-                <h3>{task.name}</h3>
-                <p className="task-type">{task.type}</p>
-                
+              <hr className="task-divider" />
+
+              <div className="task-details-section">
+                <h4 className="task-details-heading">{t('Details')}</h4>
                 <div className="task-details">
-                  <p><strong>Description:</strong> {task.description || 'No description'}</p>
-                  <p><strong>Horse:</strong> {task.horse?.name || 'N/A'}</p>
-                  <p><strong>Priority:</strong> <span className={`priority ${task.priority}`}>{task.priority}</span></p>
-                  <p><strong>Created by:</strong> {task.createdBy?.fullName || 'Unknown'}</p>
-                  <p><strong>Scheduled:</strong> {new Date(task.scheduledTime).toLocaleString()}</p>
+                  <p><strong>Description:</strong> <span>{task.description || 'No description'}</span></p>
+                  <p><strong>Horse:</strong> <span>{task.horse?.name || 'N/A'}</span></p>
+                  <p><strong>Created by:</strong> <span>{task.createdBy?.fullName || 'Unknown'}</span></p>
+                  <p><strong>Scheduled:</strong> <span>{new Date(task.scheduledTime).toLocaleString()}</span></p>
                 </div>
 
                 {task.proofImage && (

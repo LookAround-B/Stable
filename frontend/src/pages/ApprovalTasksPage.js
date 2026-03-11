@@ -90,51 +90,73 @@ const ApprovalTasksPage = () => {
     }
     
     return (
-      <div key={task.id} className="approval-card">
-        <div className="card-header">
-          <h3>{task.name}</h3>
-          <span className="task-type">{task.type}</span>
+      <div key={task.id} className="approval-card" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-primary)', borderRadius: '10px', padding: '18px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{task.name}</h3>
+          <span style={{ padding: '2px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: '#6366f122', color: '#6366f1' }}>{task.type}</span>
         </div>
 
-        <div className="card-content">
-          <p><strong>Description:</strong> {task.description || 'N/A'}</p>
-          <p><strong>Created by:</strong> {task.createdBy?.fullName || 'Unknown'}</p>
-          <p><strong>Assigned to:</strong> {task.assignedEmployee?.fullName || 'Unknown'}</p>
-          <p><strong>Horse:</strong> {task.horse?.name || 'N/A'}</p>
-          <p><strong>Priority:</strong> <span className={`priority ${task.priority}`}>{task.priority}</span></p>
-          <p><strong>Scheduled:</strong> {new Date(task.scheduledTime).toLocaleString()}</p>
-          {task.completionNotes && (
-            <p><strong>Completion Notes:</strong> {task.completionNotes}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginBottom: '12px', fontSize: '0.85rem' }}>
+          <div><span style={{ color: 'var(--text-secondary)' }}>Assigned to:</span> <strong>{task.assignedEmployee?.fullName || 'Unknown'}</strong></div>
+          <div><span style={{ color: 'var(--text-secondary)' }}>Created by:</span> <strong>{task.createdBy?.fullName || 'Unknown'}</strong></div>
+          <div><span style={{ color: 'var(--text-secondary)' }}>Horse:</span> <strong>{task.horse?.name || 'N/A'}</strong></div>
+          <div><span style={{ color: 'var(--text-secondary)' }}>Priority:</span> <strong>{task.priority}</strong></div>
+          <div><span style={{ color: 'var(--text-secondary)' }}>Scheduled:</span> <strong>{new Date(task.scheduledTime).toLocaleString('en-IN')}</strong></div>
+          {task.completedTime && (
+            <div><span style={{ color: 'var(--text-secondary)' }}>Completed:</span> <strong>{new Date(task.completedTime).toLocaleString('en-IN')}</strong></div>
           )}
           {isApproved && approverName && (
-            <p><strong>Approved by:</strong> {approverName}</p>
-          )}
-          {isApproved && !approverName && task.approvals && task.approvals.length > 0 && (
-            <p><strong>Status:</strong> Approved (by approver)</p>
+            <div><span style={{ color: 'var(--text-secondary)' }}>Approved by:</span> <strong>{approverName}</strong></div>
           )}
         </div>
 
+        {task.description && (
+          <div style={{ marginBottom: '10px', fontSize: '0.85rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Description:</span>
+            <p style={{ margin: '4px 0 0', color: 'var(--text-primary)' }}>{task.description}</p>
+          </div>
+        )}
+
+        {task.completionNotes && (
+          <div style={{ marginBottom: '10px', fontSize: '0.85rem', background: 'var(--bg-secondary)', borderRadius: '6px', padding: '8px 12px' }}>
+            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Employee Notes:</span>
+            <p style={{ margin: '4px 0 0', color: 'var(--text-primary)' }}>{task.completionNotes}</p>
+          </div>
+        )}
+
+        {task.proofImage && (
+          <div style={{ marginBottom: '12px' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 500 }}>Evidence Photo:</p>
+            <img
+              src={task.proofImage}
+              alt="Task proof"
+              style={{ maxWidth: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-primary)', cursor: 'pointer' }}
+              onClick={() => window.open(task.proofImage, '_blank')}
+            />
+          </div>
+        )}
+
         {!isApproved && (
-          <div className="card-actions">
+          <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
             <button
-              className="btn btn-approve"
               onClick={() => handleApproveTask(task.id)}
               disabled={loading}
+              style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#22c55e', color: '#fff', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontSize: '0.875rem' }}
             >
-              ✓ Approve
+              ✓ {t('Approve')}
             </button>
             <button
-              className="btn btn-reject"
               onClick={() => handleRejectTask(task.id)}
               disabled={loading}
+              style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontSize: '0.875rem' }}
             >
-              ✕ Reject
+              ✕ {t('Reject')}
             </button>
           </div>
         )}
         {isApproved && (
-          <div className="card-footer">
-            <span className="status-badge approved">✔ Approved</span>
+          <div style={{ marginTop: '8px' }}>
+            <span style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600, background: '#22c55e22', color: '#16a34a' }}>✔ Approved</span>
           </div>
         )}
       </div>
