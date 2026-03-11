@@ -278,7 +278,7 @@ const ReportsPage = () => {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid var(--border-primary)', marginBottom: '20px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid var(--border-primary)', marginBottom: '20px', overflowX: 'auto', position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-secondary, #f5f5f5)', paddingTop: '4px' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
