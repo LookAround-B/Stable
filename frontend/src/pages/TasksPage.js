@@ -618,20 +618,23 @@ const TasksPage = () => {
                   {task.priority}
                 </span>
               </div>
-              <div className="task-details">
-                <p><strong>Type:</strong> {task.type}</p>
-                <p><strong>Horse:</strong> {getHorseName(task.horseId)}</p>
-                <p><strong>Assigned To:</strong> {getEmployeeName(task.assignedEmployeeId)}</p>
-                <p>
-                  <strong>Status:</strong>
-                  <span
-                    className="status-badge"
-                    style={{ backgroundColor: getStatusColor(task.status) }}
-                  >
-                    {t(task.status)}
-                  </span>
-                </p>
-                {task.description && <p><strong>Details:</strong> {task.description}</p>}
+              <div className="task-status-row">
+                <span
+                  className="status-badge"
+                  style={{ backgroundColor: getStatusColor(task.status) }}
+                >
+                  {t(task.status)}
+                </span>
+              </div>
+              <hr className="task-divider" />
+              <div className="task-details-section">
+                <h4 className="task-details-heading">{t('Details')}</h4>
+                <div className="task-details">
+                  <p><strong>Type:</strong> <span>{task.type}</span></p>
+                  <p><strong>Horse:</strong> <span>{getHorseName(task.horseId)}</span></p>
+                  <p><strong>Assigned To:</strong> <span>{getEmployeeName(task.assignedEmployeeId)}</span></p>
+                  {task.description && <p><strong>Description:</strong> <span>{task.description}</span></p>}
+                </div>
               </div>
 
               {/* Action Buttons for Assigned Employee */}
