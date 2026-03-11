@@ -5373,24 +5373,76 @@ p {
 
 /* Settings */
 .settings-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 14px
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
 .settings-section {
   background: var(--bg-card);
   border-radius: var(--r-xl);
   padding: 22px 24px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.10), 0 4px 14px rgba(0, 0, 0, 0.06)
+  border: 1px solid var(--border);
+  box-shadow: none;
+  cursor: pointer;
+  transition: border-color var(--t);
+}
+
+.settings-section:hover {
+  border-color: var(--border-strong);
 }
 
 .settings-section h2 {
-  font-size: 1rem;
-  margin-bottom: 14px;
+  font-size: 1.125rem;
+  margin-bottom: 6px;
   letter-spacing: -.02em;
   font-weight: 600
+}
+
+.settings-section p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Reports grid */
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.report-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 22px 24px;
+  box-shadow: none;
+  cursor: pointer;
+  transition: border-color var(--t);
+}
+
+.report-card:hover {
+  border-color: var(--border-strong);
+}
+
+.report-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.report-card p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .settings-sections,
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Round & Tracking */
@@ -7331,7 +7383,7 @@ p {
 
   .tasks-list,
   .tasks-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 

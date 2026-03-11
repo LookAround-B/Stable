@@ -2,11 +2,13 @@ import React from 'react';
 import { useI18n } from '../context/I18nContext';
 
 const SettingsPage = () => {
-  // eslint-disable-next-line no-unused-vars
   const { t } = useI18n();
   return (
     <div className="settings-page">
-      <h1 style={{ marginBottom: '24px' }}>{t('Settings')}</h1>
+      <div className="page-header">
+        <h1>{t('Settings')}</h1>
+        <p>{t('Manage application configuration')}</p>
+      </div>
       <div className="settings-sections">
         <div className="settings-section">
           <h2>{t('Task Configuration')}</h2>
