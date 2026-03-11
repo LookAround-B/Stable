@@ -2291,7 +2291,8 @@ p {
 .page-header p,
 .approval-header p {
   color: var(--text-secondary);
-  font-size: .875rem
+  font-size: .875rem;
+  margin-top: 8px
 }
 
 .subtitle,
