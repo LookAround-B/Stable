@@ -1140,7 +1140,6 @@ p {
   transition: box-shadow var(--t), border-color var(--t), background var(--t);
   display: flex;
   flex-direction: column;
-  max-height: 240px
 }
 
 .card:hover,
