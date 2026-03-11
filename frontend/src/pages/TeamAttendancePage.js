@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const TeamAttendancePage = () => {
   const { t } = useI18n();
+  const p = usePermissions();
   const [teamMembers, setTeamMembers] = useState([]);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -220,6 +223,8 @@ const TeamAttendancePage = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedRecords = attendanceRecords.slice(startIndex, endIndex);
+
+  if (!p.viewTeamAttendance) return <Navigate to="/" replace />;
 
   return (
     <div className="team-attendance-container">

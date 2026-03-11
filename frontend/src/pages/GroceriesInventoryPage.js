@@ -5,13 +5,16 @@ import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
 import Pagination from "../components/Pagination";
 import ConfirmModal from "../components/ConfirmModal";
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const UNIT_OPTIONS = ["g","kg","ml","l","ltr","pcs","units","packets","packs","boxes","bottles","cans","jars","sachets","strips"];
 
 const GroceriesInventoryPage = () => {
   const { t } = useI18n();
+  const p = usePermissions();
   const [groceries, setGroceries] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -166,6 +169,8 @@ const GroceriesInventoryPage = () => {
 
   const years = [];
   for (let y = 2024; y <= new Date().getFullYear() + 1; y++) years.push(y);
+
+  if (!p.viewGroceriesInventory) return <Navigate to="/" replace />;
 
   return (
     <div className="page-container" style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>

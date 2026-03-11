@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const ApprovalTasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [pendingTasks, setPendingTasks] = useState([]);
   const [approvedTasks, setApprovedTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -138,15 +141,10 @@ const ApprovalTasksPage = () => {
     );
   };
 
+  if (!p.viewApprovals) return <Navigate to="/" replace />;
+
   return (
     <div className="page-container">
-      {!PARENT_ROLES.includes(user?.designation) ? (
-        <div className="error-message">
-          <h2>{t('Access Denied')}</h2>
-          <p>Only Director, School Administrator, and Stable Manager can approve tasks.</p>
-        </div>
-      ) : (
-        <>
           <div className="approval-header">
             <h1>{t('Task Approvals')}</h1>
             <p>Review and approve tasks created by Instructors</p>
@@ -191,8 +189,6 @@ const ApprovalTasksPage = () => {
               </div>
             </div>
           )}
-        </>
-      )}
     </div>
   );
 };

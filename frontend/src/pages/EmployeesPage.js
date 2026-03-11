@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 // All 18 roles in the system
 const EMPLOYEE_DESIGNATIONS = [
@@ -45,6 +46,7 @@ const EmployeesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const location = useLocation();
+  const p = usePermissions();
   const [showModal, setShowModal] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
@@ -353,6 +355,8 @@ const EmployeesPage = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
+
+  if (!p.manageEmployees) return <Navigate to="/" replace />;
 
   return (
     <div className="employees-page">

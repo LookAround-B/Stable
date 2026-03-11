@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -295,6 +298,8 @@ const InvoiceGenerationPage = () => {
       </html>
     `;
   };
+
+  if (!p.viewInvoiceGeneration) return <Navigate to="/" replace />;
 
   return (
     <div className="invoice-generation-page">

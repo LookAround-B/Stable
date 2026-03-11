@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getPermissions, updatePermissions } from '../services/permissionService';
 import {
@@ -172,15 +173,7 @@ const PermissionsPage = () => {
   };
 
   const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  if (!isAdmin) {
-    return (
-      <div className="perm-denied">
-        <Shield size={48} />
-        <h2>Access Denied</h2>
-        <p>You do not have permission to manage employee permissions.</p>
-      </div>
-    );
-  }
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   if (loading) {
     return (

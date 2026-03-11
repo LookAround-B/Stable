@@ -5,7 +5,9 @@ import fineService from '../services/fineService';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -14,6 +16,7 @@ const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'St
 const FinePage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [fines, setFines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -369,6 +372,8 @@ const FinePage = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedFines = fines.slice(startIndex, endIndex);
+
+  if (!p.viewFines) return <Navigate to="/" replace />;
 
   return (
     <div className="fine-page">

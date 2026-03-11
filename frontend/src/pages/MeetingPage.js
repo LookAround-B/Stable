@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { Navigate } from 'react-router-dom'
 import apiClient from '../services/apiClient'
 import { useI18n } from '../context/I18nContext'
+import usePermissions from '../hooks/usePermissions'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const STATUS_COLORS = {
@@ -13,6 +15,7 @@ const STATUS_COLORS = {
 const MeetingPage = () => {
   const { user } = useAuth()
   const { t } = useI18n()
+  const p = usePermissions()
   const [meetings, setMeetings] = useState([])
   const [employees, setEmployees] = useState([])
   const [selectedMeeting, setSelectedMeeting] = useState(null)
@@ -199,6 +202,8 @@ const MeetingPage = () => {
     background: STATUS_COLORS[status?.toLowerCase()]?.light || 'rgba(255,255,255,0.1)',
     color: STATUS_COLORS[status?.toLowerCase()]?.text || 'inherit',
   })
+
+  if (!p.viewMeetings) return <Navigate to="/" replace />
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>

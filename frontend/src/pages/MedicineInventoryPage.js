@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import medicineInventoryService from '../services/medicineInventoryService';
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -21,8 +22,8 @@ const MEDICINE_TYPES = Object.keys(MEDICINE_LABELS);
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 const MedicineInventoryPage = () => {
-  const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -204,15 +205,7 @@ const MedicineInventoryPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
 
-  if (!user || !['Stable Manager', 'Super Admin', 'Director', 'School Administrator', 'Jamedar'].includes(user.designation)) {
-    return (
-      <div className="page-container">
-        <div className="error-message">
-          You do not have permission to access this page.
-        </div>
-      </div>
-    );
-  }
+  if (!p.viewMedicineInventory) return <Navigate to="/" replace />;
 
   return (
     <div className="page-container">

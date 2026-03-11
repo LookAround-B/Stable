@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 // Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)
 const getTodayString = () => {
@@ -20,6 +22,7 @@ const CAN_CREATE_RECORDS = ['Instructor'];
 const DailyWorkRecordsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -275,6 +278,8 @@ const DailyWorkRecordsPage = () => {
     XLSX.writeFile(workbook, filename);
     console.log('📥 Downloaded daily work records to:', filename);
   };
+
+  if (!p.viewEIRS) return <Navigate to="/" replace />;
 
   return (
     <div className="daily-work-records-page">

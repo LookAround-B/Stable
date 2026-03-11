@@ -1,8 +1,12 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const ReportsPage = () => {
   const { t } = useI18n();
+  const p = usePermissions();
+  if (!p.viewReports) return <Navigate to="/" replace />;
   return (
     <div className="reports-page">
       <div className="page-header">

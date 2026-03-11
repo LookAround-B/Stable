@@ -4,11 +4,14 @@ import ConfirmModal from '../components/ConfirmModal';
 import medicineLogService from '../services/medicineLogService';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const MedicineLogsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
@@ -216,17 +219,7 @@ const MedicineLogsPage = () => {
 
   if (!user) return null;
 
-  // Jamedar can only create logs
-  // Stable Manager and above can approve/reject
-  if (!isJamedar && !canApprove) {
-    return (
-      <div className="page-container">
-        <div className="error-message">
-          You do not have permission to access this page. Only Jamedar and Stable Manager can access medicine logs.
-        </div>
-      </div>
-    );
-  }
+  if (!p.viewMedicineLogs) return <Navigate to="/" replace />;
 
   return (
     <div className="page-container">

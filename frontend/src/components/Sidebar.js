@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 import LanguageSwitcher from './LanguageSwitcher';
 import {
   LayoutDashboard, CheckSquare, ClipboardList, ShieldCheck,
@@ -19,6 +20,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const p = usePermissions();
 
   const handleScroll = (e) => {
     setIsScrolled(e.target.scrollTop > 0);
@@ -31,93 +33,70 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
 
-  // Determine which pages to show based on user role
-  const showTeamAttendance = ['Super Admin', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
-  const showDailyAttendance = ['Super Admin', 'Director', 'School Administrator', 'Ground Supervisor', 'Groom'].includes(user?.designation);
-  const showGroomWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Groom'].includes(user?.designation);
-  const showGateEntry = user?.designation === 'Guard' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
-  const showMedicineLogs = user?.designation === 'Jamedar' || ['Stable Manager', 'Director', 'Super Admin', 'School Administrator'].includes(user?.designation);
-  const showCareTeam = false;
-  const showEIRS = ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(user?.designation);
-  const showInvoiceGeneration = user?.designation === 'Stable Manager' || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showHorseFeeds = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showFeedInventory = ['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showMedicineInventory = ['Stable Manager', 'Super Admin', 'Director', 'School Administrator', 'Jamedar'].includes(user?.designation);
-  const showGroceriesInventory = ['Super Admin', 'Director', 'School Administrator', 'Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(user?.designation);
-  const showExpenses = ['Senior Executive Accounts', 'Executive Accounts'].includes(user?.designation) || ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showInspections = user?.designation === 'Jamedar' || ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
-  const showFines = true;
-  const showTasks = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
-  const showApprovals = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
-  const showMyAssignedTasks = true;
-  const showMeetings = ['Director', 'School Administrator', 'Stable Manager'].includes(user?.designation);
-  const showPermissions = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  const showHorses = user?.designation !== 'Guard';
-
   // Organize menu items by parent category
   const menuStructure = [
     {
-      parent: null, // No section header for these
+      parent: null,
       items: [
-        { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/', icon: LayoutDashboard, label: 'Dashboard', show: p.viewDashboard },
       ],
     },
     {
       parent: 'Organization',
       items: [
-        { to: '/horses', icon: FaHorse, label: 'Horses', show: showHorses },
-        { to: '/employees', icon: Users, label: 'Team', show: true },
+        { to: '/horses', icon: FaHorse, label: 'Horses', show: p.viewHorses },
+        { to: '/employees', icon: Users, label: 'Team', show: p.manageEmployees },
       ],
     },
     {
       parent: 'Tasks & Approvals',
       items: [
-        { to: '/tasks', icon: CheckSquare, label: 'Tasks', show: showTasks },
-        { to: '/my-assigned-tasks', icon: ClipboardList, label: 'My Assigned Tasks', show: showMyAssignedTasks },
-        { to: '/pending-approvals', icon: ShieldCheck, label: 'Approvals', show: showApprovals },
-        { to: '/meetings', icon: Calendar, label: 'Meetings', show: showMeetings },
+        { to: '/tasks', icon: CheckSquare, label: 'Tasks', show: p.manageTasks },
+        { to: '/my-assigned-tasks', icon: ClipboardList, label: 'My Assigned Tasks', show: true },
+        { to: '/pending-approvals', icon: ShieldCheck, label: 'Approvals', show: p.viewApprovals },
+        { to: '/meetings', icon: Calendar, label: 'Meetings', show: p.viewMeetings },
       ],
     },
     {
       parent: 'Stable Operations',
       items: [
-        { to: '/medicine-logs', icon: Pill, label: 'Medicine Logs', show: showMedicineLogs },
-        { to: '/horse-care-team', icon: HeartHandshake, label: 'Care Teams', show: showCareTeam },
-        { to: '/medicine-inventory', icon: Pill, label: 'Medicine Inventory', show: showMedicineInventory },
-        { to: '/horse-feeds', icon: Wheat, label: 'Horse Feeds', show: showHorseFeeds },
-        { to: '/feed-inventory', icon: Package, label: 'Feed Inventory', show: showFeedInventory },
+        { to: '/medicine-logs', icon: Pill, label: 'Medicine Logs', show: p.viewMedicineLogs },
+        { to: '/horse-care-team', icon: HeartHandshake, label: 'Care Teams', show: false },
+        { to: '/medicine-inventory', icon: Pill, label: 'Medicine Inventory', show: p.viewMedicineInventory },
+        { to: '/horse-feeds', icon: Wheat, label: 'Horse Feeds', show: p.viewHorseFeeds },
+        { to: '/feed-inventory', icon: Package, label: 'Feed Inventory', show: p.viewFeedInventory },
       ],
     },
     {
       parent: 'Ground Operations',
       items: [
-        { to: '/gate-entry', icon: DoorOpen, label: 'Gate Register', show: showGateEntry },
-        { to: '/daily-attendance', icon: FileText, label: 'Daily Register', show: showDailyAttendance },
-        { to: '/team-attendance', icon: UserCheck, label: 'Mark Team Attendance', show: showTeamAttendance },
-        { to: '/groom-worksheet', icon: FileEdit, label: 'Groom Worksheet', show: showGroomWorksheet },
-        { to: '/daily-work-records', icon: NotebookPen, label: 'Daily Work Records', show: showEIRS },
-        { to: '/inspections', icon: Search, label: 'Inspection Rounds', show: showInspections },
+        { to: '/gate-entry', icon: DoorOpen, label: 'Gate Register', show: p.viewGateEntry },
+        { to: '/daily-attendance', icon: FileText, label: 'Daily Register', show: p.viewDailyAttendance },
+        { to: '/team-attendance', icon: UserCheck, label: 'Mark Team Attendance', show: p.viewTeamAttendance },
+        { to: '/groom-worksheet', icon: FileEdit, label: 'Groom Worksheet', show: p.viewGroomWorksheet },
+        { to: '/daily-work-records', icon: NotebookPen, label: 'Daily Work Records', show: p.viewEIRS },
+        { to: '/inspections', icon: Search, label: 'Inspection Rounds', show: p.viewInspections },
       ],
     },
     {
       parent: 'Restaurant Operations',
       items: [
-        { to: '/groceries-inventory', icon: ShoppingCart, label: 'Groceries Inventory', show: showGroceriesInventory },
+        { to: '/groceries-inventory', icon: ShoppingCart, label: 'Groceries Inventory', show: p.viewGroceriesInventory },
       ],
     },
     {
       parent: 'Accounts & Finance',
       items: [
-        { to: '/invoice-generation', icon: Receipt, label: 'Invoice Generation', show: showInvoiceGeneration },
-        { to: '/expenses', icon: CreditCard, label: 'Expense Tracking', show: showExpenses },
-        { to: '/fines', icon: AlertTriangle, label: 'Fine System', show: showFines },
+        { to: '/invoice-generation', icon: Receipt, label: 'Invoice Generation', show: p.viewInvoiceGeneration },
+        { to: '/expenses', icon: CreditCard, label: 'Expense Tracking', show: p.viewExpenses },
+        { to: '/fines', icon: AlertTriangle, label: 'Fine System', show: p.viewFines },
       ],
     },
     {
       parent: 'System',
       items: [
-        { to: '/reports', icon: BarChart3, label: 'Reports', show: true },
-        { to: '/permissions', icon: Shield, label: 'Permissions', show: showPermissions },
+        { to: '/reports', icon: BarChart3, label: 'Reports', show: p.viewReports },
+        { to: '/permissions', icon: Shield, label: 'Permissions', show: p.viewPermissions },
         { to: '/settings', icon: Settings, label: 'Settings', show: true },
       ],
     },

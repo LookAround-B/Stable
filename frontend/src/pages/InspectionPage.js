@@ -4,11 +4,14 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import inspectionService from '../services/inspectionService';
 import * as XLSX from 'xlsx';
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const InspectionPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -408,6 +411,8 @@ const InspectionPage = () => {
       default: return '#95a5a6';
     }
   };
+
+  if (!p.viewInspections) return <Navigate to="/" replace />;
 
   return (
     <div className="inspection-page">

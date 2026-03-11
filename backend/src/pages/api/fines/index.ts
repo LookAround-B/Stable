@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
 
@@ -17,10 +17,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).end();
   }
 
-  // Check authentication
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  // Permission check: issueFines
+  const decoded = verifyToken(token)!
+  const allowed = await checkPermission(decoded, 'issueFines')
+  if (!allowed) {
+    return res.status(403).json({ error: 'You do not have permission to access fines' })
   }
 
   switch (req.method) {

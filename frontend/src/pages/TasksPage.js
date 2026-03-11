@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const TASK_TYPES = [
   'Feed',
@@ -46,6 +48,7 @@ const getRoleTaskDescription = (role, t) => {
 const TasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [tasks, setTasks] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -436,6 +439,8 @@ const TasksPage = () => {
     const emp = employees.find(e => e.id === empId);
     return emp?.fullName || 'Unknown Employee';
   };
+
+  if (!p.manageTasks) return <Navigate to="/" replace />;
 
   return (
     <div className="tasks-page">
