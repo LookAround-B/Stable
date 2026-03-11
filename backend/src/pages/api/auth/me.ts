@@ -50,6 +50,17 @@ export default async function handler(
         phoneNumber: true,
         isApproved: true,
         profileImage: true,
+        permissions: {
+          select: {
+            viewDashboard: true,
+            manageEmployees: true,
+            viewReports: true,
+            issueFines: true,
+            manageInventory: true,
+            manageSchedules: true,
+            viewPayroll: true,
+          },
+        },
       },
     })
 

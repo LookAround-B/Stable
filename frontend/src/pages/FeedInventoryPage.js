@@ -4,7 +4,9 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
 import { RotateCw } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance',
@@ -26,6 +28,7 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const FeedInventoryPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -184,16 +187,7 @@ const FeedInventoryPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
 
-  const isAuthorized = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor'].includes(user?.designation);
-
-  if (!isAuthorized) {
-    return (
-      <div className="feed-inventory-page">
-        <h1>{t('Feed Inventory')}</h1>
-        <p>You do not have permission to view this page.</p>
-      </div>
-    );
-  }
+  if (!p.viewFeedInventory) return <Navigate to="/" replace />;
 
   return (
     <div className="feed-inventory-page">

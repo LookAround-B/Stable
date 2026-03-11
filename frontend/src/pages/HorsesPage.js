@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',
@@ -20,8 +21,8 @@ const SUPERVISORY_ROLES = [
 const HorsesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
-  const navigate = useNavigate();
   const location = useLocation();
+  const p = usePermissions();
   const [showModal, setShowModal] = useState(false);
   const [horses, setHorses] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
@@ -236,17 +237,9 @@ const HorsesPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedHorses = filteredHorses.slice(startIndex, endIndex);
 
-  return user?.designation === 'Guard' ? (
-    <div className="horses-page">
-      <div className="access-denied">
-        <h2>{t('Access Denied')}</h2>
-        <p>You do not have permission to access horse data.</p>
-        <button onClick={() => navigate('/')} className="btn-back">
-          {t('Go to Dashboard')}
-        </button>
-      </div>
-    </div>
-  ) : (
+  if (!p.viewHorses) return <Navigate to="/" replace />;
+
+  return (
     <div className="horses-page">
       <div className="page-header">
         <div>

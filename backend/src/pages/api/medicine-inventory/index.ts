@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, checkPermission } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 const AUTHORIZED_ROLES = [
@@ -69,7 +69,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!AUTHORIZED_ROLES.includes(user.designation)) {
-      return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
+      // Fall back to permission-based check
+      const allowed = await checkPermission(decoded, 'manageInventory');
+      if (!allowed) {
+        return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
+      }
     }
 
     switch (req.method) {

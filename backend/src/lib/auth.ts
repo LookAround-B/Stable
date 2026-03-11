@@ -59,3 +59,38 @@ export const createErrorResponse = (message: string, status: number) => {
 export const createSuccessResponse = (data: any, status: number = 200) => {
   return NextResponse.json(data, { status })
 }
+
+// ── Permission helpers ──────────────────────────────────────
+
+import prisma from '@/lib/prisma'
+
+const ADMIN_DESIGNATIONS = ['Super Admin', 'Director', 'School Administrator']
+
+export type PermissionKey =
+  | 'viewDashboard'
+  | 'manageEmployees'
+  | 'viewReports'
+  | 'issueFines'
+  | 'manageInventory'
+  | 'manageSchedules'
+  | 'viewPayroll'
+
+/**
+ * Check whether a user (from JWT) has a specific permission.
+ * Admins always pass. For others, look up the EmployeePermission row.
+ * If no row exists the user falls back to *denied*.
+ */
+export const checkPermission = async (
+  decoded: JwtPayload,
+  permission: PermissionKey
+): Promise<boolean> => {
+  // Admins bypass permission checks
+  if (ADMIN_DESIGNATIONS.includes(decoded.designation)) return true
+
+  const row = await prisma.employeePermission.findUnique({
+    where: { employeeId: decoded.id },
+    select: { [permission]: true },
+  })
+
+  return !!(row as any)?.[permission]
+}

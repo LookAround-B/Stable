@@ -1,6 +1,6 @@
 // pages/api/tasks/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 
 export default async function handler(
@@ -21,6 +21,13 @@ export default async function handler(
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  // Permission check: manageSchedules
+  const decoded = verifyToken(token)!
+  const allowed = await checkPermission(decoded, 'manageSchedules')
+  if (!allowed) {
+    return res.status(403).json({ error: 'You do not have permission to manage tasks' })
   }
 
   switch (req.method) {

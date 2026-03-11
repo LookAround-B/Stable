@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [entries, setEntries] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [visitorsList, setVisitorsList] = useState([]);
@@ -180,6 +183,8 @@ const GateEntryRegisterPage = () => {
     const minutes = diff % 60;
     return `${hours}h ${minutes}m`;
   };
+
+  if (!p.viewGateEntry) return <Navigate to="/" replace />;
 
   return (
     <div className="gate-entry-container">

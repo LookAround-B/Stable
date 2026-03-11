@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const HorseCareTeamPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
-  const navigate = useNavigate();
+  const p = usePermissions();
   const [careTeams, setCareTeams] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -221,27 +222,9 @@ const HorseCareTeamPage = () => {
     return careTeams.filter((team) => team.horseId === horseId);
   };
 
-  // Only Stable Manager can access this page
-  if (user?.designation !== 'Stable Manager') {
-    return (
-      <div className="care-team-page">
-        <h1>{t('Access Denied')}</h1>
-        <p>Only Stable Manager can access the Horse Care Team page.</p>
-      </div>
-    );
-  }
+  if (!p.isAdmin && user?.designation !== 'Stable Manager') return <Navigate to="/" replace />;
 
-  return user?.designation === 'Guard' ? (
-    <div className="care-team-page">
-      <div className="access-denied">
-        <h2>{t('Access Denied')}</h2>
-        <p>You do not have permission to access horse care team data.</p>
-        <button onClick={() => navigate('/')} className="btn-back">
-          Go to Dashboard
-        </button>
-      </div>
-    </div>
-  ) : (
+  return (
     <div className="care-team-page">
       <h1>{t('Horse Care Team Management')}</h1>
       <p className="subtitle">

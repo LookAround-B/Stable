@@ -1,6 +1,6 @@
 // pages/api/employees/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { uploadBase64Image } from '@/lib/s3'
@@ -32,6 +32,12 @@ export default async function handler(
   const decoded = verifyToken(token)
   if (!decoded) {
     return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
+  // Permission check: manageEmployees
+  const allowed = await checkPermission(decoded, 'manageEmployees')
+  if (!allowed) {
+    return res.status(403).json({ error: 'You do not have permission to manage employees' })
   }
 
   switch (req.method) {

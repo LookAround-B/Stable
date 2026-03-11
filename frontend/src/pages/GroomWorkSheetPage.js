@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [worksheets, setWorksheets] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -195,6 +198,8 @@ const GroomWorkSheetPage = () => {
     'Stable Manager',
     'Groom',
   ].includes(user?.designation);
+
+  if (!p.viewGroomWorksheet) return <Navigate to="/" replace />;
 
   return (
     <div className="groom-worksheet-page">

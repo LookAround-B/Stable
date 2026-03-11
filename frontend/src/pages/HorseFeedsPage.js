@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const HorseFeedsPage = () => {
-  const { user } = useAuth();
   const { t } = useI18n();
-  const navigate = useNavigate();
+  const p = usePermissions();
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [horses, setHorses] = useState([]);
@@ -178,27 +177,9 @@ const HorseFeedsPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedSummary = summaryDataArray.slice(startIndex, endIndex);
 
-  if (!user || !['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
-    return (
-      <div className="page-container">
-        <div className="error-message">
-          You do not have permission to access this page. Only Stable Manager and Ground Supervisor can manage horse feeds.
-        </div>
-      </div>
-    );
-  }
+  if (!p.viewHorseFeeds) return <Navigate to="/" replace />;
 
-  return user?.designation === 'Guard' ? (
-    <div className="horse-feeds-page">
-      <div className="access-denied">
-        <h2>✖ {t('Access Denied')}</h2>
-        <p>You do not have permission to access horse feed data.</p>
-        <button onClick={() => navigate('/')} className="btn-back">
-          Go to Dashboard
-        </button>
-      </div>
-    </div>
-  ) : (
+  return (
     <div className="page-container">
       <div className="page-header">
         <h1>{t('Horse Feeds')}</h1>

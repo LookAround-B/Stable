@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import { Navigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showStaffForm, setShowStaffForm] = useState(false);
@@ -267,15 +270,7 @@ const GateAttendancePage = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Only Guards can access this page
-  if (user?.designation !== 'Guard') {
-    return (
-      <div className="gate-page">
-        <h1>{t('Access Denied')}</h1>
-        <p>Only Guards can access the Gate Attendance page.</p>
-      </div>
-    );
-  }
+  if (!p.viewGateEntry) return <Navigate to="/" replace />;
 
   return (
     <div className="gate-page">

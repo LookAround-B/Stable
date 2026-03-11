@@ -1,6 +1,6 @@
 // pages/api/expenses/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { uploadImage } from '@/lib/s3'
 
@@ -28,6 +28,12 @@ export default async function handler(
   const decoded = verifyToken(token)
   if (!decoded) {
     return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
+  // Permission check: viewPayroll
+  const allowed = await checkPermission(decoded, 'viewPayroll')
+  if (!allowed) {
+    return res.status(403).json({ error: 'You do not have permission to access expenses' })
   }
 
   switch (req.method) {

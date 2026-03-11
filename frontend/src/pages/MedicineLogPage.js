@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const MedicineLogPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -126,15 +129,7 @@ const MedicineLogPage = () => {
 
   const filteredLogs = getFilteredLogs();
 
-  // Only Jamedar can access this page
-  if (user?.designation !== 'Jamedar') {
-    return (
-      <div className="medicine-page">
-        <h1>{t('Access Denied')}</h1>
-        <p>Only Jamedar can access the Medicine Log page.</p>
-      </div>
-    );
-  }
+  if (!p.viewMedicineLogs) return <Navigate to="/" replace />;
 
   return (
     <div className="medicine-page">

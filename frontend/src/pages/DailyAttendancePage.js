@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import { useI18n } from '../context/I18nContext';
+import usePermissions from '../hooks/usePermissions';
 
 const DailyAttendancePage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
   const [attendance, setAttendance] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [, setLoading] = useState(false);
@@ -141,6 +144,8 @@ const DailyAttendancePage = () => {
     'Ground Supervisor',
     'Jamedar',
   ].includes(user?.designation);
+
+  if (!p.viewDailyAttendance) return <Navigate to="/" replace />;
 
   return (
     <div className="daily-attendance-page">

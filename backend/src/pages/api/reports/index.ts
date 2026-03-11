@@ -1,6 +1,6 @@
 // pages/api/reports/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export default async function handler(
   req: NextApiRequest,
@@ -21,11 +21,14 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  // Permission check: viewReports
+  const decoded = verifyToken(token)!
+  const allowed = await checkPermission(decoded, 'viewReports')
+  if (!allowed) {
+    return res.status(403).json({ error: 'You do not have permission to view reports' })
+  }
+
   switch (req.method) {
-    case 'GET':
-      return handleGetReports(req, res)
-    case 'POST':
-      return handleCreateReport(req, res)
     default:
       return res.status(405).json({ error: 'Method not allowed' })
   }

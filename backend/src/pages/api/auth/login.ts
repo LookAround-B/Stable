@@ -36,9 +36,22 @@ export default async function handler(
       return res.status(400).json({ error: 'Password is required' })
     }
 
-    // Find user by email
+    // Find user by email (include permissions for real-time access control)
     const user = await prisma.employee.findUnique({
       where: { email },
+      include: {
+        permissions: {
+          select: {
+            viewDashboard: true,
+            manageEmployees: true,
+            viewReports: true,
+            issueFines: true,
+            manageInventory: true,
+            manageSchedules: true,
+            viewPayroll: true,
+          },
+        },
+      },
     })
 
     if (!user) {
@@ -75,6 +88,7 @@ export default async function handler(
         department: user.department,
         isApproved: user.isApproved,
         profileImage: user.profileImage,
+        permissions: user.permissions || null,
       },
     })
   } catch (error) {
