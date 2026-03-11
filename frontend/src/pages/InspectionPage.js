@@ -435,6 +435,7 @@ const InspectionPage = () => {
             onChange={handleFilterChange}
             options={[{ value: '', label: 'All Rounds' }, ...ROUNDS.map((round) => ({ value: round, label: round }))]}
             placeholder="Select round..."
+            searchable={false}
           />
         </div>
 
@@ -457,6 +458,7 @@ const InspectionPage = () => {
             onChange={handleFilterChange}
             options={[{ value: '', label: 'All Severity Levels' }, ...SEVERITY_LEVELS.map((level) => ({ value: level, label: level }))]}
             placeholder="Select severity..."
+            searchable={false}
           />
         </div>
 

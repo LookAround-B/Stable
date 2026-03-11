@@ -164,13 +164,17 @@ const MyAssignedTasksPage = () => {
           ]}
           placeholder={t('Filter by status...')}
         />
-        <input
-          type="text"
-          placeholder={t('Search tasks by name, type, horse...')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
+        <div className="search-input">
+          <span className="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input
+            type="text"
+            placeholder={t('Search tasks by name, type, horse...')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
       {loading && filteredTasks.length === 0 ? (

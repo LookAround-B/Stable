@@ -314,19 +314,21 @@ const TeamAttendancePage = () => {
 
                 <div className="form-group">
                   <label>Attendance Status *</label>
-                  <select 
+                  <SearchableSelect
                     name="status"
                     value={formData.status}
                     onChange={handleFormChange}
-                    className="form-input"
+                    options={[
+                      { value: 'Present', label: 'Present' },
+                      { value: 'Absent', label: 'Absent' },
+                      { value: 'Leave', label: 'Leave' },
+                      { value: 'WOFF', label: 'Weekly Off' },
+                      { value: 'Half Day', label: 'Half Day' },
+                    ]}
+                    placeholder="Select status..."
+                    searchable={false}
                     required
-                  >
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Leave">Leave</option>
-                    <option value="WOFF">Weekly Off</option>
-                    <option value="Half Day">Half Day</option>
-                  </select>
+                  />
                 </div>
               </div>
 

@@ -301,6 +301,7 @@ const InvoiceGenerationPage = () => {
       <div className="page-header">
         <div>
           <h1>{t('Invoice Generation')}</h1>
+          <p>{t('Generate and download instructor invoices')}</p>
         </div>
       </div>
 
@@ -311,11 +312,11 @@ const InvoiceGenerationPage = () => {
         </div>
       )}
 
-      <div className="filter-container">
+      <div className="card" style={{ padding: '24px', marginBottom: '24px', overflow: 'visible' }}>
         <form onSubmit={handleGenerateInvoice}>
-          <div className="filter-row">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }}>
             {user?.designation !== 'Instructor' && (
-              <div className="filter-group">
+              <div className="filter-group" style={{ flex: '1 1 200px', minWidth: '180px' }}>
                 <label htmlFor="instructorId">Select Instructor</label>
                 <SearchableSelect
                   id="instructorId"
@@ -335,11 +336,12 @@ const InvoiceGenerationPage = () => {
               </div>
             )}
 
-            <div className="filter-group">
+            <div className="filter-group" style={{ flex: '0 1 180px' }}>
               <label htmlFor="startDate">From Date</label>
               <input
                 type="date"
                 id="startDate"
+                className="form-input"
                 value={filters.startDate}
                 onChange={(e) =>
                   setFilters((prev) => ({
@@ -351,11 +353,12 @@ const InvoiceGenerationPage = () => {
               />
             </div>
 
-            <div className="filter-group">
+            <div className="filter-group" style={{ flex: '0 1 180px' }}>
               <label htmlFor="endDate">To Date</label>
               <input
                 type="date"
                 id="endDate"
+                className="form-input"
                 value={filters.endDate}
                 onChange={(e) =>
                   setFilters((prev) => ({
@@ -367,7 +370,7 @@ const InvoiceGenerationPage = () => {
               />
             </div>
 
-            <div className="filter-group" style={{ marginLeft: 'auto' }}>
+            <div style={{ marginLeft: 'auto', alignSelf: 'flex-end' }}>
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -381,17 +384,17 @@ const InvoiceGenerationPage = () => {
       </div>
 
       {invoice && (
-        <div className="invoice-container">
-          <div className="invoice-header">
+        <div className="card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
             <div>
-              <h2>Invoice #{invoice.invoiceId}</h2>
-              <p className="instructor-name">{invoice.instructor.fullName}</p>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>Invoice #{invoice.invoiceId}</h2>
+              <p style={{ fontWeight: 500, marginBottom: '2px' }}>{invoice.instructor.fullName}</p>
               <p className="period">
                 {new Date(invoice.periodStart).toLocaleDateString()} to{' '}
                 {new Date(invoice.periodEnd).toLocaleDateString()}
               </p>
             </div>
-            <div className="invoice-actions">
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button className="btn btn-success" onClick={handlePrint}>
                 Print
               </button>
@@ -404,8 +407,9 @@ const InvoiceGenerationPage = () => {
             </div>
           </div>
 
-          <div className="invoice-content">
-            <h3>Work Sessions</h3>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Work Sessions</h3>
+            <div style={{ overflowX: 'auto' }}>
             <table className="records-table">
               <thead>
                 <tr>
@@ -430,11 +434,12 @@ const InvoiceGenerationPage = () => {
                 ))}
               </tbody>
             </table>
+            </div>
 
-            <div className="summary-container">
-              <div className="summary-section">
-                <h3>Summary by Work Type</h3>
-                <table className="summary-table">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '24px' }}>
+              <div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Summary by Work Type</h3>
+                <table className="records-table">
                   <thead>
                     <tr>
                       <th>Work Type</th>
@@ -458,18 +463,21 @@ const InvoiceGenerationPage = () => {
                 </table>
               </div>
 
-              <div className="summary-stats">
-                <div className="stat-box">
-                  <div className="stat-label">Total Sessions</div>
-                  <div className="stat-value">{invoice.summary.totalSessions}</div>
-                </div>
-                <div className="stat-box">
-                  <div className="stat-label">Total Duration</div>
-                  <div className="stat-value">{invoice.summary.totalDuration} min</div>
-                </div>
-                <div className="stat-box">
-                  <div className="stat-label">Total Hours</div>
-                  <div className="stat-value">{invoice.summary.totalHours}</div>
+              <div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Totals</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Sessions</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{invoice.summary.totalSessions}</div>
+                  </div>
+                  <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Duration</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{invoice.summary.totalDuration} min</div>
+                  </div>
+                  <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Hours</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{invoice.summary.totalHours}</div>
+                  </div>
                 </div>
               </div>
             </div>

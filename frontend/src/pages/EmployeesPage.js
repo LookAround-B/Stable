@@ -41,6 +41,51 @@ const SUPERVISORY_ROLES = [
   'Senior Executive Accounts',
 ];
 
+// Color palette for role badges - covers predefined + generates for any custom role
+const ROLE_COLORS = {
+  'Super Admin':               { bg: '#d1c4e9', color: '#311b92', border: '#9575cd' },
+  'Director':                  { bg: '#f8bbd0', color: '#880e4f', border: '#ec407a' },
+  'School Administrator':      { bg: '#ffe0b2', color: '#bf360c', border: '#ff9800' },
+  'Stable Manager':            { bg: '#b2dfdb', color: '#004d40', border: '#26a69a' },
+  'Ground Supervisor':         { bg: '#bbdefb', color: '#0d47a1', border: '#42a5f5' },
+  'Senior Executive Accounts': { bg: '#c5cae9', color: '#1a237e', border: '#7986cb' },
+  'Instructor':                { bg: '#c8e6c9', color: '#1b5e20', border: '#66bb6a' },
+  'Executive Accounts':        { bg: '#b3e5fc', color: '#01579b', border: '#29b6f6' },
+  'Executive Admin':           { bg: '#e1bee7', color: '#4a148c', border: '#ab47bc' },
+  'Jamedar':                   { bg: '#ffecb3', color: '#e65100', border: '#ffa726' },
+  'Groom':                     { bg: '#b2ebf2', color: '#006064', border: '#26c6da' },
+  'Gardener':                  { bg: '#dcedc8', color: '#33691e', border: '#8bc34a' },
+  'Riding Boy':                { bg: '#bbdefb', color: '#0d47a1', border: '#42a5f5' },
+  'Rider':                     { bg: '#90caf9', color: '#0a3d91', border: '#1e88e5' },
+  'Farrier':                   { bg: '#d7ccc8', color: '#3e2723', border: '#8d6e63' },
+  'Guard':                     { bg: '#cfd8dc', color: '#263238', border: '#78909c' },
+  'Electrician':               { bg: '#fff9c4', color: '#e65100', border: '#ffee58' },
+  'Housekeeping':              { bg: '#f8bbd0', color: '#880e4f', border: '#ec407a' },
+};
+
+// Generate a consistent color from any string (for roles not in the map)
+const hashStringToColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return {
+    bg: `hsl(${hue}, 55%, 85%)`,
+    color: `hsl(${hue}, 70%, 25%)`,
+    border: `hsl(${hue}, 55%, 65%)`,
+  };
+};
+
+const getRoleBadgeStyle = (designation) => {
+  if (!designation) return {};
+  const c = ROLE_COLORS[designation] || hashStringToColor(designation);
+  return {
+    background: c.bg,
+    color: c.color,
+    borderColor: c.border,
+    border: `1px solid ${c.border}`,
+  };
+};
+
 const EmployeesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -549,7 +594,7 @@ const EmployeesPage = () => {
                     </div>
                   </td>
                   <td>{employee.email}</td>
-                  <td><span className={`role-badge role-${(employee.designation||'').toLowerCase().replace(/\s+/g, '-')}`}>{t(employee.designation)}</span></td>
+                  <td><span className="role-badge" style={getRoleBadgeStyle(employee.designation)}>{t(employee.designation)}</span></td>
                   <td>
                     {employee.supervisor 
                       ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})`

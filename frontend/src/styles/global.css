@@ -502,7 +502,6 @@ p {
 .main-content-inner {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
   padding: 0 16px 16px 16px;
 }
 
@@ -2476,8 +2475,7 @@ p {
 .medicine-inventory-page {
   max-width: 1280px;
   margin: 0 auto;
-  animation: fadeInUp .45s var(--ease) both;
-  overflow-x: hidden
+  animation: fadeInUp .45s var(--ease) both
 }
 
 /* Login — premium B&W SaaS redesign
@@ -3281,6 +3279,18 @@ p {
   padding-left: 2.5rem
 }
 
+.search-input .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary, #999);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
 .search-group label {
   font-size: .875rem;
   font-weight: 500;
@@ -3498,106 +3508,109 @@ p {
   font-weight: 600;
   white-space: nowrap;
   border: 1px solid transparent;
+  /* Default fallback for any unmatched designation */
+  background: var(--bg-muted, #f0f0f0);
+  color: var(--text-secondary, #555);
 }
 
 /* Management/Executive tier */
 .role-super-admin {
-  background: #ede7f6;
-  color: #4527a0;
-  border-color: #b39ddb;
+  background: #d1c4e9;
+  color: #311b92;
+  border-color: #9575cd;
 }
 .role-director {
-  background: #fce4ec;
+  background: #f8bbd0;
   color: #880e4f;
-  border-color: #f48fb1;
+  border-color: #ec407a;
 }
 .role-school-administrator {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ffcc80;
+  background: #ffe0b2;
+  color: #bf360c;
+  border-color: #ff9800;
 }
 .role-stable-manager {
-  background: #e0f2f1;
-  color: #00695c;
-  border-color: #80cbc4;
+  background: #b2dfdb;
+  color: #004d40;
+  border-color: #26a69a;
 }
 
 /* Supervisor tier */
 .role-ground-supervisor {
-  background: #e3f2fd;
+  background: #bbdefb;
   color: #0d47a1;
-  border-color: #90caf9;
+  border-color: #42a5f5;
 }
 .role-senior-executive-accounts {
-  background: #e8eaf6;
-  color: #283593;
-  border-color: #9fa8da;
+  background: #c5cae9;
+  color: #1a237e;
+  border-color: #7986cb;
 }
 
 /* Professional / Instructors */
 .role-instructor {
-  background: #e8f5e9;
+  background: #c8e6c9;
   color: #1b5e20;
-  border-color: #a5d6a7;
+  border-color: #66bb6a;
 }
 .role-executive-accounts {
-  background: #e1f5fe;
+  background: #b3e5fc;
   color: #01579b;
-  border-color: #81d4fa;
+  border-color: #29b6f6;
 }
 .role-executive-admin {
-  background: #f3e5f5;
-  color: #6a1b9a;
-  border-color: #ce93d8;
+  background: #e1bee7;
+  color: #4a148c;
+  border-color: #ab47bc;
 }
 
 /* Field roles */
 .role-jamedar {
-  background: #fff8e1;
-  color: #f57f17;
-  border-color: #ffe082;
+  background: #ffecb3;
+  color: #e65100;
+  border-color: #ffa726;
 }
 .role-groom {
-  background: #e0f7fa;
+  background: #b2ebf2;
   color: #006064;
-  border-color: #80deea;
+  border-color: #26c6da;
 }
 .role-gardener {
-  background: #f1f8e9;
+  background: #dcedc8;
   color: #33691e;
-  border-color: #c5e1a5;
+  border-color: #8bc34a;
 }
 .role-riding-boy {
-  background: #e8f4fd;
-  color: #1565c0;
-  border-color: #90caf9;
+  background: #bbdefb;
+  color: #0d47a1;
+  border-color: #42a5f5;
 }
 .role-rider {
-  background: #e3f2fd;
+  background: #90caf9;
   color: #0a3d91;
-  border-color: #64b5f6;
+  border-color: #1e88e5;
 }
 .role-farrier {
-  background: #efebe9;
-  color: #4e342e;
-  border-color: #bcaaa4;
+  background: #d7ccc8;
+  color: #3e2723;
+  border-color: #8d6e63;
 }
 
 /* Service / Technical */
 .role-guard {
-  background: #eceff1;
-  color: #37474f;
-  border-color: #b0bec5;
+  background: #cfd8dc;
+  color: #263238;
+  border-color: #78909c;
 }
 .role-electrician {
-  background: #fffde7;
-  color: #f57f17;
-  border-color: #fff176;
+  background: #fff9c4;
+  color: #e65100;
+  border-color: #ffee58;
 }
 .role-housekeeping {
-  background: #fce4ec;
-  color: #ad1457;
-  border-color: #f48fb1;
+  background: #f8bbd0;
+  color: #880e4f;
+  border-color: #ec407a;
 }
 
 .status-badge {

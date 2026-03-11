@@ -3,6 +3,15 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
 
+// Increase body size limit to 10MB for base64 image uploads
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+}
+
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor']
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
