@@ -6356,6 +6356,48 @@ p {
   .invoice-content {
     padding: 0 4px
   }
+
+  .invoice-summary-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .invoice-summary-grid > div {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .invoice-result-card {
+    padding: 12px !important;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .invoice-summary-grid > div:last-child > div {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .invoice-summary-grid > div:last-child .card {
+    flex: 0 0 auto !important;
+    width: 30% !important;
+    min-width: 0 !important;
+    max-width: 110px !important;
+    padding: 10px 6px !important;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .invoice-summary-grid > div:last-child .card > div:last-child {
+    font-size: 1rem !important;
+    word-break: break-all;
+  }
+
+  .invoice-summary-grid > div:last-child .card > div:first-child {
+    font-size: 0.6rem !important;
+  }
 }
 
 /* Phone */
@@ -6494,7 +6536,6 @@ p {
 
   .btn,
   .btn-primary,
-  .btn-secondary,
   .btn-submit,
   .btn-add,
   .btn-delete,
@@ -6506,6 +6547,27 @@ p {
     font-size: 0.9375rem;
     padding: .5rem 1.125rem;
     min-height: 40px
+  }
+
+  /* Secondary buttons (Download Excel, Clear Filters, etc.) stay compact on mobile */
+  .btn-secondary {
+    width: auto;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    min-height: 32px;
+    white-space: nowrap;
+  }
+
+  /* Header/section action buttons should stay compact, not full-width */
+  .header-buttons .btn,
+  .header-buttons .btn-primary,
+  .header-buttons .btn-secondary,
+  .section-buttons .btn,
+  .section-buttons .btn-secondary {
+    width: auto;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    min-height: 32px;
   }
 
   .filter-tabs,
@@ -7590,6 +7652,18 @@ p {
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+/* Invoice summary 2-column grid (collapses to 1-col on mobile) */
+.invoice-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.invoice-result-card {
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* ── Approval Task Cards ── */

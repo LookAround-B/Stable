@@ -389,7 +389,7 @@ const InvoiceGenerationPage = () => {
       </div>
 
       {invoice && (
-        <div className="card" style={{ padding: '24px' }}>
+        <div className="card invoice-result-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
             <div>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>Invoice #{invoice.invoiceId}</h2>
@@ -441,9 +441,10 @@ const InvoiceGenerationPage = () => {
             </table>
             </div>
 
-            <div className="invoice-summary-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '24px' }}>
+            <div className="invoice-summary-grid" style={{ gap: '20px', marginTop: '24px' }}>
               <div>
                 <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Summary by Work Type</h3>
+                <div className="table-wrapper">
                 <table className="records-table">
                   <thead>
                     <tr>
@@ -466,6 +467,7 @@ const InvoiceGenerationPage = () => {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
 
               <div>
