@@ -296,7 +296,7 @@ async function calculateUsage(feedType: string, startDate: Date, endDate: Date):
 
 // Helper — create admin notification when inventory falls below threshold
 async function checkAndNotifyThreshold(
-  recordId: string,
+  _recordId: string,
   inventoryType: string,
   currentQty: number,
   threshold: number | null,
