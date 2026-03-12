@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import { getPermissions, updatePermissions } from '../services/permissionService';
 import {
   Search, ChevronRight, Check, Users, LayoutDashboard, BarChart2,
@@ -38,16 +39,6 @@ const ROLE_ICONS = {
   'Super Admin': Shield,
 };
 
-const PERMISSION_DEFS = [
-  { key: 'viewDashboard', label: 'View Dashboard', desc: 'Access the main dashboard overview and summary panels.', icon: LayoutDashboard },
-  { key: 'manageEmployees', label: 'Manage Employees', desc: 'Create, edit or remove employee records and role assignments.', icon: Users },
-  { key: 'viewReports', label: 'View Reports', desc: 'Access system-generated reports, analytics, and performance data.', icon: BarChart2 },
-  { key: 'issueFines', label: 'Issue Fines', desc: 'Raise and record fines against employee accounts.', icon: AlertTriangle },
-  { key: 'manageInventory', label: 'Manage Inventory', desc: 'Add, edit, and update inventory items and stock levels.', icon: Package },
-  { key: 'manageSchedules', label: 'Manage Schedules', desc: 'Create and modify shift schedules and duty rosters.', icon: Calendar },
-  { key: 'viewPayroll', label: 'View Payroll', desc: 'Access salary records, payslips, and payroll summaries.', icon: CreditCard },
-];
-
 const DEFAULT_PERMS = {
   viewDashboard: false,
   manageEmployees: false,
@@ -60,6 +51,19 @@ const DEFAULT_PERMS = {
 
 const PermissionsPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
+  
+  // Define permissions dynamically using t() function
+  const getPermissionDefs = () => [
+    { key: 'viewDashboard', label: t('View Dashboard'), desc: t('Access the main dashboard overview and summary panels.'), icon: LayoutDashboard },
+    { key: 'manageEmployees', label: t('Manage Employees'), desc: t('Create, edit or remove employee records and role assignments.'), icon: Users },
+    { key: 'viewReports', label: t('View Reports'), desc: t('Access system-generated reports, analytics, and performance data.'), icon: BarChart2 },
+    { key: 'issueFines', label: t('Issue Fines'), desc: t('Raise and record fines against employee accounts.'), icon: AlertTriangle },
+    { key: 'manageInventory', label: t('Manage Inventory'), desc: t('Add, edit, and update inventory items and stock levels.'), icon: Package },
+    { key: 'manageSchedules', label: t('Manage Schedules'), desc: t('Create and modify shift schedules and duty rosters.'), icon: Calendar },
+    { key: 'viewPayroll', label: t('View Payroll'), desc: t('Access salary records, payslips, and payroll summaries.'), icon: CreditCard },
+  ];
+  
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -146,7 +150,7 @@ const PermissionsPage = () => {
 
   const handleSave = async () => {
     if (selectedIds.size === 0) {
-      setMessage('Please select at least one employee.');
+      setMessage(t('Please select at least one employee.'));
       setTimeout(() => setMessage(''), 3000);
       return;
     }
@@ -159,7 +163,7 @@ const PermissionsPage = () => {
       await fetchData();
     } catch (err) {
       console.error('Failed to save permissions', err);
-      setMessage('Failed to save permissions.');
+      setMessage(t('Failed to save permissions.'));
     } finally {
       setSaving(false);
     }
@@ -178,7 +182,7 @@ const PermissionsPage = () => {
   if (loading) {
     return (
       <div className="perm-loading">
-        <p>Loading permissions…</p>
+        <p>{t('Loading permissions…')}</p>
       </div>
     );
   }
@@ -188,13 +192,13 @@ const PermissionsPage = () => {
       {/* ── SIDEBAR ── */}
       <div className="perm-sidebar">
         <div className="perm-sidebar-header">
-          <div className="label-overline">Staff Directory</div>
+          <div className="label-overline">{t('Staff Directory')}</div>
           <div className="perm-search-wrap">
             <Search size={14} className="perm-search-icon" />
             <input
               type="text"
               className="perm-search-input"
-              placeholder="Search employees…"
+              placeholder={t('Search employees…')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -244,7 +248,7 @@ const PermissionsPage = () => {
             );
           })}
           {filteredGroups.length === 0 && (
-            <div className="perm-empty">No employees found.</div>
+            <div className="perm-empty">{t('No employees found')}.</div>
           )}
         </div>
       </div>
@@ -253,13 +257,13 @@ const PermissionsPage = () => {
       <div className="perm-main">
         <div className="perm-main-header">
           <div>
-            <h1>Employee Permissions</h1>
-            <p className="perm-subtitle">Select employees and configure their access rights by role</p>
+            <h1>{t('Permissions')}</h1>
+            <p className="perm-subtitle">{t('Select employees and configure their access rights by role')}</p>
           </div>
           {selectedIds.size > 0 && (
             <div className="perm-selection-badge">
               <Users size={13} />
-              <span>{selectedIds.size} {selectedIds.size === 1 ? 'employee' : 'employees'} selected</span>
+              <span>{selectedIds.size} {selectedIds.size === 1 ? t('employee') : t('employees')} {t('selected')}</span>
             </div>
           )}
         </div>
@@ -267,7 +271,7 @@ const PermissionsPage = () => {
         <div className="perm-cards-area">
           <div className="label-overline">Access Control</div>
 
-          {PERMISSION_DEFS.map(perm => {
+          {getPermissionDefs().map(perm => {
             const isOn = permissions[perm.key];
             const PermIcon = perm.icon;
             return (
@@ -302,7 +306,7 @@ const PermissionsPage = () => {
         <div className="perm-footer">
           <div className="perm-footer-hint">
             <Info size={13} />
-            <span>Changes will apply to all {selectedIds.size > 0 ? `${selectedIds.size} selected ${selectedIds.size === 1 ? 'employee' : 'employees'}` : 'selected employees'}</span>
+            <span>{t('Changes will apply to all')} {selectedIds.size > 0 ? `${selectedIds.size} ${selectedIds.size === 1 ? t('selected') : t('selected')} ${selectedIds.size === 1 ? t('employee') : t('employees')}` : t('selected employees')}</span>
           </div>
           {message && <span className="perm-footer-msg">{message}</span>}
           <button

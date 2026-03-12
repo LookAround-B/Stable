@@ -464,7 +464,43 @@ const translations = {
 
   "Filter by status...":     { en: "Filter by status...",   hi: "स्थिति द्वारा फ़िल्टर करें...", te: "స్థితి ద్వారా ఫిల్టర్ చేయండి...", kn: "ಸ್ಥಿತಿ ಅನುಸಾರ ಫಿಲ್ಟರ್ ಮಾಡಿ..." },
   "Search tasks by name, type, status...": { en: "Search tasks by name, type, status...", hi: "नाम, प्रकार, स्थिति द्वारा कार्य खोजें...", te: "పేరు, రకం, స్థితి ద్వారా టాస్క్‌లను శోధించండి...", kn: "ಹೆಸರು, ಪ್ರಕಾರ, ಸ್ಥಿತಿ ಅನುಸಾರ ಕಾರ್ಯಗಳನ್ನು ಹುಡುಕಿ..." },
-};
+
+  // ─── PermissionsPage ──────────────────────────────────────────────────────
+  "Permissions":                                    { en: "Permissions", hi: "अनुमतियाँ", te: "అనుమతులు", kn: "ಅನುಮತಿಗಳು" },
+  "Staff Directory":                                { en: "Staff Directory", hi: "कर्मचारी निर्देशिका", te: "సిబ్బంది డైరెక్టరీ", kn: "ಸಿಬ್ಬಂದಿ ನಿರ್ದೇಶಿಕೆ" },
+  "Search employees…":                              { en: "Search employees…", hi: "कर्मचारियों को खोजें...", te: "ఉద్యోగులను శోధించండి...", kn: "ಉದ್ಯೋಗಿಗಳನ್ನು ಹುಡುಕಿ..." },
+  "Loading permissions…":                           { en: "Loading permissions…", hi: "अनुमतियाँ लोड हो रही हैं...", te: "అనుమతులు లోడ్ అవుతున్నాయి...", kn: "ಅನುಮತಿಗಳನ್ನು ಲೋಡ್ ಮಾಡುತ್ತಿದೆ..." },
+  "View Dashboard":                                 { en: "View Dashboard", hi: "डैशबोर्ड देखें", te: "డాష్‌బోర్డ్ వీక్షించండి", kn: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ವೀಕ್ಷಿಸಿ" },
+  "Access the main dashboard overview and summary panels.": { en: "Access the main dashboard overview and summary panels.", hi: "मुख्य डैशबोर्ड अवलोकन और सारांश पैनल तक पहुंचें।", te: "ప్రధాన డాష్‌బోర్డ్ అವలోకనం మరియు సారాంశ పैనల్‌ల ప్రాప్యతకు", kn: "ಮುಖ್ಯ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಅವಲೋಕನ ಮತ್ತು ಸಾರಾಂಶ ಫಲಕಗಳನ್ನು ಪ್ರವೇಶಿಸಿ" },
+  "Manage Employees":                               { en: "Manage Employees", hi: "कर्मचारियों का प्रबंधन करें", te: "ఉద్యోగులను నిర్వహించండి", kn: "ಉದ್ಯೋಗಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ" },
+  "Create, edit or remove employee records and role assignments.": { en: "Create, edit or remove employee records and role assignments.", hi: "कर्मचारी रिकॉर्ड और भूमिका असाइनमेंट बनाएं, संपादित करें या हटाएं।", te: "ఉద్యోగి రికార్డులు మరియు పాత్ర నియామకాలను సృష్టించండి, సవరించండి లేదా తీసివేయండి", kn: "ಉದ್ಯೋಗಿ ದಾಖಲೆ ಮತ್ತು ಪಾತ್ರ ನಿಯೋಜನೆಗಳನ್ನು ರಚಿಸಿ, ಸಂಪಾದಿಸಿ ಅಥವಾ ತೆಗೆದುಹಾಕಿ" },
+  "View Reports":                                   { en: "View Reports", hi: "रिपोर्ट देखें", te: "నివేదికలను వీక్షించండి", kn: "ವರದಿಗಳನ್ನು ವೀಕ್ಷಿಸಿ" },
+  "Access system-generated reports, analytics, and performance data.": { en: "Access system-generated reports, analytics, and performance data.", hi: "सिस्टम-जनित रिपोर्ट, विश्लेषण और प्रदर्शन डेटा तक पहुंचें।", te: "సిస్టమ్-ఉత్పాదిత నివేదికలు, విశ్లేషణ మరియు పనితీరు డేటాకు ప్రాప్యత", kn: "ಸಿಸ್ಟಮ್-ಉತ್ಪಾದಿತ ವರದಿಗಳು, ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಕಾರ್ಯಕ್ಷಮತೆ ಡೇಟಾವನ್ನು ಪ್ರವೇಶಿಸಿ" },
+  "Issue Fines":                                    { en: "Issue Fines", hi: "जुर्माना जारी करें", te: "జరిమానాలను జారీ చేయండి", kn: "ದಂಡವನ್ನು ನೀಡಿ" },
+  "Raise and record fines against employee accounts.": { en: "Raise and record fines against employee accounts.", hi: "कर्मचारी खातों के विरुद्ध जुर्माना बढ़ाएं और दर्ज करें।", te: "ఉద్యోగి ఖాతాల వ్యతిరేకంగా జరిమానాలను పెంచండి మరియు రికార్డ్ చేయండి", kn: "ಉದ್ಯೋಗಿ ಖಾತೆಗಳ ವಿರುದ್ಧ ದಂಡವನ್ನು ಹೆಚ್ಚಿಸಿ ಮತ್ತು ದಾಖಲಿಸಿ" },
+  "Manage Inventory":                               { en: "Manage Inventory", hi: "इन्वेंटरी का प्रबंधन करें", te: "జాబితాను నిర్వహించండి", kn: "ದಾಸ್ತಾನುವನ್ನು ನಿರ್ವಹಿಸಿ" },
+  "Add, edit, and update inventory items and stock levels.": { en: "Add, edit, and update inventory items and stock levels.", hi: "इन्वेंटरी आइटम और स्टॉक स्तर जोड़ें, संपादित करें और अपडेट करें।", te: "జాబితా చేసిన వస్తువులు మరియు స్టాక్ స్థాయిలను జోడించండి, సవరించండి మరియు అప్‌డేట్ చేయండి", kn: "ದಾಸ್ತಾನುವಿನ ವಸ್ತುಗಳು ಮತ್ತು ಸ್ಟಾಕ್ ಮಟ್ಟವನ್ನು ಸೇರಿಸಿ, ಸಂಪಾದಿಸಿ ಮತ್ತು ಅಪ್‌ಡೇಟ್ ಮಾಡಿ" },
+  "Manage Schedules":                               { en: "Manage Schedules", hi: "समय सारणी का प्रबंधन करें", te: "షెడ్యూల్‌లను నిర్వహించండి", kn: "ವೇಳಾಪಟ್ಟಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ" },
+  "Create and modify shift schedules and duty rosters.": { en: "Create and modify shift schedules and duty rosters.", hi: "शिफ्ट समय सारणी और ड्यूटी रोस्टर बनाएं और संशोधित करें।", te: "పాల షెడ్యూల్‌లు మరియు డ్యూటీ రోస్టర్‌లను సృష్టించండి మరియు సవరించండి", kn: "ಶಿಫ್ಟ್ ವೇಳಾಪಟ್ಟಿಗಳು ಮತ್ತು ಕರ್ತವ್ಯ ರೋಸ್ಟರ್‌ಗಳನ್ನು ರಚಿಸಿ ಮತ್ತು ಸವರಿಸಿ" },
+  "View Payroll":                                   { en: "View Payroll", hi: "पेरोल देखें", te: "పేరోల్ వీక్షించండి", kn: "ವೇತನ ವೀಕ್ಷಿಸಿ" },
+  "Access salary records, payslips, and payroll summaries.": { en: "Access salary records, payslips, and payroll summaries.", hi: "वेतन रिकॉर्ड, वेतन पर्ची और पेरोल सारांश तक पहुंचें।", te: "జీతం రికార్డులు, జీతం స్లిప్‌లు మరియు పేరోల్ సారాంశాలకు ప్రాప్యత", kn: "ವೇತನ ದಾಖಲೆ, ವೇತನ ಸ್ಲಿಪ್‌ಗಳು ಮತ್ತು ವೇತನ ಸಾರಾಂಶಗಳನ್ನು ಪ್ರವೇಶಿಸಿ" },
+  "Select up to":                                   { en: "Select up to", hi: "तक चुनें", te: "వరకు ఎంచుకోండి", kn: "ವರೆಗೆ ಆಯ್ಕೆ ಮಾಡಿ" },
+  "employees for bulk permission management":      { en: "employees for bulk permission management", hi: "बल्क अनुमति प्रबंधन के लिए कर्मचारी", te: "సమూహ అనుమతి నిర్వహణ కోసం ఉద్యోగులు", kn: "ಬಲ್ಕ್ ಅನುಮತಿ ನಿರ್ವಹಣೆಗೆ ಉದ್ಯೋಗಿಗಳು" },
+  "Selected":                                       { en: "Selected", hi: "चुना गया", te: "ఎంపిక చేయబడింది", kn: "ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ" },
+  "Assign Permissions":                             { en: "Assign Permissions", hi: "अनुमतियाँ असाइन करें", te: "అనుమతులను కేటాయించండి", kn: "ಅನುಮತಿಗಳನ್ನು ನಿಯೋಜಿಸಿ" },
+  "Select an employee to view or modify their permissions.": { en: "Select an employee to view or modify their permissions.", hi: "उनकी अनुमतियों को देखने या संशोधित करने के लिए एक कर्मचारी चुनें।", te: "వారి అనుమతులను చూడటానికి లేదా సవరించటానికి ఉద్యోగిని ఎంచుకోండి", kn: "ಅವರ ಅನುಮತಿಗಳನ್ನು ವೀಕ್ಷಿಸಲು ಅಥವಾ ಸವರಿಸಲು ಉದ್ಯೋಗಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿ" },
+  "Please select at least one employee.":          { en: "Please select at least one employee.", hi: "कृपया कम से कम एक कर्मचारी चुनें।", te: "దయచేసి కనీసం ఒక ఉద్యోగిని ఎంచుకోండి", kn: "ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಂದು ಉದ್ಯೋಗಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿ" },
+  "Failed to save permissions.":                    { en: "Failed to save permissions.", hi: "अनुमतियों को सहेजने में विफल।", te: "అనుమతులను సేవ్ చేయడం విఫలమైంది", kn: "ಅನುಮತಿಗಳನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ" },
+  "Saved successfully":                             { en: "Saved successfully", hi: "सफलतापूर्वक सहेजा गया", te: "విజయవంతంగా సేవ్ చేయబడింది", kn: "ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ" },
+  "No employees found":                              { en: "No employees found", hi: "कोई कर्मचारी नहीं मिला", te: "ఉద్యోగుల కనుగొనబడలేదు", kn: "ಉದ್ಯೋಗಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ" },
+  "Select an employee to view or modify their permissions": { en: "Select an employee to view or modify their permissions", hi: "उनकी अनुमतियों को देखने या संशोधित करने के लिए एक कर्मचारी चुनें", te: "వారి అనుమతులను చూడటానికి లేదా సవరించటానికి ఉద్యోగిని ఎంచుకోండి", kn: "ಅವರ ಅನುಮತಿಗಳನ್ನು ವೀಕ್ಷಿಸಲು ಅಥವಾ ಸವರಿಸಲು ಉದ್ಯೋಗಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿ" },
+  "employee":                                        { en: "employee", hi: "कर्मचारी", te: "ఉద్యోగి", kn: "ಉದ್ಯೋಗಿ" },
+  "employees":                                       { en: "employees", hi: "कर्मचारी", te: "ఉద్యోగులు", kn: "ಉದ್ಯೋಗಿಗಳು" },
+  "selected":                                        { en: "selected", hi: "चुना गया", te: "ఎంపిక చేయబడింది", kn: "ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ" },
+  "selected employees":                              { en: "selected employees", hi: "चुने गए कर्मचारी", te: "ఎంపిక చేసిన ఉద్యోగులు", kn: "ಆಯ್ಕೆ ಮಾಡಿದ ಉದ್ಯೋಗಿಗಳು" },
+  "Changes will apply to all":                        { en: "Changes will apply to all", hi: "परिवर्तन सभी को लागू होंगे", te: "మార్పులు అందరికీ వర్తిస్తాయి", kn: "ಬದಲಾವಣೆಗಳು ಎಲ್ಲರಿಗೆ ಅನ್ವಯವಾಗುತ್ತವೆ" },
+  "Select employees and configure their access rights by role": { en: "Select employees and configure their access rights by role", hi: "कर्मचारियों को चुनें और भूमिका द्वारा उनके सुलभता अधिकारों को कॉन्फ़िगर करें", te: "ఉద్యోగులను ఎంచుకుని వారి ఆక్సెస్ హక్కులను పాత్ర ద్వారా కాన్ఫిగర్ చేయండి", kn: "ಉದ್ಯೋಗಿಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ ಮತ್ತು ಪಾತ್ರದಿಂದ ಅವರ ಆ್ಯಕ್ಸೆಸ್ ಹಕ್ಕುಗಳನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿ" },
+
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 const I18nContext = createContext({
