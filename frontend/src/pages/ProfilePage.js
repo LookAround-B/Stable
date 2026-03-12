@@ -307,14 +307,13 @@ const ProfilePage = () => {
               <Globe size={14} strokeWidth={2} />
               <span>{t('Language')}</span>
             </div>
-            <div className="text-size-cards" style={{ marginTop: '8px' }}>
+            <div className="language-cards" style={{ marginTop: '8px' }}>
               {Object.entries(LANGUAGES).map(([code, name]) => (
                 <button
                   key={code}
                   className={`text-size-card${code === lang ? ' text-size-card--active' : ''}`}
                   onClick={() => setLang(code)}
                   type="button"
-                  style={{ minWidth: '70px' }}
                 >
                   <span className="text-size-card-preview" style={{ fontSize: '0.9rem', fontWeight: 500 }}>{code.toUpperCase()}</span>
                   <span className="text-size-card-label" style={{ fontSize: '0.7rem' }}>{name}</span>
