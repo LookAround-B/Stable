@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import LanguageSwitcher from './LanguageSwitcher';
 import {
   LayoutDashboard, CheckSquare, ClipboardList, ShieldCheck,
   Calendar, Users, UserCheck, FileText,
@@ -169,11 +168,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </Link>
       )}
-
-      {/* Language switcher — visible on mobile only */}
-      <div className="sidebar-lang-switcher">
-        <LanguageSwitcher />
-      </div>
 
       {/* Logout — visible on mobile only */}
       <button className="sidebar-logout-btn" onClick={handleLogout}>

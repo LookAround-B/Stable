@@ -476,14 +476,14 @@ const HorsesPage = () => {
         <div className="team-section">
           <h2>{t('Horses Under My Care')}</h2>
           <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search size={16} style={{ position: 'absolute', left: '10px', color: 'rgba(0,0,0,.38)', pointerEvents: 'none' }} />
+            <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
             <input
               type="text"
               placeholder={t("Search by name, stable number, breed, color, gender...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
-              style={{ paddingLeft: '32px' }}
+              style={{ paddingLeft: '40px' }}
             />
           </div>
           {filteredMyHorses.length === 0 ? (
@@ -545,7 +545,7 @@ const HorsesPage = () => {
           <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
         </div>
         <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <Search size={16} style={{ position: 'absolute', left: '10px', color: 'rgba(0,0,0,.38)', pointerEvents: 'none' }} />
+          <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
           <input
             type="text"
             placeholder={t("Search by name, stable number, breed, color, gender...")}
@@ -555,7 +555,7 @@ const HorsesPage = () => {
               setCurrentPage(1);
             }}
             className="search-input"
-            style={{ paddingLeft: '32px' }}
+            style={{ paddingLeft: '40px' }}
           />
         </div>
         {filteredHorses.length === 0 ? (

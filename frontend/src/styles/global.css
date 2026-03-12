@@ -853,7 +853,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--shell-nav);
+  background: transparent;
 }
 
 .sidebar-logo.scrolled {

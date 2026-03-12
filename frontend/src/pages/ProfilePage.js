@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import { User, Mail, Lock, Link2, Camera, Settings, Type } from 'lucide-react';
-import { useI18n } from '../context/I18nContext';
+import { User, Mail, Lock, Link2, Camera, Settings, Type, Globe } from 'lucide-react';
+import { useI18n, LANGUAGES } from '../context/I18nContext';
 import useTextSize from '../hooks/useTextSize';
 
 const ROLES_WITH_HORSES = [
@@ -43,7 +43,7 @@ async function getCroppedImg(imageSrc, croppedAreaPixels) {
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
-  const { t } = useI18n();
+  const { t, lang, setLang } = useI18n();
   const { textSize, setTextSize } = useTextSize();
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -296,6 +296,28 @@ const ProfilePage = () => {
                 >
                   <span className="text-size-card-preview">{opt.label}</span>
                   <span className="text-size-card-label">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Language Switcher */}
+          <div className="language-setting" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(0,0,0,.08)' }}>
+            <div className="text-size-label">
+              <Globe size={14} strokeWidth={2} />
+              <span>{t('Language')}</span>
+            </div>
+            <div className="text-size-cards" style={{ marginTop: '8px' }}>
+              {Object.entries(LANGUAGES).map(([code, name]) => (
+                <button
+                  key={code}
+                  className={`text-size-card${code === lang ? ' text-size-card--active' : ''}`}
+                  onClick={() => setLang(code)}
+                  type="button"
+                  style={{ minWidth: '70px' }}
+                >
+                  <span className="text-size-card-preview" style={{ fontSize: '0.9rem', fontWeight: 500 }}>{code.toUpperCase()}</span>
+                  <span className="text-size-card-label" style={{ fontSize: '0.7rem' }}>{name}</span>
                 </button>
               ))}
             </div>
