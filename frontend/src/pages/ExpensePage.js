@@ -5,6 +5,7 @@ import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
@@ -789,7 +790,7 @@ const ExpensePage = () => {
                 onClick={handleDownloadExcel}
                 title="Download filtered expenses as Excel"
               >
-                Download Excel
+                <Download size={14} />Excel
               </button>
             )}
 

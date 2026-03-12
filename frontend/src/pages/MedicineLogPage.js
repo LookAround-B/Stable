@@ -157,7 +157,7 @@ const MedicineLogPage = () => {
       <p className="subtitle">
         Track all medicine administered to horses
       </p>
-      <button className="btn-secondary" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}>Download Excel</button>
+      <button className="btn-download" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}><Download size={14} />Excel</button>
 
       <button
         className="btn-add"

@@ -9,6 +9,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const MEDICINE_LABELS = {
@@ -289,7 +290,7 @@ const MedicineInventoryPage = () => {
       <div className="page-header">
         <h1>{t('Medicine Inventory')}</h1>
         <p>Manage and track medicine stock levels</p>
-        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {message && (
@@ -545,7 +546,7 @@ const MedicineInventoryPage = () => {
                 onClick={handleDownloadCSV}
                 disabled={downloadingCSV || !reportData}
               >
-                {downloadingCSV ? 'Downloading...' : '⬇ Download CSV'}
+                {downloadingCSV ? 'Downloading...' : '<Download size={14} />CSV'}
               </button>
             </div>
           </div>

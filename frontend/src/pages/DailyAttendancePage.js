@@ -5,6 +5,7 @@ import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const DailyAttendancePage = () => {
@@ -172,7 +173,7 @@ const DailyAttendancePage = () => {
             Groomers check in/out with the toggle switch. Track daily attendance and work hours.
           </p>
         </div>
-        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {message && <div className={`message ${message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}

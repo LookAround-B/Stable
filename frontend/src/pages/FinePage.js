@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
+import { Download } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
@@ -404,7 +405,7 @@ const FinePage = () => {
               {showForm ? '✕ Cancel' : '+ Issue Fine'}
             </button>
           )}
-          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
         </div>
       </div>
 

@@ -8,64 +8,82 @@ import usePermissions from '../hooks/usePermissions';
 import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-const GroomWorkSheetPage = () => {
+const WorkRecordPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
-  const [worksheets, setWorksheets] = useState([]);
-  const [horses, setHorses] = useState([]);
+  
+  // Staff categories
+  const STAFF_CATEGORIES = {
+    office: {
+      label: 'Office',
+      roles: ['Executive Admin', 'Senior Executive Admin', 'Junior Admin', 'Executive Accounts', 'Senior Executive Accounts', 'Junior Accounts']
+    },
+    instructors: {
+      label: 'Instructors',
+      roles: ['Instructor']
+    },
+    riders: {
+      label: 'Riders',
+      roles: ['Rider']
+    },
+    ridingBoys: {
+      label: 'Riding Boys',
+      roles: ['Riding Boy']
+    },
+    jamedars: {
+      label: 'Jamedars',
+      roles: ['Jamedar']
+    }
+  };
+
+  const [workRecords, setWorkRecords] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('office');
+  const [filterStaffId, setFilterStaffId] = useState('all');
 
-  const [filterGroomId, setFilterGroomId] = useState('all');
-
-  const [newWorksheet, setNewWorksheet] = useState({
-    groomId: user?.designation === 'Groom' ? user?.id : '',
+  const [newWorkRecord, setNewWorkRecord] = useState({
+    staffId: '',
     entries: [
       {
-        horseId: '',
+        taskDescription: '',
         amHours: 0,
         pmHours: 0,
         wholeDayHours: 0,
-        woodchipsUsed: 0,
-        bichaliUsed: 0,
-        booSaUsed: 0,
         remarks: '',
       },
     ],
     remarks: '',
   });
 
-  const loadWorksheets = useCallback(async () => {
+  const getStaffByCategory = (category) => {
+    const categoryInfo = STAFF_CATEGORIES[category];
+    if (!categoryInfo) return [];
+    return employees.filter((e) => categoryInfo.roles.includes(e.designation));
+  };
+
+  const loadWorkRecords = useCallback(async () => {
     try {
       setLoading(true);
       const params = { date: selectedDate };
-      if (filterGroomId !== 'all') {
-        params.groomId = filterGroomId;
+      if (filterStaffId !== 'all') {
+        params.staffId = filterStaffId;
       }
 
-      const response = await apiClient.get('/grooming/worksheet', { params });
-      setWorksheets(response.data.data || []);
+      const response = await apiClient.get('/work-records', { params });
+      setWorkRecords(response.data.data || []);
       setMessage('');
     } catch (error) {
-      console.error('Error loading worksheets:', error);
-      setMessage('Failed to load worksheets');
+      console.error('Error loading work records:', error);
+      setMessage('Failed to load work records');
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, filterGroomId]);
-
-  const loadHorses = useCallback(async () => {
-    try {
-      const response = await apiClient.get('/horses');
-      setHorses(response.data.data || []);
-    } catch (error) {
-      console.error('Error loading horses:', error);
-    }
-  }, []);
+  }, [selectedDate, filterStaffId]);
 
   const loadEmployees = useCallback(async () => {
     try {
@@ -77,24 +95,20 @@ const GroomWorkSheetPage = () => {
   }, []);
 
   useEffect(() => {
-    loadWorksheets();
-    loadHorses();
+    loadWorkRecords();
     loadEmployees();
-  }, [selectedDate, filterGroomId, loadWorksheets, loadHorses, loadEmployees]);
+  }, [selectedDate, filterStaffId, loadWorkRecords, loadEmployees]);
 
   const handleAddEntry = () => {
-    setNewWorksheet({
-      ...newWorksheet,
+    setNewWorkRecord({
+      ...newWorkRecord,
       entries: [
-        ...newWorksheet.entries,
+        ...newWorkRecord.entries,
         {
-          horseId: '',
+          taskDescription: '',
           amHours: 0,
           pmHours: 0,
           wholeDayHours: 0,
-          woodchipsUsed: 0,
-          bichaliUsed: 0,
-          booSaUsed: 0,
           remarks: '',
         },
       ],
@@ -102,14 +116,14 @@ const GroomWorkSheetPage = () => {
   };
 
   const handleRemoveEntry = (index) => {
-    setNewWorksheet({
-      ...newWorksheet,
-      entries: newWorksheet.entries.filter((_, i) => i !== index),
+    setNewWorkRecord({
+      ...newWorkRecord,
+      entries: newWorkRecord.entries.filter((_, i) => i !== index),
     });
   };
 
   const handleEntryChange = (index, field, value) => {
-    const updatedEntries = [...newWorksheet.entries];
+    const updatedEntries = [...newWorkRecord.entries];
     updatedEntries[index][field] = value;
 
     // Calculate whole day hours
@@ -117,117 +131,113 @@ const GroomWorkSheetPage = () => {
       updatedEntries[index].wholeDayHours = Number(updatedEntries[index].amHours) + Number(updatedEntries[index].pmHours);
     }
 
-    setNewWorksheet({
-      ...newWorksheet,
+    setNewWorkRecord({
+      ...newWorkRecord,
       entries: updatedEntries,
     });
   };
 
-  const handleSubmitWorksheet = async (e) => {
+  const handleSubmitWorkRecord = async (e) => {
     e.preventDefault();
 
-    if (newWorksheet.entries.length === 0) {
-      setMessage('Please add at least one entry');
+    if (!newWorkRecord.staffId || newWorkRecord.entries.length === 0) {
+      setMessage('Please select a staff member and add at least one task entry');
+      return;
+    }
+
+    const hasEmptyTask = newWorkRecord.entries.some((e) => !e.taskDescription);
+    if (hasEmptyTask) {
+      setMessage('Please enter a task description for all entries');
       return;
     }
 
     try {
       setLoading(true);
       const payload = {
-        groomId: newWorksheet.groomId || null,
+        staffId: newWorkRecord.staffId,
         date: selectedDate,
-        entries: newWorksheet.entries.map((e) => ({
-          horseId: e.horseId || null,
+        category: selectedCategory,
+        entries: newWorkRecord.entries.map((e) => ({
+          taskDescription: e.taskDescription,
           amHours: Number(e.amHours),
           pmHours: Number(e.pmHours),
           wholeDayHours: Number(e.wholeDayHours),
-          woodchipsUsed: Number(e.woodchipsUsed),
-          bichaliUsed: Number(e.bichaliUsed),
-          booSaUsed: Number(e.booSaUsed),
           remarks: e.remarks,
         })),
-        remarks: newWorksheet.remarks,
+        remarks: newWorkRecord.remarks,
       };
 
-      const response = await apiClient.post('/grooming/worksheet', payload);
-      setWorksheets([...worksheets, response.data.data]);
-      setNewWorksheet({
-        groomId: user?.designation === 'Groom' ? user?.id : '',
+      const response = await apiClient.post('/work-records', payload);
+      setWorkRecords([...workRecords, response.data.data]);
+      setNewWorkRecord({
+        staffId: '',
         entries: [
           {
-            horseId: '',
+            taskDescription: '',
             amHours: 0,
             pmHours: 0,
             wholeDayHours: 0,
-            woodchipsUsed: 0,
-            bichaliUsed: 0,
-            booSaUsed: 0,
             remarks: '',
           },
         ],
         remarks: '',
       });
       setShowAddForm(false);
-      setMessage('Worksheet created successfully');
+      setMessage('Work record created successfully');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error creating worksheet:', error);
-      setMessage('Failed to create worksheet');
+      console.error('Error creating work record:', error);
+      setMessage('Failed to create work record');
     } finally {
       setLoading(false);
     }
   };
 
-  const getHorseName = (id) => {
-    const horse = horses.find((h) => h.id === id);
-    return horse ? horse.name : 'Unknown';
+  const getStaffName = (id) => {
+    const staff = employees.find((e) => e.id === id);
+    return staff ? staff.fullName : 'Unknown';
   };
 
-  const getGroomers = () => {
-    return employees.filter((e) => e.designation === 'Groom');
-  };
-
-  const canCreateWorksheet = [
+  const canCreateWorkRecord = [
     'Super Admin',
     'Director',
     'School Administrator',
     'Stable Manager',
-    'Groom',
+    'Executive Admin',
+    'Senior Executive Admin',
   ].includes(user?.designation);
 
   const handleDownloadExcel = () => {
-    if (!worksheets.length) { alert('No data to download'); return; }
+    if (!workRecords.length) { alert('No data to download'); return; }
     const rows = [];
-    worksheets.forEach(ws => {
-      if (ws.entries && ws.entries.length) {
-        ws.entries.forEach(entry => {
+    workRecords.forEach(wr => {
+      if (wr.entries && wr.entries.length) {
+        wr.entries.forEach(entry => {
           rows.push({
-            'Date': ws.date ? new Date(ws.date).toLocaleDateString('en-GB') : '',
-            'Groom': ws.groom?.fullName || '',
-            'Horse': getHorseName(entry.horseId),
+            'Date': wr.date ? new Date(wr.date).toLocaleDateString('en-GB') : '',
+            'Staff Member': wr.staff?.fullName || '',
+            'Category': wr.category || '',
+            'Task Description': entry.taskDescription || '',
             'Morning Hours': entry.amHours || 0,
             'PM Hours': entry.pmHours || 0,
             'Total Hours': entry.wholeDayHours || 0,
-            'Woodchips': entry.woodchipsUsed || 0,
-            'Bichali (kg)': entry.bichaliUsed || 0,
-            'Boo Sa (bags)': entry.booSaUsed || 0,
             'Remarks': entry.remarks || '',
           });
         });
       } else {
         rows.push({
-          'Date': ws.date ? new Date(ws.date).toLocaleDateString('en-GB') : '',
-          'Groom': ws.groom?.fullName || '',
-          'Horse': '', 'Morning Hours': '', 'PM Hours': '', 'Total Hours': '',
-          'Woodchips': '', 'Bichali (kg)': '', 'Boo Sa (bags)': '', 'Remarks': '',
+          'Date': wr.date ? new Date(wr.date).toLocaleDateString('en-GB') : '',
+          'Staff Member': wr.staff?.fullName || '',
+          'Category': wr.category || '',
+          'Task Description': '', 'Morning Hours': '', 'PM Hours': '', 'Total Hours': '', 'Remarks': '',
         });
       }
     });
     if (!rows.length) { alert('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const wsSheet = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, wsSheet, 'Groom WorkSheet');
-    XLSX.writeFile(wb, `GroomWorkSheet_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, wsSheet, 'Work Record');
+    XLSX.writeFile(wb, `WorkRecord_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
   if (!p.viewGroomWorksheet) return <Navigate to="/" replace />;
@@ -236,8 +246,8 @@ const GroomWorkSheetPage = () => {
     <div className="groom-worksheet-page">
       <div className="page-header">
         <div>
-          <h1>{t('Groom Work Sheet')}</h1>
-          <p className="info-text">Track groom activities, horse care hours, and supplies used daily.</p>
+          <h1>{t('Work Record')}</h1>
+          <p className="info-text">Track work activities and hours for office, instructors, riders, riding boys, and jamedar staff.</p>
         </div>
         <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
@@ -251,42 +261,59 @@ const GroomWorkSheetPage = () => {
             <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </label>
 
-          <div style={{ minWidth: '300px' }}>
+          <div style={{ minWidth: '250px' }}>
             <SearchableSelect
-              value={filterGroomId}
-              onChange={(e) => setFilterGroomId(e.target.value)}
-              placeholder="All Grooms"
+              value={filterStaffId}
+              onChange={(e) => setFilterStaffId(e.target.value)}
+              placeholder="All Staff"
               options={[
-                { value: 'all', label: 'All Grooms' },
-                ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))
+                { value: 'all', label: 'All Staff' },
+                ...getStaffByCategory(selectedCategory).map(s => ({ value: s.id, label: s.fullName }))
               ]}
             />
           </div>
         </div>
 
-        {canCreateWorksheet && (
+        {canCreateWorkRecord && (
           <button className="btn-add-worksheet" onClick={() => setShowAddForm(!showAddForm)}>
-            {showAddForm ? '✕ Cancel' : '+ New Worksheet'}
+            {showAddForm ? '✕ Cancel' : '+ New Record'}
           </button>
         )}
       </div>
 
-      {/* Add Worksheet Form */}
-      {showAddForm && canCreateWorksheet && (
+      {/* Add Work Record Form */}
+      {showAddForm && canCreateWorkRecord && (
         <div className="add-worksheet-form">
-          <h3>Create New Work Sheet</h3>
-          <form onSubmit={handleSubmitWorksheet}>
+          <h3>Create New Work Record</h3>
+          <form onSubmit={handleSubmitWorkRecord}>
             <div className="form-row">
               <div className="form-group">
-                <label>Groom</label>
+                <label>Staff Category *</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    setFilterStaffId('all');
+                    setNewWorkRecord({ ...newWorkRecord, staffId: '' });
+                  }}
+                  className="form-select"
+                >
+                  {Object.entries(STAFF_CATEGORIES).map(([key, category]) => (
+                    <option key={key} value={key}>{t(category.label)}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Staff Member *</label>
                 <SearchableSelect
-                  value={newWorksheet.groomId}
-                  onChange={(e) => setNewWorksheet({ ...newWorksheet, groomId: e.target.value })}
-                  placeholder="Select Groom"
-                  disabled={user?.designation === 'Groom'}
+                  value={newWorkRecord.staffId}
+                  onChange={(e) => setNewWorkRecord({ ...newWorkRecord, staffId: e.target.value })}
+                  placeholder="Select Staff"
+                  required
                   options={[
-                    { value: '', label: 'Select Groom' },
-                    ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))
+                    { value: '', label: 'Select Staff' },
+                    ...getStaffByCategory(selectedCategory).map(s => ({ value: s.id, label: s.fullName }))
                   ]}
                 />
               </div>
@@ -294,8 +321,8 @@ const GroomWorkSheetPage = () => {
               <div className="form-group">
                 <label>Overall Remarks</label>
                 <textarea
-                  value={newWorksheet.remarks}
-                  onChange={(e) => setNewWorksheet({ ...newWorksheet, remarks: e.target.value })}
+                  value={newWorkRecord.remarks}
+                  onChange={(e) => setNewWorkRecord({ ...newWorkRecord, remarks: e.target.value })}
                   placeholder="General notes for the day..."
                   rows="2"
                 />
@@ -304,14 +331,14 @@ const GroomWorkSheetPage = () => {
 
             <div className="entries-section">
               <div className="entries-header">
-                <h4>Horse Entries</h4>
+                <h4>Task Entries</h4>
               </div>
 
-              {newWorksheet.entries.map((entry, index) => (
+              {newWorkRecord.entries.map((entry, index) => (
                 <div key={index} className="entry-card">
                   <div className="entry-header">
-                    <h5>Horse {index + 1}</h5>
-                    {newWorksheet.entries.length > 1 && (
+                    <h5>Task {index + 1}</h5>
+                    {newWorkRecord.entries.length > 1 && (
                       <button type="button" className="btn-remove" onClick={() => handleRemoveEntry(index)}>
                         ✕ Remove
                       </button>
@@ -320,19 +347,19 @@ const GroomWorkSheetPage = () => {
 
                   <div className="entry-form">
                     <div className="form-row">
-                      <div className="form-group">
-                        <label>Horse</label>
-                        <SearchableSelect
-                          value={entry.horseId}
-                          onChange={(e) => handleEntryChange(index, 'horseId', e.target.value)}
-                          placeholder="Select Horse"
-                          options={[
-                            { value: '', label: 'Select Horse' },
-                            ...horses.map(h => ({ value: h.id, label: h.name }))
-                          ]}
+                      <div className="form-group full-width">
+                        <label>Task Description *</label>
+                        <input
+                          type="text"
+                          value={entry.taskDescription}
+                          onChange={(e) => handleEntryChange(index, 'taskDescription', e.target.value)}
+                          placeholder="Enter task description..."
+                          required
                         />
                       </div>
+                    </div>
 
+                    <div className="form-row">
                       <div className="form-group">
                         <label>Morning Hours</label>
                         <input
@@ -362,47 +389,12 @@ const GroomWorkSheetPage = () => {
                     </div>
 
                     <div className="form-row">
-                      <div className="form-group">
-                        <label>Woodchips (B) Units</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          value={entry.woodchipsUsed}
-                          onChange={(e) => handleEntryChange(index, 'woodchipsUsed', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Bichali (kg)</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          value={entry.bichaliUsed}
-                          onChange={(e) => handleEntryChange(index, 'bichaliUsed', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Boo Sa (bags)</label>
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={entry.booSaUsed}
-                          onChange={(e) => handleEntryChange(index, 'booSaUsed', e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="form-row">
                       <div className="form-group full-width">
                         <label>Remarks</label>
                         <textarea
                           value={entry.remarks}
                           onChange={(e) => handleEntryChange(index, 'remarks', e.target.value)}
-                          placeholder="Notes for this horse..."
+                          placeholder="Notes for this task..."
                           rows="2"
                         />
                       </div>
@@ -412,49 +404,46 @@ const GroomWorkSheetPage = () => {
               ))}
 
               <button type="button" className="btn-primary" onClick={handleAddEntry} style={{marginTop: '16px'}}>
-                + Add Horse
+                + Add Task
               </button>
             </div>
 
             <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Worksheet'}
+              {loading ? 'Creating...' : 'Create Record'}
             </button>
           </form>
         </div>
       )}
 
-      {/* Worksheets List */}
+      {/* Work Records List */}
       <div className="worksheets-list">
-        {worksheets.length === 0 ? (
-          <p className="no-worksheets">No worksheets for {selectedDate}</p>
+        {workRecords.length === 0 ? (
+          <p className="no-worksheets">No work records for {selectedDate}</p>
         ) : (
-          worksheets.map((worksheet) => (
-            <div key={worksheet.id} className="worksheet-card">
+          workRecords.map((record) => (
+            <div key={record.id} className="worksheet-card">
+              <div className="worksheet-header-info">
+                <h4>{getStaffName(record.staffId)} - {record.category}</h4>
+              </div>
               <div className="worksheet-details">
                   <div className="summary-table-wrapper">
                     <table className="summary-table">
                       <thead>
                         <tr>
-                          <th>Horse</th>
+                          <th>Task Description</th>
                           <th>Morning Hours</th>
                           <th>Afternoon/Evening Hours</th>
                           <th>Total Hours</th>
-                          <th>Woodchips</th>
-                          <th>Bichali (kg)</th>
-                          <th>Boo Sa (bags)</th>
                           <th>Remarks</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {worksheet.entries.map((entry, idx) => (
+                        {record.entries.map((entry, idx) => (
                           <tr key={idx}>
-                            <td>{getHorseName(entry.horseId)}</td>
+                            <td>{entry.taskDescription}</td>
                             <td>{entry.amHours}</td>
                             <td>{entry.pmHours}</td>
                             <td className="total">{entry.wholeDayHours}</td>
-                            <td>{entry.woodchipsUsed || '-'}</td>
-                            <td>{entry.bichaliUsed || '-'}</td>
-                            <td>{entry.booSaUsed || '-'}</td>
                             <td>{entry.remarks || '-'}</td>
                           </tr>
                         ))}
@@ -470,4 +459,4 @@ const GroomWorkSheetPage = () => {
   );
 };
 
-export default GroomWorkSheetPage;
+export default WorkRecordPage;

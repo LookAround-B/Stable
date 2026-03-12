@@ -53,6 +53,8 @@ export default function usePermissions() {
         ['Stable Manager', 'Ground Supervisor'].includes(designation)),
       viewFeedInventory: has('manageInventory',
         ['Stable Manager', 'Ground Supervisor'].includes(designation)),
+      viewFarrierShoeing: has('manageSchedules',
+        ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)),
 
       // Ground Operations
       viewGateEntry: has('manageSchedules',

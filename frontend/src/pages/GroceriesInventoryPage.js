@@ -11,6 +11,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
+import { Download } from 'lucide-react';
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const UNIT_OPTIONS = ["g","kg","ml","l","ltr","pcs","units","packets","packs","boxes","bottles","cans","jars","sachets","strips"];
@@ -246,7 +247,7 @@ const GroceriesInventoryPage = () => {
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
         </div>
         <div className="groceries-filter-actions">
-          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
           <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
             {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
           </button>

@@ -242,6 +242,12 @@ const translations = {
 
   // Additional page headings
   "Groom Work Sheet":       { en: "Groom Work Sheet",       hi: "ग्रूम वर्क शीट",              te: "గ్రూమ్ వర్క్ షీట్",             kn: "ಗ್ರೂಮ್ ವರ್ಕ್ ಶೀಟ್" },
+  "Work Record":            { en: "Work Record",            hi: "कार्य रिकॉर्ड",              te: "కార్య రికార్డ్",               kn: "ಕಾರ್ಯ ರೆಕಾರ್ಡ್" },
+  "Office":                 { en: "Office",                 hi: "कार्यालय",                  te: "కార్యాలయం",                  kn: "ಕಚೇರಿ" },
+  "Instructors":            { en: "Instructors",            hi: "प्रशिक्षक",                  te: "ఇన్‌స్ట్రక్టర్లు",            kn: "ತರಬೇತಿದಾರರು" },
+  "Riders":                 { en: "Riders",                 hi: "सवार",                      te: "రైతులు",                     kn: "ಸವಾರರು" },
+  "Riding Boys":            { en: "Riding Boys",            hi: "राइडिंग लड़के",             te: "రైడింగ్ బాయ్‌లు",              kn: "ರೈಡಿಂಗ್ ಜನರು" },
+  "Jamedars":               { en: "Jamedars",               hi: "जमेदार",                    te: "జమీదారులు",                  kn: "ಜಮೀದಾರುಗಳು" },
   "Feed Inventory Management": { en: "Feed Inventory Management", hi: "चारा इन्वेंटरी प्रबंधन", te: "మేత జాబితా నిర్వహణ", kn: "ಆಹಾರ ದಾಸ್ತಾನು ನಿರ್ವಹಣೆ" },
   "Task Approvals":         { en: "Task Approvals",         hi: "कार्य अनुमोदन",              te: "విధి ఆమోదాలు",                  kn: "ಕಾರ್ಯ ಅನುಮೋದನೆಗಳು" },
   "Gate Entry/Exit Register": { en: "Gate Entry/Exit Register", hi: "गेट प्रवेश/निकास रजिस्टर", te: "గేట్ ఎంట్రీ/ఎగ్జిట్ రిజిస్టర్", kn: "ಗೇಟ್ ಪ್ರವೇಶ/ನಿರ್ಗಮನ ರಿಜಿಸ್ಟರ್" },

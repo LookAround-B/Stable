@@ -6558,6 +6558,23 @@ p {
     white-space: nowrap;
   }
 
+  /* Download button - smaller size */
+  .btn-download {
+    width: auto;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    min-height: 28px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-download svg {
+    width: 14px;
+    height: 14px;
+  }
+
   /* Header/section action buttons should stay compact, not full-width */
   .header-buttons .btn,
   .header-buttons .btn-primary,
@@ -7340,7 +7357,8 @@ p {
   .perm-footer {
     padding: 12px 16px;
     flex-wrap: wrap;
-    gap: 8px
+    gap: 8px;
+    justify-content: center
   }
 
   .perm-emp-item {

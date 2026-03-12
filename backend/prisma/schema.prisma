@@ -66,6 +66,8 @@ model Employee {
   groceriesInventory    GroceriesInventory[] @relation("groceriesInventory")
   groceriesInventoryCreated GroceriesInventory[] @relation("groceriesInventoryCreated")
   permissions           EmployeePermission?
+  workRecords           WorkRecord[] @relation("workRecords")
+  farrierShoeings       FarrierShoeing[] @relation("farrierShoeings")
 
   @@index([designation])
   @@index([department])
@@ -133,6 +135,7 @@ model Horse {
   feedRecords           HorseFeed[] @relation("horseFeedRecords")
   expenses              Expense[] @relation("horseExpenses")
   inspectionRounds      InspectionRound[] @relation("inspectionRounds")
+  farrierShoeings       FarrierShoeing[] @relation("horseFarrierShoeings")
 
   @@index([status])
   @@index([name])
@@ -365,8 +368,8 @@ model SystemSettings {
 // Groom Work Sheet - Daily record of groom activities
 model GroomWorkSheet {
   id                    String      @id @default(cuid())
-  groomId               String      // Employee ID of groom
-  groom                 Employee    @relation("groomWorkSheets", fields: [groomId], references: [id], onDelete: Cascade)
+  groomId               String?     // Employee ID of groom (optional)
+  groom                 Employee?   @relation("groomWorkSheets", fields: [groomId], references: [id], onDelete: Cascade)
   date                  DateTime    @default(now())
   totalAM               Float       @default(0) // Total morning hours
   totalPM               Float       @default(0) // Total afternoon hours
@@ -388,8 +391,8 @@ model WorkSheetEntry {
   id                    String      @id @default(cuid())
   worksheetId           String
   worksheet             GroomWorkSheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
-  horseId               String
-  horse                 Horse       @relation("groomWorkEntries", fields: [horseId], references: [id], onDelete: Cascade)
+  horseId               String?
+  horse                 Horse?      @relation("groomWorkEntries", fields: [horseId], references: [id], onDelete: Cascade)
   amHours               Float       @default(0)
   pmHours               Float       @default(0)
   wholeDayHours         Float       @default(0)
@@ -402,6 +405,41 @@ model WorkSheetEntry {
 
   @@index([worksheetId])
   @@index([horseId])
+}
+
+// Work Record for non-groom staff (office, instructors, riders, etc.)
+model WorkRecord {
+  id                    String      @id @default(cuid())
+  staffId               String      // Employee ID
+  staff                 Employee    @relation("workRecords", fields: [staffId], references: [id], onDelete: Cascade)
+  date                  DateTime    @default(now())
+  category              String      // 'office', 'instructors', 'riders', 'ridingBoys', 'jamedars'
+  totalAM               Float       @default(0) // Total morning hours
+  totalPM               Float       @default(0) // Total afternoon hours
+  wholeDayHours         Float       @default(0) // Total hours for the day
+  remarks               String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  entries               WorkRecordEntry[]
+
+  @@index([staffId])
+  @@index([date])
+}
+
+// Individual task entries in work record
+model WorkRecordEntry {
+  id                    String      @id @default(cuid())
+  recordId              String
+  record                WorkRecord  @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  taskDescription       String
+  amHours               Float       @default(0)
+  pmHours               Float       @default(0)
+  wholeDayHours         Float       @default(0)
+  remarks               String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([recordId])
 }
 
 // Enhanced Attendance Log with status tracking for all staff
@@ -730,6 +768,25 @@ model GroceriesInventory {
   @@index([employeeId])
   @@index([createdAt])
   @@index([purchaseDate])
+}
+
+// Farrier Shoeing Records - Horses must be shoed every 21 days
+model FarrierShoeing {
+  id                    String      @id @default(cuid())
+  horseId               String
+  horse                 Horse       @relation("horseFarrierShoeings", fields: [horseId], references: [id], onDelete: Cascade)
+  farrierId             String
+  farrier               Employee    @relation("farrierShoeings", fields: [farrierId], references: [id], onDelete: Cascade)
+  shoeingDate           DateTime
+  nextDueDate           DateTime    // shoeingDate + 21 days
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([horseId])
+  @@index([farrierId])
+  @@index([shoeingDate])
+  @@index([nextDueDate])
 }
 
 // Employee Permissions - Granular access control per employee

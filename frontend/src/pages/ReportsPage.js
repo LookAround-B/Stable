@@ -6,6 +6,7 @@ import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
 import * as XLSX from 'xlsx';
+import { Download } from 'lucide-react';
 
 const ReportsPage = () => {
   const { t } = useI18n();
@@ -315,7 +316,7 @@ const ReportsPage = () => {
           <h1>{t('Reports')}</h1>
           <p>{t('View and generate system reports')}</p>
         </div>
-        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {/* Date Range Filter */}

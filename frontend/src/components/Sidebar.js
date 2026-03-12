@@ -9,7 +9,7 @@ import {
   Calendar, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
-  Search, AlertTriangle, BarChart3, Settings, LogOut, Shield
+  Search, AlertTriangle, BarChart3, Settings, LogOut, Shield, Hammer
 } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 
@@ -64,6 +64,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/medicine-inventory', icon: Pill, label: 'Medicine Inventory', show: p.viewMedicineInventory },
         { to: '/horse-feeds', icon: Wheat, label: 'Horse Feeds', show: p.viewHorseFeeds },
         { to: '/feed-inventory', icon: Package, label: 'Feed Inventory', show: p.viewFeedInventory },
+        { to: '/farrier-shoeing', icon: Hammer, label: 'Farrier Shoeing', show: p.viewFarrierShoeing },
       ],
     },
     {
@@ -73,6 +74,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/daily-attendance', icon: FileText, label: 'Daily Register', show: p.viewDailyAttendance },
         { to: '/team-attendance', icon: UserCheck, label: 'Mark Team Attendance', show: p.viewTeamAttendance },
         { to: '/groom-worksheet', icon: FileEdit, label: 'Groom Worksheet', show: p.viewGroomWorksheet },
+        { to: '/work-records', icon: FileEdit, label: 'Work Record', show: p.viewGroomWorksheet },
         { to: '/daily-work-records', icon: NotebookPen, label: 'Daily Work Records', show: p.viewEIRS },
         { to: '/inspections', icon: Search, label: 'Inspection Rounds', show: p.viewInspections },
       ],

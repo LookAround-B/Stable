@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const AttendancePage = () => {
@@ -139,7 +140,7 @@ const AttendancePage = () => {
           ? 'Manage your team attendance' 
           : 'Log your attendance'}
       </p>
-      <button className="btn-secondary" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}>Download Excel</button>
+      <button className="btn-download" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}><Download size={14} />Excel</button>
 
       <button 
         className="btn-add" 

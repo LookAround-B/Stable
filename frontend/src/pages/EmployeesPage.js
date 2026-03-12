@@ -8,7 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Search } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
@@ -572,7 +572,7 @@ const EmployeesPage = () => {
       <div className="employees-list">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2>{t('All Employees')}</h2>
-          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
         </div>
         <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />

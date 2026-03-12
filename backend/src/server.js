@@ -23,7 +23,8 @@ app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/medicine-inventory', require('./routes/medicineInventoryRoutes'));
 app.use('/api/medicine-logs', require('./routes/medicineLogRoutes'));
-app.use('/api/inspections', require('./routes/inspectionRoutes'));
+app.use('/api/work-records', require('./routes/workRecordRoutes'));
+// app.use('/api/inspections', require('./routes/inspectionRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -31,7 +32,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

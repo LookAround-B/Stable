@@ -6,6 +6,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const GateEntryRegisterPage = () => {
@@ -413,7 +414,7 @@ const GateEntryRegisterPage = () => {
                 className="form-input"
                 style={{ height: '36px', boxSizing: 'border-box', margin: 0 }}
               />
-              <button className="btn-secondary" onClick={handleDownloadExcel} style={{ height: '36px', padding: '0 16px', boxSizing: 'border-box' }}>Download Excel</button>
+              <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
             </div>
           </div>
 

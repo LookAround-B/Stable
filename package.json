@@ -18,5 +18,8 @@
     "approval"
   ],
   "author": "Stable Management Team",
-  "license": "Proprietary"
+  "license": "Proprietary",
+  "dependencies": {
+    "lucide-react": "^0.577.0"
+  }
 }

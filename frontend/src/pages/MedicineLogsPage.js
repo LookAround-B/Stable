@@ -8,6 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const MedicineLogsPage = () => {
@@ -20,7 +21,7 @@ const MedicineLogsPage = () => {
   const [messageType, setMessageType] = useState('success');
   const [logs, setLogs] = useState([]);
   const [horses, setHorses] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('my-logs'); // 'my-logs', 'pending-approval'
+  const [selectedTab, setSelectedTab] = useState('all-logs'); // 'all-logs', 'my-logs', 'pending-approval'
   const [selectedLogForDetail, setSelectedLogForDetail] = useState(null);
 
   // Confirm modal state
@@ -44,8 +45,9 @@ const MedicineLogsPage = () => {
   // Auto-select the correct initial tab based on role
   useEffect(() => {
     if (user) {
-      if (!isJamedar && canApprove) setSelectedTab('pending-approval');
-      else if (isJamedar) setSelectedTab('my-logs');
+      if (isJamedar) setSelectedTab('my-logs');
+      else if (canApprove) setSelectedTab('pending-approval');
+      else setSelectedTab('all-logs');
     }
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,6 +65,7 @@ const MedicineLogsPage = () => {
       setLogs(response.data || []);
     } catch (error) {
       console.error('Error loading logs:', error);
+      setLogs([]);
       showMessage('Failed to load medicine logs', 'error');
     } finally {
       setLoading(false);
@@ -246,7 +249,7 @@ const MedicineLogsPage = () => {
       <div className="page-header">
         <h1>{t('Medicine Logs')}</h1>
         <p>Track medicine administration and approvals</p>
-        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {message && (
@@ -256,6 +259,12 @@ const MedicineLogsPage = () => {
       )}
 
       <div className="tabs">
+        <button
+          className={`tab-button ${selectedTab === 'all-logs' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('all-logs')}
+        >
+          All Logs
+        </button>
         {isJamedar && (
           <button
             className={`tab-button ${selectedTab === 'my-logs' ? 'active' : ''}`}
@@ -273,6 +282,43 @@ const MedicineLogsPage = () => {
           </button>
         )}
       </div>
+
+      {selectedTab === 'all-logs' && (
+        <div className="all-logs-section">
+          {loading && <TableSkeleton cols={6} rows={5} />}
+
+          {!loading && logs.length > 0 ? (
+            <div className="table-wrapper">
+              <table className="logs-table">
+              <thead>
+                <tr>
+                  <th>Horse</th>
+                  <th>Medicine</th>
+                  <th>Quantity</th>
+                  <th>Time</th>
+                  <th>Submitted By</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id}>
+                    <td>{log.horse?.name || horseMap[log.horseId] || 'Unknown'}</td>
+                    <td>{log.medicineName}</td>
+                    <td>{log.quantity} {log.unit}</td>
+                    <td>{new Date(log.timeAdministered).toLocaleString()}</td>
+                    <td>{log.jamedar?.fullName || 'Unknown'}</td>
+                    <td>{getStatusBadge(log.approvalStatus)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              </table>
+            </div>
+          ) : (
+            !loading && <p className="no-data">No medicine logs found</p>
+          )}
+        </div>
+      )}
 
       {selectedTab === 'my-logs' && isJamedar && (
         <div className="my-logs-section">

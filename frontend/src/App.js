@@ -23,6 +23,8 @@ import GateAttendancePage from './pages/GateAttendancePage';
 import GateEntryRegisterPage from './pages/GateEntryRegisterPage';
 import MedicineLogsPage from './pages/MedicineLogsPage';
 import GroomWorkSheetPage from './pages/GroomWorkSheetPage';
+import WorkRecordPage from './pages/WorkRecordPage';
+import FarrierShoeingPage from './pages/FarrierShoeingPage';
 import HorseCareTeamPage from './pages/HorseCareTeamPage';
 import DailyWorkRecordsPage from './pages/DailyWorkRecordsPage';
 import InvoiceGenerationPage from './pages/InvoiceGenerationPage';
@@ -71,6 +73,8 @@ function App() {
             <Route path="/gate-entry" element={<GateEntryRegisterPage />} />
             <Route path="/medicine-logs" element={<MedicineLogsPage />} />
             <Route path="/groom-worksheet" element={<GroomWorkSheetPage />} />
+            <Route path="/farrier-shoeing" element={<FarrierShoeingPage />} />
+            <Route path="/work-records" element={<WorkRecordPage />} />
             <Route path="/horse-care-team" element={<HorseCareTeamPage />} />
             <Route path="/daily-work-records" element={<DailyWorkRecordsPage />} />
             <Route path="/invoice-generation" element={<InvoiceGenerationPage />} />

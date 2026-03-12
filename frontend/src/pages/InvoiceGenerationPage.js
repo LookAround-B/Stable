@@ -6,6 +6,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Download } from 'lucide-react';
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
@@ -404,10 +405,10 @@ const InvoiceGenerationPage = () => {
                 Print
               </button>
               <button className="btn btn-info" onClick={handleDownloadPDF}>
-                Download Excel
+                <Download size={14} />Excel
               </button>
               <button className="btn btn-secondary" onClick={handleDownloadCSV}>
-                Download CSV
+                <Download size={14} />CSV
               </button>
             </div>
           </div>

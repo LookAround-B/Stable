@@ -6,6 +6,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import inspectionService from '../services/inspectionService';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
+import { Download } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 
@@ -654,11 +655,11 @@ const InspectionPage = () => {
           <div className="header-buttons">
             {inspections.length > 0 && (
               <button
-                className="btn-secondary"
+                className="btn-download"
                 onClick={handleDownloadExcel}
                 title="Download filtered inspections as Excel"
               >
-                📥 Download Excel
+                <Download size={14} />Excel
               </button>
             )}
 

@@ -3,7 +3,7 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw } from 'lucide-react';
+import { RotateCw, Download } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -237,7 +237,7 @@ const FeedInventoryPage = () => {
     <div className="feed-inventory-page">
       <div className="inventory-header">
         <h1>{t('Feed Inventory Management')}</h1>
-        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {message && <div className={`message ${messageType}`}>{message}</div>}
@@ -501,7 +501,7 @@ const FeedInventoryPage = () => {
               </button>
               {reportData && (
                 <button className="btn-secondary" onClick={handleDownloadCSV} disabled={downloadingCSV}>
-                  {downloadingCSV ? 'Downloading...' : 'Download CSV'}
+                  {downloadingCSV ? 'Downloading...' : '<Download size={14} />CSV'}
                 </button>
               )}
             </div>

@@ -9,9 +9,44 @@ import {
 } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 
+// Counter animation hook
+const useCounterAnimation = (targetValue, duration = 1000) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    if (typeof targetValue !== 'number' || targetValue === 0) {
+      setDisplayValue(targetValue);
+      return;
+    }
+
+    let startValue = 0;
+    let startTime = Date.now();
+
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const current = Math.floor(startValue + (targetValue - startValue) * progress);
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [targetValue, duration]);
+
+  return displayValue;
+};
+
 const StatCard = ({ icon: Icon, label, value, sub, accent, to }) => {
   const navigate = useNavigate();
-  // All icons are Lucide now; no FontAwesome check needed
+  const animatedValue = useCounterAnimation(typeof value === 'number' ? value : 0, 1200);
+  
+  // Format the display value (handle percentages and other string values)
+  const displayValue = typeof value === 'string' ? value : animatedValue;
 
   return (
     <div
@@ -25,7 +60,7 @@ const StatCard = ({ icon: Icon, label, value, sub, accent, to }) => {
           <Icon size={16} strokeWidth={1.8} />
         </span>
       </div>
-      <div className="dash-stat-value">{value}</div>
+      <div className="dash-stat-value">{displayValue}</div>
       {sub && <div className="dash-stat-sub">{sub}</div>}
     </div>
   );

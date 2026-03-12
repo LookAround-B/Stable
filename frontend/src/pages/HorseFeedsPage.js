@@ -5,6 +5,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const HorseFeedsPage = () => {
@@ -260,7 +261,7 @@ const HorseFeedsPage = () => {
             onClick={handleDownloadExcel}
             disabled={loading}
           >
-            Download Excel
+            <Download size={14} />Excel
           </button>
         )}
       </div>

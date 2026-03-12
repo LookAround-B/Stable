@@ -97,7 +97,7 @@ const RoundTrackingPage = () => {
       <div className="tracking-header">
         <h1>{t('Jamedar Round Tracking')}</h1>
         <p className="subtitle">Monitor all Jamedars' daily round completions</p>
-        <button className="btn-secondary" onClick={handleDownloadExcel} style={{ marginTop: '8px' }}>Download Excel</button>
+        <button className="btn-download" onClick={handleDownloadExcel} style={{ marginTop: '8px' }}><Download size={14} />Excel</button>
       </div>
 
       {message && <div className={`message ${message.includes('✓') ? 'success' : 'error'}`}>{message}</div>}

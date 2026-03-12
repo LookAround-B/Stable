@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { Navigate } from 'react-router-dom';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -32,8 +33,9 @@ const GateAttendancePage = () => {
     purpose: '',
     entryTime: new Date().toISOString().slice(0, 16),
     exitTime: '',
-    contact: '',
+    contact: '9999999999',
     notes: '',
+    visitorCount: 1,
   });
 
   const SHIFTS = ['Morning', 'Afternoon', 'Evening', 'Night'];
@@ -111,23 +113,35 @@ const GateAttendancePage = () => {
     setMessage('');
 
     try {
-      if (!visitorForm.visitorName || !visitorForm.purpose) {
-        throw new Error('Please provide visitor name and purpose');
+      if (!visitorForm.purpose) {
+        throw new Error('Please provide purpose of visit');
       }
 
-      const payload = {
-        guardId: user?.id,
-        personName: visitorForm.visitorName,
-        personType: 'Visitor',
-        entryTime: new Date(visitorForm.entryTime),
-        exitTime: visitorForm.exitTime ? new Date(visitorForm.exitTime) : null,
-        notes: visitorForm.notes ? `Purpose: ${visitorForm.purpose}\nContact: ${visitorForm.contact || 'N/A'}\n${visitorForm.notes}` : `Purpose: ${visitorForm.purpose}\nContact: ${visitorForm.contact || 'N/A'}`,
-      };
+      const contactNumber = visitorForm.contact || '9999999999';
+      const visitorCount = Math.max(1, parseInt(visitorForm.visitorCount) || 1);
 
-      const response = await apiClient.post('/gate-attendance', payload);
+      const promises = [];
+      for (let i = 0; i < visitorCount; i++) {
+        const visitorLabel = visitorCount > 1
+          ? (visitorForm.visitorName ? `${visitorForm.visitorName} (${i + 1}/${visitorCount})` : `Visitor ${i + 1}/${visitorCount}`)
+          : (visitorForm.visitorName || 'Unnamed Visitor');
+
+        const payload = {
+          guardId: user?.id,
+          personName: visitorLabel,
+          personType: 'Visitor',
+          entryTime: new Date(visitorForm.entryTime),
+          exitTime: visitorForm.exitTime ? new Date(visitorForm.exitTime) : null,
+          notes: visitorForm.notes ? `Purpose: ${visitorForm.purpose}\nContact: ${contactNumber}\n${visitorForm.notes}` : `Purpose: ${visitorForm.purpose}\nContact: ${contactNumber}`,
+        };
+
+        promises.push(apiClient.post('/gate-attendance', payload));
+      }
+
+      const responses = await Promise.all(promises);
       
-      setMessage('✓ Visitor entry logged successfully!');
-      setLogs([response.data, ...logs]);
+      setMessage(`✓ ${visitorCount} visitor${visitorCount > 1 ? 's' : ''} logged successfully!`);
+      setLogs([...responses.map(r => r.data), ...logs]);
       setShowVisitorForm(false);
 
       setVisitorForm({
@@ -135,8 +149,9 @@ const GateAttendancePage = () => {
         purpose: '',
         entryTime: new Date().toISOString().slice(0, 16),
         exitTime: '',
-        contact: '',
+        contact: '9999999999',
         notes: '',
+        visitorCount: 1,
       });
 
       setTimeout(() => setMessage(''), 3000);
@@ -305,13 +320,13 @@ const GateAttendancePage = () => {
               className="btn-download"
               onClick={handleDownloadExcel}
             >
-              📥 Download Excel
+              <Download size={14} />Excel
             </button>
             <button
               className="btn-download"
               onClick={handleDownloadCSV}
             >
-              📥 Download CSV
+              <Download size={14} />CSV
             </button>
           </div>
 
@@ -428,13 +443,13 @@ const GateAttendancePage = () => {
               className="btn-download"
               onClick={handleDownloadExcel}
             >
-              📥 Download Excel
+              <Download size={14} />Excel
             </button>
             <button
               className="btn-download"
               onClick={handleDownloadCSV}
             >
-              📥 Download CSV
+              <Download size={14} />CSV
             </button>
           </div>
 
@@ -442,7 +457,7 @@ const GateAttendancePage = () => {
             <div className="form-container">
               <form onSubmit={handleVisitorSubmit} className="gate-form">
                 <div className="form-group">
-                  <label htmlFor="visitorName">Visitor Name *</label>
+                  <label htmlFor="visitorName">Visitor Name</label>
                   <input
                     id="visitorName"
                     type="text"
@@ -453,10 +468,28 @@ const GateAttendancePage = () => {
                         visitorName: e.target.value,
                       })
                     }
+                    disabled={loading}
+                    placeholder="Enter visitor's full name (optional)"
+                    maxLength="100"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="visitorCount">Number of Visitors *</label>
+                  <input
+                    id="visitorCount"
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={visitorForm.visitorCount}
+                    onChange={(e) =>
+                      setVisitorForm({
+                        ...visitorForm,
+                        visitorCount: e.target.value,
+                      })
+                    }
                     required
                     disabled={loading}
-                    placeholder="Enter visitor's full name"
-                    maxLength="100"
                   />
                 </div>
 
@@ -477,7 +510,7 @@ const GateAttendancePage = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="contact">Contact Number</label>
+                  <label htmlFor="contact">Contact Number *</label>
                   <input
                     id="contact"
                     type="tel"
@@ -485,8 +518,9 @@ const GateAttendancePage = () => {
                     onChange={(e) =>
                       setVisitorForm({ ...visitorForm, contact: e.target.value })
                     }
+                    required
                     disabled={loading}
-                    placeholder="Visitor's phone number (optional)"
+                    placeholder="Visitor's phone number"
                     maxLength="20"
                   />
                 </div>

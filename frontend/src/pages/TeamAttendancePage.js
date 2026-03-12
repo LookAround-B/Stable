@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -253,10 +254,10 @@ const TeamAttendancePage = () => {
             <h3>Quick Mark Attendance</h3>
             <div className="header-buttons">
               <button 
-                className="btn btn-download"
+                className="btn-download"
                 onClick={handleDownloadExcel}
               >
-                Download Excel
+                <Download size={14} />Excel
               </button>
 
               <button 

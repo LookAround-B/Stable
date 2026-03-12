@@ -73,8 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create groom worksheet
       const { groomId, date, entries, remarks } = req.body;
 
-      if (!groomId || !date || !Array.isArray(entries)) {
-        return res.status(400).json({ message: 'Missing required fields: groomId, date, entries' });
+      if (!date || !Array.isArray(entries)) {
+        return res.status(400).json({ message: 'Missing required fields: date, entries' });
       }
 
       const worksheetDate = new Date(date);
@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create worksheet with entries
       const worksheet = await prisma.groomWorkSheet.create({
         data: {
-          groomId,
+          groomId: groomId || null,
           date: worksheetDate,
           totalAM,
           totalPM,
@@ -111,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           remarks,
           entries: {
             create: entries.map((entry: any) => ({
-              horseId: entry.horseId,
+              horseId: entry.horseId || null,
               amHours: entry.amHours || 0,
               pmHours: entry.pmHours || 0,
               wholeDayHours: entry.wholeDayHours || 0,

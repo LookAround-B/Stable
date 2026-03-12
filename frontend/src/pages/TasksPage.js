@@ -6,6 +6,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
+import { Download } from 'lucide-react';
 
 const TASK_TYPES = [
   'Feed',
@@ -482,7 +483,7 @@ const TasksPage = () => {
               {showCreateForm ? '✕ Cancel' : '+ Create New Task'}
             </button>
           )}
-          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
         </div>
       </div>
 
