@@ -11,7 +11,7 @@ import { FaHorse } from 'react-icons/fa';
 
 const StatCard = ({ icon: Icon, label, value, sub, accent, to }) => {
   const navigate = useNavigate();
-  const isFontAwesome = Icon.name?.includes('Fa') || Icon.$$typeof?.toString().includes('Symbol');
+  // All icons are Lucide now; no FontAwesome check needed
 
   return (
     <div
@@ -22,11 +22,7 @@ const StatCard = ({ icon: Icon, label, value, sub, accent, to }) => {
       <div className="dash-stat-top">
         <span className="dash-stat-label">{label}</span>
         <span className="dash-stat-icon" style={accent ? { background: accent + '18', color: accent } : {}}>
-          {isFontAwesome ? (
-            <Icon size={16} />
-          ) : (
-            <Icon size={16} strokeWidth={1.8} />
-          )}
+          <Icon size={16} strokeWidth={1.8} />
         </span>
       </div>
       <div className="dash-stat-value">{value}</div>

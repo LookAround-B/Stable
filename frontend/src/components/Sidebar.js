@@ -103,17 +103,13 @@ const Sidebar = ({ isOpen, onClose }) => {
   ];
 
   const MenuItem = ({ to, icon: Icon, label }) => {
-    const isFontAwesome = Icon.$$typeof ? false : Icon.render === undefined && typeof Icon === 'function';
+    // All icons are Lucide now; no FontAwesome check needed
 
     return (
       <li>
         <Link to={to} className={`menu-item${isActive(to) ? ' active' : ''}`}>
           <span className="menu-icon-circle">
-            {isFontAwesome || Icon.name?.includes('Fa') ? (
-              <Icon size={18} style={{ opacity: isActive(to) ? 1 : 0.65 }} />
-            ) : (
-              <Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} />
-            )}
+            <Icon size={18} strokeWidth={isActive(to) ? 2 : 1.5} />
           </span>
           <span className="menu-label">{t(label)}</span>
         </Link>
