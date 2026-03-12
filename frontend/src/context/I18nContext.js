@@ -500,7 +500,7 @@ const translations = {
   "selected employees":                              { en: "selected employees", hi: "चुने गए कर्मचारी", te: "ఎంపిక చేసిన ఉద్యోగులు", kn: "ಆಯ್ಕೆ ಮಾಡಿದ ಉದ್ಯೋಗಿಗಳು" },
   "Changes will apply to all":                        { en: "Changes will apply to all", hi: "परिवर्तन सभी को लागू होंगे", te: "మార్పులు అందరికీ వర్తిస్తాయి", kn: "ಬದಲಾವಣೆಗಳು ಎಲ್ಲರಿಗೆ ಅನ್ವಯವಾಗುತ್ತವೆ" },
   "Select employees and configure their access rights by role": { en: "Select employees and configure their access rights by role", hi: "कर्मचारियों को चुनें और भूमिका द्वारा उनके सुलभता अधिकारों को कॉन्फ़िगर करें", te: "ఉద్యోగులను ఎంచుకుని వారి ఆక్సెస్ హక్కులను పాత్ర ద్వారా కాన్ఫిగర్ చేయండి", kn: "ಉದ್ಯೋಗಿಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ ಮತ್ತು ಪಾತ್ರದಿಂದ ಅವರ ಆ್ಯಕ್ಸೆಸ್ ಹಕ್ಕುಗಳನ್ನು ಕಾನ್ಫಿಗರ್ ಮಾಡಿ" },
-
+};
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 const I18nContext = createContext({
