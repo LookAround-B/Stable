@@ -23,13 +23,6 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  // Permission check: manageSchedules
-  const decoded = verifyToken(token)!
-  const allowed = await checkPermission(decoded, 'manageSchedules')
-  if (!allowed) {
-    return res.status(403).json({ error: 'You do not have permission to manage tasks' })
-  }
-
   switch (req.method) {
     case 'GET':
       return handleGetTasks(req, res)
@@ -132,8 +125,19 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
     const decoded = verifyToken(token)
     const userId = decoded?.id
 
-    if (!userId) {
+    if (!userId || !decoded) {
       return res.status(401).json({ error: 'Unauthorized' })
+    }
+
+    // Check manageSchedules permission (admins always pass)
+    try {
+      const allowed = await checkPermission(decoded, 'manageSchedules')
+      if (!allowed) {
+        return res.status(403).json({ error: 'Task creation is not enabled for your account. Ask an admin to enable the "Manage Schedules" permission.' })
+      }
+    } catch (permErr) {
+      console.error('Permission check failed:', permErr)
+      return res.status(500).json({ error: 'Failed to verify permissions. Please try again.' })
     }
 
     const {

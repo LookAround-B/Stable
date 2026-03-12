@@ -17,9 +17,6 @@ export default async function handler(
   res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
@@ -34,17 +31,18 @@ export default async function handler(
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
-  // Permission check: manageEmployees
-  const allowed = await checkPermission(decoded, 'manageEmployees')
-  if (!allowed) {
-    return res.status(403).json({ error: 'You do not have permission to manage employees' })
-  }
-
   switch (req.method) {
     case 'GET':
+      // Any authenticated user can list employees (needed for task assignment, dropdowns, etc.)
       return handleGetEmployees(req, res)
-    case 'POST':
+    case 'POST': {
+      // Only users with manageEmployees permission can create employees
+      const allowed = await checkPermission(decoded, 'manageEmployees')
+      if (!allowed) {
+        return res.status(403).json({ error: 'You do not have permission to manage employees' })
+      }
       return handleCreateEmployee(req, res)
+    }
     default:
       return res.status(405).json({ error: 'Method not allowed' })
   }

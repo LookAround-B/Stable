@@ -175,9 +175,14 @@ const TasksPage = () => {
   useEffect(() => {
     loadTasks();
     loadHorses();
-    loadEmployees();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Reload employees once user is available (user may be null on first render)
+  useEffect(() => {
+    if (user) loadEmployees();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // ESC key handler for fullscreen image
   useEffect(() => {
