@@ -8,11 +8,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 2px 6px;
   background: rgba(61,58,51,.08);
   border: 1px solid rgba(61,58,51,.15);
   border-radius: 6px;
   transition: all 0.18s ease;
+  height: 30px;
 }
 
 .search-bar-wrapper:hover {
@@ -30,6 +31,8 @@
   flex-shrink: 0;
   color: rgba(0,0,0,.38);
   pointer-events: none;
+  min-width: 12px;
+  min-height: 12px;
 }
 
 .search-bar-container .search-input {
@@ -38,7 +41,8 @@
   border: none !important;
   box-shadow: none !important;
   color: #2d2a24 !important;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  line-height: 1;
   outline: none;
   font-family: inherit;
   padding: 0;
@@ -61,7 +65,7 @@
   border: none;
   color: rgba(0,0,0,.38);
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;

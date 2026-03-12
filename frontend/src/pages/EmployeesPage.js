@@ -8,6 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
@@ -573,13 +574,15 @@ const EmployeesPage = () => {
           <h2>{t('All Employees')}</h2>
           <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
         </div>
-        <div className="search-bar">
+        <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search size={16} style={{ position: 'absolute', left: '10px', color: 'rgba(0,0,0,.38)', pointerEvents: 'none' }} />
           <input
             type="text"
             placeholder={t("Search by name, email, or role...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
+            style={{ paddingLeft: '32px' }}
           />
         </div>
         {filteredEmployees.length === 0 ? (

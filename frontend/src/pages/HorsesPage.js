@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const SUPERVISORY_ROLES = [
@@ -474,13 +475,15 @@ const HorsesPage = () => {
       {!SUPERVISORY_ROLES.includes(user?.designation) && (
         <div className="team-section">
           <h2>{t('Horses Under My Care')}</h2>
-          <div className="search-bar">
+          <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Search size={16} style={{ position: 'absolute', left: '10px', color: 'rgba(0,0,0,.38)', pointerEvents: 'none' }} />
             <input
               type="text"
               placeholder={t("Search by name, stable number, breed, color, gender...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
+              style={{ paddingLeft: '32px' }}
             />
           </div>
           {filteredMyHorses.length === 0 ? (
@@ -541,7 +544,8 @@ const HorsesPage = () => {
           <h2 style={{ margin: 0 }}>{t('All Horses')}</h2>
           <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
         </div>
-        <div className="search-bar">
+        <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search size={16} style={{ position: 'absolute', left: '10px', color: 'rgba(0,0,0,.38)', pointerEvents: 'none' }} />
           <input
             type="text"
             placeholder={t("Search by name, stable number, breed, color, gender...")}
@@ -551,6 +555,7 @@ const HorsesPage = () => {
               setCurrentPage(1);
             }}
             className="search-input"
+            style={{ paddingLeft: '32px' }}
           />
         </div>
         {filteredHorses.length === 0 ? (
