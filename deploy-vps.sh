@@ -25,6 +25,9 @@ git pull origin main
 # Build and deploy backend
 echo "🔨 Building backend..."
 cd backend
+# Install dependencies (picks up new packages)
+echo "📦 Installing backend dependencies..."
+npm install
 # Clean build cache
 rm -rf .next 2>/dev/null || true
 # Sync database schema with new models
