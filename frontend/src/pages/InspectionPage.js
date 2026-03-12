@@ -41,6 +41,7 @@ const InspectionPage = () => {
     description: '',
     horseId: '',
     location: '',
+    area: '',
     severityLevel: 'Low',
     image: null,
   });
@@ -53,6 +54,12 @@ const InspectionPage = () => {
 
   const ROUNDS = ['Morning', 'Afternoon', 'Evening'];
   const SEVERITY_LEVELS = ['Low', 'Medium', 'High', 'Critical'];
+  const FACILITY_AREAS = [
+    'Pony stables', 'Rear Paddocks', 'Private stables', 'Front office stables',
+    'Warm up arena', 'Jumping arena', 'Dressage arena', 'Camp Area',
+    'Forest Trail', 'Accommodation', 'Middle school', 'Top school',
+    'Gazebo area', 'Grooms rooms', 'Round yard', 'Paddocks'
+  ];
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   // Check if user can create/edit (Jamedar only)
@@ -171,6 +178,7 @@ const InspectionPage = () => {
       description: inspection.description,
       horseId: inspection.horseId || '',
       location: inspection.location,
+      area: inspection.area || '',
       severityLevel: inspection.severityLevel,
       image: inspection.image, // Keep existing image URL
     });
@@ -217,6 +225,7 @@ const InspectionPage = () => {
       description: '',
       horseId: '',
       location: '',
+      area: '',
       severityLevel: 'Low',
       image: null,
     });
@@ -325,6 +334,7 @@ const InspectionPage = () => {
       'Date': formatDate(inspection.createdAt),
       'Round': inspection.round,
       'Horse': inspection.horse?.name || '-',
+      'Area': inspection.area || '-',
       'Location': inspection.location,
       'Description': inspection.description,
       'Severity': inspection.severityLevel,
@@ -340,6 +350,7 @@ const InspectionPage = () => {
       { wch: 12 }, // Date
       { wch: 12 }, // Round
       { wch: 15 }, // Horse
+      { wch: 18 }, // Area
       { wch: 15 }, // Location
       { wch: 30 }, // Description
       { wch: 12 }, // Severity
@@ -373,6 +384,7 @@ const InspectionPage = () => {
       'Date': formatDateShort(inspection.createdAt),
       'Round': inspection.round,
       'Horse': inspection.horse?.name || '-',
+      'Area': inspection.area || '-',
       'Location': inspection.location,
       'Description': inspection.description,
       'Severity': inspection.severityLevel,
@@ -575,6 +587,17 @@ const InspectionPage = () => {
               />
             </div>
 
+            <div className="form-group">
+              <label htmlFor="area-select">Area</label>
+              <SearchableSelect
+                name="area"
+                value={formData.area}
+                onChange={handleFormChange}
+                options={[{ value: '', label: 'Select Area' }, ...FACILITY_AREAS.map((a) => ({ value: a, label: a }))]}
+                placeholder="Select area..."
+              />
+            </div>
+
             <div className="form-actions">
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? '⏳ Submitting...' : (editingInspection ? '✓ Update' : '✓ Submit')}
@@ -667,6 +690,7 @@ const InspectionPage = () => {
                 <div className="card-content">
                   <p><strong>Horse:</strong> {inspection.horse?.name || '-'}</p>
                   <p><strong>Location:</strong> {inspection.location}</p>
+                  {inspection.area && <p><strong>Area:</strong> {inspection.area}</p>}
                   <p><strong>Description:</strong> {inspection.description}</p>
                   <p><strong>Reported By:</strong> {inspection.jamedar?.fullName}</p>
                   <p>
@@ -759,6 +783,11 @@ const InspectionPage = () => {
                   <div className="detail-row">
                     <label>Location:</label>
                     <span>{viewingInspection.location}</span>
+                  </div>
+
+                  <div className="detail-row">
+                    <label>Area:</label>
+                    <span>{viewingInspection.area || '-'}</span>
                   </div>
 
                   <div className="detail-row">

@@ -6,3 +6,5 @@ cd 'd:\AI Projects\horsestable\backend'; npm run build;
 
 
 @(3000, 3001, 3002) | ForEach-Object { (Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }; Start-Sleep 2; "Ready"
+
+npx prisma generate

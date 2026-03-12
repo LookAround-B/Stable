@@ -551,6 +551,7 @@ model InspectionRound {
   horseId               String?
   horse                 Horse?      @relation("inspectionRounds", fields: [horseId], references: [id], onDelete: SetNull)
   location              String      // Location text (max 100 chars)
+  area                  String?     // Facility area e.g. 'Stable Block A'
   severityLevel         String      // 'Low', 'Medium', 'High', 'Critical'
   
   // Comments and Resolution
@@ -566,6 +567,7 @@ model InspectionRound {
 
   @@index([jamedarId])
   @@index([round])
+  @@index([area])
   @@index([horseId])
   @@index([severityLevel])
   @@index([status])

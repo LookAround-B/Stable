@@ -76,7 +76,7 @@ async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
 async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
-    const { round, description, horseId, location, severityLevel, comments, status, resolutionNotes } = req.body
+    const { round, description, horseId, location, area, severityLevel, comments, status, resolutionNotes } = req.body
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -147,6 +147,7 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       ...(description && { description }),
       ...(horseId !== undefined && { horseId: horseId || null }),
       ...(location && { location }),
+      ...(area !== undefined && { area: area || null }),
       ...(severityLevel && { severityLevel }),
       ...(comments !== undefined && { comments: comments || null }),
     }

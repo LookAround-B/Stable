@@ -84,6 +84,7 @@ const inspectionService = {
         description: formData.description,
         horseId: formData.horseId || null,
         location: formData.location,
+        area: formData.area || null,
         severityLevel: formData.severityLevel,
         image: imageData,
       };
@@ -113,6 +114,7 @@ const inspectionService = {
         ...(formData.description && { description: formData.description }),
         ...(formData.horseId !== undefined && { horseId: formData.horseId || null }),
         ...(formData.location && { location: formData.location }),
+        ...(formData.area !== undefined && { area: formData.area || null }),
         ...(formData.severityLevel && { severityLevel: formData.severityLevel }),
         ...(formData.status && { status: formData.status }),
         ...(formData.comments !== undefined && { comments: formData.comments || null }),

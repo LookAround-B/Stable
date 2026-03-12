@@ -3,9 +3,10 @@ import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import { User, Mail, Lock, Link2, Camera } from 'lucide-react';
+import { User, Mail, Lock, Link2, Camera, Settings, Type } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 import { useI18n } from '../context/I18nContext';
+import useTextSize from '../hooks/useTextSize';
 
 const ROLES_WITH_HORSES = [
   'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
@@ -44,6 +45,7 @@ async function getCroppedImg(imageSrc, croppedAreaPixels) {
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const { t } = useI18n();
+  const { textSize, setTextSize } = useTextSize();
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -271,6 +273,37 @@ const ProfilePage = () => {
             )}
           </div>
         )}
+
+        {/* Settings — Text Size */}
+        <div className="profile-info-card profile-settings-card">
+          <div className="profile-card-header">
+            <span className="profile-card-icon"><Settings size={15} strokeWidth={2} /></span>
+            <h3>{t('Settings')}</h3>
+          </div>
+          <div className="text-size-setting">
+            <div className="text-size-label">
+              <Type size={14} strokeWidth={2} />
+              <span>{t('Text Size')}</span>
+            </div>
+            <div className="text-size-cards">
+              {[
+                { key: 'small',  label: 'A',  desc: t('Small') },
+                { key: 'medium', label: 'A',  desc: t('Medium') },
+                { key: 'large',  label: 'A',  desc: t('Large') },
+              ].map(opt => (
+                <button
+                  key={opt.key}
+                  className={`text-size-card text-size-card--${opt.key}${textSize === opt.key ? ' text-size-card--active' : ''}`}
+                  onClick={() => setTextSize(opt.key)}
+                  type="button"
+                >
+                  <span className="text-size-card-preview">{opt.label}</span>
+                  <span className="text-size-card-label">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Crop Modal */}

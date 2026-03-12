@@ -63,7 +63,7 @@ async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { round, description, horseId, location, severityLevel, image } = req.body
+    const { round, description, horseId, location, area, severityLevel, image } = req.body
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -80,6 +80,17 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({
         error: 'Round, description, location, severity level, and image are required',
       })
+    }
+
+    const VALID_AREAS = [
+      'Pony stables', 'Rear Paddocks', 'Private stables', 'Front office stables',
+      'Warm up arena', 'Jumping arena', 'Dressage arena', 'Camp Area',
+      'Forest Trail', 'Accommodation', 'Middle school', 'Top school',
+      'Gazebo area', 'Grooms rooms', 'Round yard', 'Paddocks'
+    ]
+
+    if (area && !VALID_AREAS.includes(area)) {
+      return res.status(400).json({ error: 'Invalid area selected' })
     }
 
     if (!['Morning', 'Afternoon', 'Evening'].includes(round)) {
@@ -145,6 +156,7 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
         description,
         horseId: horseId || null,
         location,
+        area: area || null,
         severityLevel,
       },
       include: {

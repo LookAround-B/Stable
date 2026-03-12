@@ -4883,17 +4883,16 @@ p {
   position: relative;
   border-radius: var(--r-xl);
   overflow: hidden;
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, .5);
-  box-shadow: var(--shadow-glass);
+  background: #ffffff;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
   padding: 28px 28px 24px
 }
 
 .profile-hero-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, .06) 0%, rgba(255, 255, 255, .02) 100%);
+  background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
   pointer-events: none
 }
 
@@ -4915,14 +4914,14 @@ p {
   width: 82px;
   height: 82px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, .15);
-  border: 2px solid rgba(255, 255, 255, .4);
+  background: var(--gray-100);
+  border: 2px solid var(--gray-300);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, .3);
+  color: var(--gray-700);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
   line-height: 1
 }
 
@@ -4931,8 +4930,8 @@ p {
   height: 82px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, .7);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, .15)
+  border: 3px solid var(--gray-200);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .08)
 }
 
 /* Camera overlay on avatar hover */
@@ -5078,11 +5077,11 @@ p {
 }
 
 .profile-status-dot.online {
-  background: #fff
+  background: #22c55e
 }
 
 .profile-status-dot.pending {
-  background: rgba(255, 255, 255, .4)
+  background: var(--gray-400)
 }
 
 .profile-hero-info {
@@ -5138,15 +5137,15 @@ p {
 }
 
 .profile-status-badge.approved {
-  background: rgba(255, 255, 255, .12);
-  color: rgba(255, 255, 255, .85);
-  border: 1px solid rgba(255, 255, 255, .3)
+  background: rgba(22, 163, 74, .15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, .4)
 }
 
 .profile-status-badge.pending {
-  background: rgba(255, 255, 255, .08);
-  color: rgba(255, 255, 255, .55);
-  border: 1px solid rgba(255, 255, 255, .18)
+  background: rgba(120, 53, 15, .08);
+  color: var(--warning);
+  border: 1px solid rgba(120, 53, 15, .2)
 }
 
 .profile-hero-dept {
@@ -5163,11 +5162,10 @@ p {
 }
 
 .profile-info-card {
-  background: var(--bg-glass);
-  backdrop-filter: blur(16px);
+  background: #ffffff;
   border-radius: var(--r-xl);
-  border: 1px solid rgba(255, 255, 255, .45);
-  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
   padding: 20px 22px
 }
 
@@ -5177,7 +5175,7 @@ p {
   gap: 8px;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, .15)
+  border-bottom: 1px solid var(--gray-200)
 }
 
 .profile-card-header h3 {
@@ -5252,11 +5250,10 @@ p {
 
 /* Horses section */
 .profile-horses-section {
-  background: var(--bg-glass);
-  backdrop-filter: blur(16px);
+  background: #ffffff;
   border-radius: var(--r-xl);
-  border: 1px solid rgba(255, 255, 255, .45);
-  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
   padding: 20px 22px
 }
 
@@ -5268,8 +5265,8 @@ p {
 }
 
 .profile-horse-card {
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .12);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
   border-radius: var(--r-lg);
   padding: 12px 14px;
   display: flex;
@@ -8756,5 +8753,240 @@ select {
     box-shadow: none !important;
     border-radius: 0 !important;
     background: #fff !important;
+  }
+}
+
+/* ============================================================
+   TEXT SIZE PREFERENCE CARDS (Profile Settings)
+   ============================================================ */
+
+.profile-settings-card {
+  margin-top: 4px;
+}
+
+.text-size-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.text-size-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+}
+
+.text-size-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.text-size-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 12px 14px;
+  border-radius: var(--r-lg);
+  border: 2px solid var(--gray-200);
+  background: var(--gray-50);
+  cursor: pointer;
+  transition: all var(--t);
+  font-family: var(--font);
+}
+
+.text-size-card:hover {
+  border-color: var(--gray-400);
+  background: var(--gray-100);
+}
+
+.text-size-card--active {
+  border-color: var(--gray-900);
+  background: var(--gray-900);
+}
+
+.text-size-card--active:hover {
+  border-color: var(--gray-800);
+  background: var(--gray-800);
+}
+
+.text-size-card-preview {
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.text-size-card--active .text-size-card-preview {
+  color: #ffffff;
+}
+
+.text-size-card--small .text-size-card-preview {
+  font-size: 1.25rem;
+}
+
+.text-size-card--medium .text-size-card-preview {
+  font-size: 1.75rem;
+}
+
+.text-size-card--large .text-size-card-preview {
+  font-size: 2.5rem;
+}
+
+.text-size-card-label {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.text-size-card--active .text-size-card-label {
+  color: rgba(255, 255, 255, .7);
+}
+
+/* ============================================================
+   TEXT SIZE SCALING — all screen sizes
+   Driven by data-text-size attribute on <html>
+   ============================================================ */
+
+/* Small */
+html[data-text-size="small"] {
+  font-size: 13px;
+}
+
+/* Medium (default) */
+html[data-text-size="medium"] {
+  font-size: 15px;
+}
+
+/* Large: bigger for 50+ users */
+html[data-text-size="large"] {
+  font-size: 18px;
+}
+
+/* ── Mobile-only: larger touch targets ── */
+@media (max-width: 768px) {
+  /* ── Sidebar touch targets ── */
+  .menu-item {
+    padding: 14px 16px 14px 12px;
+    gap: 12px;
+    font-size: 0.9375rem;
+    min-height: 48px;
+  }
+
+  .menu-icon-circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .menu-icon-circle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .menu-section {
+    margin-top: 18px;
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 0.7rem;
+  }
+
+  .sidebar-logout-btn {
+    padding: 14px 16px;
+    font-size: 0.9375rem;
+    min-height: 48px;
+  }
+
+  /* ── Buttons — larger touch targets ── */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-submit,
+  .btn-add,
+  .btn-edit,
+  .btn-delete,
+  .btn-danger,
+  .btn-save,
+  .btn-cancel,
+  .btn-back,
+  .btn-view,
+  .btn-approve,
+  .btn-reject,
+  .btn-complete,
+  .btn-start,
+  .btn-review,
+  .btn-download,
+  .btn-close,
+  .btn-outline,
+  .btn-info,
+  .btn-success,
+  .btn-close-modal,
+  .btn-submit-modal,
+  .btn-submit-task,
+  .btn-add-entry,
+  .btn-add-worksheet,
+  .btn-cancel-form,
+  .btn-exit,
+  .btn-remove,
+  .btn-mom {
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+    min-height: 44px;
+  }
+
+  /* ── Form inputs — larger touch targets ── */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select,
+  .form-control {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  /* ── Table cells — more readable ── */
+  .table th,
+  .table td,
+  th, td {
+    padding: 10px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ── Nav-height compensation for text-size scaling ── */
+/* Tablet (481–768px): base --nav-h is 56px */
+@media (max-width: 768px) and (min-width: 481px) {
+  html[data-text-size="medium"] {
+    --nav-h: 68px;
+  }
+  html[data-text-size="large"] {
+    --nav-h: 72px;
+  }
+}
+
+/* Phone (≤480px): base --nav-h is 95px */
+@media (max-width: 480px) {
+  html[data-text-size="medium"] {
+    --nav-h: 112px;
+  }
+  html[data-text-size="large"] {
+    --nav-h: 120px;
+  }
+  html[data-text-size="large"] .main-content-inner {
+    padding-top: 4px;
   }
 }
