@@ -42,6 +42,7 @@ sleep 2
 # Build and deploy frontend
 echo "🔨 Building frontend..."
 cd ../frontend
+npm install
 npm run build
 echo "✅ Frontend built successfully"
 
