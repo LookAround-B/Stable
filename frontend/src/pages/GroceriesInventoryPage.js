@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
+import InventoryCharts from '../components/InventoryCharts';
 import { TableSkeleton } from '../components/Skeleton';
 import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
@@ -9,6 +10,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { useAuth } from '../context/AuthContext';
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const UNIT_OPTIONS = ["g","kg","ml","l","ltr","pcs","units","packets","packs","boxes","bottles","cans","jars","sachets","strips"];
@@ -16,6 +18,8 @@ const UNIT_OPTIONS = ["g","kg","ml","l","ltr","pcs","units","packets","packs","b
 const GroceriesInventoryPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
+  const { user } = useAuth();
+  const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const [groceries, setGroceries] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,6 +27,7 @@ const GroceriesInventoryPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("success");
+  const [itemSuggestions, setItemSuggestions] = useState([]); // [{name, unit}]
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
 
@@ -39,6 +44,7 @@ const GroceriesInventoryPage = () => {
     unit: "g",
     price: "",
     purchaseDate: new Date().toISOString().split("T")[0],
+    expiryDate: "",
     description: "",
     employeeId: "",
   });
@@ -73,8 +79,15 @@ const GroceriesInventoryPage = () => {
     } catch { setEmployees([]); }
   };
 
+  const fetchItemSuggestions = async () => {
+    try {
+      const data = await groceriesInventoryService.getItemSuggestions();
+      setItemSuggestions(Array.isArray(data) ? data : []);
+    } catch { setItemSuggestions([]); }
+  };
+
   useEffect(() => { fetchGroceries(); }, [fetchGroceries]);
-  useEffect(() => { fetchEmployees(); }, []);
+  useEffect(() => { fetchEmployees(); fetchItemSuggestions(); }, []);
 
   const filteredGroceries = groceries.filter(g =>
     g.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -93,7 +106,7 @@ const GroceriesInventoryPage = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", quantity: "", unit: "g", price: "", purchaseDate: new Date().toISOString().split("T")[0], description: "", employeeId: "" });
+    setFormData({ name: "", quantity: "", unit: "g", price: "", purchaseDate: new Date().toISOString().split("T")[0], expiryDate: "", description: "", employeeId: "" });
     setEditingId(null);
     setShowForm(false);
   };
@@ -111,6 +124,7 @@ const GroceriesInventoryPage = () => {
       }
       resetForm();
       fetchGroceries();
+      fetchItemSuggestions();
     } catch (err) {
       showMsg(err.response?.data?.error || "Failed to save grocery", "error");
     }
@@ -119,12 +133,14 @@ const GroceriesInventoryPage = () => {
   const handleEdit = (g) => {
     const pd = g.purchaseDate ? new Date(g.purchaseDate).toISOString().split("T")[0]
                : new Date(g.createdAt).toISOString().split("T")[0];
+    const ed = g.expiryDate ? new Date(g.expiryDate).toISOString().split("T")[0] : "";
     setFormData({
       name: g.name,
       quantity: g.quantity,
       unit: g.unit,
       price: g.price || "",
       purchaseDate: pd,
+      expiryDate: ed,
       description: g.description || "",
       employeeId: g.employeeId || "",
     });
@@ -149,6 +165,23 @@ const GroceriesInventoryPage = () => {
 
   const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-GB") : "-";
 
+  // Threshold modal state (admin only)
+  const [thresholdModal, setThresholdModal] = useState(null);
+
+  const handleSaveThreshold = async () => {
+    if (!thresholdModal) return;
+    try {
+      await groceriesInventoryService.setThreshold(
+        thresholdModal.record.id,
+        thresholdModal.value === '' ? null : parseFloat(thresholdModal.value),
+        thresholdModal.notifyAdmin
+      );
+      showMsg('Threshold updated');
+      setThresholdModal(null);
+      fetchGroceries();
+    } catch { showMsg('Failed to update threshold', 'error'); }
+  };
+
   const handleDownloadExcel = () => {
     if (filteredGroceries.length === 0) { alert("No data to download"); return; }
     const data = filteredGroceries.map(g => ({
@@ -157,13 +190,12 @@ const GroceriesInventoryPage = () => {
       "Quantity": g.quantity,
       "Unit": g.unit,
       "Price/Unit (₹)": g.price || 0,
-      "Total (₹)": g.totalPrice || 0,
-      "Description": g.description || "",
+      "Total (₹)": g.totalPrice || 0,      "Expiry Date": g.expiryDate ? formatDate(g.expiryDate) : "",      "Description": g.description || "",
       "Added By": g.createdBy?.fullName || "",
     }));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
-    ws["!cols"] = [{ wch: 12 },{ wch: 25 },{ wch: 10 },{ wch: 10 },{ wch: 15 },{ wch: 12 },{ wch: 25 },{ wch: 15 }];
+    ws["!cols"] = [{ wch: 12 },{ wch: 25 },{ wch: 10 },{ wch: 10 },{ wch: 15 },{ wch: 12 },{ wch: 14 },{ wch: 25 },{ wch: 15 }];
     XLSX.utils.book_append_sheet(wb, ws, "Groceries");
     XLSX.writeFile(wb, `GroceriesInventory_${MONTH_NAMES[selectedMonth-1]}_${selectedYear}.xlsx`);
   };
@@ -214,12 +246,28 @@ const GroceriesInventoryPage = () => {
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
         </div>
         <div className="groceries-filter-actions">
-          <button className="btn-primary" onClick={handleDownloadExcel}>Download Excel</button>
+          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
           <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
             {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
           </button>
         </div>
       </div>
+
+      <InventoryCharts type="groceries" records={filteredGroceries} />
+
+      {groceries.some(g => g.threshold !== null && g.threshold !== undefined && g.notifyAdmin && g.quantity < g.threshold) && (
+        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⚠️</span>
+          <div>
+            <strong>Low stock alert</strong>
+            <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
+              {groceries.filter(g => g.threshold !== null && g.threshold !== undefined && g.notifyAdmin && g.quantity < g.threshold).map(g => (
+                <li key={g.id}>{g.name}: {g.quantity} {g.unit} remaining (threshold: {g.threshold} {g.unit})</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Summary cards */}
       <div className="groceries-summary">
@@ -238,6 +286,21 @@ const GroceriesInventoryPage = () => {
         <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "12px", padding: "20px", marginBottom: "20px" }}>
           <h3 style={{ margin: "0 0 16px", fontSize: "1rem" }}>{editingId ? "Edit Grocery Item" : "Add Grocery Item"}</h3>
           <form onSubmit={handleSubmit}>
+            {/* Existing item selector */}
+            {itemSuggestions.length > 0 && (
+              <div style={{ marginBottom: "12px" }}>
+                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px", color: "#666" }}>Quick-fill from existing items</label>
+                <SearchableSelect
+                  value=""
+                  onChange={(e) => {
+                    const match = itemSuggestions.find(s => s.name === e.target.value);
+                    if (match) setFormData(prev => ({ ...prev, name: match.name, unit: match.unit }));
+                  }}
+                  options={[{ value: '', label: '-- Select to pre-fill --' }, ...itemSuggestions.map(s => ({ value: s.name, label: `${s.name} (${s.unit})` }))]}
+                  placeholder="Search existing items..."
+                />
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
@@ -270,6 +333,11 @@ const GroceriesInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Purchase Date</label>
                 <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+              </div>
+              <div>
+                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Expiry Date <span style={{ fontWeight: 'normal', color: '#999' }}>(optional)</span></label>
+                <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange}
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
@@ -317,31 +385,50 @@ const GroceriesInventoryPage = () => {
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Unit</th>
                   <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 600, opacity: 0.8 }}>Price/Unit</th>
                   <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 600, opacity: 0.8 }}>Total</th>
+                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Expiry</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Description</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Added By</th>
+                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Threshold</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedItems.map((g, i) => (
-                  <tr key={g.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+                {paginatedItems.map((g, i) => {
+                  const isBelowThreshold = g.threshold !== null && g.threshold !== undefined && g.quantity < g.threshold;
+                  return (
+                  <tr key={g.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : {}) }}>
                     <td style={{ padding: "10px 12px", opacity: 0.5 }}>{startIndex + i + 1}</td>
                     <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>{formatDate(g.purchaseDate || g.createdAt)}</td>
                     <td style={{ padding: "10px 12px", fontWeight: 500 }}>{g.name}</td>
                     <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.quantity}</td>
                     <td style={{ padding: "10px 12px" }}>{g.unit}</td>
                     <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.price > 0 ? `₹${g.price.toFixed(2)}` : "-"}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.totalPrice > 0 ? `₹${g.totalPrice.toFixed(2)}` : "-"}</td>
-                    <td style={{ padding: "10px 12px", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.description || "-"}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.totalPrice > 0 ? `₹${g.totalPrice.toFixed(2)}` : "-"}</td>                    <td style={{ padding: "10px 12px", whiteSpace: "nowrap", color: g.expiryDate && new Date(g.expiryDate) < new Date() ? '#c0392b' : 'inherit' }}>{g.expiryDate ? formatDate(g.expiryDate) : "-"}</td>                    <td style={{ padding: "10px 12px", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.description || "-"}</td>
                     <td style={{ padding: "10px 12px", fontSize: "0.8rem", opacity: 0.8 }}>{g.createdBy?.fullName || "-"}</td>
+                    <td style={{ padding: "10px 12px", whiteSpace: 'nowrap' }}>
+                      {g.threshold !== null && g.threshold !== undefined
+                        ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{g.threshold} {g.unit}</span>
+                        : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
+                      }
+                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">⚠️</span>}
+                    </td>
                     <td style={{ padding: "10px 12px" }}>
-                      <div style={{ display: "flex", gap: "6px" }}>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: 'wrap' }}>
                         <button className="btn btn-sm btn-edit" onClick={() => handleEdit(g)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Edit</button>
                         <button className="btn btn-sm btn-delete" onClick={() => handleDelete(g.id)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Delete</button>
+                        {isAdmin && (
+                          <button
+                            style={{ padding: '4px 8px', fontSize: '0.7rem', background: g.notifyAdmin ? 'rgba(245,158,11,0.15)' : 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: '6px', cursor: 'pointer' }}
+                            onClick={() => setThresholdModal({ record: g, value: g.threshold ?? '', notifyAdmin: g.notifyAdmin ?? false })}
+                            title="Configure threshold alert"
+                          >
+                            🔔
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
@@ -365,6 +452,37 @@ const GroceriesInventoryPage = () => {
         confirmText="Delete"
         confirmVariant="danger"
       />
+
+      {thresholdModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>🔔 Set Threshold Alert</h3>
+            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{thresholdModal.record.name}</p>
+            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Leave empty to disable"
+              value={thresholdModal.value}
+              onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input, #fff)', color: 'var(--text)' }}
+            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={thresholdModal.notifyAdmin}
+                onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))}
+              />
+              Notify admin when below threshold
+            </label>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setThresholdModal(null)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveThreshold}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

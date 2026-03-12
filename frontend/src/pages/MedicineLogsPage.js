@@ -8,6 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const MedicineLogsPage = () => {
   const { user } = useAuth();
@@ -220,6 +221,24 @@ const MedicineLogsPage = () => {
 
   if (!user) return null;
 
+  const handleDownloadExcel = () => {
+    if (!logs.length) { alert('No data to download'); return; }
+    const data = logs.map(l => ({
+      'Date': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '',
+      'Horse': l.horse?.name || '',
+      'Medicine': l.medicineName,
+      'Quantity': l.quantity,
+      'Unit': l.unit,
+      'Time Administered': l.timeAdministered || '',
+      'Status': l.status || '',
+      'Submitted By': l.jamedar?.fullName || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Logs');
+    XLSX.writeFile(wb, `MedicineLogs_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.viewMedicineLogs) return <Navigate to="/" replace />;
 
   return (
@@ -227,6 +246,7 @@ const MedicineLogsPage = () => {
       <div className="page-header">
         <h1>{t('Medicine Logs')}</h1>
         <p>Track medicine administration and approvals</p>
+        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
       </div>
 
       {message && (

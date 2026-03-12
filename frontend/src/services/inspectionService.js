@@ -2,6 +2,19 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
+// Convert a File or data-URL to a base64 data URL string
+const toBase64 = (img) => {
+  if (img instanceof File) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(img);
+    });
+  }
+  return Promise.resolve(img);
+};
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -11,74 +24,39 @@ const getAuthHeaders = () => {
 };
 
 const inspectionService = {
-  // Get all inspections with optional filters
   getAllInspections: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (filters.round) queryParams.append('round', filters.round);
       if (filters.horseId) queryParams.append('horseId', filters.horseId);
       if (filters.severityLevel) queryParams.append('severityLevel', filters.severityLevel);
+      if (filters.area) queryParams.append('area', filters.area);
       if (filters.startDate) queryParams.append('startDate', filters.startDate);
       if (filters.endDate) queryParams.append('endDate', filters.endDate);
       if (filters.jamedarId) queryParams.append('jamedarId', filters.jamedarId);
-
-      const response = await axios.get(`${API_BASE_URL}/inspections?${queryParams}`, {
-        headers: getAuthHeaders(),
-      });
-
-      console.log('📋 Inspections data received:', response.data);
+      const response = await axios.get(`${API_BASE_URL}/inspections?${queryParams}`, { headers: getAuthHeaders() });
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching inspections:', error);
       const err = new Error(error.response?.data?.error || error.message);
       err.status = error.response?.status;
       throw err;
     }
   },
 
-  // Get inspection by ID
   getInspectionById: async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/inspections/${id}`, {
-        headers: getAuthHeaders(),
-      });
-      console.log('📋 Inspection data received:', response.data);
+      const response = await axios.get(`${API_BASE_URL}/inspections/${id}`, { headers: getAuthHeaders() });
       return response.data;
     } catch (error) {
-      console.error('❌ Error fetching inspection:', error);
       const err = new Error(error.response?.data?.error || error.message);
       err.status = error.response?.status;
       throw err;
     }
   },
 
-  // Create new inspection with image
   createInspection: async (formData) => {
     try {
-      console.log('📤 Creating inspection with data:', {
-        round: formData.round,
-        horseId: formData.horseId,
-        location: formData.location,
-        severityLevel: formData.severityLevel,
-        descriptionLength: formData.description?.length,
-        imageType: typeof formData.image,
-      });
-
-      // Convert image File to base64 if needed
-      let imageData = formData.image;
-      if (formData.image instanceof File) {
-        imageData = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            console.log('🔄 Converted image to base64');
-            resolve(reader.result);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(formData.image);
-        });
-      }
-
+      const imageDataArray = await Promise.all((formData.images || []).map(toBase64));
       const payload = {
         round: formData.round,
         description: formData.description,
@@ -86,29 +64,19 @@ const inspectionService = {
         location: formData.location,
         area: formData.area || null,
         severityLevel: formData.severityLevel,
-        image: imageData,
+        images: imageDataArray,
       };
-
-      const response = await axios.post(`${API_BASE_URL}/inspections`, payload, {
-        headers: getAuthHeaders(),
-      });
-
-      console.log('✅ Inspection created successfully:', response.data);
+      const response = await axios.post(`${API_BASE_URL}/inspections`, payload, { headers: getAuthHeaders() });
       return response.data;
     } catch (error) {
-      console.error('❌ Error creating inspection:', error);
       const err = new Error(error.response?.data?.error || error.message);
       err.status = error.response?.status;
       throw err;
     }
   },
 
-  // Update inspection
   updateInspection: async (id, formData) => {
     try {
-      console.log('📝 Updating inspection:', id);
-      console.log('📝 Form data:', formData);
-
       const payload = {
         ...(formData.round && { round: formData.round }),
         ...(formData.description && { description: formData.description }),
@@ -120,49 +88,23 @@ const inspectionService = {
         ...(formData.comments !== undefined && { comments: formData.comments || null }),
         ...(formData.resolutionNotes !== undefined && { resolutionNotes: formData.resolutionNotes || null }),
       };
-
-      // Handle image if it's a new file
-      if (formData.image && formData.image instanceof File) {
-        payload.image = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            console.log('🔄 Converted image to base64');
-            resolve(reader.result);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(formData.image);
-        });
-      } else if (formData.image && typeof formData.image === 'string' && formData.image.startsWith('data:')) {
-        payload.image = formData.image;
+      if (formData.images && Array.isArray(formData.images)) {
+        payload.images = await Promise.all(formData.images.map(toBase64));
       }
-
-      console.log('📤 Sending payload:', payload);
-
-      const response = await axios.put(`${API_BASE_URL}/inspections/${id}`, payload, {
-        headers: getAuthHeaders(),
-      });
-
-      console.log('✅ Inspection updated successfully:', response.data);
+      const response = await axios.put(`${API_BASE_URL}/inspections/${id}`, payload, { headers: getAuthHeaders() });
       return response.data;
     } catch (error) {
-      console.error('❌ Error updating inspection:', error);
       const err = new Error(error.response?.data?.error || error.message);
       err.status = error.response?.status;
       throw err;
     }
   },
 
-  // Delete inspection
   deleteInspection: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/inspections/${id}`, {
-        headers: getAuthHeaders(),
-      });
-
-      console.log('✅ Inspection deleted successfully');
+      const response = await axios.delete(`${API_BASE_URL}/inspections/${id}`, { headers: getAuthHeaders() });
       return response.data;
     } catch (error) {
-      console.error('❌ Error deleting inspection:', error);
       const err = new Error(error.response?.data?.error || error.message);
       err.status = error.response?.status;
       throw err;

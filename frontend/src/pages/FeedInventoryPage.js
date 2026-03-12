@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
+import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
@@ -7,6 +7,8 @@ import { RotateCw } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { useAuth } from '../context/AuthContext';
+import * as XLSX from 'xlsx';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance',
@@ -28,6 +30,8 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const FeedInventoryPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
+  const { user } = useAuth();
+  const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -186,12 +190,54 @@ const FeedInventoryPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
 
+  const handleDownloadExcel = () => {
+    if (!inventoryRecords.length) { alert('No data to download'); return; }
+    const data = inventoryRecords.map(r => ({
+      'Feed Type': FEED_LABELS[r.feedType] || r.feedType,
+      'Opening Stock (kg)': r.openingStock,
+      'Units Brought': r.unitsBrought,
+      'Total Available': r.totalAvailable,
+      'Used Today': r.usedToday,
+      'Total Used': r.totalUsed,
+      'Units Left': r.unitsLeft,
+      'Unit': r.unit,
+      'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}`,
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Feed Inventory');
+    XLSX.writeFile(wb, `FeedInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  // Threshold modal state (admin only)
+  const [thresholdModal, setThresholdModal] = useState(null);
+
+  const handleSaveThreshold = async () => {
+    if (!thresholdModal) return;
+    try {
+      setLoading(true);
+      await feedInventoryService.setThreshold(
+        thresholdModal.record.id,
+        thresholdModal.value === '' ? null : parseFloat(thresholdModal.value),
+        thresholdModal.notifyAdmin
+      );
+      showMessage('Threshold updated');
+      setThresholdModal(null);
+      loadInventory();
+    } catch {
+      showMessage('Failed to update threshold', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!p.viewFeedInventory) return <Navigate to="/" replace />;
 
   return (
     <div className="feed-inventory-page">
       <div className="inventory-header">
         <h1>{t('Feed Inventory Management')}</h1>
+        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
       </div>
 
       {message && <div className={`message ${messageType}`}>{message}</div>}
@@ -326,6 +372,14 @@ const FeedInventoryPage = () => {
             </div>
           )}
 
+          <InventoryCharts type="feed" records={inventoryRecords} labels={FEED_LABELS} />
+
+          {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
+            <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#92400e', padding: '10px 16px', borderRadius: '8px', margin: '12px 0', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}>
+              ⚠️ <strong>Low stock alert:</strong> One or more feed inventory items are below their configured threshold.
+            </div>
+          )}
+
           {/* Inventory Table */}
           <div className="inventory-table-container">
             <h3>{MONTH_NAMES[selectedMonth - 1]} {selectedYear} - Feed Stock Status</h3>
@@ -351,6 +405,7 @@ const FeedInventoryPage = () => {
                       <th>Units Left</th>
                       <th>Unit</th>
                       <th>Status</th>
+                      <th>Threshold</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -360,9 +415,10 @@ const FeedInventoryPage = () => {
                       const percentUsed = totalAvailable > 0 ? (record.totalUsed / totalAvailable) * 100 : 0;
                       const isLow = record.unitsLeft < totalAvailable * 0.2;
                       const isEmpty = record.unitsLeft <= 0;
+                      const isBelowThreshold = record.threshold !== null && record.threshold !== undefined && record.unitsLeft < record.threshold;
 
                       return (
-                        <tr key={record.id} className={isEmpty ? 'row-danger' : isLow ? 'row-warning' : ''}>
+                        <tr key={record.id} className={isEmpty ? 'row-danger' : isLow ? 'row-warning' : ''} style={isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : {}}>
                           <td className="feed-name">{FEED_LABELS[record.feedType] || record.feedType}</td>
                           <td>{record.openingStock}</td>
                           <td>{record.unitsBrought}</td>
@@ -384,8 +440,25 @@ const FeedInventoryPage = () => {
                             </div>
                             <span className="usage-percent">{percentUsed.toFixed(1)}% used</span>
                           </td>
+                          <td style={{ whiteSpace: 'nowrap' }}>
+                            {record.threshold !== null && record.threshold !== undefined
+                              ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{record.threshold} {record.unit}</span>
+                              : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
+                            }
+                            {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">⚠️</span>}
+                          </td>
                           <td>
                             <button className="btn-sm btn-edit" onClick={() => handleEdit(record)}>Edit</button>
+                            {isAdmin && (
+                              <button
+                                className="btn-sm"
+                                style={{ marginLeft: 4, fontSize: '0.7rem', padding: '3px 8px', background: record.notifyAdmin ? 'rgba(245,158,11,0.15)' : 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: '6px', cursor: 'pointer' }}
+                                onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
+                                title="Configure threshold alert"
+                              >
+                                🔔
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
@@ -526,6 +599,37 @@ const FeedInventoryPage = () => {
               )}
             </>
           )}
+        </div>
+      )}
+
+      {thresholdModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>🔔 Set Threshold Alert</h3>
+            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{FEED_LABELS[thresholdModal.record.feedType] || thresholdModal.record.feedType}</p>
+            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Leave empty to disable"
+              value={thresholdModal.value}
+              onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input, #fff)', color: 'var(--text)' }}
+            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={thresholdModal.notifyAdmin}
+                onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))}
+              />
+              Notify admin when below threshold
+            </label>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setThresholdModal(null)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveThreshold} disabled={loading}>Save</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

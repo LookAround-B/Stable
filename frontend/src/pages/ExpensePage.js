@@ -434,6 +434,7 @@ const ExpensePage = () => {
     console.log('📥 Downloaded expenses to:', filename);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleDownloadCSV = () => {
     if (expenses.length === 0) {
       alert('No expenses to download');
@@ -784,22 +785,14 @@ const ExpensePage = () => {
           <div className="header-buttons">
             {expenses.length > 0 && (
               <button
-                className="btn-primary"
+                className="btn-secondary"
                 onClick={handleDownloadExcel}
                 title="Download filtered expenses as Excel"
               >
                 Download Excel
               </button>
             )}
-            {expenses.length > 0 && (
-              <button
-                className="btn-secondary"
-                onClick={handleDownloadCSV}
-                title="Download filtered expenses as CSV"
-              >
-                Download CSV
-              </button>
-            )}
+
             {(filters.type || filters.horseId || filters.employeeId || filters.startDate || filters.endDate) && (
               <button
                 className="btn-secondary"

@@ -5,6 +5,7 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
@@ -199,6 +200,41 @@ const GroomWorkSheetPage = () => {
     'Groom',
   ].includes(user?.designation);
 
+  const handleDownloadExcel = () => {
+    if (!worksheets.length) { alert('No data to download'); return; }
+    const rows = [];
+    worksheets.forEach(ws => {
+      if (ws.entries && ws.entries.length) {
+        ws.entries.forEach(entry => {
+          rows.push({
+            'Date': ws.date ? new Date(ws.date).toLocaleDateString('en-GB') : '',
+            'Groom': ws.groom?.fullName || '',
+            'Horse': getHorseName(entry.horseId),
+            'Morning Hours': entry.amHours || 0,
+            'PM Hours': entry.pmHours || 0,
+            'Total Hours': entry.wholeDayHours || 0,
+            'Woodchips': entry.woodchipsUsed || 0,
+            'Bichali (kg)': entry.bichaliUsed || 0,
+            'Boo Sa (bags)': entry.booSaUsed || 0,
+            'Remarks': entry.remarks || '',
+          });
+        });
+      } else {
+        rows.push({
+          'Date': ws.date ? new Date(ws.date).toLocaleDateString('en-GB') : '',
+          'Groom': ws.groom?.fullName || '',
+          'Horse': '', 'Morning Hours': '', 'PM Hours': '', 'Total Hours': '',
+          'Woodchips': '', 'Bichali (kg)': '', 'Boo Sa (bags)': '', 'Remarks': '',
+        });
+      }
+    });
+    if (!rows.length) { alert('No data to download'); return; }
+    const wb = XLSX.utils.book_new();
+    const wsSheet = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, wsSheet, 'Groom WorkSheet');
+    XLSX.writeFile(wb, `GroomWorkSheet_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.viewGroomWorksheet) return <Navigate to="/" replace />;
 
   return (
@@ -208,6 +244,7 @@ const GroomWorkSheetPage = () => {
           <h1>{t('Groom Work Sheet')}</h1>
           <p className="info-text">Track groom activities, horse care hours, and supplies used daily.</p>
         </div>
+        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
       </div>
 
       {message && <div className={`message ${message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}

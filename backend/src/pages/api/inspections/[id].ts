@@ -152,6 +152,31 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       ...(comments !== undefined && { comments: comments || null }),
     }
 
+    // Handle images array update if provided
+    const { images } = req.body
+    if (images && Array.isArray(images) && images.length > 0) {
+      const { uploadImage } = await import('@/lib/s3')
+      const imageUrls: string[] = []
+      for (const imgData of images) {
+        try {
+          if (typeof imgData === 'string' && imgData.startsWith('data:')) {
+            const [header, ...dataParts] = imgData.split(',')
+            const mimeType = header.match(/:(.*?);/)?.[1] || 'image/jpeg'
+            const buffer = Buffer.from(dataParts.join(','), 'base64')
+            const timestamp = Date.now() + Math.random()
+            const filename = `${timestamp}-inspection.${mimeType.split('/')[1]}`
+            const url = await uploadImage(buffer, filename, mimeType, 'inspections')
+            imageUrls.push(url)
+          } else if (typeof imgData === 'string' && imgData.startsWith('http')) {
+            imageUrls.push(imgData)
+          }
+        } catch (e) {
+          console.error('Image upload failed during update:', e)
+        }
+      }
+      if (imageUrls.length > 0) updateData.images = imageUrls
+    }
+
     // Handle resolution
     if (status) {
       updateData.status = status

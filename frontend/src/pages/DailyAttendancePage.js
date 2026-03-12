@@ -5,6 +5,7 @@ import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const DailyAttendancePage = () => {
   const { user } = useAuth();
@@ -145,6 +146,21 @@ const DailyAttendancePage = () => {
     'Jamedar',
   ].includes(user?.designation);
 
+  const handleDownloadExcel = () => {
+    if (!filteredEmployees.length) { alert('No data to download'); return; }
+    const data = filteredEmployees.map(groom => ({
+      'Groom Name': groom.fullName,
+      'Email': groom.email,
+      'Check In Time': getCheckInTime(groom.id),
+      'Check Out Time': getCheckOutTime(groom.id),
+      'Status': isCheckedIn(groom.id) ? 'IN' : 'OUT',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Daily Attendance');
+    XLSX.writeFile(wb, `DailyAttendance_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.viewDailyAttendance) return <Navigate to="/" replace />;
 
   return (
@@ -156,6 +172,7 @@ const DailyAttendancePage = () => {
             Groomers check in/out with the toggle switch. Track daily attendance and work hours.
           </p>
         </div>
+        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
       </div>
 
       {message && <div className={`message ${message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}

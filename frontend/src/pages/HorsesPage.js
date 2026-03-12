@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',
@@ -43,6 +44,7 @@ const HorsesPage = () => {
     height: '',
     stableNumber: '',
     supervisorId: '',
+    passportNumber: '',
   });
   const [message, setMessage] = useState('');
 
@@ -141,6 +143,7 @@ const HorsesPage = () => {
         supervisorId: formData.supervisorId || null,
         status: 'Active',
         profileImage: newHorseImage || null,
+        passportNumber: formData.passportNumber.trim() || null,
       });
 
       setMessage('Horse added successfully!');
@@ -208,6 +211,7 @@ const HorsesPage = () => {
       height: '',
       stableNumber: '',
       supervisorId: '',
+      passportNumber: '',
     });
   };
 
@@ -236,6 +240,24 @@ const HorsesPage = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedHorses = filteredHorses.slice(startIndex, endIndex);
+
+  const handleDownloadExcel = () => {
+    if (!filteredHorses.length) { alert('No data to download'); return; }
+    const data = filteredHorses.map(h => ({
+      'Name': h.name,
+      'Stable Number': h.stableNumber || '',
+      'Gender': h.gender,
+      'Breed': h.breed || '',
+      'Color': h.color || '',
+      'Status': h.status,
+      'Manager': h.supervisor?.fullName || '-',
+      'Passport No': h.passportNumber || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Horses');
+    XLSX.writeFile(wb, `Horses_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
 
   if (!p.viewHorses) return <Navigate to="/" replace />;
 
@@ -302,17 +324,18 @@ const HorsesPage = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="gender">{t('Gender *')}</label>
-                  <select
+                  <SearchableSelect
                     id="gender"
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
                     disabled={loading}
-                  >
-                    <option value="Mare">Mare (Female)</option>
-                    <option value="Stallion">Stallion (Male)</option>
-                    <option value="Gelding">Gelding</option>
-                  </select>
+                    options={[
+                      { value: 'Mare', label: 'Mare (Female)' },
+                      { value: 'Stallion', label: 'Stallion (Male)' },
+                      { value: 'Gelding', label: 'Gelding' },
+                    ]}
+                  />
                 </div>
 
                 <div className="form-group">
@@ -385,6 +408,22 @@ const HorsesPage = () => {
                 </div>
               </div>
 
+              <div className="form-group">
+                <label htmlFor="passportNumber">{t('Horse Passport Number')} <span style={{fontSize:'0.75rem',opacity:0.6}}>({t('Optional')})</span></label>
+                <input
+                  id="passportNumber"
+                  type="text"
+                  name="passportNumber"
+                  value={formData.passportNumber}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  placeholder="e.g. GB-2021-001234 (alphanumeric, hyphens, slashes)"
+                  maxLength={50}
+                  pattern="[A-Za-z0-9][A-Za-z0-9 \-\/]{1,49}"
+                  title="Alphanumeric characters, spaces, hyphens and forward slashes only (3–50 characters)"
+                />
+              </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="supervisorId">{t('Assign to Manager')}</label>
@@ -454,6 +493,7 @@ const HorsesPage = () => {
               <thead>
                 <tr>
                   <th>{t('Name')}</th>
+                  <th>{t('Passport No')}</th>
                   <th>{t('Stable Number')}</th>
                   <th>{t('Gender')}</th>
                   <th>{t('Breed')}</th>
@@ -476,9 +516,12 @@ const HorsesPage = () => {
                             : <span className="emp-avatar-initials">{(horse.name||'?').charAt(0).toUpperCase()}</span>
                           }
                         </div>
-                        <span>{horse.name}</span>
+                        <div>
+                          <span>{horse.name}</span>
+                        </div>
                       </div>
                     </td>
+                    <td style={{fontFamily:'monospace',fontSize:'0.85rem'}}>{horse.passportNumber || '-'}</td>
                     <td>{horse.stableNumber}</td>
                     <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
                     <td>{horse.breed ? t(horse.breed) : ''}</td>
@@ -494,7 +537,10 @@ const HorsesPage = () => {
       )}
 
       <div className="horses-list">
-        <h2>{t('All Horses')}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0 }}>{t('All Horses')}</h2>
+          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        </div>
         <div className="search-bar">
           <input
             type="text"
@@ -518,6 +564,7 @@ const HorsesPage = () => {
             <thead>
               <tr>
                 <th>{t('Name')}</th>
+                <th>{t('Passport No')}</th>
                 <th>{t('Stable Number')}</th>
                 <th>{t('Gender')}</th>
                 <th>{t('Breed')}</th>
@@ -544,6 +591,7 @@ const HorsesPage = () => {
                       <span>{horse.name}</span>
                     </div>
                   </td>
+                  <td style={{fontFamily:'monospace',fontSize:'0.85rem'}}>{horse.passportNumber || '-'}</td>
                   <td>{horse.stableNumber}</td>
                   <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
                   <td>{horse.breed ? t(horse.breed) : ''}</td>

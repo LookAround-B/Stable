@@ -102,6 +102,7 @@ model Horse {
   microchipNumber       String?
   feiId                 String?
   feiIdExpiry           DateTime?
+  passportNumber        String?     // Official horse passport number
   passportDetails       String?
   
   // Pedigree
@@ -546,7 +547,7 @@ model InspectionRound {
   jamedarId             String
   jamedar               Employee    @relation("inspectionRounds", fields: [jamedarId], references: [id], onDelete: Cascade)
   round                 String      // 'Morning', 'Afternoon', 'Evening'
-  image                 String      // Image file URL
+  images                String[]    // Array of image file URLs
   description           String      // Inspection description (max 500 chars)
   horseId               String?
   horse                 Horse?      @relation("inspectionRounds", fields: [horseId], references: [id], onDelete: SetNull)
@@ -669,6 +670,8 @@ model FeedInventory {
   unitsLeft             Float       @default(0)  // Remaining units (openingStock + unitsBrought - totalUsed)
   unit                  String      @default("kg") // Unit of measurement (kg, liters, packets, etc.)
   notes                 String?
+  threshold             Float?      // Alert threshold for unitsLeft
+  notifyAdmin           Boolean     @default(false) // Alert admin when below threshold
   recordedById          String
   recordedBy            Employee    @relation("feedInventoryRecords", fields: [recordedById], references: [id], onDelete: Cascade)
   createdAt             DateTime    @default(now())
@@ -691,6 +694,8 @@ model MedicineInventory {
   unitsLeft             Float       @default(0)  // Remaining units (openingStock + unitsPurchased - totalUsed)
   unit                  String      @default("ml") // Unit of measurement (ml, g, tablets, vials, etc.)
   notes                 String?
+  threshold             Float?      // Alert threshold for unitsLeft
+  notifyAdmin           Boolean     @default(false) // Alert admin when below threshold
   recordedById          String
   recordedBy            Employee    @relation("medicineInventoryRecords", fields: [recordedById], references: [id], onDelete: Cascade)
   createdAt             DateTime    @default(now())
@@ -710,7 +715,10 @@ model GroceriesInventory {
   price                 Float       @default(0) // Price per unit
   totalPrice            Float       @default(0) // quantity * price
   description           String?     // Optional description
+  threshold             Float?      // Alert threshold for quantity
+  notifyAdmin           Boolean     @default(false) // Alert admin when below threshold
   purchaseDate          DateTime?   // Date of purchase/inventory entry
+  expiryDate            DateTime?   // Optional expiry date
   employeeId            String?     // Who got it (optional)
   employee              Employee?   @relation("groceriesInventory", fields: [employeeId], references: [id], onDelete: SetNull)
   createdById           String      // Who created this entry (Senior/Junior Executive Admin)

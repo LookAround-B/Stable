@@ -5,6 +5,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const HorseFeedsPage = () => {
   const { t } = useI18n();
@@ -177,6 +178,38 @@ const HorseFeedsPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedSummary = summaryDataArray.slice(startIndex, endIndex);
 
+  const handleDownloadExcel = () => {
+    if (summaryDataArray.length === 0) return;
+    const excelData = summaryDataArray.map(({ horseId, data }) => {
+      const total = (
+        (data.balance || 0) + (data.barley || 0) + (data.oats || 0) + (data.soya || 0) +
+        (data.lucerne || 0) + (data.linseed || 0) + (data.rOil || 0) + (data.biotin || 0) +
+        (data.joint || 0) + (data.epsom || 0) + (data.heylase || 0)
+      ).toFixed(2);
+      return {
+        'Horse': data.horseName || '-',
+        'Stable Number': data.stableNumber || '-',
+        'Himalayan Balance': data.balance ? data.balance.toFixed(2) : '-',
+        'Barley': data.barley ? data.barley.toFixed(2) : '-',
+        'Oats': data.oats ? data.oats.toFixed(2) : '-',
+        'Soya': data.soya ? data.soya.toFixed(2) : '-',
+        'Lucerne': data.lucerne ? data.lucerne.toFixed(2) : '-',
+        'Linseed': data.linseed ? data.linseed.toFixed(2) : '-',
+        'R.Oil': data.rOil ? data.rOil.toFixed(2) : '-',
+        'Biotin': data.biotin ? data.biotin.toFixed(2) : '-',
+        'Joint': data.joint ? data.joint.toFixed(2) : '-',
+        'Epsom': data.epsom ? data.epsom.toFixed(2) : '-',
+        'Heylase': data.heylase ? data.heylase.toFixed(2) : '-',
+        'Total (kg)': total,
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Horse Feeds');
+    const dateStr = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `HorseFeeds_${dateStr}.xlsx`);
+  };
+
   if (!p.viewHorseFeeds) return <Navigate to="/" replace />;
 
   return (
@@ -219,6 +252,15 @@ const HorseFeedsPage = () => {
             style={{marginLeft: 'auto'}}
           >
             + Add Feed Record
+          </button>
+        )}
+        {!showForm && summaryDataArray.length > 0 && (
+          <button
+            className="btn-secondary"
+            onClick={handleDownloadExcel}
+            disabled={loading}
+          >
+            Download Excel
           </button>
         )}
       </div>
@@ -307,9 +349,9 @@ const HorseFeedsPage = () => {
       )}
 
       {/* Summary Section */}
-      <div className="summary-section">
-        <div className="section-header">
-          <h3>
+      <div className="summary-section" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <div style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid var(--border)' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
             Feed Consumption Summary - {new Date(fromDate).toLocaleDateString('en-IN')} to {new Date(toDate).toLocaleDateString('en-IN')}
           </h3>
         </div>
@@ -317,7 +359,7 @@ const HorseFeedsPage = () => {
         {loading ? (
           <div className="loading">Loading summary...</div>
         ) : Object.keys(summaryData).length > 0 ? (
-          <>
+          <div style={{ width: '100%' }}>
           <div className="summary-table-wrapper">
             <table className="summary-table">
               <thead>
@@ -387,7 +429,7 @@ const HorseFeedsPage = () => {
               }}
               total={summaryDataArray.length}
             />
-          </>
+          </div>
         ) : (
           <div className="no-records">No feed data available for the selected date range</div>
         )}

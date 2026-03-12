@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import roundCheckService from '../services/roundCheckService';
 import { useI18n } from '../context/I18nContext';
+import * as XLSX from 'xlsx';
 
 const RoundTrackingPage = () => {
   const { t } = useI18n();
@@ -60,11 +61,43 @@ const RoundTrackingPage = () => {
     !(r.morningCompleted && r.afternoonCompleted && r.eveningCompleted)
   ).length;
 
+  const handleDownloadExcel = () => {
+    const allRows = [
+      ...roundChecks.map(rc => {
+        const status = getCompletionStatus(rc.morningCompleted, rc.afternoonCompleted, rc.eveningCompleted);
+        return {
+          'Jamedar': rc.jamedar?.fullName || '',
+          'Morning': rc.morningCompleted ? 'Done' : 'Pending',
+          'Afternoon': rc.afternoonCompleted ? 'Done' : 'Pending',
+          'Evening': rc.eveningCompleted ? 'Done' : 'Pending',
+          'Completion %': `${status.percentage}%`,
+          'Last Updated': rc.updatedAt ? new Date(rc.updatedAt).toLocaleTimeString('en-GB') : '',
+          'Status': status.percentage === 100 ? 'Complete' : status.percentage === 0 ? 'Not Started' : 'In Progress',
+        };
+      }),
+      ...missingJamedars.map(j => ({
+        'Jamedar': j.fullName || '',
+        'Morning': '-',
+        'Afternoon': '-',
+        'Evening': '-',
+        'Completion %': '0%',
+        'Last Updated': '',
+        'Status': 'No Update',
+      })),
+    ];
+    if (!allRows.length) { alert('No data to download'); return; }
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(allRows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Round Tracking');
+    XLSX.writeFile(wb, `RoundTracking_${selectedDate}.xlsx`);
+  };
+
   return (
     <div className="round-tracking-page">
       <div className="tracking-header">
         <h1>{t('Jamedar Round Tracking')}</h1>
         <p className="subtitle">Monitor all Jamedars' daily round completions</p>
+        <button className="btn-secondary" onClick={handleDownloadExcel} style={{ marginTop: '8px' }}>Download Excel</button>
       </div>
 
       {message && <div className={`message ${message.includes('✓') ? 'success' : 'error'}`}>{message}</div>}

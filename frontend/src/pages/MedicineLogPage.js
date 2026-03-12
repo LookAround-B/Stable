@@ -5,6 +5,7 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const MedicineLogPage = () => {
   const { user } = useAuth();
@@ -129,6 +130,25 @@ const MedicineLogPage = () => {
 
   const filteredLogs = getFilteredLogs();
 
+  const handleDownloadExcel = () => {
+    if (!logs.length) { alert('No data to download'); return; }
+    const data = logs.map(l => ({
+      'Date': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '',
+      'Horse': l.horse?.name || '',
+      'Medicine': l.medicineName,
+      'Quantity': l.quantity,
+      'Unit': l.unit,
+      'Time Administered': l.timeAdministered || '',
+      'Jamedar': l.jamedar?.fullName || l.administeredBy?.fullName || '',
+      'Notes': l.notes || '',
+      'Status': l.status || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Log');
+    XLSX.writeFile(wb, `MedicineLog_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.viewMedicineLogs) return <Navigate to="/" replace />;
 
   return (
@@ -137,6 +157,7 @@ const MedicineLogPage = () => {
       <p className="subtitle">
         Track all medicine administered to horses
       </p>
+      <button className="btn-secondary" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}>Download Excel</button>
 
       <button
         className="btn-add"

@@ -5,6 +5,7 @@ import { StatsSkeleton, TableSkeleton } from '../components/Skeleton';
 import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
+import * as XLSX from 'xlsx';
 
 const ReportsPage = () => {
   const { t } = useI18n();
@@ -247,6 +248,66 @@ const ReportsPage = () => {
     { id: 'health', label: t('Horse Health Reports') },
   ];
 
+  const handleDownloadExcel = () => {
+    const workbook = XLSX.utils.book_new();
+    const dateStr = new Date().toISOString().split('T')[0];
+    if (activeTab === 'attendance') {
+      const data = attendanceData.map(r => ({
+        'Date': formatDate(r.date),
+        'Employee': r.employee?.fullName || '-',
+        'Designation': r.employee?.designation || '-',
+        'Status': r.status || '-',
+        'Remarks': r.remarks || '-',
+      }));
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Attendance');
+      XLSX.writeFile(workbook, `Attendance_Report_${dateStr}.xlsx`);
+    } else if (activeTab === 'tasks') {
+      const data = tasksData.map(task => ({
+        'Date': formatDate(task.scheduledTime || task.createdAt),
+        'Task': task.name || '-',
+        'Assigned To': task.assignedEmployee?.fullName || '-',
+        'Created By': task.createdBy?.fullName || '-',
+        'Priority': task.priority || '-',
+        'Status': task.status || '-',
+      }));
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Tasks');
+      XLSX.writeFile(workbook, `Tasks_Report_${dateStr}.xlsx`);
+    } else if (activeTab === 'expenses') {
+      const data = expensesData.map(exp => ({
+        'Date': formatDate(exp.date),
+        'Type': exp.type || '-',
+        'Description': exp.description || '-',
+        'Amount (INR)': parseFloat(exp.amount || 0).toFixed(2),
+        'Created By': exp.createdBy?.fullName || '-',
+        'Horse/Employee': exp.horse?.name || exp.employee?.fullName || '-',
+      }));
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Expenses');
+      XLSX.writeFile(workbook, `Expenses_Report_${dateStr}.xlsx`);
+    } else if (activeTab === 'health') {
+      const inspData = inspectionsData.map(insp => ({
+        'Date': formatDate(insp.createdAt),
+        'Round': insp.round || '-',
+        'Jamedar': insp.jamedar?.fullName || '-',
+        'Location': insp.location || '-',
+        'Severity': insp.severityLevel || '-',
+        'Status': insp.status || '-',
+        'Description': insp.description || '-',
+      }));
+      const medData = medicineLogsData.map(log => ({
+        'Date/Time': formatDateTime(log.timeAdministered || log.createdAt),
+        'Horse': log.horse?.name || '-',
+        'Medicine': log.medicineName || '-',
+        'Quantity': `${log.quantity} ${log.unit}`,
+        'Administered By': log.jamedar?.fullName || '-',
+        'Approval Status': log.approvalStatus || '-',
+      }));
+      if (inspData.length > 0) XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(inspData), 'Inspections');
+      if (medData.length > 0) XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(medData), 'Medicine Logs');
+      if (inspData.length === 0 && medData.length === 0) return;
+      XLSX.writeFile(workbook, `Health_Report_${dateStr}.xlsx`);
+    }
+  };
+
   return (
     <div className="page-container" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
       <div className="page-header">
@@ -254,6 +315,7 @@ const ReportsPage = () => {
           <h1>{t('Reports')}</h1>
           <p>{t('View and generate system reports')}</p>
         </div>
+        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
       </div>
 
       {/* Date Range Filter */}

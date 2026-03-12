@@ -12,6 +12,12 @@ const groceriesInventoryService = {
     return response.data;
   },
 
+  // Get distinct item name+unit suggestions (all-time, for dropdown)
+  getItemSuggestions: async () => {
+    const response = await apiClient.get("/groceries-inventory?suggestions=true");
+    return response.data;
+  },
+
   // Create new grocery entry
   createGrocery: async (data) => {
     const response = await apiClient.post("/groceries-inventory", data);
@@ -21,6 +27,12 @@ const groceriesInventoryService = {
   // Update grocery entry
   updateGrocery: async (id, data) => {
     const response = await apiClient.put("/groceries-inventory", { id, ...data });
+    return response.data;
+  },
+
+  // Set threshold for a grocery item (admin only)
+  setThreshold: async (id, threshold, notifyAdmin) => {
+    const response = await apiClient.patch('/groceries-inventory', { id, threshold, notifyAdmin });
     return response.data;
   },
 

@@ -81,8 +81,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return handlePost(req, res, user);
       case 'PUT':
         return handlePut(req, res, user);
+      case 'PATCH':
+        return handlePatch(req, res, user);
       default:
-        res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH']);
         return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error: any) {
@@ -190,6 +192,8 @@ async function handlePost(
     },
   });
 
+  await checkAndNotifyThreshold(record.id, 'feed', record.unitsLeft, record.threshold, record.notifyAdmin, record.feedType, record.unit);
+
   return res.status(201).json({ data: record, message: 'Feed inventory entry created successfully' });
 }
 
@@ -236,7 +240,36 @@ async function handlePut(
     },
   });
 
+  await checkAndNotifyThreshold(record.id, 'feed', record.unitsLeft, record.threshold, record.notifyAdmin, record.feedType, record.unit);
+
   return res.status(200).json({ data: record, message: 'Feed inventory entry updated successfully' });
+}
+
+// PATCH - Set threshold for an inventory item (Super Admin, Director, School Administrator)
+async function handlePatch(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  user: { id: string; fullName: string; designation: string }
+) {
+  if (!['Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
+    return res.status(403).json({ error: 'Only Super Admin, Director, or School Administrator can configure thresholds' });
+  }
+
+  const { id, threshold, notifyAdmin } = req.body;
+  if (!id) return res.status(400).json({ error: 'Record ID is required' });
+
+  const record = await prisma.feedInventory.update({
+    where: { id },
+    data: {
+      threshold: threshold !== undefined ? (threshold === null || threshold === '' ? null : parseFloat(threshold)) : undefined,
+      notifyAdmin: notifyAdmin !== undefined ? Boolean(notifyAdmin) : undefined,
+    },
+    include: { recordedBy: { select: { id: true, fullName: true } } },
+  });
+
+  await checkAndNotifyThreshold(record.id, 'feed', record.unitsLeft, record.threshold, record.notifyAdmin, record.feedType, record.unit);
+
+  return res.status(200).json({ data: record, message: 'Threshold updated' });
 }
 
 // Calculate total usage of a feed type from HorseFeed records
@@ -259,4 +292,38 @@ async function calculateUsage(feedType: string, startDate: Date, endDate: Date):
   }
 
   return Math.round(total * 100) / 100; // Round to 2 decimal places
+}
+
+// Helper — create admin notification when inventory falls below threshold
+async function checkAndNotifyThreshold(
+  recordId: string,
+  inventoryType: string,
+  currentQty: number,
+  threshold: number | null,
+  notifyAdmin: boolean,
+  itemName: string,
+  unit: string
+) {
+  if (!notifyAdmin || threshold === null || threshold === undefined) return;
+  if (currentQty >= threshold) return;
+
+  try {
+    const admin = await prisma.employee.findFirst({
+      where: { email: 'admin@test.com' },
+      select: { id: true },
+    });
+    if (!admin) return;
+
+    await prisma.notification.create({
+      data: {
+        employeeId: admin.id,
+        type: 'inventory_threshold_alert',
+        title: `Low ${inventoryType} inventory: ${itemName}`,
+        message: `${itemName} stock is ${currentQty} ${unit}, below the threshold of ${threshold} ${unit}.`,
+        isRead: false,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to send threshold notification:', err);
+  }
 }

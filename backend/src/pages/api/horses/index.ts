@@ -84,10 +84,18 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { name, gender, dateOfBirth, breed, color, height, stableNumber, supervisorId, status, profileImage } = req.body
+    const { name, gender, dateOfBirth, breed, color, height, stableNumber, supervisorId, status, profileImage, passportNumber } = req.body
 
     if (!name || !gender || !dateOfBirth) {
       return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    // Validate passport number format if provided (alphanumeric, spaces, hyphens, slashes; 3-50 chars)
+    if (passportNumber && passportNumber.trim().length > 0) {
+      const passportRegex = /^[A-Za-z0-9][A-Za-z0-9\s\-\/]{1,49}$/
+      if (!passportRegex.test(passportNumber.trim())) {
+        return res.status(400).json({ error: 'Invalid passport number format. Use alphanumeric characters, hyphens, and forward slashes (3–50 characters).' })
+      }
     }
 
     // Upload profile image to R2 if provided as base64
@@ -108,6 +116,7 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
         supervisorId: supervisorId || null,
         status: status || 'Active',
         profileImage: imageUrl,
+        passportNumber: passportNumber && passportNumber.trim().length > 0 ? passportNumber.trim().toUpperCase() : null,
       },
       include: {
         supervisor: true,

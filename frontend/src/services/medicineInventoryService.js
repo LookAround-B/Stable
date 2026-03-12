@@ -64,6 +64,19 @@ const medicineInventoryService = {
     }
   },
 
+  // Set threshold for a medicine inventory item (admin only)
+  setThreshold: async (id, threshold, notifyAdmin) => {
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/medicine-inventory`, { id, threshold, notifyAdmin }, {
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error setting threshold:', error);
+      throw error.response?.data || error;
+    }
+  },
+
   // Bulk update inventory with consumption data
   bulkUpdateInventory: async (data) => {
     try {

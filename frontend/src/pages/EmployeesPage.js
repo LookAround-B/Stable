@@ -8,6 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
 const EMPLOYEE_DESIGNATIONS = [
@@ -401,6 +402,22 @@ const EmployeesPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
 
+  const handleDownloadExcel = () => {
+    if (!filteredEmployees.length) { alert('No data to download'); return; }
+    const data = filteredEmployees.map(emp => ({
+      'Name': emp.fullName,
+      'Email': emp.email,
+      'Role': emp.designation,
+      'Supervisor': emp.supervisor?.fullName || '-',
+      'Phone': emp.phoneNumber || '',
+      'Status': emp.employmentStatus,
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Employees');
+    XLSX.writeFile(wb, `Employees_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.manageEmployees) return <Navigate to="/" replace />;
 
   return (
@@ -552,7 +569,10 @@ const EmployeesPage = () => {
       , document.body)}
 
       <div className="employees-list">
-        <h2>{t('All Employees')}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h2>{t('All Employees')}</h2>
+          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        </div>
         <div className="search-bar">
           <input
             type="text"

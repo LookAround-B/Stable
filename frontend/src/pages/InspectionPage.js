@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { CardGridSkeleton } from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
@@ -26,11 +26,16 @@ const InspectionPage = () => {
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
+  // Drag & drop state
+  const [isDragging, setIsDragging] = useState(false);
+  const imgDropRef = useRef(null);
+
   // Filters
   const [filters, setFilters] = useState({
     round: '',
     horseId: '',
     severityLevel: '',
+    area: '',
     startDate: '',
     endDate: '',
   });
@@ -43,7 +48,7 @@ const InspectionPage = () => {
     location: '',
     area: '',
     severityLevel: 'Low',
-    image: null,
+    images: [],
   });
 
   // Resolve form data
@@ -149,26 +154,19 @@ const InspectionPage = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      setMessage(`✗ File size exceeds 5MB limit`);
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      setMessage(`✗ Please select an image file`);
-      return;
-    }
-
-    console.log(`📸 Image selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
-    setFormData(prev => ({
-      ...prev,
-      image: file,
-    }));
+  const handleFilesAdded = (files) => {
+    const validFiles = Array.from(files).filter(f => {
+      if (!f.type.startsWith('image/')) { setMessage('✗ Only image files allowed'); return false; }
+      if (f.size > MAX_FILE_SIZE) { setMessage('✗ File too large (max 5MB each)'); return false; }
+      return true;
+    });
+    setFormData(prev => ({ ...prev, images: [...prev.images, ...validFiles].slice(0, 8) }));
   };
+
+  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = () => setIsDragging(false);
+  const handleDrop = (e) => { e.preventDefault(); setIsDragging(false); handleFilesAdded(e.dataTransfer.files); };
+  const removeImage = (idx) => setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
 
   const handleEdit = (inspection) => {
     console.log('✎ Editing inspection:', inspection.id);
@@ -180,7 +178,7 @@ const InspectionPage = () => {
       location: inspection.location,
       area: inspection.area || '',
       severityLevel: inspection.severityLevel,
-      image: inspection.image, // Keep existing image URL
+      images: inspection.images?.length ? inspection.images : (inspection.image ? [inspection.image] : []),
     });
     setShowForm(true);
   };
@@ -227,7 +225,7 @@ const InspectionPage = () => {
       location: '',
       area: '',
       severityLevel: 'Low',
-      image: null,
+      images: [],
     });
     setEditingInspection(null);
   };
@@ -273,8 +271,8 @@ const InspectionPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.round || !formData.description || !formData.location || !formData.severityLevel || !formData.image) {
-      setMessage('✗ All fields are required, including an image');
+    if (!formData.round || !formData.description || !formData.location || !formData.severityLevel || !formData.images.length) {
+      setMessage('✗ All fields are required, including at least one image');
       return;
     }
 
@@ -369,6 +367,7 @@ const InspectionPage = () => {
     console.log('📥 Downloaded inspections to:', filename);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleDownloadCSV = () => {
     if (inspections.length === 0) {
       alert('No inspections to download');
@@ -481,6 +480,17 @@ const InspectionPage = () => {
         </div>
 
         <div className="filter-group">
+          <label>Area</label>
+          <SearchableSelect
+            name="area"
+            value={filters.area}
+            onChange={handleFilterChange}
+            options={[{ value: '', label: 'All Areas' }, ...FACILITY_AREAS.map((a) => ({ value: a, label: a }))]}
+            placeholder="Select area..."
+          />
+        </div>
+
+        <div className="filter-group">
           <label>From Date</label>
           <input
             type="date"
@@ -519,19 +529,41 @@ const InspectionPage = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="image-input">Image * (Mandatory)</label>
+              <label>Images * <span style={{ fontWeight: 'normal', color: '#888', fontSize: '0.85em' }}>(up to 8, max 5MB each)</span></label>
+              <div
+                className={`insp-drop-zone${isDragging ? ' insp-drop-zone--active' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => imgDropRef.current?.click()}
+              >
+                <span>Drag &amp; drop images here, or click to browse</span>
+                <span className="insp-drop-count">{formData.images.length}/8 added</span>
+              </div>
               <input
-                id="image-input"
+                ref={imgDropRef}
                 type="file"
                 accept="image/*"
-                onChange={handleImageChange}
-                required
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => { handleFilesAdded(e.target.files); e.target.value = ''; }}
               />
-              {formData.image && typeof formData.image === 'object' && (
-                <p className="file-info">📸 {formData.image.name}</p>
-              )}
-              {formData.image && typeof formData.image === 'string' && (
-                <p className="file-info">📎 Existing image: {formData.image.split('/').pop()}</p>
+              {formData.images.length > 0 && (
+                <div className="insp-thumb-grid">
+                  {formData.images.map((img, idx) => (
+                    <div key={idx} className="insp-thumb-item">
+                      <img
+                        src={img instanceof File ? URL.createObjectURL(img) : img}
+                        alt={`Preview ${idx + 1}`}
+                      />
+                      <button
+                        type="button"
+                        className="insp-thumb-remove"
+                        onClick={() => removeImage(idx)}
+                      >&#x2715;</button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
@@ -622,23 +654,15 @@ const InspectionPage = () => {
           <div className="header-buttons">
             {inspections.length > 0 && (
               <button
-                className="btn-primary"
+                className="btn-secondary"
                 onClick={handleDownloadExcel}
                 title="Download filtered inspections as Excel"
               >
                 📥 Download Excel
               </button>
             )}
-            {inspections.length > 0 && (
-              <button
-                className="btn-secondary"
-                onClick={handleDownloadCSV}
-                title="Download filtered inspections as CSV"
-              >
-                📥 Download CSV
-              </button>
-            )}
-            {(filters.round || filters.horseId || filters.severityLevel || filters.startDate || filters.endDate) && (
+
+            {(filters.round || filters.horseId || filters.severityLevel || filters.area || filters.startDate || filters.endDate) && (
               <button
                 className="btn-secondary"
                 onClick={() => {
@@ -646,6 +670,7 @@ const InspectionPage = () => {
                     round: '',
                     horseId: '',
                     severityLevel: '',
+                    area: '',
                     startDate: '',
                     endDate: '',
                   });
@@ -683,8 +708,11 @@ const InspectionPage = () => {
                   <p className="card-date">{formatDate(inspection.createdAt)}</p>
                 </div>
 
-                <div className="card-image">
-                  <img src={inspection.image} alt="Inspection" onError={(e) => { e.target.style.display = 'none'; }} />
+                <div className="card-image" style={{ position: 'relative' }}>
+                  <img src={inspection.images?.[0] || inspection.image} alt="Inspection" onError={(e) => { e.target.style.display = 'none'; }} />
+                  {inspection.images?.length > 1 && (
+                    <span className="insp-img-count">+{inspection.images.length - 1}</span>
+                  )}
                 </div>
 
                 <div className="card-content">
@@ -747,14 +775,17 @@ const InspectionPage = () => {
 
             <div className="modal-body">
               <div className="view-section">
-                <div className="view-image">
-                  <img 
-                    src={viewingInspection.image} 
-                    alt="Inspection" 
-                    onClick={() => setFullScreenImage(viewingInspection.image)}
-                    style={{ cursor: 'pointer' }}
-                    title="Click to expand"
-                  />
+                <div className="insp-img-gallery">
+                  {(viewingInspection.images?.length ? viewingInspection.images : [viewingInspection.image]).filter(Boolean).map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`Inspection ${i + 1}`}
+                      onClick={() => setFullScreenImage(url)}
+                      style={{ cursor: 'pointer' }}
+                      title="Click to expand"
+                    />
+                  ))}
                 </div>
 
                 <div className="view-details">

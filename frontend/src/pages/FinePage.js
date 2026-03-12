@@ -9,6 +9,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -374,17 +375,37 @@ const FinePage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedFines = fines.slice(startIndex, endIndex);
 
+  const handleDownloadExcel = () => {
+    if (!fines.length) { alert('No data to download'); return; }
+    const data = fines.map(f => ({
+      'Date': f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-GB') : '',
+      'Issued To': f.issuedTo?.fullName || '',
+      'Amount (₹)': f.amount,
+      'Reason': f.reason,
+      'Status': f.status,
+      'Resolved By': f.resolvedBy?.fullName || '',
+      'Resolution Notes': f.resolutionNotes || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Fines');
+    XLSX.writeFile(wb, `Fines_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.viewFines) return <Navigate to="/" replace />;
 
   return (
     <div className="fine-page">
       <div className="fine-header">
         <h1>{t('Fine System')}</h1>
-        {canIssueFines && (
-          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-            {showForm ? '✕ Cancel' : '+ Issue Fine'}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {canIssueFines && (
+            <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+              {showForm ? '✕ Cancel' : '+ Issue Fine'}
+            </button>
+          )}
+          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        </div>
       </div>
 
       {message && <div className={`message ${message.includes('✓') ? 'success' : 'error'}`}>{message}</div>}

@@ -6,6 +6,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -182,6 +183,23 @@ const GateEntryRegisterPage = () => {
     const hours = Math.floor(diff / 60);
     const minutes = diff % 60;
     return `${hours}h ${minutes}m`;
+  };
+
+  const handleDownloadExcel = () => {
+    if (!entries.length) { alert('No data to download'); return; }
+    const data = entries.map(entry => ({
+      'Name': entry.personType === 'staff' ? getStaffName(entry.employeeId) : (entry.visitor?.name || entry.personName || ''),
+      'Person Type': entry.personType,
+      'Vehicle No': entry.vehicleNo || '',
+      'Entry Time': formatTime(entry.entryTime),
+      'Exit Time': formatTime(entry.exitTime),
+      'Duration': getTotalDuration(entry.entryTime, entry.exitTime),
+      'Purpose/Notes': entry.visitor?.purpose || entry.notes || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Gate Register');
+    XLSX.writeFile(wb, `GateRegister_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
   if (!p.viewGateEntry) return <Navigate to="/" replace />;
@@ -386,14 +404,16 @@ const GateEntryRegisterPage = () => {
         <div className="register-section">
           <div className="section-header">
             <h3>Today's Gate Register</h3>
-            <div className="date-filter">
-              <label>Date:</label>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <label style={{ margin: 0, whiteSpace: 'nowrap' }}>Date:</label>
               <input 
                 type="date" 
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="form-input"
+                style={{ height: '36px', boxSizing: 'border-box', margin: 0 }}
               />
+              <button className="btn-secondary" onClick={handleDownloadExcel} style={{ height: '36px', padding: '0 16px', boxSizing: 'border-box' }}>Download Excel</button>
             </div>
           </div>
 

@@ -179,6 +179,7 @@ const TeamAttendancePage = () => {
     console.log('📥 Downloaded attendance to:', filename);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleDownloadCSV = () => {
     if (attendanceRecords.length === 0) {
       alert('No attendance records to download');
@@ -257,12 +258,7 @@ const TeamAttendancePage = () => {
               >
                 Download Excel
               </button>
-              <button 
-                className="btn btn-download"
-                onClick={handleDownloadCSV}
-              >
-                Download CSV
-              </button>
+
               <button 
                 className="btn btn-primary"
                 onClick={() => setShowForm(!showForm)}

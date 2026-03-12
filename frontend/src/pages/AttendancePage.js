@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
+import * as XLSX from 'xlsx';
 
 const AttendancePage = () => {
   const { user } = useAuth();
@@ -113,6 +114,23 @@ const AttendancePage = () => {
 
   const isManager = ['Ground Supervisor', 'Stable Manager', 'Director'].includes(user?.designation);
 
+  const handleDownloadExcel = () => {
+    if (!attendanceLogs.length) { alert('No data to download'); return; }
+    const data = attendanceLogs.map(log => ({
+      'Date': log.date ? new Date(log.date).toLocaleDateString('en-GB') : (log.createdAt ? new Date(log.createdAt).toLocaleDateString('en-GB') : ''),
+      'Employee': log.employee?.fullName || '',
+      'Check In': log.checkInTime || '',
+      'Check Out': log.checkOutTime || '',
+      'Shift': log.shift || '',
+      'Status': log.status || '',
+      'Notes': log.notes || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+    XLSX.writeFile(wb, `Attendance_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   return (
     <div className="attendance-page">
       <h1>{t('Attendance Management')}</h1>
@@ -121,6 +139,7 @@ const AttendancePage = () => {
           ? 'Manage your team attendance' 
           : 'Log your attendance'}
       </p>
+      <button className="btn-secondary" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}>Download Excel</button>
 
       <button 
         className="btn-add" 

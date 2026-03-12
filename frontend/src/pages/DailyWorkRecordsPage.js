@@ -284,7 +284,16 @@ const DailyWorkRecordsPage = () => {
 
   return (
     <div className="daily-work-records-page">
-      <h1>{t('Daily Work Records (EIRS)')}</h1>
+      <div className="page-header">
+        <h1>{t('Daily Work Records (EIRS)')}</h1>
+        <button
+          className="btn-secondary"
+          onClick={handleDownloadExcel}
+          disabled={loading}
+        >
+          Download Excel
+        </button>
+      </div>
 
       {message && (
         <div className={`message ${messageType}`}>
@@ -304,15 +313,6 @@ const DailyWorkRecordsPage = () => {
         </label>
 
         <div className="control-buttons">
-          {!showForm && (
-            <button
-              className="btn btn-download"
-              onClick={handleDownloadExcel}
-              disabled={loading}
-            >
-              Download Excel
-            </button>
-          )}
           {!showForm && canCreateRecords && (
             <button
               className="btn btn-primary"
@@ -440,7 +440,7 @@ const DailyWorkRecordsPage = () => {
         </div>
       )}
 
-      <div className="records-list">
+      <div className="records-list" style={{ marginTop: '24px' }}>
         <h2>Records for {new Date(selectedDate).toLocaleDateString()}</h2>
 
         {loading && <TableSkeleton cols={6} rows={5} />}

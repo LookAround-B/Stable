@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import InventoryCharts from '../components/InventoryCharts';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
@@ -7,6 +8,8 @@ import medicineInventoryService from '../services/medicineInventoryService';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { useAuth } from '../context/AuthContext';
+import * as XLSX from 'xlsx';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -25,6 +28,8 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const MedicineInventoryPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
+  const { user } = useAuth();
+  const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -56,6 +61,9 @@ const MedicineInventoryPage = () => {
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
+
+  // Threshold modal state (admin only)
+  const [thresholdModal, setThresholdModal] = useState(null); // { record, value, notifyAdmin }
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);
@@ -231,14 +239,48 @@ const MedicineInventoryPage = () => {
     }
   };
 
-  const totalOpeningStock = inventoryRecords.reduce((sum, record) => sum + (record.openingStock || 0), 0);
-  const totalPurchased = inventoryRecords.reduce((sum, record) => sum + (record.unitsPurchased || 0), 0);
-
   // Pagination logic
   const totalPages = Math.ceil(inventoryRecords.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
   const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
+
+  const handleDownloadExcel = () => {
+    if (!inventoryRecords.length) { alert('No data to download'); return; }
+    const data = inventoryRecords.map(r => ({
+      'Medicine Type': MEDICINE_LABELS[r.medicineType] || r.medicineType,
+      'Opening Stock': r.openingStock,
+      'Units Purchased': r.unitsPurchased,
+      'Total Used': r.totalUsed,
+      'Units Left': r.unitsLeft,
+      'Unit': r.unit,
+      'Notes': r.notes || '',
+      'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}`,
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Inventory');
+    XLSX.writeFile(wb, `MedicineInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleSaveThreshold = async () => {
+    if (!thresholdModal) return;
+    try {
+      setLoading(true);
+      await medicineInventoryService.setThreshold(
+        thresholdModal.record.id,
+        thresholdModal.value === '' ? null : parseFloat(thresholdModal.value),
+        thresholdModal.notifyAdmin
+      );
+      showMessage('Threshold updated');
+      setThresholdModal(null);
+      loadInventory();
+    } catch {
+      showMessage('Failed to update threshold', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!p.viewMedicineInventory) return <Navigate to="/" replace />;
 
@@ -247,6 +289,7 @@ const MedicineInventoryPage = () => {
       <div className="page-header">
         <h1>{t('Medicine Inventory')}</h1>
         <p>Manage and track medicine stock levels</p>
+        <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
       </div>
 
       {message && (
@@ -385,20 +428,13 @@ const MedicineInventoryPage = () => {
             </form>
           )}
 
-          <div className="summary-section">
-            <div className="summary-card">
-              <h3>Total Opening Stock</h3>
-              <p className="summary-value">{totalOpeningStock}</p>
+          <InventoryCharts type="medicine" records={inventoryRecords} labels={MEDICINE_LABELS} />
+
+          {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
+            <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#92400e', padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}>
+              ⚠️ <strong>Low stock alert:</strong> One or more medicine inventory items are below their configured threshold.
             </div>
-            <div className="summary-card">
-              <h3>Total Purchased</h3>
-              <p className="summary-value">{totalPurchased}</p>
-            </div>
-            <div className="summary-card">
-              <h3>Records</h3>
-              <p className="summary-value">{inventoryRecords.length}</p>
-            </div>
-          </div>
+          )}
 
           {loading && <TableSkeleton cols={5} rows={5} />}
 
@@ -413,17 +449,27 @@ const MedicineInventoryPage = () => {
                   <th>Units Purchased</th>
                   <th>Unit</th>
                   <th>Notes</th>
+                  <th>Threshold</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedRecords.map((record) => (
-                  <tr key={record.id}>
+                {paginatedRecords.map((record) => {
+                  const isBelowThreshold = record.threshold !== null && record.threshold !== undefined && record.unitsLeft < record.threshold;
+                  return (
+                  <tr key={record.id} style={isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : {}}>
                     <td>{MEDICINE_LABELS[record.medicineType]}</td>
                     <td>{record.openingStock}</td>
                     <td>{record.unitsPurchased}</td>
                     <td>{record.unit}</td>
                     <td>{record.notes}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {record.threshold !== null && record.threshold !== undefined
+                        ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{record.threshold} {record.unit}</span>
+                        : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
+                      }
+                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">⚠️</span>}
+                    </td>
                     <td className="actions">
                       <button
                         className="btn-edit"
@@ -439,9 +485,19 @@ const MedicineInventoryPage = () => {
                       >
                         ✕ Delete
                       </button>
+                      {isAdmin && (
+                        <button
+                          className="btn-sm"
+                          style={{ fontSize: '0.7rem', padding: '3px 8px', background: record.notifyAdmin ? 'rgba(245,158,11,0.15)' : 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: '6px', cursor: 'pointer' }}
+                          onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
+                          title="Configure threshold alert"
+                        >
+                          🔔
+                        </button>
+                      )}
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
               </table>
               <Pagination 
@@ -542,6 +598,37 @@ const MedicineInventoryPage = () => {
         confirmText="Delete"
         confirmVariant="danger"
       />
+
+      {thresholdModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>🔔 Set Threshold Alert</h3>
+            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{MEDICINE_LABELS[thresholdModal.record.medicineType]}</p>
+            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Leave empty to disable"
+              value={thresholdModal.value}
+              onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input, #fff)', color: 'var(--text)' }}
+            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={thresholdModal.notifyAdmin}
+                onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))}
+              />
+              Notify admin when below threshold
+            </label>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setThresholdModal(null)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveThreshold} disabled={loading}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

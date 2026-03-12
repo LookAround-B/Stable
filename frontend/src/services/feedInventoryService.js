@@ -66,6 +66,19 @@ const feedInventoryService = {
     }
   },
 
+  // Set threshold for a feed inventory item (admin only)
+  setThreshold: async (id, threshold, notifyAdmin) => {
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/feed-inventory`, { id, threshold, notifyAdmin }, {
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error setting threshold:', error);
+      throw error.response?.data || error;
+    }
+  },
+
   // Get consumption report
   getConsumptionReport: async (startDate, endDate) => {
     try {

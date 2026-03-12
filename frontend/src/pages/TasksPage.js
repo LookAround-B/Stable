@@ -5,6 +5,7 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import * as XLSX from 'xlsx';
 
 const TASK_TYPES = [
   'Feed',
@@ -440,6 +441,24 @@ const TasksPage = () => {
     return emp?.fullName || 'Unknown Employee';
   };
 
+  const handleDownloadExcel = () => {
+    if (!filteredTasks.length) { alert('No data to download'); return; }
+    const data = filteredTasks.map(task => ({
+      'Task Name': task.name,
+      'Type': task.type,
+      'Priority': task.priority,
+      'Status': task.status,
+      'Assigned To': getEmployeeName(task.assignedEmployeeId),
+      'Horse': getHorseName(task.horseId),
+      'Scheduled Time': task.scheduledTime || '',
+      'Description': task.description || '',
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Tasks');
+    XLSX.writeFile(wb, `Tasks_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   if (!p.manageTasks) return <Navigate to="/" replace />;
 
   return (
@@ -449,14 +468,17 @@ const TasksPage = () => {
           <h1>{t('Tasks Management')}</h1>
           <p className="role-description">{getRoleTaskDescription(user?.designation, t)}</p>
         </div>
-        {canCreateTasks && (
-          <button 
-            className="btn-primary"
-            onClick={() => setShowCreateForm(!showCreateForm)}
-          >
-            {showCreateForm ? '✕ Cancel' : '+ Create New Task'}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {canCreateTasks && (
+            <button 
+              className="btn-primary"
+              onClick={() => setShowCreateForm(!showCreateForm)}
+            >
+              {showCreateForm ? '✕ Cancel' : '+ Create New Task'}
+            </button>
+          )}
+          <button className="btn-secondary" onClick={handleDownloadExcel}>Download Excel</button>
+        </div>
       </div>
 
       {message && (
