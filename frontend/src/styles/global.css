@@ -3787,7 +3787,33 @@ p {
 
 .modal-body,
 .modal-form {
-  margin-bottom: 18px
+  margin-bottom: 18px;
+  line-height: 1.6
+}
+
+.modal-body p {
+  margin-bottom: 12px;
+  color: var(--text-secondary)
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0
+}
+
+.modal-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  padding: 12px;
+  background: var(--bg-light);
+  margin: 16px 0;
+  display: block
+}
+
+.modal-body strong {
+  color: var(--text-primary);
+  font-weight: 600
 }
 
 .modal-footer,
