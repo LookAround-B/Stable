@@ -125,6 +125,7 @@ const MedicineLogsPage = () => {
       }
 
       const submitData = {
+        jamiedarId: user.id, // Auto-assign current user's ID for Jamedar
         horseId: formData.horseId,
         medicineName: formData.medicineName,
         quantity: parseFloat(formData.quantity),
