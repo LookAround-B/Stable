@@ -51,10 +51,10 @@ const SearchableSelect = ({
 
   const selectedLabel =
   (Array.isArray(options) &&
-    options.find((o) => String(o.value) === String(value))?.label) || '';
+    options.find((o) => String(o?.value) === String(value))?.label) || '';
 
   const filtered = Array.isArray(options) ? options.filter((o) =>
-    o.label.toLowerCase().includes(search.toLowerCase())
+    o?.label?.toLowerCase?.().includes(search.toLowerCase()) ?? false
   ) : [];
 
   const handleSelect = (optionValue) => {
