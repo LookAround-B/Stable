@@ -14,6 +14,7 @@ const ApprovalTasksPage = () => {
   const [approvedMedicineLogs, setApprovedMedicineLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('pending');
 
   useEffect(() => {
     loadAllTasks();
@@ -226,39 +227,59 @@ const ApprovalTasksPage = () => {
             </div>
           )}
 
-          {/* PENDING TASKS SECTION */}
-          <div className="approval-section">
-            <div className="section-header">
-              <h2>{t('Pending Review')}</h2>
-              <span className="task-count">{pendingItems.length} items</span>
+          {/* Modern SaaS Tab Navigation */}
+          <div className="modern-tabs-wrapper">
+            <div className="modern-tabs-container">
+              <button
+                className={`modern-tab ${activeTab === 'pending' ? 'active' : ''}`}
+                onClick={() => setActiveTab('pending')}
+              >
+                <span className="tab-label">Pending Reviews</span>
+                <span className="tab-badge">{pendingItems.length}</span>
+              </button>
+              <button
+                className={`modern-tab ${activeTab === 'approved' ? 'active' : ''}`}
+                onClick={() => setActiveTab('approved')}
+              >
+                <span className="tab-label">Approved</span>
+                <span className="tab-badge">{approvedItems.length}</span>
+              </button>
+              <div className="modern-tabs-indicator"></div>
             </div>
 
-            {loading && pendingItems.length === 0 ? (
-              <div className="loading">Loading pending items...</div>
-            ) : pendingItems.length === 0 ? (
-              <div className="no-tasks">
-                <p>✓ No pending items to review</p>
-              </div>
-            ) : (
-              <div className="approval-grid">
-                {pendingItems.map((item) => renderItemCard(item, false))}
-              </div>
-            )}
+            {/* Tab Content Panel */}
+            <div className="modern-tab-content">
+              {activeTab === 'pending' && (
+                <div className="approval-section">
+                  {loading && pendingItems.length === 0 ? (
+                    <div className="loading">Loading pending items...</div>
+                  ) : pendingItems.length === 0 ? (
+                    <div className="no-tasks">
+                      <p>✓ No pending items to review</p>
+                    </div>
+                  ) : (
+                    <div className="approval-grid">
+                      {pendingItems.map((item) => renderItemCard(item, false))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'approved' && (
+                <div className="approval-section approved-section">
+                  {approvedItems.length === 0 ? (
+                    <div className="no-tasks">
+                      <p>✓ No approved items yet</p>
+                    </div>
+                  ) : (
+                    <div className="approval-grid">
+                      {approvedItems.map((item) => renderItemCard(item, true))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-
-          {/* APPROVED TASKS SECTION */}
-          {approvedItems.length > 0 && (
-            <div className="approval-section approved-section">
-              <div className="section-header">
-                <h2>{t('Approved Items')}</h2>
-                <span className="task-count">{approvedItems.length} items</span>
-              </div>
-
-              <div className="approval-grid">
-                {approvedItems.map((item) => renderItemCard(item, true))}
-              </div>
-            </div>
-          )}
     </div>
   );
 };
