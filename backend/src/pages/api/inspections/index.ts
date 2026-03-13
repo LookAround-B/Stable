@@ -212,3 +212,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+// Increase request body size limit for image uploads (default is 1MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+}
+

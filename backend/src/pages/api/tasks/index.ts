@@ -159,7 +159,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       data: {
         name,
         type,
-        horseId,
+        horseId: horseId && horseId.trim() ? horseId : null, // Convert empty string to null
         assignedEmployeeId,
         createdById: userId,
         scheduledTime: new Date(scheduledTime),

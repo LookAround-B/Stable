@@ -67,6 +67,17 @@ const GateEntryRegisterPage = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
+    
+    // Phone number - allow only digits
+    if (name === 'newVisitorPhone') {
+      const numbersOnly = value.replace(/[^\d]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: numbersOnly
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -333,6 +344,7 @@ const GateEntryRegisterPage = () => {
                             value={formData.newVisitorName}
                             onChange={handleFormChange}
                             placeholder="Full name"
+                            maxLength="50"
                             className="form-input"
                           />
                         </div>
@@ -340,11 +352,13 @@ const GateEntryRegisterPage = () => {
                         <div className="form-group">
                           <label>Contact Number</label>
                           <input 
-                            type="tel" 
+                            type="text" 
                             name="newVisitorPhone"
                             value={formData.newVisitorPhone}
                             onChange={handleFormChange}
                             placeholder="Phone number"
+                            inputMode="numeric"
+                            maxLength="15"
                             className="form-input"
                           />
                         </div>
@@ -358,6 +372,7 @@ const GateEntryRegisterPage = () => {
                           value={formData.newVisitorPurpose}
                           onChange={handleFormChange}
                           placeholder="e.g., Delivery, Meeting, Inspection"
+                          maxLength="100"
                           className="form-input"
                         />
                       </div>

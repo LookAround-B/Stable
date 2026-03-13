@@ -251,3 +251,11 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
   }
 }
 
+// Increase request body size limit for file uploads (default is 1MB)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+}

@@ -502,7 +502,7 @@ p {
 .main-content-inner {
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px 16px 16px;
+  padding: 24px 16px 16px 16px;
 }
 
 .main-content-inner::-webkit-scrollbar {

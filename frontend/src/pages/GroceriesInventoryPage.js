@@ -38,6 +38,7 @@ const GroceriesInventoryPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [search, setSearch] = useState("");
+  const [formMode, setFormMode] = useState('new'); // 'select' or 'new'
 
   const [formData, setFormData] = useState({
     name: "",
@@ -108,6 +109,7 @@ const GroceriesInventoryPage = () => {
 
   const resetForm = () => {
     setFormData({ name: "", quantity: "", unit: "g", price: "", purchaseDate: new Date().toISOString().split("T")[0], expiryDate: "", description: "", employeeId: "" });
+    setFormMode('new');
     setEditingId(null);
     setShowForm(false);
   };
@@ -257,8 +259,8 @@ const GroceriesInventoryPage = () => {
       <InventoryCharts type="groceries" records={filteredGroceries} />
 
       {groceries.some(g => g.threshold !== null && g.threshold !== undefined && g.notifyAdmin && g.quantity < g.threshold) && (
-        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-          <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⚠️</span>
+        <div style={{ background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#374151', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>!</span>
           <div>
             <strong>Low stock alert</strong>
             <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
@@ -286,35 +288,105 @@ const GroceriesInventoryPage = () => {
       {showForm && (
         <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "12px", padding: "20px", marginBottom: "20px" }}>
           <h3 style={{ margin: "0 0 16px", fontSize: "1rem" }}>{editingId ? "Edit Grocery Item" : "Add Grocery Item"}</h3>
+          
+          {!editingId && (
+            <div style={{ marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <div style={{ fontSize: "0.8rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Item Entry Method</div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="button"
+                  className={`mode-btn ${formMode === 'select' ? 'active' : ''}`}
+                  onClick={() => { setFormMode('select'); setFormData(prev => ({ ...prev, name: '', quantity: '', unit: 'g' })); }}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    border: `1px solid ${formMode === 'select' ? '#333' : 'rgba(0,0,0,0.2)'}`,
+                    background: formMode === 'select' ? 'rgba(0,0,0,0.08)' : 'transparent',
+                    color: formMode === 'select' ? '#000' : '#999',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: formMode === 'select' ? 600 : 400,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Select Existing Item
+                </button>
+                <button
+                  type="button"
+                  className={`mode-btn ${formMode === 'new' ? 'active' : ''}`}
+                  onClick={() => { setFormMode('new'); }}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    border: `1px solid ${formMode === 'new' ? '#333' : 'rgba(0,0,0,0.2)'}`,
+                    background: formMode === 'new' ? 'rgba(0,0,0,0.08)' : 'transparent',
+                    color: formMode === 'new' ? '#000' : '#999',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: formMode === 'new' ? 600 : 400,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Add New Item
+                </button>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
-            {/* Existing item selector */}
-            {itemSuggestions.length > 0 && (
-              <div style={{ marginBottom: "12px" }}>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px", color: "#666" }}>Quick-fill from existing items</label>
+            {/* SELECT MODE */}
+            {formMode === 'select' && itemSuggestions.length > 0 && (
+              <div style={{ marginBottom: "20px", padding: "16px", background: "rgba(0,0,0,0.04)", borderRadius: "10px", border: "1px solid rgba(0,0,0,0.1)" }}>
+                <label style={{ fontSize: "0.85rem", display: "block", marginBottom: "8px", fontWeight: 600, color: "#333" }}>Select an Item from History</label>
                 <SearchableSelect
-                  value=""
+                  value={formData.name}
                   onChange={(e) => {
                     const match = itemSuggestions.find(s => s.name === e.target.value);
-                    if (match) setFormData(prev => ({ ...prev, name: match.name, unit: match.unit }));
+                    if (match) {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        name: match.name, 
+                        unit: match.unit,
+                        quantity: '',
+                        price: ''
+                      }));
+                    }
                   }}
-                  options={[{ value: '', label: '-- Select to pre-fill --' }, ...itemSuggestions.map(s => ({ value: s.name, label: `${s.name} (${s.unit})` }))]}
-                  placeholder="Search existing items..."
+                  options={[{ value: '', label: '-- Choose an item --' }, ...itemSuggestions.map(s => ({ value: s.name, label: `${s.name} (${s.unit})` }))]}
+                  placeholder="Search and select item..."
+                  style={{ width: '100%' }}
                 />
+                <p style={{ fontSize: '0.75rem', color: '#666', margin: '8px 0 0' }}>Unit will be pre-filled from previous entries</p>
               </div>
             )}
+
+            {/* FORM FIELDS */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
-              <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
-                <input type="text" name="name" value={formData.name} onChange={handleInputChange}
-                  placeholder="e.g., Rice, Flour" required maxLength={100}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
-              </div>
+              {formMode === 'new' && (
+                <div>
+                  <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
+                  <input type="text" name="name" value={formData.name} onChange={handleInputChange}
+                    placeholder="e.g., Rice, Flour" required maxLength={100}
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                </div>
+              )}
+
+              {formMode === 'select' && (
+                <div>
+                  <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Selected Item</label>
+                  <input type="text" value={formData.name} disabled
+                    placeholder="No item selected"
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box", background: '#f5f5f5', opacity: 0.7 }} />
+                </div>
+              )}
+
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Quantity *</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange}
                   placeholder="e.g., 500" step="0.01" min="0" required
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
+              
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Unit</label>
                 <SearchableSelect
@@ -325,22 +397,26 @@ const GroceriesInventoryPage = () => {
                   placeholder="Select unit..."
                 />
               </div>
+
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Price per Unit (₹)</label>
                 <input type="number" name="price" value={formData.price} onChange={handleInputChange}
                   placeholder="Optional" step="0.01" min="0"
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
+
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Purchase Date</label>
                 <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange}
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
-              <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Expiry Date <span style={{ fontWeight: 'normal', color: '#999' }}>(optional)</span></label>
+
+              <div style={{ background: "rgba(0,0,0,0.04)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.1)" }}>
+                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px", fontWeight: 600, color: "#333" }}>Expiry Date (Optional)</label>
                 <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange}
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
+
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Assigned To</label>
                 <SearchableSelect
@@ -352,12 +428,14 @@ const GroceriesInventoryPage = () => {
                 />
               </div>
             </div>
+
             <div style={{ marginTop: "12px" }}>
               <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Description / Notes</label>
               <textarea name="description" value={formData.description} onChange={handleInputChange}
                 placeholder="Optional notes" rows="2" maxLength={500}
                 style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
             </div>
+
             <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
               <button type="submit" className="btn btn-primary">{editingId ? "Update" : "Add Item"}</button>
               <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>
@@ -396,22 +474,43 @@ const GroceriesInventoryPage = () => {
               <tbody>
                 {paginatedItems.map((g, i) => {
                   const isBelowThreshold = g.threshold !== null && g.threshold !== undefined && g.quantity < g.threshold;
+                  const isExpired = g.expiryDate && new Date(g.expiryDate) < new Date();
+                  const daysUntilExpiry = g.expiryDate ? Math.ceil((new Date(g.expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
                   return (
-                  <tr key={g.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : {}) }}>
+                  <tr key={g.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : isExpired ? { background: 'rgba(220,38,38,0.12)' } : {}) }}>
                     <td style={{ padding: "10px 12px", opacity: 0.5 }}>{startIndex + i + 1}</td>
                     <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>{formatDate(g.purchaseDate || g.createdAt)}</td>
                     <td style={{ padding: "10px 12px", fontWeight: 500 }}>{g.name}</td>
                     <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.quantity}</td>
                     <td style={{ padding: "10px 12px" }}>{g.unit}</td>
                     <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.price > 0 ? `₹${g.price.toFixed(2)}` : "-"}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.totalPrice > 0 ? `₹${g.totalPrice.toFixed(2)}` : "-"}</td>                    <td style={{ padding: "10px 12px", whiteSpace: "nowrap", color: g.expiryDate && new Date(g.expiryDate) < new Date() ? '#c0392b' : 'inherit' }}>{g.expiryDate ? formatDate(g.expiryDate) : "-"}</td>                    <td style={{ padding: "10px 12px", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.description || "-"}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.totalPrice > 0 ? `₹${g.totalPrice.toFixed(2)}` : "-"}</td>
+                    <td style={{ padding: "10px 12px", whiteSpace: "nowrap", fontWeight: g.expiryDate ? 600 : 400 }}>
+                      {g.expiryDate ? (
+                        <span style={{
+                          color: isExpired ? '#dc2626' : daysUntilExpiry <= 7 ? '#666' : '#333',
+                          background: isExpired ? 'rgba(220,38,38,0.1)' : daysUntilExpiry <= 7 ? 'rgba(0,0,0,0.05)' : 'transparent',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          fontSize: '0.8rem'
+                        }}>
+                          {formatDate(g.expiryDate)}
+                          {isExpired && ' [EXPIRED]'}
+                          {!isExpired && daysUntilExpiry <= 7 && ` [${daysUntilExpiry}d]`}
+                        </span>
+                      ) : (
+                        <span style={{ opacity: 0.5 }}>-</span>
+                      )}
+                    </td>
+                    <td style={{ padding: "10px 12px", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.description || "-"}</td>
                     <td style={{ padding: "10px 12px", fontSize: "0.8rem", opacity: 0.8 }}>{g.createdBy?.fullName || "-"}</td>
                     <td style={{ padding: "10px 12px", whiteSpace: 'nowrap' }}>
                       {g.threshold !== null && g.threshold !== undefined
                         ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{g.threshold} {g.unit}</span>
                         : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
                       }
-                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">⚠️</span>}
+                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#dc2626', fontWeight: 700 }} title="Below threshold">!</span>}
                     </td>
                     <td style={{ padding: "10px 12px" }}>
                       <div style={{ display: "flex", gap: "6px", flexWrap: 'wrap' }}>
@@ -419,11 +518,11 @@ const GroceriesInventoryPage = () => {
                         <button className="btn btn-sm btn-delete" onClick={() => handleDelete(g.id)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Delete</button>
                         {isAdmin && (
                           <button
-                            style={{ padding: '4px 8px', fontSize: '0.7rem', background: g.notifyAdmin ? 'rgba(245,158,11,0.15)' : 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: '6px', cursor: 'pointer' }}
+                            style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'transparent', color: '#333', border: '1px solid #333', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
                             onClick={() => setThresholdModal({ record: g, value: g.threshold ?? '', notifyAdmin: g.notifyAdmin ?? false })}
                             title="Configure threshold alert"
                           >
-                            🔔
+                            Alert
                           </button>
                         )}
                       </div>
@@ -457,7 +556,7 @@ const GroceriesInventoryPage = () => {
       {thresholdModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>🔔 Set Threshold Alert</h3>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>Set Threshold Alert</h3>
             <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{thresholdModal.record.name}</p>
             <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
             <input
