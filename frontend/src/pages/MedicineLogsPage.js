@@ -339,11 +339,10 @@ const MedicineLogsPage = () => {
                 <div className="form-group">
                   <label>Horse *</label>
                   <SearchableSelect
-                    options={horses}
-                    getDisplayText={(horse) => horse.name}
-                    getValue={(horse) => horse.id}
-                    selectedValue={formData.horseId}
-                    onSelect={(horse) => setFormData((prev) => ({ ...prev, horseId: horse.id }))}
+                    name="horseId"
+                    options={horses.map(h => ({ value: h.id, label: h.name }))}
+                    value={formData.horseId}
+                    onChange={(e) => setFormData(prev => ({ ...prev, horseId: e.target.value }))}
                     placeholder="Search horse..."
                   />
                 </div>
