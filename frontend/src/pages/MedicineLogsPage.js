@@ -435,45 +435,47 @@ const MedicineLogsPage = () => {
           {loading && <TableSkeleton cols={6} rows={5} />}
 
           {!loading && logs.length > 0 ? (
-            <div className="table-wrapper">
-              <table className="logs-table">
-              <thead>
-                <tr>
-                  <th>Horse</th>
-                  <th>Medicine</th>
-                  <th>Quantity</th>
-                  <th>Time</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id}>
-                    <td>{horseMap[log.horseId] || 'Unknown'}</td>
-                    <td>{log.medicineName}</td>
-                    <td>{log.quantity} {log.unit}</td>
-                    <td>{new Date(log.timeAdministered).toLocaleString()}</td>
-                    <td>{getStatusBadge(log.approvalStatus)}</td>
-                    <td className="actions">
-                      {log.approvalStatus === 'pending' && (
-                        <>
-                          <button className="btn-edit" onClick={() => setSelectedLogForDetail(log)} disabled={loading}>
-                            ✎ Edit
-                          </button>
-                          <button className="btn-delete" onClick={() => handleDelete(log.id)} disabled={loading}>
-                            ✕ Delete
-                          </button>
-                        </>
-                      )}
-                      <button className="btn-view" onClick={() => setSelectedLogForDetail(log)}>
-                        👁 View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              </table>
+            <div className="approval-grid">
+              {logs.map((log) => (
+                <div key={log.id} className="approval-card card">
+                  <div className="approval-card-header">
+                    <h3 className="approval-card-title">{log.medicineName}</h3>
+                    {getStatusBadge(log.approvalStatus)}
+                  </div>
+                  <div className="approval-card-details">
+                    <div><span className="detail-label">Horse:</span> <strong>{horseMap[log.horseId] || 'Unknown'}</strong></div>
+                    <div><span className="detail-label">Quantity:</span> <strong>{log.quantity} {log.unit}</strong></div>
+                    <div><span className="detail-label">Time:</span> <strong>{new Date(log.timeAdministered).toLocaleString('en-IN')}</strong></div>
+                    <div><span className="detail-label">Status:</span> <strong>{getStatusBadge(log.approvalStatus)}</strong></div>
+                  </div>
+                  {log.notes && (
+                    <div className="approval-card-notes">
+                      <span className="detail-label">Notes:</span>
+                      <p>{log.notes}</p>
+                    </div>
+                  )}
+                  {log.photoUrl && (
+                    <div className="approval-card-evidence">
+                      <img src={log.photoUrl} alt="Treatment" className="approval-evidence-img" onClick={() => window.open(log.photoUrl, '_blank')} />
+                    </div>
+                  )}
+                  <div className="approval-card-actions">
+                    {log.approvalStatus === 'pending' && (
+                      <>
+                        <button className="btn-edit" onClick={() => setSelectedLogForDetail(log)} disabled={loading}>
+                          ✎ Edit
+                        </button>
+                        <button className="btn-reject" onClick={() => handleDelete(log.id)} disabled={loading}>
+                          ✕ Delete
+                        </button>
+                      </>
+                    )}
+                    <button className="btn-approve" onClick={() => setSelectedLogForDetail(log)} style={{ background: '#6366f1' }}>
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             !loading && <p className="no-data">No medicine logs yet</p>
@@ -486,26 +488,31 @@ const MedicineLogsPage = () => {
           {loading && <TableSkeleton cols={4} rows={4} />}
 
           {!loading && logs.length > 0 ? (
-            <div className="pending-logs">
+            <div className="approval-grid">
               {logs.map((log) => (
-                <div key={log.id} className="log-card">
-                  <div className="card-header">
-                    <h3>{horseMap[log.horseId] || 'Unknown Horse'}</h3>
-                    {getStatusBadge(log.approvalStatus)}
+                <div key={log.id} className="approval-card card">
+                  <div className="approval-card-header">
+                    <h3 className="approval-card-title">{log.medicineName}</h3>
+                    <span className="approval-type-badge">Medicine Log</span>
                   </div>
-                  <div className="card-body">
-                    <p><strong>Medicine:</strong> {log.medicineName}</p>
-                    <p><strong>Quantity:</strong> {log.quantity} {log.unit}</p>
-                    <p><strong>Time:</strong> {new Date(log.timeAdministered).toLocaleString()}</p>
-                    <p><strong>Logged by:</strong> {log.jamedar?.fullName || 'Unknown'}</p>
-                    {log.notes && <p><strong>Notes:</strong> {log.notes}</p>}
-                    {log.photoUrl && (
-                      <div className="photo-section">
-                        <img src={log.photoUrl} alt="Treatment" style={{ maxWidth: '200px', maxHeight: '200px' }} />
-                      </div>
-                    )}
+                  <div className="approval-card-details">
+                    <div><span className="detail-label">Horse:</span> <strong>{horseMap[log.horseId] || 'Unknown'}</strong></div>
+                    <div><span className="detail-label">Quantity:</span> <strong>{log.quantity} {log.unit}</strong></div>
+                    <div><span className="detail-label">Time:</span> <strong>{new Date(log.timeAdministered).toLocaleString('en-IN')}</strong></div>
+                    <div><span className="detail-label">Logged by:</span> <strong>{log.jamedar?.fullName || 'Unknown'}</strong></div>
                   </div>
-                  <div className="card-actions">
+                  {log.notes && (
+                    <div className="approval-card-notes">
+                      <span className="detail-label">Notes:</span>
+                      <p>{log.notes}</p>
+                    </div>
+                  )}
+                  {log.photoUrl && (
+                    <div className="approval-card-evidence">
+                      <img src={log.photoUrl} alt="Treatment" className="approval-evidence-img" onClick={() => window.open(log.photoUrl, '_blank')} />
+                    </div>
+                  )}
+                  <div className="approval-card-actions">
                     <button className="btn-approve" onClick={() => handleApprove(log.id)} disabled={loading}>
                       ✓ Approve
                     </button>
@@ -530,19 +537,31 @@ const MedicineLogsPage = () => {
               <button className="btn-close" onClick={() => setSelectedLogForDetail(null)}>✕</button>
             </div>
             <div className="modal-body">
-              <p><strong>Horse:</strong> {horseMap[selectedLogForDetail.horseId] || 'Unknown'}</p>
-              <p><strong>Medicine:</strong> {selectedLogForDetail.medicineName}</p>
-              <p><strong>Quantity:</strong> {selectedLogForDetail.quantity} {selectedLogForDetail.unit}</p>
-              <p><strong>Time:</strong> {new Date(selectedLogForDetail.timeAdministered).toLocaleString()}</p>
-              <p><strong>Status:</strong> {getStatusBadge(selectedLogForDetail.approvalStatus)}</p>
-              <p><strong>Logged by:</strong> {selectedLogForDetail.jamedar?.fullName || 'Unknown'}</p>
-              {selectedLogForDetail.approvedBy && <p><strong>Approved by:</strong> {selectedLogForDetail.approvedBy.fullName}</p>}
-              {selectedLogForDetail.rejectionReason && <p><strong>Rejection Reason:</strong> {selectedLogForDetail.rejectionReason}</p>}
-              {selectedLogForDetail.notes && <p><strong>Notes:</strong> {selectedLogForDetail.notes}</p>}
+              <div className="approval-card-details" style={{ marginBottom: '16px' }}>
+                <div><span className="detail-label">Horse:</span> <strong>{horseMap[selectedLogForDetail.horseId] || 'Unknown'}</strong></div>
+                <div><span className="detail-label">Medicine:</span> <strong>{selectedLogForDetail.medicineName}</strong></div>
+                <div><span className="detail-label">Quantity:</span> <strong>{selectedLogForDetail.quantity} {selectedLogForDetail.unit}</strong></div>
+                <div><span className="detail-label">Time:</span> <strong>{new Date(selectedLogForDetail.timeAdministered).toLocaleString('en-IN')}</strong></div>
+                <div><span className="detail-label">Status:</span> {getStatusBadge(selectedLogForDetail.approvalStatus)}</div>
+                <div><span className="detail-label">Logged by:</span> <strong>{selectedLogForDetail.jamedar?.fullName || 'Unknown'}</strong></div>
+                {selectedLogForDetail.approvedBy && <div><span className="detail-label">Approved by:</span> <strong>{selectedLogForDetail.approvedBy.fullName}</strong></div>}
+              </div>
+              {selectedLogForDetail.rejectionReason && (
+                <div className="approval-card-notes">
+                  <span className="detail-label">Rejection Reason:</span>
+                  <p>{selectedLogForDetail.rejectionReason}</p>
+                </div>
+              )}
+              {selectedLogForDetail.notes && (
+                <div className="approval-card-notes">
+                  <span className="detail-label">Notes:</span>
+                  <p>{selectedLogForDetail.notes}</p>
+                </div>
+              )}
               {selectedLogForDetail.photoUrl && (
-                <div style={{ marginTop: '15px' }}>
-                  <strong>Treatment Photo:</strong>
-                  <img src={selectedLogForDetail.photoUrl} alt="Treatment" style={{ maxWidth: '300px', maxHeight: '300px', marginTop: '10px', display: 'block' }} />
+                <div className="approval-card-evidence">
+                  <p className="detail-label">Treatment Photo:</p>
+                  <img src={selectedLogForDetail.photoUrl} alt="Treatment" className="approval-evidence-img" onClick={() => window.open(selectedLogForDetail.photoUrl, '_blank')} />
                 </div>
               )}
             </div>
