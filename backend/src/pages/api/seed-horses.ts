@@ -20,11 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log('🐴 Seeding horses...')
 
-    // Gender mapping: G = Gelding (Male), M = Mare (Female), S = Stallion (Male)
+    // Gender mapping: G = Gelding, M = Mare, S = Stallion
     const genderMap: Record<string, string> = {
-      'G': 'Male',    // Gelding
-      'M': 'Female',  // Mare
-      'S': 'Male',    // Stallion
+      'G': 'Gelding',
+      'M': 'Mare',
+      'S': 'Stallion',
     }
 
     const allHorses = [
@@ -178,7 +178,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     for (const horse of allHorses) {
       try {
-        const gender = genderMap[horse.gender] || 'Male'
+        const gender = genderMap[horse.gender] || 'Stallion'
         
         await prisma.horse.create({
           data: {

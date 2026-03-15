@@ -8,6 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Search, Download } from 'lucide-react';
+import { FaHorse } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
 const SUPERVISORY_ROLES = [
@@ -156,7 +157,7 @@ const HorsesPage = () => {
       // Reset form
       setFormData({
         name: '',
-        gender: 'Male',
+        gender: 'Stallion',
         breed: '',
         color: '',
         dateOfBirth: '',
@@ -278,7 +279,7 @@ const HorsesPage = () => {
             className="btn-add" 
             onClick={() => setShowModal(true)}
           >
-            {t('+ Add New Horse')}
+            <FaHorse style={{marginRight:'4px'}} /> {t('Add New Horse')}
           </button>
         )}
       </div>
@@ -288,7 +289,7 @@ const HorsesPage = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>{t('Add New Horse')}</h2>
+              <h2><FaHorse style={{marginRight:'6px',verticalAlign:'middle'}} /> {t('Add New Horse')}</h2>
               <button className="close-btn" onClick={closeModal}>✕</button>
             </div>
 
@@ -298,7 +299,7 @@ const HorsesPage = () => {
                 <div className="add-photo-avatar" onClick={() => horseImgRef.current?.click()}>
                   {newHorseImage
                     ? <img src={newHorseImage} alt="preview" className="add-photo-preview" />
-                    : <span className="add-photo-placeholder">🐴</span>
+                    : <FaHorse className="add-photo-placeholder" style={{fontSize:'48px'}} />
                   }
                   <div className="add-photo-overlay">📷</div>
                 </div>
@@ -332,9 +333,13 @@ const HorsesPage = () => {
                     onChange={handleInputChange}
                     disabled={loading}
                     options={[
-                      { value: 'Mare', label: 'Mare (Female)' },
-                      { value: 'Stallion', label: 'Stallion (Male)' },
+                      { value: 'Stallion', label: 'Stallion' },
+                      { value: 'Mare', label: 'Mare' },
                       { value: 'Gelding', label: 'Gelding' },
+                      { value: 'Colt', label: 'Colt' },
+                      { value: 'Filly', label: 'Filly' },
+                      { value: 'Foal', label: 'Foal' },
+                      { value: 'Stud', label: 'Stud' },
                     ]}
                   />
                 </div>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import InventoryCharts from '../components/InventoryCharts';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
@@ -9,7 +8,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
-import { Download } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const MEDICINE_LABELS = {
@@ -44,6 +43,7 @@ const MedicineInventoryPage = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [medicineSearch, setMedicineSearch] = useState('');
   const [formData, setFormData] = useState({
     medicineType: '',
     unitsPurchased: '',
@@ -62,6 +62,10 @@ const MedicineInventoryPage = () => {
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
+
+  // Sort state
+  const [sortKey, setSortKey] = useState('medicineType'); // 'medicineType' | 'unitsLeft'
+  const [sortDir, setSortDir] = useState('asc'); // 'asc' | 'desc'
 
   // Threshold modal state (admin only)
   const [thresholdModal, setThresholdModal] = useState(null); // { record, value, notifyAdmin }
@@ -240,15 +244,35 @@ const MedicineInventoryPage = () => {
     }
   };
 
+  // Filter by search term
+  const filteredInventory = inventoryRecords.filter(record => {
+    const medicineLabel = (MEDICINE_LABELS[record.medicineType] || record.medicineType).toLowerCase();
+    return medicineLabel.includes(medicineSearch.toLowerCase());
+  });
+
   // Pagination logic
-  const totalPages = Math.ceil(inventoryRecords.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredInventory.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
+  const paginatedRecords = filteredInventory.slice(startIndex, endIndex);
+
+  // Sort records
+  const sortedPaginated = [...paginatedRecords].sort((a, b) => {
+    if (sortKey === 'medicineType') {
+      const nameA = (MEDICINE_LABELS[a.medicineType] || a.medicineType).toLowerCase();
+      const nameB = (MEDICINE_LABELS[b.medicineType] || b.medicineType).toLowerCase();
+      return sortDir === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    }
+    if (sortKey === 'unitsLeft') {
+      return sortDir === 'asc' ? (a.unitsLeft || 0) - (b.unitsLeft || 0) : (b.unitsLeft || 0) - (a.unitsLeft || 0);
+    }
+    return 0;
+  });
+  const sortedRecords = sortedPaginated;
 
   const handleDownloadExcel = () => {
-    if (!inventoryRecords.length) { alert('No data to download'); return; }
-    const data = inventoryRecords.map(r => ({
+    if (!filteredInventory.length) { alert('No data to download'); return; }
+    const data = filteredInventory.map(r => ({
       'Medicine Type': MEDICINE_LABELS[r.medicineType] || r.medicineType,
       'Opening Stock': r.openingStock,
       'Units Purchased': r.unitsPurchased,
@@ -288,9 +312,26 @@ const MedicineInventoryPage = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>{t('Medicine Inventory')}</h1>
-        <p>Manage and track medicine stock levels</p>
+        <div>
+          <h1>{t('Medicine Inventory')}</h1>
+          <p>Manage and track medicine stock levels</p>
+        </div>
         <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+      </div>
+      
+      <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+        <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
+        <input
+          type="text"
+          placeholder={t("Search medicine name...")}
+          value={medicineSearch}
+          onChange={(e) => {
+            setMedicineSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="search-input"
+          style={{ paddingLeft: '40px' }}
+        />
       </div>
 
       {message && (
@@ -429,8 +470,6 @@ const MedicineInventoryPage = () => {
             </form>
           )}
 
-          <InventoryCharts type="medicine" records={inventoryRecords} labels={MEDICINE_LABELS} />
-
           {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
             <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#92400e', padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}>
               ⚠️ <strong>Low stock alert:</strong> One or more medicine inventory items are below their configured threshold.
@@ -445,25 +484,39 @@ const MedicineInventoryPage = () => {
               <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>Medicine Type</th>
-                  <th>Opening Stock</th>
-                  <th>Units Purchased</th>
+                  <th style={{cursor:'pointer',userSelect:'none'}} onClick={() => {
+                    setSortKey('medicineType');
+                    setSortDir(prev => sortKey === 'medicineType' ? (prev === 'asc' ? 'desc' : 'asc') : 'asc');
+                  }}>Medicine {sortKey === 'medicineType' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</th>
+                  <th style={{cursor:'pointer',userSelect:'none',minWidth:'260px'}} onClick={() => {
+                    setSortKey('unitsLeft');
+                    setSortDir(prev => sortKey === 'unitsLeft' ? (prev === 'asc' ? 'desc' : 'asc') : 'desc');
+                  }}>Stock Level {sortKey === 'unitsLeft' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</th>
                   <th>Unit</th>
-                  <th>Notes</th>
                   <th>Threshold</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedRecords.map((record) => {
+                {sortedRecords.map((record) => {
                   const isBelowThreshold = record.threshold !== null && record.threshold !== undefined && record.unitsLeft < record.threshold;
+                  const totalStock = (record.openingStock || 0) + (record.unitsPurchased || 0);
+                  const unitsLeft = record.unitsLeft || 0;
+                  const pct = totalStock > 0 ? Math.min((unitsLeft / totalStock) * 100, 100) : 0;
+                  const barColor = pct < 25 ? '#ef4444' : '#22c55e';
                   return (
                   <tr key={record.id} style={isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : {}}>
-                    <td>{MEDICINE_LABELS[record.medicineType]}</td>
-                    <td>{record.openingStock}</td>
-                    <td>{record.unitsPurchased}</td>
+                    <td style={{fontWeight:500}}>{MEDICINE_LABELS[record.medicineType] || record.medicineType}</td>
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                        <span style={{fontFamily:'monospace',fontSize:'0.85rem',minWidth:'50px',textAlign:'right',fontWeight:600}}>{unitsLeft}</span>
+                        <div style={{flex:1,background:'var(--bg-muted, #f0f0f0)',borderRadius:'6px',height:'18px',overflow:'hidden',position:'relative'}}>
+                          <div style={{width:`${pct}%`,height:'100%',background:barColor,borderRadius:'6px',transition:'width 0.3s ease'}} />
+                        </div>
+                        <span style={{fontSize:'0.7rem',opacity:0.5,minWidth:'35px'}}>{Math.round(pct)}%</span>
+                      </div>
+                    </td>
                     <td>{record.unit}</td>
-                    <td>{record.notes}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>
                       {record.threshold !== null && record.threshold !== undefined
                         ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{record.threshold} {record.unit}</span>
@@ -510,12 +563,12 @@ const MedicineInventoryPage = () => {
                   setRowsPerPage(newRows);
                   setCurrentPage(1);
                 }}
-                total={inventoryRecords.length}
+                total={filteredInventory.length}
               />
             </div>
             </>
           ) : (
-            !loading && <p className="no-data">No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
+            !loading && <p className="no-data">{medicineSearch ? t('No medicines match your search') : `No inventory records for ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`}</p>
           )}
         </div>
       )}

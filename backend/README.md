@@ -188,7 +188,7 @@ import prisma from '@/lib/prisma'
 
 // Create
 const horse = await prisma.horse.create({
-  data: { name: 'Thunder', gender: 'Male' }
+  data: { name: 'Thunder', gender: 'Stallion' }
 })
 
 // Read

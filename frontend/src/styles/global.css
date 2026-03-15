@@ -2465,6 +2465,64 @@ p {
   gap: 12px
 }
 
+/* Dashboard — Charts Section */
+.dash-charts-section {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dash-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.dash-chart-card {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.dash-chart-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.dash-chart-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--text, #111);
+  letter-spacing: 0.02em;
+}
+
+/* Recharts tooltip override for dark mode */
+.recharts-default-tooltip {
+  background: var(--bg-card, #fff) !important;
+  color: var(--text, #111) !important;
+}
+
+@media (max-width: 768px) {
+  .dash-charts-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .dash-chart-card {
+    padding: 16px;
+  }
+  .dash-chart-title {
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .dash-chart-card.dash-chart-hide-mobile {
+    display: none;
+  }
+}
+
 /* --- Page Containers --- */
 .page-container,
 .dashboard-page,
@@ -3509,6 +3567,30 @@ p {
   background: #ede7f6;
   color: #4527a0;
   border: 1px solid #b39ddb
+}
+
+.gender-colt {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #81c784
+}
+
+.gender-filly {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffb74d
+}
+
+.gender-foal {
+  background: #e0f7fa;
+  color: #006064;
+  border: 1px solid #80deea
+}
+
+.gender-stud {
+  background: #fbe9e7;
+  color: #bf360c;
+  border: 1px solid #ff8a65
 }
 
 /* Fallback for legacy Male/Female values */

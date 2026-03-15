@@ -13,9 +13,9 @@ VALUES
 -- Insert sample horses
 INSERT INTO "Horse" (id, name, gender, "dateOfBirth", breed, color, status, "createdAt", "updatedAt")
 VALUES
-  ('horse_001', 'Thunder', 'Male', '2018-05-15', 'Thoroughbred', 'Bay', 'Active', NOW(), NOW()),
-  ('horse_002', 'Luna', 'Female', '2019-03-22', 'Arabian', 'Gray', 'Active', NOW(), NOW()),
-  ('horse_003', 'Spirit', 'Male', '2017-11-08', 'Warmblood', 'Chestnut', 'Active', NOW(), NOW());
+  ('horse_001', 'Thunder', 'Stallion', '2018-05-15', 'Thoroughbred', 'Bay', 'Active', NOW(), NOW()),
+  ('horse_002', 'Luna', 'Mare', '2019-03-22', 'Arabian', 'Gray', 'Active', NOW(), NOW()),
+  ('horse_003', 'Spirit', 'Stallion', '2017-11-08', 'Warmblood', 'Chestnut', 'Active', NOW(), NOW());
 
 -- Insert sample tasks
 INSERT INTO "Task" (id, name, type, status, "horseId", "assignedEmployeeId", "scheduledTime", priority, "createdAt", "updatedAt")

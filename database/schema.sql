@@ -28,7 +28,7 @@ CREATE TABLE employees (
 CREATE TABLE horses (
   id CHAR(36) PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  gender ENUM('Male', 'Female') NOT NULL,
+  gender TEXT NOT NULL,
   dateOfBirth DATE NOT NULL,
   breed VARCHAR(100),
   color VARCHAR(100),

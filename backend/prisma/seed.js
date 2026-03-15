@@ -396,7 +396,7 @@ async function main() {
       update: {},
       create: {
         name: horseName,
-        gender: Math.random() > 0.5 ? 'Male' : 'Female',
+        gender: Math.random() > 0.5 ? 'Mare' : 'Stallion',
         dateOfBirth: new Date(2015, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
         breed: 'Thoroughbred',
         color: ['Bay', 'Chestnut', 'Black', 'Grey'].sort(() => Math.random() - 0.5)[0],

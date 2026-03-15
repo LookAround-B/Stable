@@ -11,7 +11,7 @@ export interface CreateEmployeeInput {
 
 export interface CreateHorseInput {
   name: string
-  gender: 'Male' | 'Female'
+  gender: 'Stallion' | 'Mare' | 'Gelding' | 'Colt' | 'Filly' | 'Foal' | 'Stud'
   dateOfBirth: string
   breed?: string
   color?: string
