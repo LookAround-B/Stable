@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { TableSkeleton } from '../components/Skeleton';
 import ConfirmModal from '../components/ConfirmModal';
 import medicineLogService from '../services/medicineLogService';
+import medicineInventoryService from '../services/medicineInventoryService';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { Navigate } from 'react-router-dom';
@@ -21,6 +22,7 @@ const MedicineLogsPage = () => {
   const [messageType, setMessageType] = useState('success');
   const [logs, setLogs] = useState([]);
   const [horses, setHorses] = useState([]);
+  const [medicineNames, setMedicineNames] = useState([]);
   const [selectedTab, setSelectedTab] = useState('all-logs'); // 'all-logs', 'my-logs', 'pending-approval'
   const [selectedLogForDetail, setSelectedLogForDetail] = useState(null);
 
@@ -81,10 +83,26 @@ const MedicineLogsPage = () => {
     }
   }, []);
 
+  const loadMedicineNames = useCallback(async () => {
+    try {
+      const now = new Date();
+      const response = await medicineInventoryService.getInventory({
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      });
+      const records = response.data || [];
+      const unique = [...new Set(records.map(r => r.medicineType))].filter(Boolean).sort();
+      setMedicineNames(unique);
+    } catch (error) {
+      console.error('Error loading medicine names:', error);
+    }
+  }, []);
+
   useEffect(() => {
     loadHorses();
+    loadMedicineNames();
     loadLogs();
-  }, [loadHorses, loadLogs]);
+  }, [loadHorses, loadMedicineNames, loadLogs]);
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);
@@ -349,12 +367,13 @@ const MedicineLogsPage = () => {
 
                 <div className="form-group">
                   <label>Medicine Name *</label>
-                  <input
-                    type="text"
+                  <SearchableSelect
                     name="medicineName"
+                    options={medicineNames.map(m => ({ value: m, label: m }))}
                     value={formData.medicineName}
-                    onChange={handleFormChange}
-                    placeholder="e.g., Antibiotic, Painkiller"
+                    onChange={(e) => setFormData(prev => ({ ...prev, medicineName: e.target.value }))}
+                    placeholder="Search or add medicine..."
+                    creatable
                     required
                   />
                 </div>

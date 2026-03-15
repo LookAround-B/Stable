@@ -13,6 +13,7 @@ import React, { useState, useRef, useEffect } from 'react';
  *  - disabled      {bool}
  *  - required      {bool}
  *  - className     {string}   extra class for the wrapper
+ *  - creatable     {bool}     allow typing a custom value not in the options list
  */
 const SearchableSelect = ({
   name,
@@ -23,7 +24,7 @@ const SearchableSelect = ({
   placeholder = 'Select...',
   disabled = false,
   required = false,
-  className = '',  searchable = true,}) => {
+  className = '',  searchable = true,  creatable = false,}) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [openUp, setOpenUp] = useState(false);
@@ -51,11 +52,15 @@ const SearchableSelect = ({
 
   const selectedLabel =
   (Array.isArray(options) &&
-    options.find((o) => String(o?.value) === String(value))?.label) || '';
+    options.find((o) => String(o?.value) === String(value))?.label) ||
+  (creatable && value ? value : '');
 
   const filtered = Array.isArray(options) ? options.filter((o) =>
     o?.label?.toLowerCase?.().includes(search.toLowerCase()) ?? false
   ) : [];
+
+  const showCreateOption = creatable && search.trim() &&
+    !filtered.some(o => o.label.toLowerCase() === search.trim().toLowerCase());
 
   const handleSelect = (optionValue) => {
     onChange({ target: { name: name || '', value: optionValue } });
@@ -135,7 +140,17 @@ const SearchableSelect = ({
 
           {/* Options */}
           <ul className="ss-list">
-            {filtered.length === 0 ? (
+            {showCreateOption && (
+              <li
+                className="ss-option ss-create-option"
+                onClick={() => handleSelect(search.trim())}
+                role="option"
+                style={{ color: '#2563eb', fontWeight: 600 }}
+              >
+                + Add "{search.trim()}"
+              </li>
+            )}
+            {filtered.length === 0 && !showCreateOption ? (
               <li className="ss-no-results">No results found</li>
             ) : (
               filtered.map((option) => (
