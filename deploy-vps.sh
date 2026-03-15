@@ -14,9 +14,9 @@ echo "📍 Working in: $(pwd)"
 echo "🧹 Cleaning merge state..."
 git merge --abort 2>/dev/null || true
 
-# Stash local changes (build artifacts, env files)
+# Stash local changes (but preserve frontend build)
 echo "💾 Stashing local changes..."
-git stash push -u -m "stash-before-deploy-$(date +%s)"
+git stash push -m "stash-before-deploy-$(date +%s)" -- backend/ 2>/dev/null || true
 
 # Pull latest code
 echo "📥 Pulling latest code..."
