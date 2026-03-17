@@ -42,7 +42,7 @@ async function removeTestAccounts() {
   await prisma.employeePermission.deleteMany({ where: { employeeId: { in: ids } } }).catch(() => {});
 
   // Delete tasks (both assigned and created)
-  await prisma.task.deleteMany({ where: { OR: [{ assigneeId: { in: ids } }, { createdById: { in: ids } }] } }).catch(() => {});
+  await prisma.task.deleteMany({ where: { OR: [{ assignedEmployeeId: { in: ids } }, { createdById: { in: ids } }] } }).catch(() => {});
 
   // Delete attendance logs
   await prisma.attendanceLog.deleteMany({ where: { employeeId: { in: ids } } }).catch(() => {});
@@ -54,7 +54,7 @@ async function removeTestAccounts() {
   await prisma.approval.deleteMany({ where: { approverId: { in: ids } } }).catch(() => {});
 
   // Delete reports
-  await prisma.report.deleteMany({ where: { OR: [{ reporterId: { in: ids } }, { reportedEmployeeId: { in: ids } }] } }).catch(() => {});
+  await prisma.report.deleteMany({ where: { OR: [{ reporterEmployeeId: { in: ids } }, { reportedEmployeeId: { in: ids } }] } }).catch(() => {});
 
   // Delete audit logs
   await prisma.auditLog.deleteMany({ where: { employeeId: { in: ids } } }).catch(() => {});
