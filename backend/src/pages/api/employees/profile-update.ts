@@ -3,6 +3,14 @@ import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
 import { uploadBase64Image } from '../../../lib/s3';
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set CORS headers FIRST
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,13 +48,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { fullName, phoneNumber, designation, profileImage } = req.body;
 
-    // Validate input
-    if (!fullName || !phoneNumber || !designation) {
+    // Validate input — require at least a name or a profile image
+    if (!fullName && !profileImage) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Build update data
-    const updateData: any = { fullName, phoneNumber, designation };
+    // Build update data — only include fields that are provided
+    const updateData: any = {};
+    if (fullName) updateData.fullName = fullName;
+    if (phoneNumber) updateData.phoneNumber = phoneNumber;
+    if (designation) updateData.designation = designation;
     if (profileImage !== undefined) {
       // If it's a base64 string, upload to R2 and store the CDN URL
       if (typeof profileImage === 'string' && profileImage.length > 0) {
