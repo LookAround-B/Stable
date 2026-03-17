@@ -3,9 +3,10 @@ import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import { User, Mail, Lock, Link2, Camera, Settings, Type, Globe } from 'lucide-react';
+import { User, Mail, Lock, Link2, Camera, Settings, Type, Globe, Download, Share, Plus, X } from 'lucide-react';
 import { useI18n, LANGUAGES } from '../context/I18nContext';
 import useTextSize from '../hooks/useTextSize';
+import usePwaInstall from '../hooks/usePwaInstall';
 
 const ROLES_WITH_HORSES = [
   'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
@@ -45,6 +46,7 @@ const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const { t, lang, setLang } = useI18n();
   const { textSize, setTextSize } = useTextSize();
+  const { canInstall, isInstalled, install, showIosModal, dismiss } = usePwaInstall();
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -322,7 +324,60 @@ const ProfilePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Install App */}
+        <div className="profile-info-card profile-settings-card">
+          <div className="profile-card-header">
+            <span className="profile-card-icon"><Download size={15} strokeWidth={2} /></span>
+            <h3>{t('Install App')}</h3>
+          </div>
+          {isInstalled ? (
+            <div className="pwa-installed-msg">
+              <span className="pwa-check">✓</span>
+              <span>App is installed on your device</span>
+            </div>
+          ) : canInstall ? (
+            <div className="pwa-install-section">
+              <p className="pwa-install-desc">Install EFM Stable for quick access, offline support, and a native app experience.</p>
+              <button className="pwa-install-btn" onClick={install} type="button">
+                <Download size={16} strokeWidth={2} />
+                Install App
+              </button>
+            </div>
+          ) : (
+            <div className="pwa-installed-msg">
+              <span>App install is not available on this browser</span>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* iOS Install Modal */}
+      {showIosModal && ReactDOM.createPortal(
+        <div className="pwa-ios-overlay" onClick={dismiss}>
+          <div className="pwa-ios-modal" onClick={e => e.stopPropagation()}>
+            <button className="pwa-ios-close" onClick={dismiss}><X size={18} /></button>
+            <div className="pwa-ios-icon">
+              <img src="/fav.png" alt="EFM" className="pwa-ios-app-icon" />
+            </div>
+            <h3 className="pwa-ios-title">Install EFM Stable</h3>
+            <p className="pwa-ios-subtitle">Add to your home screen for the best experience</p>
+            <div className="pwa-ios-steps">
+              <div className="pwa-ios-step">
+                <span className="pwa-ios-step-num">1</span>
+                <span>Tap the <strong>Share</strong> button</span>
+                <Share size={16} className="pwa-ios-step-icon" />
+              </div>
+              <div className="pwa-ios-step">
+                <span className="pwa-ios-step-num">2</span>
+                <span>Scroll down and tap <strong>Add to Home Screen</strong></span>
+                <Plus size={16} className="pwa-ios-step-icon" />
+              </div>
+            </div>
+            <button className="pwa-ios-done" onClick={dismiss}>Got it</button>
+          </div>
+        </div>
+      , document.body)}
 
       {/* Crop Modal */}
       {cropOpen && rawImage && ReactDOM.createPortal(

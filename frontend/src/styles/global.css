@@ -9221,6 +9221,187 @@ select {
 }
 
 /* ============================================================
+   PWA INSTALL — Profile Page
+   ============================================================ */
+
+.pwa-install-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pwa-install-desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pwa-install-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--r-lg);
+  background: var(--gray-900);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--t);
+  width: 100%;
+}
+
+.pwa-install-btn:hover {
+  background: var(--gray-800);
+}
+
+.pwa-install-btn:active {
+  transform: scale(.98);
+}
+
+.pwa-installed-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.pwa-check {
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* iOS Install Modal */
+.pwa-ios-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: pwa-fade-in .2s ease;
+}
+
+@keyframes pwa-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pwa-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.pwa-ios-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 32px 24px 28px;
+  text-align: center;
+  animation: pwa-slide-up .3s ease;
+}
+
+.pwa-ios-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-ios-icon {
+  margin-bottom: 16px;
+}
+
+.pwa-ios-app-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+}
+
+.pwa-ios-title {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pwa-ios-subtitle {
+  margin: 0 0 20px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.pwa-ios-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pwa-ios-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--gray-50);
+  border-radius: var(--r-lg);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.pwa-ios-step-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--gray-900);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-ios-step-icon {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #1976d2;
+}
+
+.pwa-ios-done {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--r-lg);
+  background: var(--gray-900);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  font-family: var(--font);
+  cursor: pointer;
+}
+
+/* ============================================================
    TEXT SIZE SCALING — all screen sizes
    Driven by data-text-size attribute on <html>
    ============================================================ */
