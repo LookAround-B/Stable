@@ -43,9 +43,19 @@ const ROLE_MAP = {
 
 // Convert Google Drive link to downloadable URL
 function getGoogleDriveDownloadUrl(link) {
-  const match = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match) {
-    return `https://drive.google.com/uc?id=${match[1]}&export=download`;
+  // Try multiple patterns for different Google Drive link formats
+  let fileId = null;
+  
+  // Pattern 1: /d/FILE_ID/ (direct file ID)
+  const match1 = link.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match1) fileId = match1[1];
+  
+  // Pattern 2: ?id=FILE_ID (query param)
+  const match2 = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match2) fileId = match2[1];
+  
+  if (fileId) {
+    return `https://drive.google.com/uc?id=${fileId}&export=download`;
   }
   return null;
 }
@@ -62,13 +72,24 @@ async function downloadAndUploadToR2(driveLink, employeeName) {
     const response = await axios.get(dlUrl, { 
       responseType: 'arraybuffer',
       timeout: 15000,
+      maxRedirects: 5,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'image/*'
       }
     });
     
+    // Validate we got an actual image, not HTML
+    const contentType = response.headers['content-type'] || '';
+    if (contentType.includes('text/html')) {
+      throw new Error(`Invalid response: Got HTML instead of image. The Google Drive link may not be publicly shared or may require additional permissions.`);
+    }
+    if (!contentType.includes('image/')) {
+      console.warn(`  ⚠ Warning: Unexpected content-type: ${contentType}`);
+    }
+    
     const bucket = process.env.R2_BUCKET || 'horsestable-storage';
-    const ext = response.headers['content-type']?.includes('png') ? 'png' : 'jpg';
+    const ext = contentType.includes('png') ? 'png' : 'jpg';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
     const key = `profiles/employees/${uniqueName}`;
     
@@ -78,7 +99,7 @@ async function downloadAndUploadToR2(driveLink, employeeName) {
         Bucket: bucket,
         Key: key,
         Body: response.data,
-        ContentType: response.headers['content-type'] || 'image/jpeg',
+        ContentType: contentType || 'image/jpeg',
       })
     );
     
