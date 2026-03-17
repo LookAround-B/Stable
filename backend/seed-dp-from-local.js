@@ -84,9 +84,16 @@ async function seedDPFromLocal() {
 
   for (const file of files) {
     const filePath = path.join(dpFolderPath, file);
-    const fileName = path.parse(file).name; // Remove extension
+    const nameWithoutExt = path.parse(file).name; // Remove extension
+    
+    // Extract employee name from filename pattern: "ID - Name" or just "Name"
+    let fileName = nameWithoutExt;
+    const dashIndex = nameWithoutExt.lastIndexOf(' - ');
+    if (dashIndex !== -1) {
+      fileName = nameWithoutExt.substring(dashIndex + 3).trim(); // Part after " - "
+    }
 
-    console.log(`\nProcessing: ${file}`);
+    console.log(`\nProcessing: ${file} (searching for: "${fileName}")`);
 
     try {
       // Find employee by name (case-insensitive, partial match)
