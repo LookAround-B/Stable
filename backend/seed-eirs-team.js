@@ -70,7 +70,7 @@ async function downloadAndUploadToR2(driveLink, employeeName) {
     const bucket = process.env.R2_BUCKET || 'horsestable-storage';
     const ext = response.headers['content-type']?.includes('png') ? 'png' : 'jpg';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-    const key = `profile-pictures/${uniqueName}`;
+    const key = `profiles/employees/${uniqueName}`;
     
     console.log(`  ↑ Uploading to R2...`);
     await r2Client.send(
