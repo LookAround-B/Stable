@@ -145,6 +145,7 @@ const SearchableSelect = ({
                 className="ss-option ss-create-option"
                 onClick={() => handleSelect(search.trim())}
                 role="option"
+                aria-selected={false}
                 style={{ color: '#2563eb', fontWeight: 600 }}
               >
                 + Add "{search.trim()}"
