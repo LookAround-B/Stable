@@ -42,12 +42,11 @@ echo "🔄 Restarting backend..."
 pm2 restart horsestable-backend
 sleep 2
 
-# Build and deploy frontend
-echo "🔨 Building frontend..."
+# Deploy frontend (pre-built locally, already in git)
+echo "📦 Deploying frontend (pre-built)..."
 cd ../frontend
-npm install
-npm run build
-echo "✅ Frontend built successfully"
+npm install --prefer-offline --no-audit
+echo "✅ Frontend dependencies installed"
 
 # Restart or start frontend
 echo "🔄 Restarting frontend..."
