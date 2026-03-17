@@ -2,8 +2,23 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const XLSX = require('xlsx');
 const path = require('path');
+const axios = require('axios');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const prisma = new PrismaClient();
+
+// Initialize R2 client if configured
+let r2Client = null;
+if (process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID) {
+  r2Client = new S3Client({
+    region: 'auto',
+    endpoint: process.env.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
 
 // Map Excel roles to system designations and departments
 const ROLE_MAP = {
@@ -26,14 +41,54 @@ const ROLE_MAP = {
   'Farrier': { designation: 'Farrier', department: 'Stable Operations' },
 };
 
-// Convert Google Drive share link to a direct viewable image URL
-function convertDriveLink(link) {
-  if (!link) return null;
+// Convert Google Drive link to downloadable URL
+function getGoogleDriveDownloadUrl(link) {
   const match = link.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (match) {
-    return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
+    return `https://drive.google.com/uc?id=${match[1]}&export=download`;
   }
-  return link;
+  return null;
+}
+
+// Download image from Google Drive and upload to R2
+async function downloadAndUploadToR2(driveLink, employeeName) {
+  try {
+    if (!driveLink || !r2Client) return null;
+    
+    const dlUrl = getGoogleDriveDownloadUrl(driveLink);
+    if (!dlUrl) return null;
+    
+    console.log(`  ↓ Downloading image for ${employeeName}...`);
+    const response = await axios.get(dlUrl, { 
+      responseType: 'arraybuffer',
+      timeout: 15000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    
+    const bucket = process.env.R2_BUCKET || 'horsestable-storage';
+    const ext = response.headers['content-type']?.includes('png') ? 'png' : 'jpg';
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    const key = `profile-pictures/${uniqueName}`;
+    
+    console.log(`  ↑ Uploading to R2...`);
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: response.data,
+        ContentType: response.headers['content-type'] || 'image/jpeg',
+      })
+    );
+    
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+    console.log(`  ✓ Uploaded: ${publicUrl}`);
+    return publicUrl;
+  } catch (err) {
+    console.warn(`  ✗ Failed to download/upload image for ${employeeName}:`, err.message);
+    return null;
+  }
 }
 
 async function seedEIRSTeam() {
@@ -43,6 +98,12 @@ async function seedEIRSTeam() {
   const rows = XLSX.utils.sheet_to_json(sheet);
 
   console.log(`\nFound ${rows.length} entries in EIRS Contact Information\n`);
+
+  if (r2Client) {
+    console.log('📦 R2 Storage configured — images will be uploaded to Cloudflare R2\n');
+  } else {
+    console.log('⚠ R2 Storage not configured — profile images will not be set\n');
+  }
 
   let created = 0;
   let updated = 0;
@@ -72,10 +133,13 @@ async function seedEIRSTeam() {
     const password = phoneRaw;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Convert Google Drive link to displayable image URL
-    const profileImage = convertDriveLink(profilePhotoLink);
-
     try {
+      // Download from Google Drive and upload to R2
+      let profileImage = null;
+      if (profilePhotoLink) {
+        profileImage = await downloadAndUploadToR2(profilePhotoLink, name);
+      }
+
       const existing = await prisma.employee.findUnique({ where: { email } });
 
       if (existing) {
