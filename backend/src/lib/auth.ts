@@ -63,6 +63,7 @@ export const createSuccessResponse = (data: any, status: number = 200) => {
 // ── Permission helpers ──────────────────────────────────────
 
 import prisma from '@/lib/prisma'
+import { hasPermission as roleHasPermission } from '@/lib/roles-prd'
 
 const ADMIN_DESIGNATIONS = ['Super Admin', 'Director', 'School Administrator']
 
@@ -93,4 +94,37 @@ export const checkPermission = async (
   })
 
   return !!(row as any)?.[permission]
+}
+
+/**
+ * Check whether a user has a specific task-level permission.
+ * Resolution order:
+ *   1. Per-employee override in EmployeeTaskPermission → use it
+ *   2. No override → fall back to role default from ROLE_PERMISSIONS
+ * Admins always pass.
+ */
+export const checkTaskPermission = async (
+  decoded: JwtPayload,
+  permission: string
+): Promise<boolean> => {
+  // Admins bypass
+  if (ADMIN_DESIGNATIONS.includes(decoded.designation)) return true
+
+  // 1. Check for per-employee override
+  const override = await prisma.employeeTaskPermission.findUnique({
+    where: {
+      employeeId_permission: {
+        employeeId: decoded.id,
+        permission,
+      },
+    },
+    select: { granted: true },
+  })
+
+  if (override !== null) {
+    return override.granted
+  }
+
+  // 2. Fall back to role default
+  return roleHasPermission(decoded.designation, permission)
 }

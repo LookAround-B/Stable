@@ -66,6 +66,7 @@ model Employee {
   groceriesInventory    GroceriesInventory[] @relation("groceriesInventory")
   groceriesInventoryCreated GroceriesInventory[] @relation("groceriesInventoryCreated")
   permissions           EmployeePermission?
+  taskPermissions       EmployeeTaskPermission[] @relation("employeeTaskPermissions")
   workRecords           WorkRecord[] @relation("workRecords")
   farrierShoeings       FarrierShoeing[] @relation("farrierShoeings")
 
@@ -805,4 +806,19 @@ model EmployeePermission {
   updatedAt             DateTime    @updatedAt
 
   @@index([employeeId])
+}
+
+// Employee Task Permissions - Granular per-employee overrides on top of role defaults
+model EmployeeTaskPermission {
+  id                    String      @id @default(cuid())
+  employeeId            String
+  employee              Employee    @relation("employeeTaskPermissions", fields: [employeeId], references: [id], onDelete: Cascade)
+  permission            String      // e.g. "approve_medicine_entries", "assign_horses_to_staff"
+  granted               Boolean     // true = explicitly allowed, false = explicitly denied
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([employeeId, permission])
+  @@index([employeeId])
+  @@index([permission])
 }

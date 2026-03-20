@@ -32,7 +32,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
 }
 
 // Department mapping
-const DEPARTMENT_ROLES: Record<string, string[]> = {
+export const DEPARTMENT_ROLES: Record<string, string[]> = {
   'Ground Operations': [
     'Guard', 'Gardener', 'Housekeeping', 'Electrician', 'Ground Supervisor'
   ],
@@ -48,7 +48,7 @@ const DEPARTMENT_ROLES: Record<string, string[]> = {
 }
 
 // Role Permissions Matrix
-const ROLE_PERMISSIONS: Record<string, string[]> = {
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
   // Ground Operations - Staff Level
   'Guard': [
     'log_gate_attendance',
