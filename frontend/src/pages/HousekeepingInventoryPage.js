@@ -140,65 +140,17 @@ const HousekeepingInventoryPage = () => {
 
   return (
     <div className="page-container" style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <div className="page-header">
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1>🧹 {t('Housekeeping Inventory')}</h1>
           <p>{t('Manage cleaning supplies, tools & consumables')}</p>
         </div>
-      </div>
-
-      {message && <div className={`alert alert-${messageType === "error" ? "error" : "success"}`} style={{ marginBottom: "16px" }}>{message}</div>}
-
-      {/* Add Item Button */}
-      <div style={{ marginBottom: "16px" }}>
-        <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
+        <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} style={{ whiteSpace: "nowrap" }}>
           {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="groceries-filters">
-        <div className="filter-group">
-          <label>Category</label>
-          <SearchableSelect value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
-            options={[{ value: '', label: 'All Categories' }, ...CATEGORIES.map(c => ({ value: c, label: c }))]} placeholder="All..." />
-        </div>
-        <div className="filter-group">
-          <label>Usage Area</label>
-          <SearchableSelect value={filterArea} onChange={e => { setFilterArea(e.target.value); setCurrentPage(1); }}
-            options={[{ value: '', label: 'All Areas' }, ...USAGE_AREAS.map(a => ({ value: a, label: a }))]} placeholder="All..." />
-        </div>
-      </div>
-
-      {/* Search + Download */}
-      <div style={{ marginBottom: "16px", display: "flex", gap: "10px", alignItems: "flex-end" }}>
-        <div style={{ flex: 1, minWidth: "200px" }}>
-          <label style={{ fontSize: "0.9rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Search</label>
-          <input type="text" placeholder="Search by name, supplier..." value={search}
-            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
-        </div>
-        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-      </div>
-
-      {/* Low stock alerts */}
-      {lowStockItems.length > 0 && (
-        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e' }}>
-          <strong>⚠ Low Stock Alert</strong>
-          <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
-            {lowStockItems.map(i => (
-              <li key={i.id}>{i.itemName}: {i.quantity} {i.unitType} remaining (min: {i.minimumStockLevel})</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Summary */}
-      <div className="groceries-summary">
-        <div className="groceries-summary-card"><div className="groceries-summary-label">Total Items</div><div className="groceries-summary-value">{items.length}</div></div>
-        <div className="groceries-summary-card"><div className="groceries-summary-label">Low Stock</div><div className="groceries-summary-value">{lowStockItems.length}</div></div>
-        <div className="groceries-summary-card"><div className="groceries-summary-label">Expired</div><div className="groceries-summary-value">{items.filter(i => i.expiryDate && new Date(i.expiryDate) < new Date()).length}</div></div>
-      </div>
+      {message && <div className={`alert alert-${messageType === "error" ? "error" : "success"}`} style={{ marginBottom: "16px" }}>{message}</div>}
 
       {/* Form */}
       {showForm && (
@@ -295,6 +247,50 @@ const HousekeepingInventoryPage = () => {
           </form>
         </div>
       )}
+
+      {/* Filters */}
+      <div className="groceries-filters">
+        <div className="filter-group">
+          <label>Category</label>
+          <SearchableSelect value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+            options={[{ value: '', label: 'All Categories' }, ...CATEGORIES.map(c => ({ value: c, label: c }))]} placeholder="All..." />
+        </div>
+        <div className="filter-group">
+          <label>Usage Area</label>
+          <SearchableSelect value={filterArea} onChange={e => { setFilterArea(e.target.value); setCurrentPage(1); }}
+            options={[{ value: '', label: 'All Areas' }, ...USAGE_AREAS.map(a => ({ value: a, label: a }))]} placeholder="All..." />
+        </div>
+      </div>
+
+      {/* Search + Download */}
+      <div style={{ marginBottom: "16px", display: "flex", gap: "10px", alignItems: "flex-end" }}>
+        <div style={{ flex: 1, minWidth: "200px" }}>
+          <label style={{ fontSize: "0.9rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Search</label>
+          <input type="text" placeholder="Search by name, supplier..." value={search}
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+        </div>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+      </div>
+
+      {/* Low stock alerts */}
+      {lowStockItems.length > 0 && (
+        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e' }}>
+          <strong>⚠ Low Stock Alert</strong>
+          <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
+            {lowStockItems.map(i => (
+              <li key={i.id}>{i.itemName}: {i.quantity} {i.unitType} remaining (min: {i.minimumStockLevel})</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Summary */}
+      <div className="groceries-summary">
+        <div className="groceries-summary-card"><div className="groceries-summary-label">Total Items</div><div className="groceries-summary-value">{items.length}</div></div>
+        <div className="groceries-summary-card"><div className="groceries-summary-label">Low Stock</div><div className="groceries-summary-value">{lowStockItems.length}</div></div>
+        <div className="groceries-summary-card"><div className="groceries-summary-label">Expired</div><div className="groceries-summary-value">{items.filter(i => i.expiryDate && new Date(i.expiryDate) < new Date()).length}</div></div>
+      </div>
 
       {/* Table */}
       {loading ? <TableSkeleton cols={10} rows={5} /> : items.length === 0 ? (
