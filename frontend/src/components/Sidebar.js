@@ -9,7 +9,8 @@ import {
   Calendar, Users, UserCheck, FileText,
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
-  Search, AlertTriangle, BarChart3, Settings, LogOut, Shield, Hammer
+  Search, AlertTriangle, BarChart3, Settings, LogOut, Shield, Hammer,
+  Brush, HardHat
 } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 
@@ -65,6 +66,8 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/horse-feeds', icon: Wheat, label: 'Horse Feeds', show: p.viewHorseFeeds },
         { to: '/feed-inventory', icon: Package, label: 'Feed Inventory', show: p.viewFeedInventory },
         { to: '/farrier-shoeing', icon: Hammer, label: 'Farrier Shoeing', show: p.viewFarrierShoeing },
+        { to: '/tack-inventory', icon: Package, label: 'Tack Inventory', show: p.viewTackInventory },
+        { to: '/farrier-inventory', icon: Hammer, label: 'Farrier Inventory', show: p.viewFarrierInventory },
       ],
     },
     {
@@ -77,6 +80,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/work-records', icon: FileEdit, label: 'Work Record', show: p.viewGroomWorksheet },
         { to: '/daily-work-records', icon: NotebookPen, label: 'Daily Work Records', show: p.viewEIRS },
         { to: '/inspections', icon: Search, label: 'Inspection Rounds', show: p.viewInspections },
+        { to: '/housekeeping-inventory', icon: Brush, label: 'Housekeeping Inventory', show: p.viewHousekeepingInventory },
       ],
     },
     {

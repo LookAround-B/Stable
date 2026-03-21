@@ -55,6 +55,10 @@ export default function usePermissions() {
         ['Stable Manager', 'Ground Supervisor'].includes(designation)),
       viewFarrierShoeing: has('manageSchedules',
         ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)),
+      viewTackInventory: has('manageInventory',
+        ['Stable Manager', 'Jamedar', 'Ground Supervisor'].includes(designation)),
+      viewFarrierInventory: has('manageInventory',
+        ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)),
 
       // Ground Operations
       viewGateEntry: has('manageSchedules',
@@ -66,6 +70,8 @@ export default function usePermissions() {
       viewGroomWorksheet: has('manageSchedules', designation === 'Groom'),
       viewInspections: has('manageSchedules',
         designation === 'Jamedar' || designation === 'Stable Manager'),
+      viewHousekeepingInventory: has('manageInventory',
+        ['Stable Manager', 'Ground Supervisor', 'Housekeeping'].includes(designation)),
       viewEIRS: has('manageSchedules',
         ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(designation)),
 

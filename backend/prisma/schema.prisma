@@ -69,6 +69,12 @@ model Employee {
   taskPermissions       EmployeeTaskPermission[] @relation("employeeTaskPermissions")
   workRecords           WorkRecord[] @relation("workRecords")
   farrierShoeings       FarrierShoeing[] @relation("farrierShoeings")
+  tackRider             TackInventory[] @relation("tackRider")
+  tackCreated           TackInventory[] @relation("tackCreatedBy")
+  housekeepingStaff     HousekeepingInventory[] @relation("housekeepingStaff")
+  housekeepingCreated   HousekeepingInventory[] @relation("housekeepingCreatedBy")
+  farrierInvFarrier     FarrierInventory[] @relation("farrierInvFarrier")
+  farrierInvCreated     FarrierInventory[] @relation("farrierInvCreatedBy")
 
   @@index([designation])
   @@index([department])
@@ -137,6 +143,8 @@ model Horse {
   expenses              Expense[] @relation("horseExpenses")
   inspectionRounds      InspectionRound[] @relation("inspectionRounds")
   farrierShoeings       FarrierShoeing[] @relation("horseFarrierShoeings")
+  tackItems             TackInventory[] @relation("tackHorse")
+  farrierInvItems       FarrierInventory[] @relation("farrierInvHorse")
 
   @@index([status])
   @@index([name])
@@ -821,4 +829,100 @@ model EmployeeTaskPermission {
   @@unique([employeeId, permission])
   @@index([employeeId])
   @@index([permission])
+}
+
+// Tack Inventory - Saddles, bridles, grooming gear, training equipment
+model TackInventory {
+  id                    String      @id @default(cuid())
+  itemName              String
+  category              String      // 'Saddle', 'Bridle', 'Grooming Gear', 'Training Equipment'
+  horseId               String?
+  horse                 Horse?      @relation("tackHorse", fields: [horseId], references: [id], onDelete: SetNull)
+  riderId               String?
+  rider                 Employee?   @relation("tackRider", fields: [riderId], references: [id], onDelete: SetNull)
+  quantity              Int         @default(1)
+  condition             String      @default("Good") // 'New', 'Good', 'Worn', 'Damaged'
+  brand                 String?
+  size                  String?
+  material              String?
+  purchaseDate          DateTime?
+  lastUsedDate          DateTime?
+  maintenanceRequired   Boolean     @default(false)
+  notes                 String?
+  cleaningSchedule      String?
+  repairHistory         String?
+  storageLocation       String?
+  createdById           String
+  createdBy             Employee    @relation("tackCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([category])
+  @@index([horseId])
+  @@index([riderId])
+  @@index([createdById])
+  @@index([condition])
+}
+
+// Housekeeping Inventory - Cleaning supplies, tools, consumables
+model HousekeepingInventory {
+  id                    String      @id @default(cuid())
+  itemName              String
+  category              String      // 'Cleaning Supplies', 'Tools', 'Consumables'
+  quantity              Float       @default(0)
+  unitType              String      @default("pcs") // 'Liters', 'Pieces', 'Kg'
+  minimumStockLevel     Float?
+  reorderAlert          Boolean     @default(false)
+  storageLocation       String?
+  supplierName          String?
+  purchaseDate          DateTime?
+  expiryDate            DateTime?
+  usageArea             String?     // 'Stable', 'Arena', 'Wash Area'
+  consumptionRate       String?
+  lastRestockedDate     DateTime?
+  assignedStaffId       String?
+  assignedStaff         Employee?   @relation("housekeepingStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
+  costPerUnit           Float?
+  notes                 String?
+  createdById           String
+  createdBy             Employee    @relation("housekeepingCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([category])
+  @@index([assignedStaffId])
+  @@index([createdById])
+  @@index([expiryDate])
+}
+
+// Farrier Inventory - Horseshoes, nails, hoof tools
+model FarrierInventory {
+  id                    String      @id @default(cuid())
+  itemName              String
+  category              String      // 'Tools', 'Consumables'
+  horseId               String?
+  horse                 Horse?      @relation("farrierInvHorse", fields: [horseId], references: [id], onDelete: SetNull)
+  quantity              Int         @default(0)
+  sizeType              String?
+  material              String?
+  condition             String?     // 'New', 'Good', 'Worn', 'Damaged'
+  lastUsedDate          DateTime?
+  farrierId             String?
+  farrier               Employee?   @relation("farrierInvFarrier", fields: [farrierId], references: [id], onDelete: SetNull)
+  serviceDate           DateTime?
+  nextServiceDue        DateTime?
+  notes                 String?
+  replacementCycle      String?
+  costTracking          Float?
+  supplier              String?
+  createdById           String
+  createdBy             Employee    @relation("farrierInvCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([category])
+  @@index([horseId])
+  @@index([farrierId])
+  @@index([createdById])
+  @@index([nextServiceDue])
 }

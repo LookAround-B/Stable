@@ -39,6 +39,9 @@ import ApprovalTasksPage from './pages/ApprovalTasksPage';
 import MyAssignedTasksPage from './pages/MyAssignedTasksPage';
 import MeetingPage from './pages/MeetingPage';
 import PermissionsPage from './pages/PermissionsPage';
+import TackInventoryPage from './pages/TackInventoryPage';
+import HousekeepingInventoryPage from './pages/HousekeepingInventoryPage';
+import FarrierInventoryPage from './pages/FarrierInventoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -89,6 +92,9 @@ function App() {
             <Route path="/my-assigned-tasks" element={<MyAssignedTasksPage />} />
             <Route path="/meetings" element={<MeetingPage />} />
             <Route path="/permissions" element={<PermissionsPage />} />
+            <Route path="/tack-inventory" element={<TackInventoryPage />} />
+            <Route path="/housekeeping-inventory" element={<HousekeepingInventoryPage />} />
+            <Route path="/farrier-inventory" element={<FarrierInventoryPage />} />
           </Route>
           
           <Route path="*" element={<NotFoundPage />} />
