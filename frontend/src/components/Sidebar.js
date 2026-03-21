@@ -10,7 +10,7 @@ import {
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
   Search, AlertTriangle, BarChart3, Settings, LogOut, Shield, Hammer,
-  Brush, HardHat
+  Brush
 } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 

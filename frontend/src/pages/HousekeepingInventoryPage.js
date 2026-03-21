@@ -149,6 +149,13 @@ const HousekeepingInventoryPage = () => {
 
       {message && <div className={`alert alert-${messageType === "error" ? "error" : "success"}`} style={{ marginBottom: "16px" }}>{message}</div>}
 
+      {/* Add Item Button */}
+      <div style={{ marginBottom: "16px" }}>
+        <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
+          {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
+        </button>
+      </div>
+
       {/* Filters */}
       <div className="groceries-filters">
         <div className="filter-group">
@@ -161,17 +168,17 @@ const HousekeepingInventoryPage = () => {
           <SearchableSelect value={filterArea} onChange={e => { setFilterArea(e.target.value); setCurrentPage(1); }}
             options={[{ value: '', label: 'All Areas' }, ...USAGE_AREAS.map(a => ({ value: a, label: a }))]} placeholder="All..." />
         </div>
-        <div className="filter-group groceries-search-group">
-          <label>Search</label>
+      </div>
+
+      {/* Search + Download */}
+      <div style={{ marginBottom: "16px", display: "flex", gap: "10px", alignItems: "flex-end" }}>
+        <div style={{ flex: 1, minWidth: "200px" }}>
+          <label style={{ fontSize: "0.9rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Search</label>
           <input type="text" placeholder="Search by name, supplier..." value={search}
-            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
         </div>
-        <div className="groceries-filter-actions">
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-          <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
-            {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
-          </button>
-        </div>
+        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {/* Low stock alerts */}
