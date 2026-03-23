@@ -6,6 +6,7 @@ import Navigation from './Navigation';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationCenter from './NotificationCenter';
 import { useI18n } from '../context/I18nContext';
 
 const QUOTES = [
@@ -67,6 +68,7 @@ const MainLayout = () => {
             <div className="main-header-right">
               <LanguageSwitcher />
               <SearchBar />
+              <NotificationCenter />
               <button className="logout-btn" onClick={handleLogout}>
                 {t('Logout')} <LogOut size={16} />
               </button>

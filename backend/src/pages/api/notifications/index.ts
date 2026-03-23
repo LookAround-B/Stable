@@ -39,7 +39,7 @@ async function handleGetNotifications(
   employeeId: string
 ) {
   try {
-    const { skip = 0, take = 10 } = req.query
+    const { skip = 0, take = 50 } = req.query
 
     const notifications = await prisma.notification.findMany({
       where: { employeeId },

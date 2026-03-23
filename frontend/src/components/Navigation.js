@@ -1,5 +1,6 @@
 import React from 'react';
 import SearchBar from './SearchBar';
+import NotificationCenter from './NotificationCenter';
 
 const Navigation = ({ onToggleSidebar, sidebarOpen, quote }) => {
   return (
@@ -17,6 +18,7 @@ const Navigation = ({ onToggleSidebar, sidebarOpen, quote }) => {
       </div>
       <div className="nav-center-mobile">
         <SearchBar />
+        <NotificationCenter />
       </div>
       <div className="nav-quote-mobile">
         &ldquo;{quote}&rdquo;

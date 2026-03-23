@@ -1,145 +1,151 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import apiClient from '../services/apiClient';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Bell, Check, CheckCheck, Package, AlertTriangle, ClipboardList, FileText } from 'lucide-react';
+import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from '../services/notificationService';
+import usePermissions from '../hooks/usePermissions';
+
+const TYPE_META = {
+  inventory_threshold_alert: { icon: Package, color: '#ff922b', label: 'Inventory' },
+  task_assignment:           { icon: ClipboardList, color: '#4dabf7', label: 'Task' },
+  approval_request:          { icon: Check, color: '#69db7c', label: 'Approval' },
+  task_completion:           { icon: CheckCheck, color: '#00ffd0', label: 'Task' },
+  report_filed:              { icon: FileText, color: '#f783ac', label: 'Report' },
+  farrier_reminder:          { icon: AlertTriangle, color: '#ffd43b', label: 'Farrier' },
+  general:                   { icon: Bell, color: '#868e96', label: 'General' },
+};
+
+const timeAgo = (dateStr) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
 
 const NotificationCenter = () => {
-  const { user } = useAuth();
-  const [pendingTasks, setPendingTasks] = useState([]);
-  const [meetingNotifications, setMeetingNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const { viewNotifications } = usePermissions();
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('tasks'); // tasks or meetings
+  const ref = useRef(null);
 
-  useEffect(() => {
-    loadNotifications();
-    // Refresh every 30 seconds
-    const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
-
-  const loadNotifications = async () => {
-    // Only show notifications for parent roles
-    const parentRoles = ['Director', 'School Administrator', 'Stable Manager'];
-    if (!parentRoles.includes(user?.designation)) {
-      return;
-    }
-
+  const fetchCount = useCallback(async () => {
     try {
-      setLoading(true);
-      // Load pending tasks
-      const tasksResponse = await apiClient.get('/tasks', {
-        params: { status: 'Pending Review' }
-      });
-      setPendingTasks(tasksResponse.data.data || []);
+      const res = await getUnreadCount();
+      setUnreadCount(res.data?.data?.count || 0);
+    } catch { /* silent */ }
+  }, []);
 
-      // Load meetings where user is a participant (newly added within last 24 hours)
-      const meetingsResponse = await apiClient.get('/meetings', {
-        params: { filterType: 'all' }
-      });
-      
-      if (meetingsResponse.data.data) {
-        const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        
-        // Filter meetings where current user is a participant and meeting was created recently
-        const recentMeetings = meetingsResponse.data.data.filter(meeting => {
-          const meetingCreatedAt = new Date(meeting.createdAt);
-          return (
-            meetingCreatedAt > oneDayAgo &&
-            meeting.participants.some(p => p.employeeId === user.id)
-          );
-        });
-        setMeetingNotifications(recentMeetings);
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-    } finally {
-      setLoading(false);
-    }
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getNotifications();
+      setNotifications(res.data?.data || []);
+    } catch { /* silent */ }
+    setLoading(false);
+  }, []);
+
+  // Poll unread count every 30s
+  useEffect(() => {
+    if (!viewNotifications) return;
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [viewNotifications, fetchCount]);
+
+  // Load full list when dropdown opens
+  useEffect(() => {
+    if (open) fetchNotifications();
+  }, [open, fetchNotifications]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleMarkRead = async (id) => {
+    try {
+      await markAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch { /* silent */ }
   };
 
-  // Only show for parent roles
-  const parentRoles = ['Director', 'School Administrator', 'Stable Manager'];
-  if (!parentRoles.includes(user?.designation)) {
-    return null;
-  }
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })));
+      setUnreadCount(0);
+    } catch { /* silent */ }
+  };
 
-  const taskCount = pendingTasks.length;
-  const meetingCount = meetingNotifications.length;
-  const totalCount = taskCount + meetingCount;
+  if (!viewNotifications) return null;
+
+  const displayCount = unreadCount > 4 ? '4+' : unreadCount;
 
   return (
-    <div className="notification-center">
-      <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
-        {totalCount > 0 && (
-          <span className="badge">{totalCount > 9 ? '9+' : totalCount}</span>
+    <div className="notification-center" ref={ref}>
+      <button
+        className="notification-icon"
+        onClick={() => setOpen(prev => !prev)}
+        aria-label="Notifications"
+      >
+        <Bell size={18} />
+        {unreadCount > 0 && (
+          <span className="notification-badge">{displayCount}</span>
         )}
-        🔔
-      </div>
+      </button>
 
-      {showNotifications && (
+      {open && (
         <div className="notification-dropdown">
           <div className="notification-header">
-            <h3>📬 Notifications</h3>
-            <span className="close-btn" onClick={() => setShowNotifications(false)}>✕</span>
-          </div>
-
-          {/* Tab buttons */}
-          <div className="notification-tabs">
-            <button
-              className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`}
-              onClick={() => setActiveTab('tasks')}
-            >
-              ✓ Tasks ({taskCount})
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'meetings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('meetings')}
-            >
-              📅 Meetings ({meetingCount})
-            </button>
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Notifications</span>
+            {unreadCount > 0 && (
+              <button className="notification-mark-all" onClick={handleMarkAllRead}>
+                <CheckCheck size={13} />
+                Mark all read
+              </button>
+            )}
           </div>
 
           <div className="notification-list">
             {loading ? (
-              <div className="notification-item empty">Loading...</div>
-            ) : activeTab === 'tasks' ? (
-              taskCount === 0 ? (
-                <div className="notification-item empty">✓ No pending tasks</div>
-              ) : (
-                pendingTasks.map((task) => (
-                  <div key={task.id} className="notification-item task-notification">
-                    <div className="notification-content">
-                      <p className="notification-message">
-                        <strong>{task.createdBy?.fullName}</strong> assigned <strong>"{task.name}"</strong> to <strong>{task.assignedEmployee?.fullName}</strong>
-                      </p>
-                      <p className="notification-horse">🐴 {task.horse?.name}</p>
-                      <p className="notification-time">
-                        {new Date(task.scheduledTime).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )
-            ) : meetingCount === 0 ? (
-              <div className="notification-item empty">✓ No new meetings</div>
+              <div className="notification-empty">Loading…</div>
+            ) : notifications.length === 0 ? (
+              <div className="notification-empty">
+                <Bell size={28} strokeWidth={1} style={{ opacity: 0.3, marginBottom: 8 }} />
+                <span>No notifications yet</span>
+              </div>
             ) : (
-              meetingNotifications.map((meeting) => (
-                <div key={meeting.id} className="notification-item meeting-notification">
-                  <div className="notification-content">
-                    <p className="notification-message">
-                      <strong>{meeting.createdBy?.fullName}</strong> added you to meeting <strong>"{meeting.title}"</strong>
-                    </p>
-                    <p className="notification-time">
-                      📅 {new Date(meeting.meetingDate).toLocaleDateString('en-IN')} at {meeting.meetingTime || 'TBD'}
-                    </p>
-                    <p className="notification-location">
-                      📍 {meeting.location || 'Location TBD'}
-                    </p>
+              notifications.map(n => {
+                const meta = TYPE_META[n.type] || TYPE_META.general;
+                const Icon = meta.icon;
+                return (
+                  <div
+                    key={n.id}
+                    className={`notification-item ${!n.isRead ? 'unread' : ''}`}
+                    onClick={() => !n.isRead && handleMarkRead(n.id)}
+                  >
+                    <div className="notification-type-icon" style={{ color: meta.color }}>
+                      <Icon size={16} />
+                    </div>
+                    <div className="notification-content">
+                      <div className="notification-message">{n.title}</div>
+                      <div className="notification-detail">{n.message}</div>
+                      <div className="notification-time">{timeAgo(n.createdAt)}</div>
+                    </div>
+                    {!n.isRead && <div className="notification-unread-dot" />}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

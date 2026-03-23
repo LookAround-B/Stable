@@ -810,6 +810,7 @@ model EmployeePermission {
   manageInventory       Boolean     @default(false)
   manageSchedules       Boolean     @default(false)
   viewPayroll           Boolean     @default(false)
+  viewNotifications     Boolean     @default(false)
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 

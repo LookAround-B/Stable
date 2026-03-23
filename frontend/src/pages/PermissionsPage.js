@@ -11,7 +11,7 @@ import {
   AlertTriangle, Package, Calendar, CreditCard, Save, Info, Shield,
   Home, Feather, Wind, Flag, GraduationCap, Hammer, Wrench,
   Briefcase, Folder, Wallet, Receipt, Utensils, ChefHat, Flame,
-  ClipboardList, Leaf, Sparkles, Zap, RotateCcw, Lock, Unlock
+  ClipboardList, Leaf, Sparkles, Zap, RotateCcw, Lock, Unlock, Bell
 } from 'lucide-react';
 
 const ROLE_ICONS = {
@@ -50,6 +50,7 @@ const DEFAULT_PERMS = {
   manageInventory: false,
   manageSchedules: false,
   viewPayroll: false,
+  viewNotifications: false,
 };
 
 const PermissionsPage = () => {
@@ -91,6 +92,7 @@ const PermissionsPage = () => {
     { key: 'manageInventory', label: t('Manage Inventory'), desc: t('Add, edit, and update inventory items and stock levels.'), icon: Package },
     { key: 'manageSchedules', label: t('Manage Schedules'), desc: t('Create and modify shift schedules and duty rosters.'), icon: Calendar },
     { key: 'viewPayroll', label: t('View Payroll'), desc: t('Access salary records, payslips, and payroll summaries.'), icon: CreditCard },
+    { key: 'viewNotifications', label: t('View Notifications'), desc: t('Receive and view in-app notifications such as alerts, reminders, and updates.'), icon: Bell },
   ];
 
   // ── Data fetching ──

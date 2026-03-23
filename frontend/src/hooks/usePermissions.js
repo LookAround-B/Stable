@@ -88,6 +88,7 @@ export default function usePermissions() {
       // System
       viewReports: has('viewReports', true),
       viewPermissions: isAdmin,
+      viewNotifications: has('viewNotifications', true),
     };
   }, [user]);
 }

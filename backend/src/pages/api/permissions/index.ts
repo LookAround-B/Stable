@@ -68,6 +68,7 @@ async function handleGet(_req: NextApiRequest, res: NextApiResponse) {
             manageInventory: true,
             manageSchedules: true,
             viewPayroll: true,
+            viewNotifications: true,
           },
         },
       },
@@ -106,6 +107,7 @@ async function handlePut(
       'manageInventory',
       'manageSchedules',
       'viewPayroll',
+      'viewNotifications',
     ]
 
     const permData: Record<string, boolean> = {}
