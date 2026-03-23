@@ -10,7 +10,7 @@ import {
   FileEdit, DoorOpen, Pill, HeartHandshake, NotebookPen,
   Receipt, Wheat, Package, ShoppingCart, CreditCard,
   Search, AlertTriangle, BarChart3, Settings, LogOut, Shield, Hammer,
-  Brush
+  Brush, Network
 } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 
@@ -103,6 +103,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { to: '/reports', icon: BarChart3, label: 'Reports', show: p.viewReports },
         { to: '/permissions', icon: Shield, label: 'Permissions', show: p.viewPermissions },
         { to: '/settings', icon: Settings, label: 'Settings', show: false },
+        { to: '/entity-map', icon: Network, label: 'Entity Map', show: p.viewDashboard },
       ],
     },
   ];

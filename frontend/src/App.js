@@ -42,6 +42,7 @@ import PermissionsPage from './pages/PermissionsPage';
 import TackInventoryPage from './pages/TackInventoryPage';
 import HousekeepingInventoryPage from './pages/HousekeepingInventoryPage';
 import FarrierInventoryPage from './pages/FarrierInventoryPage';
+import EntityMapPage from './pages/EntityMapPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -95,6 +96,7 @@ function App() {
             <Route path="/tack-inventory" element={<TackInventoryPage />} />
             <Route path="/housekeeping-inventory" element={<HousekeepingInventoryPage />} />
             <Route path="/farrier-inventory" element={<FarrierInventoryPage />} />
+            <Route path="/entity-map" element={<EntityMapPage />} />
           </Route>
           
           <Route path="*" element={<NotFoundPage />} />
