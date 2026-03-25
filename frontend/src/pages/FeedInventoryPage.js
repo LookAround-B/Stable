@@ -605,7 +605,7 @@ const FeedInventoryPage = () => {
       {thresholdModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>🔔 Set Threshold Alert</h3>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>Set Threshold Alert</h3>
             <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{FEED_LABELS[thresholdModal.record.feedType] || thresholdModal.record.feedType}</p>
             <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
             <input
@@ -637,3 +637,4 @@ const FeedInventoryPage = () => {
 };
 
 export default FeedInventoryPage;
+

@@ -300,12 +300,12 @@ const GroceriesInventoryPage = () => {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "8px",
-                    border: `1px solid ${formMode === 'select' ? '#333' : 'rgba(0,0,0,0.2)'}`,
-                    background: formMode === 'select' ? 'rgba(0,0,0,0.08)' : 'transparent',
-                    color: formMode === 'select' ? '#000' : '#999',
+                    border: `1px solid ${formMode === 'select' ? 'rgba(209,153,255,0.3)' : 'var(--lovable-line)'}`,
+                    background: formMode === 'select' ? 'rgba(209,153,255,0.14)' : 'rgba(255,255,255,0.03)',
+                    color: formMode === 'select' ? 'var(--lovable-primary)' : 'var(--lovable-text-muted)',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
-                    fontWeight: formMode === 'select' ? 600 : 400,
+                    fontWeight: formMode === 'select' ? 700 : 500,
                     transition: 'all 0.2s'
                   }}
                 >
@@ -318,12 +318,12 @@ const GroceriesInventoryPage = () => {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "8px",
-                    border: `1px solid ${formMode === 'new' ? '#333' : 'rgba(0,0,0,0.2)'}`,
-                    background: formMode === 'new' ? 'rgba(0,0,0,0.08)' : 'transparent',
-                    color: formMode === 'new' ? '#000' : '#999',
+                    border: `1px solid ${formMode === 'new' ? 'rgba(209,153,255,0.3)' : 'var(--lovable-line)'}`,
+                    background: formMode === 'new' ? 'rgba(209,153,255,0.14)' : 'rgba(255,255,255,0.03)',
+                    color: formMode === 'new' ? 'var(--lovable-primary)' : 'var(--lovable-text-muted)',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
-                    fontWeight: formMode === 'new' ? 600 : 400,
+                    fontWeight: formMode === 'new' ? 700 : 500,
                     transition: 'all 0.2s'
                   }}
                 >
@@ -336,8 +336,8 @@ const GroceriesInventoryPage = () => {
           <form onSubmit={handleSubmit}>
             {/* SELECT MODE */}
             {formMode === 'select' && itemSuggestions.length > 0 && (
-              <div style={{ marginBottom: "20px", padding: "16px", background: "rgba(0,0,0,0.04)", borderRadius: "10px", border: "1px solid rgba(0,0,0,0.1)" }}>
-                <label style={{ fontSize: "0.85rem", display: "block", marginBottom: "8px", fontWeight: 600, color: "#333" }}>Select an Item from History</label>
+              <div style={{ marginBottom: "20px", padding: "16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px", border: "1px solid var(--lovable-line)" }}>
+                <label style={{ fontSize: "0.85rem", display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--lovable-text)" }}>Select an Item from History</label>
                 <SearchableSelect
                   value={formData.name}
                   onChange={(e) => {
@@ -356,7 +356,7 @@ const GroceriesInventoryPage = () => {
                   placeholder="Search and select item..."
                   style={{ width: '100%' }}
                 />
-                <p style={{ fontSize: '0.75rem', color: '#666', margin: '8px 0 0' }}>Unit will be pre-filled from previous entries</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--lovable-text-soft)', margin: '8px 0 0' }}>Unit will be pre-filled from previous entries</p>
               </div>
             )}
 
@@ -376,7 +376,7 @@ const GroceriesInventoryPage = () => {
                   <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Selected Item</label>
                   <input type="text" value={formData.name} disabled
                     placeholder="No item selected"
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box", background: '#f5f5f5', opacity: 0.7 }} />
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", fontSize: "0.875rem", boxSizing: "border-box", background: 'rgba(255,255,255,0.03)', color: 'var(--lovable-text-muted)', opacity: 1 }} />
                 </div>
               )}
 
@@ -411,8 +411,8 @@ const GroceriesInventoryPage = () => {
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
 
-              <div style={{ background: "rgba(0,0,0,0.04)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.1)" }}>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px", fontWeight: 600, color: "#333" }}>Expiry Date (Optional)</label>
+              <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", border: "1px solid var(--lovable-line)" }}>
+                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px", fontWeight: 600, color: "var(--lovable-text)" }}>Expiry Date (Optional)</label>
                 <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange}
                   style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
@@ -518,7 +518,7 @@ const GroceriesInventoryPage = () => {
                         <button className="btn btn-sm btn-delete" onClick={() => handleDelete(g.id)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Delete</button>
                         {isAdmin && (
                           <button
-                            style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'transparent', color: '#333', border: '1px solid #333', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+                            style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(255,255,255,0.03)', color: 'var(--lovable-text-muted)', border: '1px solid var(--lovable-line)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
                             onClick={() => setThresholdModal({ record: g, value: g.threshold ?? '', notifyAdmin: g.notifyAdmin ?? false })}
                             title="Configure threshold alert"
                           >

@@ -162,7 +162,7 @@ const HousekeepingInventoryPage = () => {
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
                 <input type="text" name="itemName" value={formData.itemName} onChange={handleInputChange}
                   required maxLength={100} placeholder="e.g., Floor Cleaner"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Category *</label>
@@ -172,7 +172,7 @@ const HousekeepingInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Quantity</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} min="0" step="0.01"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Unit Type</label>
@@ -182,7 +182,7 @@ const HousekeepingInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Min Stock Level</label>
                 <input type="number" name="minimumStockLevel" value={formData.minimumStockLevel} onChange={handleInputChange} min="0" step="0.01"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Usage Area</label>
@@ -192,38 +192,38 @@ const HousekeepingInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Storage Location</label>
                 <input type="text" name="storageLocation" value={formData.storageLocation} onChange={handleInputChange} maxLength={200}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Supplier Name</label>
                 <input type="text" name="supplierName" value={formData.supplierName} onChange={handleInputChange} maxLength={200}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Cost per Unit (₹)</label>
+                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Cost per Unit (INR )</label>
                 <input type="number" name="costPerUnit" value={formData.costPerUnit} onChange={handleInputChange} min="0" step="0.01"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Consumption Rate</label>
                 <input type="text" name="consumptionRate" value={formData.consumptionRate} onChange={handleInputChange}
                   placeholder="e.g., 2L/week" maxLength={100}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Purchase Date</label>
                 <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Expiry Date</label>
                 <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Last Restocked</label>
                 <input type="date" name="lastRestockedDate" value={formData.lastRestockedDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Assigned Staff</label>
@@ -238,7 +238,7 @@ const HousekeepingInventoryPage = () => {
             <div style={{ marginTop: "12px" }}>
               <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Notes</label>
               <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows="2" maxLength={500}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
               <button type="submit" className="btn btn-primary">{editingId ? "Update" : "Add Item"}</button>
@@ -268,14 +268,14 @@ const HousekeepingInventoryPage = () => {
           <label style={{ fontSize: "0.9rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Search</label>
           <input type="text" placeholder="Search by name, supplier..." value={search}
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
         </div>
         <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {/* Low stock alerts */}
       {lowStockItems.length > 0 && (
-        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e' }}>
+        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.24)', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', color: '#f59e0b' }}>
           <strong>⚠ Low Stock Alert</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
             {lowStockItems.map(i => (
@@ -302,7 +302,7 @@ const HousekeepingInventoryPage = () => {
           <div className="table-wrapper">
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid rgba(0,0,0,0.15)" }}>
+                <tr style={{ borderBottom: "1px solid var(--lovable-line)" }}>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>#</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Item Name</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Category</th>
@@ -322,7 +322,7 @@ const HousekeepingInventoryPage = () => {
                   const isLowStock = item.reorderAlert && item.minimumStockLevel && item.quantity < item.minimumStockLevel;
                   const isExpired = item.expiryDate && new Date(item.expiryDate) < new Date();
                   return (
-                    <tr key={item.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(isExpired ? { background: 'rgba(220,38,38,0.08)' } : isLowStock ? { background: 'rgba(245,158,11,0.08)' } : {}) }}>
+                    <tr key={item.id} style={{ borderBottom: "1px solid var(--lovable-line)", ...(isExpired ? { background: 'rgba(220,38,38,0.08)' } : isLowStock ? { background: 'rgba(245,158,11,0.08)' } : {}) }}>
                       <td style={{ padding: "10px 12px", opacity: 0.5 }}>{startIndex + i + 1}</td>
                       <td style={{ padding: "10px 12px", fontWeight: 500 }}>{item.itemName}</td>
                       <td style={{ padding: "10px 12px" }}>{item.category}</td>
@@ -330,10 +330,10 @@ const HousekeepingInventoryPage = () => {
                       <td style={{ padding: "10px 12px" }}>{item.unitType}</td>
                       <td style={{ padding: "10px 12px" }}>{item.usageArea || "-"}</td>
                       <td style={{ padding: "10px 12px" }}>{item.supplierName || "-"}</td>
-                      <td style={{ padding: "10px 12px", textAlign: "right" }}>{item.costPerUnit ? `₹${parseFloat(item.costPerUnit).toFixed(2)}` : "-"}</td>
+                      <td style={{ padding: "10px 12px", textAlign: "right" }}>{item.costPerUnit ? `INR ${parseFloat(item.costPerUnit).toFixed(2)}` : "-"}</td>
                       <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>
                         {item.expiryDate ? (
-                          <span style={{ color: isExpired ? '#dc2626' : '#333', fontSize: '0.8rem' }}>
+                          <span style={{ color: isExpired ? '#dc2626' : 'var(--lovable-text-muted)', fontSize: '0.8rem' }}>
                             {formatDate(item.expiryDate)}{isExpired && ' [EXP]'}
                           </span>
                         ) : "-"}
@@ -367,3 +367,5 @@ const HousekeepingInventoryPage = () => {
 };
 
 export default HousekeepingInventoryPage;
+
+

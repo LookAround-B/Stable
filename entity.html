@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EFM Entity Map</title>
+
+<style>
+body {
+    margin: 0;
+    background: #0b0b0b;
+    font-family: Inter, sans-serif;
+    overflow: hidden;
+    color: #fff;
+}
+
+#canvas {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+/* Node */
+.node {
+    position: absolute;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 14px;
+    min-width: 180px;
+    cursor: grab;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.node h4 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.node span {
+    font-size: 11px;
+    color: #aaa;
+}
+
+/* Colors */
+.core { border-left: 4px solid #00ffd0; }
+.stable { border-left: 4px solid #4dabf7; }
+.finance { border-left: 4px solid #ffd43b; }
+.ground { border-left: 4px solid #69db7c; }
+.system { border-left: 4px solid #b197fc; }
+
+/* SVG */
+svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Side Panel */
+#panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 320px;
+    height: 100%;
+    background: #111;
+    border-left: 1px solid #333;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.field {
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<div id="canvas">
+    <svg id="edges"></svg>
+</div>
+
+<div id="panel">
+    <h3>Select Node</h3>
+    <div id="details">Click a node...</div>
+</div>
+
+<script>
+
+// ---------------- ROLE COLORS ----------------
+const roleColors = {
+    ADMIN: "#ff6b6b",
+    MANAGER: "#4dabf7",
+    GROOM: "#69db7c",
+    RIDER: "#ffd43b",
+    STAFF: "#b197fc"
+};
+
+// ---------------- TEAM MEMBERS ----------------
+const teamMembers = [
+    { name: "John Mathew", role: "ADMIN" },
+    { name: "Akhil N", role: "MANAGER" },
+    { name: "Ravi Kumar", role: "GROOM" },
+    { name: "Arjun Das", role: "RIDER" }
+];
+
+// ---------------- ENTITIES ----------------
+const entities = {
+
+    HORSE: { type: "core", fields: ["id","name","breed","status"] },
+    TEAM_MEMBER: { type: "core", fields: ["All Employees"] },
+
+    TASK: { type: "core", fields: ["task_name","status"] },
+
+    HORSE_FEED_LOG: { type: "stable", fields: ["date"] },
+    MEDICINE_LOG: { type: "stable", fields: ["date"] },
+    FARRIER_SHOEING: { type: "stable", fields: ["horse_id"] },
+    TACK_ITEM: { type: "stable", fields: ["horse_id"] },
+
+    GROOM_WORKSHEET: { type: "ground", fields: ["horse_id"] },
+
+    ATTENDANCE: { type: "ground", fields: ["employee_id"] },
+    WORK_RECORD: { type: "ground", fields: ["staff_id"] },
+
+    EXPENSE: { type: "finance", fields: ["amount"] },
+    FINE: { type: "finance", fields: ["amount"] },
+    INVOICE_SESSION: { type: "finance", fields: ["date"] },
+
+    PERMISSION: { type: "system", fields: ["role"] }
+};
+
+// ---------------- RELATIONSHIPS ----------------
+const edges = [
+    ["HORSE","TASK"],
+    ["HORSE","HORSE_FEED_LOG"],
+    ["HORSE","MEDICINE_LOG"],
+    ["HORSE","FARRIER_SHOEING"],
+    ["HORSE","TACK_ITEM"],
+    ["HORSE","GROOM_WORKSHEET"],
+    ["HORSE","EXPENSE"],
+    ["HORSE","INVOICE_SESSION"],
+
+    ["TEAM_MEMBER","TASK"],
+    ["TEAM_MEMBER","ATTENDANCE"],
+    ["TEAM_MEMBER","WORK_RECORD"],
+    ["TEAM_MEMBER","FINE"],
+    ["TEAM_MEMBER","PERMISSION"],
+    ["TEAM_MEMBER","EXPENSE"]
+];
+
+// ---------------- POSITIONS ----------------
+const positions = {
+    HORSE: [500, 350],
+    TEAM_MEMBER: [500, 80],
+
+    TASK: [750, 300],
+
+    HORSE_FEED_LOG: [800, 500],
+    MEDICINE_LOG: [600, 600],
+    FARRIER_SHOEING: [300, 500],
+    TACK_ITEM: [250, 320],
+
+    GROOM_WORKSHEET: [350, 650],
+
+    ATTENDANCE: [900, 100],
+    WORK_RECORD: [900, 300],
+
+    EXPENSE: [300, 120],
+    FINE: [700, 40],
+    INVOICE_SESSION: [800, 120],
+
+    PERMISSION: [500, 10]
+};
+
+// ---------------- RENDER ----------------
+const canvas = document.getElementById("canvas");
+const svg = document.getElementById("edges");
+const nodes = {};
+
+Object.keys(entities).forEach(name => {
+    const div = document.createElement("div");
+    div.className = `node ${entities[name].type}`;
+    div.innerHTML = `<h4>${name}</h4><span>${entities[name].type}</span>`;
+    
+    div.style.left = positions[name][0] + "px";
+    div.style.top = positions[name][1] + "px";
+
+    div.onclick = () => {
+
+        // TEAM MEMBER PANEL
+        if(name === "TEAM_MEMBER") {
+
+            const list = teamMembers.map(member => {
+                const color = roleColors[member.role] || "#999";
+
+                return `
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        justify-content:space-between;
+                        padding:8px 0;
+                        border-bottom:1px solid #222;
+                    ">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="
+                                width:8px;
+                                height:8px;
+                                border-radius:50%;
+                                background:${color};
+                            "></div>
+
+                            <span style="font-size:13px;">
+                                ${member.name}
+                            </span>
+                        </div>
+
+                        <span style="
+                            font-size:11px;
+                            color:${color};
+                            font-weight:600;
+                        ">
+                            ${member.role}
+                        </span>
+                    </div>
+                `;
+            }).join("");
+
+            document.getElementById("details").innerHTML = `
+                <h3>TEAM MEMBERS</h3>
+                ${list}
+            `;
+            return;
+        }
+
+        // DEFAULT PANEL
+        document.getElementById("details").innerHTML =
+            `<h3>${name}</h3>` +
+            entities[name].fields.map(f => `<div class="field">${f}</div>`).join("");
+    };
+
+    makeDraggable(div);
+    canvas.appendChild(div);
+    nodes[name] = div;
+});
+
+// ---------------- EDGES ----------------
+function drawEdges() {
+    svg.innerHTML = "";
+    edges.forEach(([a, b]) => {
+        const r1 = nodes[a].getBoundingClientRect();
+        const r2 = nodes[b].getBoundingClientRect();
+
+        const x1 = r1.left + r1.width/2;
+        const y1 = r1.top + r1.height/2;
+        const x2 = r2.left + r2.width/2;
+        const y2 = r2.top + r2.height/2;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const curve = `M${x1},${y1} C${x1+120},${y1} ${x2-120},${y2} ${x2},${y2}`;
+
+        path.setAttribute("d", curve);
+        path.setAttribute("stroke", "#444");
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-width", "2");
+
+        svg.appendChild(path);
+    });
+}
+
+// ---------------- DRAG ----------------
+function makeDraggable(el) {
+    let offsetX, offsetY;
+
+    el.onmousedown = e => {
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
+
+        document.onmousemove = e => {
+            el.style.left = (e.pageX - offsetX) + "px";
+            el.style.top = (e.pageY - offsetY) + "px";
+            drawEdges();
+        };
+
+        document.onmouseup = () => {
+            document.onmousemove = null;
+        };
+    };
+}
+
+// ---------------- ZOOM ----------------
+let scale = 1;
+
+canvas.onwheel = (e) => {
+    e.preventDefault();
+    scale += e.deltaY * -0.001;
+    scale = Math.min(Math.max(.5, scale), 2);
+    canvas.style.transform = `scale(${scale})`;
+};
+
+// init
+setTimeout(drawEdges, 100);
+
+</script>
+
+</body>
+</html>

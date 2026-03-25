@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useI18n } from '../context/I18nContext';
 import apiClient from '../services/apiClient';
+import Pagination from '../components/Pagination';
 import { StatsSkeleton, TableSkeleton } from '../components/Skeleton';
 import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
@@ -159,11 +160,18 @@ const ReportsPage = () => {
   };
 
   const getTotalPages = (data) => Math.ceil(data.length / rowsPerPage);
+  const activeRecordCount = activeTab === 'attendance'
+    ? attendanceStats.total
+    : activeTab === 'tasks'
+      ? taskStats.total
+      : activeTab === 'expenses'
+        ? expenseStats.total
+        : healthStats.totalInspections + healthStats.totalMedicineLogs;
 
   const getStatusColor = (status) => {
     const colors = {
-      'Present': '#22c55e', 'Absent': '#ef4444', 'Leave': '#f59e0b', 'WOFF': '#6366f1', 'Half Day': '#3b82f6',
-      'Completed': '#22c55e', 'Approved': '#22c55e', 'Pending': '#f59e0b', 'In Progress': '#3b82f6',
+      'Present': '#22c55e', 'Absent': '#ef4444', 'Leave': '#f59e0b', 'WOFF': '#8b5cf6', 'Half Day': '#d19bff',
+      'Completed': '#22c55e', 'Approved': '#22c55e', 'Pending': '#f59e0b', 'In Progress': '#d19bff',
       'Rejected': '#ef4444', 'Pending Review': '#8b5cf6',
       'Open': '#f59e0b', 'Resolved': '#22c55e', 'Dismissed': '#6b7280',
       'pending': '#f59e0b', 'approved': '#22c55e', 'rejected': '#ef4444',
@@ -172,8 +180,35 @@ const ReportsPage = () => {
     return colors[status] || '#6b7280';
   };
 
-  const thStyle = { padding: '10px 12px', textAlign: 'left', borderBottom: '2px solid #e5e7eb', fontWeight: 600, background: '#f8fafc', color: '#374151' };
-  const tdStyle = { padding: '8px 12px', color: '#111', background: '#fff' };
+  const thStyle = {
+    padding: '10px 12px',
+    textAlign: 'left',
+    borderBottom: '1px solid var(--lovable-line)',
+    fontWeight: 600,
+    background: 'var(--lovable-panel-alt)',
+    color: 'var(--lovable-text-muted)'
+  };
+  const tdStyle = {
+    padding: '8px 12px',
+    color: 'var(--lovable-text)',
+    background: 'transparent'
+  };
+  const tableShellStyle = {
+    borderRadius: '18px',
+    overflow: 'hidden',
+    border: '1px solid var(--lovable-line)',
+    background: 'var(--lovable-panel)',
+    boxShadow: 'inset 0 0 0 1px rgba(209, 153, 255, 0.03)',
+  };
+  const tableStyle = {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '0.85rem',
+    background: 'transparent',
+    color: 'var(--lovable-text)',
+  };
+  const tableRowStyle = { borderBottom: '1px solid var(--lovable-line)' };
+  const emptyStateStyle = { padding: '20px', textAlign: 'center', color: 'var(--lovable-text-muted)' };
 
   const StatusBadge = ({ status }) => (
     <span style={{
@@ -186,19 +221,19 @@ const ReportsPage = () => {
 
   // Stats shown as a compact horizontal table
   const StatsTable = ({ stats }) => (
-    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)', marginBottom: '20px' }}>
+    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--lovable-line)', marginBottom: '20px', background: 'var(--lovable-panel)' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
         <thead>
-          <tr style={{ background: 'var(--bg-secondary, #f8fafc)' }}>
+          <tr style={{ background: 'var(--lovable-panel-alt)' }}>
             {stats.map((s, i) => (
-              <th key={i} style={{ padding: '8px 14px', fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'center', borderRight: i < stats.length - 1 ? '1px solid var(--border-primary)' : 'none', whiteSpace: 'nowrap' }}>{s.label}</th>
+              <th key={i} style={{ padding: '8px 14px', fontWeight: 600, color: 'var(--lovable-text-muted)', textAlign: 'center', borderRight: i < stats.length - 1 ? '1px solid var(--lovable-line)' : 'none', whiteSpace: 'nowrap' }}>{s.label}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          <tr style={{ background: '#fff' }}>
+          <tr style={{ background: 'transparent' }}>
             {stats.map((s, i) => (
-              <td key={i} style={{ padding: '10px 14px', textAlign: 'center', borderRight: i < stats.length - 1 ? '1px solid var(--border-primary)' : 'none' }}>
+              <td key={i} style={{ padding: '10px 14px', textAlign: 'center', borderRight: i < stats.length - 1 ? '1px solid var(--lovable-line)' : 'none' }}>
                 <span style={{ fontSize: '1.3rem', fontWeight: 700, color: s.color }}>{s.value}</span>
               </td>
             ))}
@@ -210,35 +245,14 @@ const ReportsPage = () => {
 
   const renderPagination = (data) => {
     const pages = getTotalPages(data);
-    if (pages <= 1) return null;
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          style={{
-            height: '32px', padding: '0 14px', lineHeight: '1', borderRadius: '6px', border: '1px solid var(--border-primary)',
-            background: 'var(--bg-primary)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-            opacity: currentPage === 1 ? 0.5 : 1, fontSize: '0.82rem', flexShrink: 0,
-          }}
-        >
-          {t('Previous')}
-        </button>
-        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-          {t('Page')} {currentPage} / {pages}
-        </span>
-        <button
-          onClick={() => setCurrentPage(p => Math.min(pages, p + 1))}
-          disabled={currentPage === pages}
-          style={{
-            height: '32px', padding: '0 14px', lineHeight: '1', borderRadius: '6px', border: '1px solid var(--border-primary)',
-            background: 'var(--bg-primary)', cursor: currentPage === pages ? 'not-allowed' : 'pointer',
-            opacity: currentPage === pages ? 0.5 : 1, fontSize: '0.82rem', flexShrink: 0,
-          }}
-        >
-          {t('Next')}
-        </button>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={pages}
+        onPageChange={setCurrentPage}
+        rowsPerPage={rowsPerPage}
+        total={data.length}
+      />
     );
   };
 
@@ -310,34 +324,75 @@ const ReportsPage = () => {
   };
 
   return (
-    <div className="page-container" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="page-container lovable-page-shell reports-page" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
       <div className="page-header">
         <div>
           <h1>{t('Reports')}</h1>
           <p>{t('View and generate system reports')}</p>
         </div>
-        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+        <div className="lovable-header-actions">
+          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+          <div className="lovable-command-chip">
+            <div className="lovable-command-ring">{activeRecordCount}</div>
+            <div className="lovable-command-copy">
+              <strong>{tabs.find(tab => tab.id === activeTab)?.label}</strong>
+              <span>{t('Active Report View')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lovable-metric-strip">
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Attendance')}</div>
+          <div className="lovable-metric-card-value">{attendanceStats.total}</div>
+          <div className="lovable-metric-card-sub">{t('Records in the selected date range')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Tasks')}</div>
+          <div className="lovable-metric-card-value">{taskStats.total}</div>
+          <div className="lovable-metric-card-sub">{t('Task records available for reporting')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Expenses')}</div>
+          <div className="lovable-metric-card-value">{expenseStats.total}</div>
+          <div className="lovable-metric-card-sub">{t('Expense entries in the selected range')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Health Logs')}</div>
+          <div className="lovable-metric-card-value">{healthStats.totalMedicineLogs}</div>
+          <div className="lovable-metric-card-sub">{t('Medicine logs currently loaded')}</div>
+        </div>
       </div>
 
       {/* Date Range Filter */}
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+      <div className="lovable-panel" style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t('From')}:</label>
+          <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--lovable-text-muted)' }}>{t('From')}:</label>
           <input
             type="date"
             value={dateRange.startDate}
             onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-primary)', fontSize: '0.875rem', background: '#fff', color: '#111' }}
+            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--lovable-line)', fontSize: '0.875rem', background: 'var(--bg-input)', color: 'var(--lovable-text)' }}
+          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--lovable-text-muted)' }}>{t('To')}:</label>
+          <input
+            type="date"
+            value={dateRange.endDate}
+            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--lovable-line)', fontSize: '0.875rem', background: 'var(--bg-input)', color: 'var(--lovable-text)' }}
           />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="tabs">
+      <div className="lovable-pill-row" style={{ marginBottom: '20px' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
-            className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+            className={`lovable-pill ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
@@ -358,10 +413,10 @@ const ReportsPage = () => {
                 { label: t('Absent'), value: attendanceStats.absent, color: '#ef4444' },
                 { label: t('Leave'), value: attendanceStats.leave, color: '#f59e0b' },
                 { label: t('Weekly Off'), value: attendanceStats.woff, color: '#8b5cf6' },
-                { label: t('Half Day'), value: attendanceStats.halfDay, color: '#3b82f6' },
+                { label: t('Half Day'), value: attendanceStats.halfDay, color: '#d19bff' },
               ]} />
-              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
+              <div className="table-wrapper" style={tableShellStyle}>
+                <table style={tableStyle}>
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('Date')}</th>
@@ -373,16 +428,16 @@ const ReportsPage = () => {
                   </thead>
                   <tbody>
                     {paginate(attendanceData).map((r, i) => (
-                      <tr key={r.id || i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <tr key={r.id || i} style={tableRowStyle}>
                         <td style={tdStyle}>{formatDate(r.date)}</td>
                         <td style={tdStyle}>{r.employee?.fullName || '-'}</td>
                         <td style={tdStyle}>{r.employee?.designation || '-'}</td>
                         <td style={tdStyle}><StatusBadge status={r.status} /></td>
-                        <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{r.remarks || '-'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--lovable-text-muted)' }}>{r.remarks || '-'}</td>
                       </tr>
                     ))}
                     {attendanceData.length === 0 && (
-                      <tr><td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('No attendance records found')}</td></tr>
+                      <tr><td colSpan={5} style={emptyStateStyle}>{t('No attendance records found')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -398,11 +453,11 @@ const ReportsPage = () => {
                 { label: t('Total Tasks'), value: taskStats.total, color: '#6366f1' },
                 { label: t('Completed'), value: taskStats.completed, color: '#22c55e' },
                 { label: t('Pending'), value: taskStats.pending, color: '#f59e0b' },
-                { label: t('In Progress'), value: taskStats.inProgress, color: '#3b82f6' },
+                { label: t('In Progress'), value: taskStats.inProgress, color: '#d19bff' },
                 { label: t('Rejected'), value: taskStats.rejected, color: '#ef4444' },
               ]} />
-              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
+              <div className="table-wrapper" style={tableShellStyle}>
+                <table style={tableStyle}>
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('Date')}</th>
@@ -415,7 +470,7 @@ const ReportsPage = () => {
                   </thead>
                   <tbody>
                     {paginate(tasksData).map((task, i) => (
-                      <tr key={task.id || i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <tr key={task.id || i} style={tableRowStyle}>
                         <td style={tdStyle}>{formatDate(task.scheduledTime || task.createdAt)}</td>
                         <td style={{ ...tdStyle, fontWeight: 500 }}>{task.name}</td>
                         <td style={tdStyle}>{task.assignedEmployee?.fullName || '-'}</td>
@@ -425,7 +480,7 @@ const ReportsPage = () => {
                       </tr>
                     ))}
                     {tasksData.length === 0 && (
-                      <tr><td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('No tasks found')}</td></tr>
+                      <tr><td colSpan={6} style={emptyStateStyle}>{t('No tasks found')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -439,13 +494,13 @@ const ReportsPage = () => {
             <div>
               <StatsTable stats={[
                 { label: t('Total Expenses'), value: expenseStats.total, color: '#6366f1' },
-                { label: t('Total Amount'), value: `₹ ${expenseStats.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, color: '#ef4444' },
+                { label: t('Total Amount'), value: `INR ${expenseStats.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, color: '#ef4444' },
                 ...Object.entries(expenseStats.byType).map(([type, amount]) => ({
-                  label: t(type), value: `₹ ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, color: '#f59e0b',
+                  label: t(type), value: `INR ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, color: '#f59e0b',
                 })),
               ]} />
-              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
+              <div className="table-wrapper" style={tableShellStyle}>
+                <table style={tableStyle}>
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('Date')}</th>
@@ -458,17 +513,17 @@ const ReportsPage = () => {
                   </thead>
                   <tbody>
                     {paginate(expensesData).map((exp, i) => (
-                      <tr key={exp.id || i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <tr key={exp.id || i} style={tableRowStyle}>
                         <td style={tdStyle}>{formatDate(exp.date)}</td>
                         <td style={tdStyle}><StatusBadge status={exp.type} /></td>
                         <td style={{ ...tdStyle, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>₹ {parseFloat(exp.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>INR {parseFloat(exp.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         <td style={tdStyle}>{exp.createdBy?.fullName || '-'}</td>
                         <td style={tdStyle}>{exp.horse?.name || exp.employee?.fullName || '-'}</td>
                       </tr>
                     ))}
                     {expensesData.length === 0 && (
-                      <tr><td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('No expenses found')}</td></tr>
+                      <tr><td colSpan={6} style={emptyStateStyle}>{t('No expenses found')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -488,9 +543,9 @@ const ReportsPage = () => {
                 { label: t('Pending Approvals'), value: healthStats.pendingApprovals, color: '#8b5cf6' },
               ]} />
 
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>{t('Inspection Rounds')}</h3>
-              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)', marginBottom: '30px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--lovable-text)' }}>{t('Inspection Rounds')}</h3>
+              <div className="table-wrapper" style={{ ...tableShellStyle, marginBottom: '30px' }}>
+                <table style={tableStyle}>
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('Date')}</th>
@@ -504,7 +559,7 @@ const ReportsPage = () => {
                   </thead>
                   <tbody>
                     {inspectionsData.slice(0, 30).map((insp, i) => (
-                      <tr key={insp.id || i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <tr key={insp.id || i} style={tableRowStyle}>
                         <td style={tdStyle}>{formatDate(insp.createdAt)}</td>
                         <td style={tdStyle}>{t(insp.round)}</td>
                         <td style={tdStyle}>{insp.jamedar?.fullName || '-'}</td>
@@ -515,15 +570,15 @@ const ReportsPage = () => {
                       </tr>
                     ))}
                     {inspectionsData.length === 0 && (
-                      <tr><td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('No inspections found')}</td></tr>
+                      <tr><td colSpan={7} style={emptyStateStyle}>{t('No inspections found')}</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
 
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--text-primary)' }}>{t('Medicine Logs')}</h3>
-              <div className="table-wrapper" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-primary)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', color: '#111' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--lovable-text)' }}>{t('Medicine Logs')}</h3>
+              <div className="table-wrapper" style={tableShellStyle}>
+                <table style={tableStyle}>
                   <thead>
                     <tr>
                       <th style={thStyle}>{t('Date')}</th>
@@ -536,7 +591,7 @@ const ReportsPage = () => {
                   </thead>
                   <tbody>
                     {medicineLogsData.slice(0, 30).map((log, i) => (
-                      <tr key={log.id || i} style={{ borderBottom: '1px solid var(--border-primary)' }}>
+                      <tr key={log.id || i} style={tableRowStyle}>
                         <td style={tdStyle}>{formatDateTime(log.timeAdministered || log.createdAt)}</td>
                         <td style={tdStyle}>{log.horse?.name || '-'}</td>
                         <td style={{ ...tdStyle, fontWeight: 500 }}>{log.medicineName}</td>
@@ -546,7 +601,7 @@ const ReportsPage = () => {
                       </tr>
                     ))}
                     {medicineLogsData.length === 0 && (
-                      <tr><td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('No medicine logs found')}</td></tr>
+                      <tr><td colSpan={6} style={emptyStateStyle}>{t('No medicine logs found')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -560,3 +615,4 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
+

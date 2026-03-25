@@ -1,452 +1,551 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
-import usePermissions from '../hooks/usePermissions';
 import apiClient from '../services/apiClient';
-import {
-  Users, ClipboardList, CheckCircle2,
-  Clock, BarChart3, ScrollText, ShieldCheck
-} from 'lucide-react';
+import { Package, Users, ClipboardList, ShieldAlert } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
 
-// ─── Vibrant color palettes ───────────────────────────────
-const COLORS = [
-  '#6366f1', '#f43f5e', '#0ea5e9', '#f59e0b', '#10b981',
-  '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4',
-  '#a855f7', '#ef4444', '#22c55e', '#eab308', '#3b82f6',
-  '#d946ef', '#84cc16', '#e11d48', '#0891b2', '#7c3aed',
-];
-
-const ATTENDANCE_COLORS = {
-  Present: '#22c55e', Absent: '#ef4444', Leave: '#f59e0b', WOFF: '#6366f1', 'Half Day': '#3b82f6'
+const DATE_LOCALES = { en: 'en-US', hi: 'hi-IN', te: 'te-IN', kn: 'kn-IN' };
+const RUPEE = '\u20B9';
+const DEPARTMENT_MAP = {
+  Guard: 'Ground Ops',
+  Gardener: 'Ground Ops',
+  Housekeeping: 'Ground Ops',
+  Electrician: 'Ground Ops',
+  'Ground Supervisor': 'Ground Ops',
+  Groom: 'Stable Ops',
+  'Riding Boy': 'Stable Ops',
+  Rider: 'Stable Ops',
+  Farrier: 'Stable Ops',
+  Jamedar: 'Stable Ops',
+  Instructor: 'Stable Ops',
+  'Stable Manager': 'Stable Ops',
+  'Executive Admin': 'Accounts',
+  'Executive Accounts': 'Accounts',
+  'Senior Executive Accounts': 'Accounts',
+  'Senior Executive Admin': 'Accounts',
+  'Junior Executive Admin': 'Accounts',
+  'Restaurant Manager': 'Restaurant',
+  'Kitchen Helper': 'Restaurant',
+  Waiter: 'Restaurant',
+  'School Administrator': 'Leadership',
+  Director: 'Leadership',
+  'Super Admin': 'Leadership',
 };
-
+const ROLE_ABBREV = {
+  Guard: 'Guard',
+  Groom: 'Groom',
+  Gardener: 'Garden.',
+  Housekeeping: 'H/K',
+  Electrician: 'Electr.',
+  'Ground Supervisor': 'Grd.Sup',
+  'Riding Boy': 'Riding',
+  Rider: 'Rider',
+  Instructor: 'Instr.',
+  Farrier: 'Farrier',
+  Jamedar: 'Jamedar',
+  'Stable Manager': 'St.Mgr',
+  'Executive Accounts': 'Ex.Acc',
+  'Executive Admin': 'Ex.Adm',
+  'Restaurant Manager': 'Rest.Mgr',
+  'Kitchen Helper': 'Kit.Hlp',
+  Waiter: 'Waiter',
+  Director: 'Director',
+  'Super Admin': 'S.Admin',
+  Veterinarian: 'Vet',
+  Chef: 'Chef',
+  Accountant: 'Acct.',
+  Maintenance: 'Maint.',
+  'Kitchen Staff': 'Kit.Stf',
+  Driver: 'Driver',
+  'Senior Executive Admin': 'Sr.Adm',
+};
+const CHART_COLORS = ['#d199ff', '#a855f7', '#00e6c7', '#fb7185', '#f59e0b', '#60a5fa', '#22c55e', '#f97316'];
 const GENDER_COLORS = {
-  Stallion: '#3b82f6', Mare: '#ec4899', Gelding: '#8b5cf6', Colt: '#22c55e',
-  Filly: '#f97316', Foal: '#06b6d4', Stud: '#ef4444', Male: '#3b82f6', Female: '#ec4899',
+  Stallion: '#60a5fa',
+  Mare: '#fb7185',
+  Gelding: '#a855f7',
+  Colt: '#22c55e',
+  Filly: '#f97316',
+  Foal: '#00e6c7',
+  Stud: '#ef4444',
+  Male: '#60a5fa',
+  Female: '#fb7185',
+  Unknown: '#94a3b8',
+};
+const EXPENSE_DEPARTMENT_MAP = {
+  Medicine: 'Stable Ops',
+  Treatment: 'Stable Ops',
+  Maintenance: 'Ground Ops',
+  Miscellaneous: 'Accounts',
+};
+const tooltipStyle = {
+  background: 'var(--dashboard-tooltip-bg)',
+  border: '1px solid var(--dashboard-tooltip-border)',
+  borderRadius: 10,
+  fontSize: 12,
+  color: 'var(--dashboard-tooltip-text)',
+  padding: '8px 12px',
 };
 
-// ─── Counter animation hook ──────────────────────────────
-const useCounterAnimation = (targetValue, duration = 1000) => {
+const useCounterAnimation = (targetValue, duration = 900) => {
   const [displayValue, setDisplayValue] = useState(0);
+
   useEffect(() => {
-    if (typeof targetValue !== 'number' || targetValue === 0) { setDisplayValue(targetValue); return; }
-    let startTime = Date.now();
+    if (typeof targetValue !== 'number') {
+      setDisplayValue(0);
+      return;
+    }
+    if (targetValue === 0) {
+      setDisplayValue(0);
+      return;
+    }
+
+    const startTime = Date.now();
+    let frameId;
+
     const animate = () => {
       const progress = Math.min((Date.now() - startTime) / duration, 1);
       setDisplayValue(Math.floor(targetValue * progress));
-      if (progress < 1) requestAnimationFrame(animate);
+      if (progress < 1) frameId = window.requestAnimationFrame(animate);
     };
-    requestAnimationFrame(animate);
+
+    frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
   }, [targetValue, duration]);
+
   return displayValue;
 };
 
-// ─── Stat card ───────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, sub, accent, to }) => {
-  const navigate = useNavigate();
-  const animatedValue = useCounterAnimation(typeof value === 'number' ? value : 0, 1200);
-  const displayValue = typeof value === 'string' ? value : animatedValue;
+const RandomLetterReveal = ({ text }) => {
+  const [displayText, setDisplayText] = useState('');
+
+  useEffect(() => {
+    if (!text) return undefined;
+
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const letters = text.split('');
+    let iteration = 0;
+
+    const interval = window.setInterval(() => {
+      const scrambled = letters.map((char, index) => {
+        if (char === ' ') return ' ';
+        if (index < iteration) return char;
+        if (index === Math.floor(iteration)) {
+          return characters[Math.floor(Math.random() * characters.length)];
+        }
+        return ' ';
+      }).join('');
+
+      setDisplayText(scrambled);
+
+      if (iteration >= letters.length) {
+        window.clearInterval(interval);
+        setDisplayText(text);
+      }
+
+      iteration += 1;
+    }, 18);
+
+    return () => window.clearInterval(interval);
+  }, [text]);
+
+  return <span>{displayText || text}</span>;
+};
+
+const MetricCard = ({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  iconTone = 'primary',
+  subtitleTone = 'primary',
+  variant = 'default'
+}) => {
+  const animatedValue = useCounterAnimation(typeof value === 'number' ? value : 0, 1000);
+  const displayValue = typeof value === 'number' ? animatedValue : value;
   return (
-    <div className={`dash-stat-card${to ? ' dash-stat-card--link' : ''}`}
-      onClick={to ? () => navigate(to) : undefined} style={to ? { cursor: 'pointer' } : {}}>
-      <div className="dash-stat-top">
-        <span className="dash-stat-label">{label}</span>
-        <span className="dash-stat-icon" style={accent ? { background: accent + '18', color: accent } : {}}>
-          <Icon size={16} strokeWidth={1.8} />
-        </span>
+    <div className={`dashboard-lovable-card dashboard-lovable-card--${variant}`}>
+      <div className="dashboard-lovable-card-watermark">
+        <FaHorse />
       </div>
-      <div className="dash-stat-value">{displayValue}</div>
-      {sub && <div className="dash-stat-sub">{sub}</div>}
+      <div className="dashboard-lovable-card-head">
+        <span className="dashboard-lovable-card-title">{title}</span>
+        <div className={`dashboard-lovable-card-icon dashboard-lovable-card-icon--${iconTone}`}>
+          <Icon size={16} strokeWidth={2} />
+        </div>
+      </div>
+      <div className="dashboard-lovable-card-body">
+        <div className="dashboard-lovable-card-value">{displayValue}</div>
+        {subtitle && <div className={`dashboard-lovable-card-sub dashboard-lovable-card-sub--${subtitleTone}`}>{subtitle}</div>}
+      </div>
     </div>
   );
 };
 
-// ─── Custom pie label ────────────────────────────────────
-const renderPieLabel = ({ name, percent }) => percent > 0.04 ? `${name} (${(percent * 100).toFixed(0)}%)` : '';
-
-// ─── Chart card wrapper ──────────────────────────────────
-const ChartCard = ({ title, children, className = '' }) => (
-  <div className={`dash-chart-card ${className}`}>
-    <h3 className="dash-chart-title">{title}</h3>
+const ChartPanel = ({ title, children }) => (
+  <div className="dashboard-lovable-panel">
+    <h3 className="dashboard-lovable-panel-title">{title}</h3>
     {children}
   </div>
 );
 
-// ─── Main Dashboard ──────────────────────────────────────
+const EmptyState = ({ label }) => (
+  <div className="dashboard-lovable-empty">{label}</div>
+);
+
+const CustomBarLabel = ({ x, y, width, value }) => {
+  if (!value || value === 0) return null;
+  return (
+    <text
+      x={(x || 0) + (width || 0) / 2}
+      y={(y || 0) - 6}
+      textAnchor="middle"
+      fontSize={9}
+      fill="var(--lovable-text-soft)"
+      fontWeight={700}
+    >
+      {value}
+    </text>
+  );
+};
+
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { t, lang } = useI18n();
-  const p = usePermissions();
-  const [taskStats, setTaskStats] = useState({ pending: 0, completed: 0, total: 0 });
-  const [horsesCount, setHorsesCount] = useState(0);
-  const [employeesCount, setEmployeesCount] = useState(0);
-  const [auditLogsCount, setAuditLogsCount] = useState(0);
-  const [approvalsCount, setApprovalsCount] = useState(0);
-
-  // Chart data
-  const [employeesByRole, setEmployeesByRole] = useState([]);
-  const [employeesByGender, setEmployeesByGender] = useState([]);
-  const [horsesByGender, setHorsesByGender] = useState([]);
-  const [tasksByType, setTasksByType] = useState([]);
-  const [gateEntries, setGateEntries] = useState([]);
-  const [attendanceData, setAttendanceData] = useState([]);
-  const [groceryData, setGroceryData] = useState([]);
-
-  const dateLocales = { en: 'en-US', hi: 'hi-IN', te: 'te-IN', kn: 'kn-IN' };
-  const today = new Date().toLocaleDateString(dateLocales[lang] || 'en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  const { lang } = useI18n();
+  const [metrics, setMetrics] = useState({
+    totalHorses: 0,
+    totalStaff: 0,
+    pendingTasks: 0,
+    auditLogs: 0,
   });
+  const [employeesByRole, setEmployeesByRole] = useState([]);
+  const [teamByDepartment, setTeamByDepartment] = useState([]);
+  const [horsesByGender, setHorsesByGender] = useState([]);
+  const [transactionsByDepartment, setTransactionsByDepartment] = useState([]);
+  const [clock, setClock] = useState('');
 
-  const hour = new Date().getHours();
-  const getGreeting = () => {
-    if (hour < 12) return t('GOOD MORNING,');
-    if (hour < 17) return t('GOOD AFTERNOON,');
-    return t('GOOD EVENING,');
-  };
+  const locale = DATE_LOCALES[lang] || 'en-US';
+  const now = new Date();
+  const greeting = now.getHours() < 12 ? 'Good Morning' : now.getHours() < 17 ? 'Good Afternoon' : 'Good Evening';
+  const dateStr = now.toLocaleDateString(locale, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).toUpperCase();
 
-  useEffect(() => { loadAllStats(); }, []);
+  useEffect(() => {
+    const tick = () => {
+      setClock(new Date().toLocaleTimeString(locale, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }));
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [locale]);
 
-  const loadAllStats = async () => {
-    // Core stats
-    try {
-      const [tasksRes, horsesRes, employeesRes] = await Promise.allSettled([
-        apiClient.get('/tasks'),
-        apiClient.get('/horses'),
-        apiClient.get('/employees'),
-      ]);
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const [tasksRes, horsesRes, employeesRes, logsRes, expensesRes] = await Promise.allSettled([
+          apiClient.get('/tasks'),
+          apiClient.get('/horses'),
+          apiClient.get('/employees'),
+          apiClient.get('/audit-logs'),
+          apiClient.get('/expenses', { params: { limit: 1000 } }),
+        ]);
 
-      if (tasksRes.status === 'fulfilled') {
-        const tasks = tasksRes.value.data.data || tasksRes.value.data || [];
-        const pending = tasks.filter(t => t.status === 'Pending').length;
-        const completed = tasks.filter(t => t.status === 'Completed').length;
-        setTaskStats({ pending, completed, total: tasks.length });
-        setApprovalsCount(pending);
+        let totalHorses = 0;
+        let totalStaff = 0;
+        let pendingTasks = 0;
+        let auditLogs = 0;
 
-        // Tasks by type
-        const typeCount = {};
-        tasks.forEach(t => { typeCount[t.type || 'Other'] = (typeCount[t.type || 'Other'] || 0) + 1; });
-        setTasksByType(Object.entries(typeCount).map(([name, value]) => ({ name, value })));
+        if (tasksRes.status === 'fulfilled') {
+          const tasks = tasksRes.value.data.data || tasksRes.value.data || [];
+          pendingTasks = tasks.filter((task) => ['Pending', 'Pending Review', 'In Progress'].includes(task.status)).length;
+        }
+
+        if (horsesRes.status === 'fulfilled') {
+          const horses = horsesRes.value.data.data || horsesRes.value.data || [];
+          totalHorses = Array.isArray(horses) ? horses.length : 0;
+
+          const genderCount = {};
+          horses.forEach((horse) => {
+            const key = horse.gender || 'Unknown';
+            genderCount[key] = (genderCount[key] || 0) + 1;
+          });
+
+          setHorsesByGender(
+            Object.entries(genderCount)
+              .sort((a, b) => b[1] - a[1])
+              .map(([name, value], index) => ({
+                name,
+                value,
+                fill: GENDER_COLORS[name] || CHART_COLORS[index % CHART_COLORS.length],
+              }))
+          );
+        }
+
+        if (employeesRes.status === 'fulfilled') {
+          const employees = employeesRes.value.data.data || employeesRes.value.data || [];
+          totalStaff = Array.isArray(employees) ? employees.length : 0;
+
+          const roleCount = {};
+          const departmentCount = {};
+          employees.forEach((employee, index) => {
+            const role = employee.designation || 'Other';
+            const department = DEPARTMENT_MAP[role] || 'Other';
+            roleCount[role] = (roleCount[role] || 0) + 1;
+            departmentCount[department] = (departmentCount[department] || 0) + 1;
+          });
+
+          setEmployeesByRole(
+            Object.entries(roleCount)
+              .sort((a, b) => b[1] - a[1])
+              .map(([role, count], index) => ({
+                role,
+                shortRole: ROLE_ABBREV[role] || role.slice(0, 7),
+                count,
+                fill: CHART_COLORS[index % CHART_COLORS.length],
+              }))
+          );
+
+          const departmentEntries = Object.entries(departmentCount).sort((a, b) => b[1] - a[1]);
+          const departmentTotal = departmentEntries.reduce((sum, [, value]) => sum + value, 0);
+          setTeamByDepartment(
+            departmentEntries.map(([name, value], index) => ({
+              name,
+              value,
+              fill: CHART_COLORS[index % CHART_COLORS.length],
+              percent: departmentTotal ? Math.round((value / departmentTotal) * 100) : 0,
+            }))
+          );
+        }
+
+        if (logsRes.status === 'fulfilled') {
+          const logs = logsRes.value.data.data || logsRes.value.data || [];
+          auditLogs = Array.isArray(logs) ? logs.length : 0;
+        }
+
+        if (expensesRes.status === 'fulfilled') {
+          const payload = expensesRes.value.data;
+          const expenses = payload.expenses || payload.data || payload || [];
+          const departmentTotals = {};
+          expenses.forEach((expense) => {
+            const department = EXPENSE_DEPARTMENT_MAP[expense.type] || 'Leadership';
+            departmentTotals[department] = (departmentTotals[department] || 0) + (parseFloat(expense.amount) || 0);
+          });
+          const transactionEntries = Object.entries(departmentTotals).sort((a, b) => b[1] - a[1]);
+          setTransactionsByDepartment(
+            transactionEntries.map(([department, value], index) => ({
+              department,
+              value,
+              fill: CHART_COLORS[index % CHART_COLORS.length],
+            }))
+          );
+        }
+
+        setMetrics({ totalHorses, totalStaff, pendingTasks, auditLogs });
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
       }
+    };
 
-      if (horsesRes.status === 'fulfilled') {
-        const horses = horsesRes.value.data.data || horsesRes.value.data || [];
-        setHorsesCount(Array.isArray(horses) ? horses.length : 0);
-        // Horses by gender
-        const genderCount = {};
-        horses.forEach(h => { genderCount[h.gender || 'Unknown'] = (genderCount[h.gender || 'Unknown'] || 0) + 1; });
-        setHorsesByGender(Object.entries(genderCount).map(([name, value]) => ({ name, value })));
-      }
+    loadDashboard();
+  }, []);
 
-      if (employeesRes.status === 'fulfilled') {
-        const employees = employeesRes.value.data.data || employeesRes.value.data || [];
-        setEmployeesCount(Array.isArray(employees) ? employees.length : 0);
-        // By role
-        const roleCount = {};
-        employees.forEach(e => { roleCount[e.designation || 'Other'] = (roleCount[e.designation || 'Other'] || 0) + 1; });
-        setEmployeesByRole(Object.entries(roleCount).map(([name, value]) => ({ name, value })));
-        // By gender (use designation to infer — most systems don't track employee gender; placeholder)
-        // We'll show by department instead which is more useful
-        const deptMap = {
-          'Guard': 'Ground Ops', 'Gardener': 'Ground Ops', 'Housekeeping': 'Ground Ops',
-          'Electrician': 'Ground Ops', 'Ground Supervisor': 'Ground Ops',
-          'Groom': 'Stable Ops', 'Riding Boy': 'Stable Ops', 'Rider': 'Stable Ops',
-          'Farrier': 'Stable Ops', 'Jamedar': 'Stable Ops', 'Instructor': 'Stable Ops', 'Stable Manager': 'Stable Ops',
-          'Executive Admin': 'Accounts', 'Executive Accounts': 'Accounts', 'Senior Executive Accounts': 'Accounts',
-          'Senior Executive Admin': 'Accounts', 'Junior Executive Admin': 'Accounts',
-          'Restaurant Manager': 'Restaurant', 'Kitchen Helper': 'Restaurant', 'Waiter': 'Restaurant',
-          'School Administrator': 'Leadership', 'Director': 'Leadership', 'Super Admin': 'Leadership',
-        };
-        const deptCount = {};
-        employees.forEach(e => {
-          const dept = deptMap[e.designation] || 'Other';
-          deptCount[dept] = (deptCount[dept] || 0) + 1;
-        });
-        setEmployeesByGender(Object.entries(deptCount).map(([name, value]) => ({ name, value })));
-      }
-    } catch (error) {
-      console.error('Error loading dashboard stats:', error);
-    }
-
-    // Audit logs
-    try {
-      const logsRes = await apiClient.get('/audit-logs');
-      const logs = logsRes.data.data || logsRes.data || [];
-      setAuditLogsCount(Array.isArray(logs) ? logs.length : 0);
-    } catch { }
-
-    // Gate entries (today)
-    try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const gateRes = await apiClient.get(`/gate-entry/register?date=${todayStr}`);
-      const entries = gateRes.data.data || gateRes.data || [];
-      const typeCount = {};
-      entries.forEach(e => { typeCount[e.personType || 'Other'] = (typeCount[e.personType || 'Other'] || 0) + 1; });
-      setGateEntries(Object.entries(typeCount).map(([name, value]) => ({ name, value })));
-    } catch { }
-
-    // Attendance (today)
-    try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const attRes = await apiClient.get(`/attendance/daily?date=${todayStr}`);
-      const records = attRes.data.data || attRes.data || [];
-      const statusCount = {};
-      records.forEach(r => { statusCount[r.status || 'Unknown'] = (statusCount[r.status || 'Unknown'] || 0) + 1; });
-      setAttendanceData(Object.entries(statusCount).map(([name, value]) => ({ name, value })));
-    } catch { }
-
-    // Grocery inventory
-    try {
-      const now = new Date();
-      const grocRes = await apiClient.get(`/groceries-inventory?month=${now.getMonth() + 1}&year=${now.getFullYear()}`);
-      const items = grocRes.data.data || grocRes.data || [];
-      // Top 10 items by quantity
-      const sorted = [...items].sort((a, b) => (b.quantity || 0) - (a.quantity || 0)).slice(0, 10);
-      setGroceryData(sorted.map(i => ({ name: i.name?.substring(0, 20) || 'Item', quantity: i.quantity || 0, unit: i.unit || '' })));
-    } catch { }
-  };
-
-  const completionRate = taskStats.total > 0
-    ? Math.round((taskStats.completed / taskStats.total) * 100) : 0;
-
-  // ─── Stat cards by role ─────────────────────────────────
-  const renderCards = () => {
-    const role = user?.designation;
-    switch (role) {
-      case 'Super Admin':
-        return <>
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("Registered in system")} accent="#6366f1" to="/horses" />
-          <StatCard icon={Users} label={t("TOTAL EMPLOYEES")} value={employeesCount} sub={t("Active team members")} accent="#0ea5e9" to="/employees" />
-          <StatCard icon={Clock} label={t("PENDING TASKS")} value={taskStats.pending} sub={t("Awaiting action")} accent="#f59e0b" />
-          <StatCard icon={ScrollText} label={t("AUDIT LOGS")} value={auditLogsCount} sub={t("System events")} accent="#10b981" />
-        </>;
-      case 'Admin':
-        return <>
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("Registered in system")} accent="#6366f1" to="/horses" />
-          <StatCard icon={Users} label={t("TOTAL EMPLOYEES")} value={employeesCount} sub={t("Active team members")} accent="#0ea5e9" to="/employees" />
-          <StatCard icon={Clock} label={t("PENDING TASKS")} value={taskStats.pending} sub={t("Awaiting action")} accent="#f59e0b" />
-          <StatCard icon={ShieldCheck} label={t("PENDING APPROVALS")} value={approvalsCount} sub={t("Awaiting your review")} accent="#ef4444" />
-        </>;
-      case 'Zamindar':
-        return <>
-          <StatCard icon={ClipboardList} label={t("PENDING TASKS")} value={taskStats.total} sub={t("Total assigned")} accent="#6366f1" />
-          <StatCard icon={Clock} label={t("PENDING APPROVALS")} value={taskStats.pending} sub={t("In queue")} accent="#f59e0b" />
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("Under management")} accent="#10b981" to="/horses" />
-          <StatCard icon={Users} label={t("TOTAL EMPLOYEES")} value={employeesCount} sub={t("Active team members")} accent="#0ea5e9" to="/employees" />
-        </>;
-      case 'Instructor':
-        return <>
-          <StatCard icon={ClipboardList} label={t("Training Tasks")} value={taskStats.total} sub={t("Assigned to you")} accent="#6366f1" />
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("Active horses")} accent="#10b981" to="/horses" />
-          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub={t("This period")} accent="#0ea5e9" />
-        </>;
-      case 'Health Advisor':
-        return <>
-          <StatCard icon={ScrollText} label={t("Health Records")} value={horsesCount} sub={t("Total horses tracked")} accent="#6366f1" to="/horses" />
-          <StatCard icon={Clock} label={t("PENDING TASKS")} value={taskStats.pending} sub={t("Awaiting action")} accent="#f59e0b" />
-          <StatCard icon={FaHorse} label={t("TOTAL HORSES")} value={horsesCount} sub={t("In facility")} accent="#10b981" to="/horses" />
-        </>;
-      case 'Jamedar':
-        return <>
-          <StatCard icon={ClipboardList} label={t("Assigned Tasks")} value={taskStats.total} sub={t("Total workload")} accent="#6366f1" />
-          <StatCard icon={Clock} label={t("Pending")} value={taskStats.pending} sub={t("Not yet done")} accent="#f59e0b" />
-          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub={t("Finished tasks")} accent="#10b981" />
-          <StatCard icon={BarChart3} label={t("Completion Rate")} value={`${completionRate}%`} sub={t("Overall progress")} accent="#0ea5e9" />
-        </>;
-      case 'Groomer':
-      default:
-        return <>
-          <StatCard icon={ClipboardList} label={t("Daily Tasks")} value={taskStats.total} sub={t("Assigned today")} accent="#6366f1" />
-          <StatCard icon={Clock} label={t("Pending")} value={taskStats.pending} sub={t("Still to do")} accent="#f59e0b" />
-          <StatCard icon={CheckCircle2} label={t("Completed")} value={taskStats.completed} sub={t("Done today")} accent="#10b981" />
-          <StatCard icon={BarChart3} label={t("Completion Rate")} value={`${completionRate}%`} sub={t("Your progress")} accent="#0ea5e9" />
-        </>;
-    }
-  };
-
-  // ─── Permission-based chart sections (roles with access) ──
-  const permData = [
-    { name: 'Stable Ops', perms: 8 },
-    { name: 'Ground Ops', perms: 5 },
-    { name: 'Accounts', perms: 4 },
-    { name: 'Restaurant', perms: 3 },
-    { name: 'Leadership', perms: 12 },
-  ];
+  const departmentTotal = useMemo(
+    () => teamByDepartment.reduce((sum, item) => sum + item.value, 0),
+    [teamByDepartment]
+  );
+  const horseTotal = useMemo(
+    () => horsesByGender.reduce((sum, item) => sum + item.value, 0),
+    [horsesByGender]
+  );
+  const maxTransactionValue = useMemo(
+    () => Math.max(...transactionsByDepartment.map((item) => item.value), 0),
+    [transactionsByDepartment]
+  );
 
   return (
-    <div className="dashboard-page">
-      <div className="dash-header">
-        <div>
-          <p className="dash-greeting">{getGreeting()}</p>
-          <h1 className="dash-name">{user?.fullName || 'User'}</h1>
-          <p className="dash-role">{t(user?.designation)}</p>
-        </div>
-        <div className="dash-date">{today}</div>
+    <div className="dashboard-page lovable-page-shell dashboard-lovable">
+      <div className="dashboard-lovable-hero">
+        <h1 className="dashboard-lovable-hero-title">
+          <RandomLetterReveal text={`${greeting}, ${user?.fullName || 'User'}`} />
+        </h1>
+        <p className="dashboard-lovable-hero-meta">
+          {dateStr} <span className="dashboard-lovable-meta-sep">-</span> <span className="dashboard-lovable-meta-strong">{clock || '--:--:--'}</span>
+          <span className="dashboard-lovable-meta-sep">-</span>
+          <span className="dashboard-lovable-meta-strong">SYSTEM STATUS: OPTIMAL</span>
+        </p>
       </div>
 
-      {/* Stat cards */}
-      <div className="dashboard-grid">
-        {renderCards()}
+      <div className="dashboard-lovable-card-grid">
+        <MetricCard icon={Package} title="Total Horses" value={metrics.totalHorses} subtitle="Registered Assets" iconTone="primary" subtitleTone="destructive" />
+        <MetricCard icon={Users} title="Total Staff / Users" value={metrics.totalStaff} subtitle="Active Sessions" iconTone="primary" subtitleTone="primary" />
+        <MetricCard icon={ClipboardList} title="Pending Tasks" value={metrics.pendingTasks} subtitle="Queue Clear" iconTone="success" subtitleTone="destructive" variant="success" />
+        <MetricCard icon={ShieldAlert} title="Audit Logs / Issues" value={metrics.auditLogs} subtitle="No Critical Vulnerabilities" iconTone="destructive" subtitleTone="destructive" variant="alert" />
       </div>
 
-      {/* Charts Section */}
-      {p.isAdmin && (
-        <div className="dash-charts-section">
+      <div className="dashboard-lovable-chart-grid">
+        <ChartPanel title="Staff by Role">
+          {employeesByRole.length === 0 ? <EmptyState label="No role data available" /> : (
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={employeesByRole} margin={{ top: 16, right: 8, left: 0, bottom: 60 }} barCategoryGap="30%">
+                <XAxis
+                  dataKey="shortRole"
+                  tick={{ fontSize: 9, fill: 'var(--lovable-text-soft)', fontWeight: 500 }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={-40}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: 'var(--lovable-text-soft)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={22}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  formatter={(value, _name, props) => [value, props?.payload?.role || 'Count']}
+                  cursor={{ fill: 'var(--dashboard-chart-cursor)' }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} label={<CustomBarLabel />}>
+                  {employeesByRole.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartPanel>
 
-          {/* Row 1: Team + Horses */}
-          <div className="dash-charts-row">
-            {/* Team by Role — Bar chart */}
-            {employeesByRole.length > 0 && (
-              <ChartCard title={t("Team by Role")} className="dash-chart-hide-mobile">
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={employeesByRole} margin={{ top: 5, right: 20, left: 0, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border, #eee)" />
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card, #fff)' }} />
-                    <Bar dataKey="value" name="Count" radius={[6, 6, 0, 0]}>
-                      {employeesByRole.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-
-            {/* Team by Department — Pie chart */}
-            {employeesByGender.length > 0 && (
-              <ChartCard title={t("Team by Department")}>
-                <ResponsiveContainer width="100%" height={280}>
+        <ChartPanel title="Staff by Department">
+          {teamByDepartment.length === 0 ? <EmptyState label="No department data available" /> : (
+            <div className="dashboard-lovable-split">
+              <div className="dashboard-lovable-donut-wrap">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={employeesByGender} cx="50%" cy="50%" outerRadius={90} innerRadius={40} dataKey="value"
-                      label={renderPieLabel} labelLine={{ stroke: '#aaa' }} paddingAngle={3}>
-                      {employeesByGender.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    <Pie
+                      data={teamByDepartment}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      strokeWidth={2}
+                      stroke="var(--dashboard-pie-stroke)"
+                    >
+                      {teamByDepartment.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Tooltip contentStyle={tooltipStyle} />
                   </PieChart>
                 </ResponsiveContainer>
-              </ChartCard>
-            )}
-          </div>
+                <div className="dashboard-lovable-donut-center">
+                  <p>{departmentTotal ? '100%' : '0%'}</p>
+                  <span>Allocated</span>
+                </div>
+              </div>
+              <div className="dashboard-lovable-progress-list">
+                {teamByDepartment.map((item) => (
+                  <div key={item.name} className="dashboard-lovable-progress-item">
+                    <div className="dashboard-lovable-progress-top">
+                      <div className="dashboard-lovable-progress-label">
+                        <span className="dashboard-lovable-dot" style={{ background: item.fill }} />
+                        <span>{item.name}</span>
+                      </div>
+                      <span className="dashboard-lovable-progress-value">{item.percent}%</span>
+                    </div>
+                    <div className="dashboard-lovable-progress-bar">
+                      <span style={{ width: `${item.percent}%`, background: item.fill }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </ChartPanel>
+      </div>
 
-          {/* Row 2: Horses Gender + Tasks Type */}
-          <div className="dash-charts-row">
-            {/* Horses by Gender — Pie chart */}
-            {horsesByGender.length > 0 && (
-              <ChartCard title={t("Horses by Gender")}>
-                <ResponsiveContainer width="100%" height={280}>
+      <div className="dashboard-lovable-chart-grid">
+        <ChartPanel title="Horses by Gender">
+          {horsesByGender.length === 0 ? <EmptyState label="No horse data available" /> : (
+            <div className="dashboard-lovable-split dashboard-lovable-split--compact">
+              <div className="dashboard-lovable-donut-wrap dashboard-lovable-donut-wrap--small">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={horsesByGender} cx="50%" cy="50%" outerRadius={90} innerRadius={40} dataKey="value"
-                      label={renderPieLabel} labelLine={{ stroke: '#aaa' }} paddingAngle={3}>
-                      {horsesByGender.map((entry, i) => (
-                        <Cell key={i} fill={GENDER_COLORS[entry.name] || COLORS[i % COLORS.length]} />
-                      ))}
+                    <Pie
+                      data={horsesByGender}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={68}
+                      strokeWidth={2}
+                      stroke="var(--dashboard-pie-stroke)"
+                    >
+                      {horsesByGender.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Tooltip contentStyle={tooltipStyle} />
                   </PieChart>
                 </ResponsiveContainer>
-              </ChartCard>
-            )}
+              </div>
+              <div className="dashboard-lovable-stat-list">
+                {horsesByGender.map((item) => {
+                  const percent = horseTotal ? (item.value / horseTotal) * 100 : 0;
+                  return (
+                    <div key={item.name} className="dashboard-lovable-stat-item">
+                      <div className="dashboard-lovable-progress-top">
+                        <div className="dashboard-lovable-progress-label">
+                          <span className="dashboard-lovable-dot dashboard-lovable-dot--large" style={{ background: item.fill }} />
+                          <span>{item.name}s</span>
+                        </div>
+                        <span className="dashboard-lovable-stat-number" style={{ color: item.fill }}>{item.value}</span>
+                      </div>
+                      <div className="dashboard-lovable-progress-bar dashboard-lovable-progress-bar--large">
+                        <span style={{ width: `${percent}%`, background: item.fill }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </ChartPanel>
 
-            {/* Tasks by Type — Bar chart */}
-            {tasksByType.length > 0 && (
-              <ChartCard title={t("Tasks by Type")}>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={tasksByType} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border, #eee)" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card, #fff)' }} />
-                    <Bar dataKey="value" name="Count" radius={[6, 6, 0, 0]}>
-                      {tasksByType.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-          </div>
-
-          {/* Row 3: Gate Entry + Attendance */}
-          <div className="dash-charts-row">
-            {/* Gate Register — Pie chart */}
-            {gateEntries.length > 0 && (
-              <ChartCard title={t("Gate Register (Today)")}>
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie data={gateEntries} cx="50%" cy="50%" outerRadius={90} innerRadius={40} dataKey="value"
-                      label={renderPieLabel} labelLine={{ stroke: '#aaa' }} paddingAngle={5}>
-                      {gateEntries.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-
-            {/* Attendance — Pie chart */}
-            {attendanceData.length > 0 && (
-              <ChartCard title={t("Attendance (Today)")}>
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie data={attendanceData} cx="50%" cy="50%" outerRadius={90} innerRadius={40} dataKey="value"
-                      label={renderPieLabel} labelLine={{ stroke: '#aaa' }} paddingAngle={5}>
-                      {attendanceData.map((entry, i) => (
-                        <Cell key={i} fill={ATTENDANCE_COLORS[entry.name] || COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-          </div>
-
-          {/* Row 4: Grocery Inventory + Permissions */}
-          <div className="dash-charts-row">
-            {/* Grocery Inventory — Bar chart */}
-            {groceryData.length > 0 && (
-              <ChartCard title={t("Grocery Inventory (Top 10)")}>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={groceryData} margin={{ top: 5, right: 20, left: 0, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border, #eee)" />
-                    <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-40} textAnchor="end" interval={0} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card, #fff)' }}
-                      formatter={(val, _, item) => [`${val} ${item.payload.unit}`, 'Stock']} />
-                    <Bar dataKey="quantity" name="Stock" radius={[6, 6, 0, 0]}>
-                      {groceryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-
-            {/* Permissions by Department — Bar chart */}
-            <ChartCard title={t("Permissions by Department")}>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={permData} layout="vertical" margin={{ top: 5, right: 20, left: 60, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border, #eee)" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={80} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card, #fff)' }} />
-                  <Bar dataKey="perms" name="Permission Count" radius={[0, 6, 6, 0]}>
-                    {permData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
-
-        </div>
-      )}
+        <ChartPanel title="Transactions by Department">
+          {transactionsByDepartment.length === 0 ? <EmptyState label="No transaction data available" /> : (
+            <div className="dashboard-lovable-transaction-list">
+              {transactionsByDepartment.map((item) => {
+                const percent = maxTransactionValue ? (item.value / maxTransactionValue) * 100 : 0;
+                return (
+                  <div key={item.department} className="dashboard-lovable-transaction-item">
+                    <div className="dashboard-lovable-progress-top">
+                      <span className="dashboard-lovable-transaction-label">{item.department}</span>
+                      <span className="dashboard-lovable-transaction-value">{RUPEE}{Math.round(item.value).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="dashboard-lovable-progress-bar dashboard-lovable-progress-bar--large">
+                      <span style={{ width: `${percent}%`, background: item.fill }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </ChartPanel>
+      </div>
     </div>
   );
 };

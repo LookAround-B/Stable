@@ -385,7 +385,7 @@ const ProfilePage = () => {
           <div className="crop-modal" onClick={e => e.stopPropagation()}>
             <div className="crop-modal-header">
               <h3>Adjust your photo</h3>
-              <button className="crop-close-btn" onClick={handleCancelCrop}>✕</button>
+              <button className="crop-close-btn" onClick={handleCancelCrop} aria-label="Close"><X size={18} /></button>
             </div>
             <div className="crop-area">
               <Cropper
@@ -415,7 +415,7 @@ const ProfilePage = () => {
             <div className="crop-modal-actions">
               <button className="btn-secondary" onClick={handleCancelCrop} disabled={uploading}>Cancel</button>
               <button className="btn-primary" onClick={handleSaveCrop} disabled={uploading}>
-                {uploading ? 'Saving…' : 'Apply Photo'}
+                {uploading ? 'Saving...' : 'Apply Photo'}
               </button>
             </div>
           </div>

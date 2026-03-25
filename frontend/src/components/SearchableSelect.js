@@ -24,7 +24,10 @@ const SearchableSelect = ({
   placeholder = 'Select...',
   disabled = false,
   required = false,
-  className = '',  searchable = true,  creatable = false,}) => {
+  className = '',
+  searchable = true,
+  creatable = false,
+}) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [openUp, setOpenUp] = useState(false);
@@ -146,7 +149,6 @@ const SearchableSelect = ({
                 onClick={() => handleSelect(search.trim())}
                 role="option"
                 aria-selected={false}
-                style={{ color: '#2563eb', fontWeight: 600 }}
               >
                 + Add "{search.trim()}"
               </li>

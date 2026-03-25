@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Search, Download } from 'lucide-react';
+import { Camera, Download, Search, X } from 'lucide-react';
 import { FaHorse } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 
@@ -237,6 +237,12 @@ const HorsesPage = () => {
     (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const totalHorses = horses.length;
+  const activeHorses = horses.filter((horse) => (horse.status || '').toLowerCase() === 'active').length;
+  const assignedHorses = horses.filter((horse) => horse.supervisorId || horse.supervisor).length;
+  const passportedHorses = horses.filter((horse) => horse.passportNumber).length;
+  const assignmentRate = totalHorses > 0 ? Math.round((assignedHorses / totalHorses) * 100) : 0;
+
   // Pagination
   const totalPages = Math.ceil(filteredHorses.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -264,7 +270,7 @@ const HorsesPage = () => {
   if (!p.viewHorses) return <Navigate to="/" replace />;
 
   return (
-    <div className="horses-page">
+    <div className="horses-page lovable-page-shell">
       <div className="page-header">
         <div>
           <h1>{t('Horses')}</h1>
@@ -274,14 +280,46 @@ const HorsesPage = () => {
               : t('Only Admin and Instructor can add horses')}
           </p>
         </div>
-        {canAddHorse && (
-          <button 
-            className="btn-add" 
-            onClick={() => setShowModal(true)}
-          >
-            <FaHorse style={{marginRight:'4px'}} /> {t('Add New Horse')}
-          </button>
-        )}
+        <div className="lovable-header-actions">
+          {canAddHorse && (
+            <button 
+              className="btn-add" 
+              onClick={() => setShowModal(true)}
+            >
+              <FaHorse style={{marginRight:'4px'}} /> {t('Add New Horse')}
+            </button>
+          )}
+          <div className="lovable-command-chip">
+            <div className="lovable-command-ring">{assignmentRate}%</div>
+            <div className="lovable-command-copy">
+              <strong>{t('Stable Assignment')}</strong>
+              <span>{t('Managed Coverage')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lovable-metric-strip">
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Total Horses')}</div>
+          <div className="lovable-metric-card-value">{totalHorses}</div>
+          <div className="lovable-metric-card-sub">{t('Horses currently registered in the facility')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Active')}</div>
+          <div className="lovable-metric-card-value">{activeHorses}</div>
+          <div className="lovable-metric-card-sub">{t('Horses marked active and operational')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Assigned')}</div>
+          <div className="lovable-metric-card-value">{assignedHorses}</div>
+          <div className="lovable-metric-card-sub">{t('Already attached to a manager or supervisor')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Passport Ready')}</div>
+          <div className="lovable-metric-card-value">{passportedHorses}</div>
+          <div className="lovable-metric-card-sub">{t('Records carrying passport information')}</div>
+        </div>
       </div>
 
       {/* Modal */}
@@ -290,7 +328,7 @@ const HorsesPage = () => {
           <div className="modal">
             <div className="modal-header">
               <h2><FaHorse style={{marginRight:'6px',verticalAlign:'middle'}} /> {t('Add New Horse')}</h2>
-              <button className="close-btn" onClick={closeModal}>✕</button>
+              <button className="close-btn" onClick={closeModal} aria-label={t('Close')}><X size={18} /></button>
             </div>
 
             <form onSubmit={handleAddHorse} className="modal-form">
@@ -301,7 +339,7 @@ const HorsesPage = () => {
                     ? <img src={newHorseImage} alt="preview" className="add-photo-preview" />
                     : <FaHorse className="add-photo-placeholder" style={{fontSize:'48px'}} />
                   }
-                  <div className="add-photo-overlay">📷</div>
+                  <div className="add-photo-overlay"><Camera size={16} /></div>
                 </div>
                 <input type="file" ref={horseImgRef} accept="image/*" style={{display:'none'}} onChange={handleHorseImagePick} disabled={loading} />
                 <span className="add-photo-label">{newHorseImage ? t('Tap to change photo') : t('Add Photo (optional)')}</span>
@@ -481,7 +519,7 @@ const HorsesPage = () => {
         <div className="team-section">
           <h2>{t('Horses Under My Care')}</h2>
           <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
+            <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
             <input
               type="text"
               placeholder={t("Search by name, stable number, breed, color, gender...")}
@@ -534,7 +572,7 @@ const HorsesPage = () => {
                     <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
                     <td>{horse.breed ? t(horse.breed) : ''}</td>
                     <td>{horse.color ? t(horse.color) : ''}</td>
-                    <td>{t(horse.status)}</td>
+                    <td><span className="status-badge">{t(horse.status)}</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -550,7 +588,7 @@ const HorsesPage = () => {
           <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
         </div>
         <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
+          <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
           <input
             type="text"
             placeholder={t("Search by name, stable number, breed, color, gender...")}
@@ -612,7 +650,7 @@ const HorsesPage = () => {
                       : '-'
                     }
                   </td>
-                  <td>{t(horse.status)}</td>
+                  <td><span className="status-badge">{t(horse.status)}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -635,7 +673,7 @@ const HorsesPage = () => {
 
       {lightboxSrc && ReactDOM.createPortal(
         <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
-          <button className="lightbox-close" onClick={() => setLightboxSrc(null)}>✕</button>
+          <button className="lightbox-close" onClick={() => setLightboxSrc(null)} aria-label={t('Close')}><X size={18} /></button>
           <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
         </div>
       , document.body)}

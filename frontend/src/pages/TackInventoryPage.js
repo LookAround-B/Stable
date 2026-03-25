@@ -158,7 +158,7 @@ const TackInventoryPage = () => {
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
                 <input type="text" name="itemName" value={formData.itemName} onChange={handleInputChange}
                   required maxLength={100} placeholder="e.g., English Saddle"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Category *</label>
@@ -178,7 +178,7 @@ const TackInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Quantity</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} min="0"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Condition</label>
@@ -188,37 +188,37 @@ const TackInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Brand</label>
                 <input type="text" name="brand" value={formData.brand} onChange={handleInputChange} maxLength={100}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Size</label>
                 <input type="text" name="size" value={formData.size} onChange={handleInputChange} maxLength={50}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Material</label>
                 <input type="text" name="material" value={formData.material} onChange={handleInputChange} maxLength={100}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Purchase Date</label>
                 <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Last Used Date</label>
                 <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Storage Location</label>
                 <input type="text" name="storageLocation" value={formData.storageLocation} onChange={handleInputChange} maxLength={200}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Cleaning Schedule</label>
                 <input type="text" name="cleaningSchedule" value={formData.cleaningSchedule} onChange={handleInputChange} maxLength={200}
-                  placeholder="e.g., Weekly" style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  placeholder="e.g., Weekly" style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingTop: "24px" }}>
                 <input type="checkbox" name="maintenanceRequired" checked={formData.maintenanceRequired} onChange={handleInputChange} />
@@ -228,12 +228,12 @@ const TackInventoryPage = () => {
             <div style={{ marginTop: "12px" }}>
               <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Notes</label>
               <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows="2" maxLength={500}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
             </div>
             <div style={{ marginTop: "12px" }}>
               <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Repair History</label>
               <textarea name="repairHistory" value={formData.repairHistory} onChange={handleInputChange} rows="2" maxLength={1000}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
               <button type="submit" className="btn btn-primary">{editingId ? "Update" : "Add Item"}</button>
@@ -263,14 +263,14 @@ const TackInventoryPage = () => {
           <label style={{ fontSize: "0.9rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Search</label>
           <input type="text" placeholder="Search by name, brand..." value={search}
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
         </div>
         <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {/* Maintenance alerts */}
       {items.some(i => i.maintenanceRequired) && (
-        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e' }}>
+        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.24)', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', color: '#f59e0b' }}>
           <strong>⚠ Maintenance Required</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
             {items.filter(i => i.maintenanceRequired).map(i => (
@@ -297,7 +297,7 @@ const TackInventoryPage = () => {
           <div className="table-wrapper">
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid rgba(0,0,0,0.15)" }}>
+                <tr style={{ borderBottom: "1px solid var(--lovable-line)" }}>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>#</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Item Name</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Category</th>
@@ -313,7 +313,7 @@ const TackInventoryPage = () => {
               </thead>
               <tbody>
                 {paginatedItems.map((item, i) => (
-                  <tr key={item.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(item.condition === 'Damaged' ? { background: 'rgba(239,68,68,0.08)' } : item.maintenanceRequired ? { background: 'rgba(245,158,11,0.08)' } : {}) }}>
+                  <tr key={item.id} style={{ borderBottom: "1px solid var(--lovable-line)", ...(item.condition === 'Damaged' ? { background: 'rgba(239,68,68,0.08)' } : item.maintenanceRequired ? { background: 'rgba(245,158,11,0.08)' } : {}) }}>
                     <td style={{ padding: "10px 12px", opacity: 0.5 }}>{startIndex + i + 1}</td>
                     <td style={{ padding: "10px 12px", fontWeight: 500 }}>{item.itemName}</td>
                     <td style={{ padding: "10px 12px" }}>{item.category}</td>
@@ -353,3 +353,5 @@ const TackInventoryPage = () => {
 };
 
 export default TackInventoryPage;
+
+

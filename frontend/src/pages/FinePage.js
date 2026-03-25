@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
-import { Download } from 'lucide-react';
+import { Check, Download, X } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
@@ -381,7 +381,7 @@ const FinePage = () => {
     const data = fines.map(f => ({
       'Date': f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-GB') : '',
       'Issued To': f.issuedTo?.fullName || '',
-      'Amount (₹)': f.amount,
+      'Amount (INR)': f.amount,
       'Reason': f.reason,
       'Status': f.status,
       'Resolved By': f.resolvedBy?.fullName || '',
@@ -402,14 +402,14 @@ const FinePage = () => {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {canIssueFines && (
             <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-              {showForm ? '✕ Cancel' : '+ Issue Fine'}
+              {showForm ? 'Cancel' : '+ Issue Fine'}
             </button>
           )}
           <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
         </div>
       </div>
 
-      {message && <div className={`message ${message.includes('✓') ? 'success' : 'error'}`}>{message}</div>}
+      {message && <div className={`message ${/success|issued|resolved|updated/i.test(message) ? 'success' : 'error'}`}>{message}</div>}
 
       {/* Issue Fine Form */}
       {canIssueFines && showForm && (
@@ -446,7 +446,7 @@ const FinePage = () => {
             </div>
 
             <div className="form-group">
-              <label>Fine Amount (₹)</label>
+              <label>Fine Amount (INR)</label>
               <input
                 type="number"
                 name="amount"
@@ -471,7 +471,7 @@ const FinePage = () => {
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Processing...' : '✓ Issue Fine'}
+              {loading ? 'Processing...' : 'Issue Fine'}
             </button>
           </form>
         </div>
@@ -539,7 +539,7 @@ const FinePage = () => {
                 <tr key={fine.id}>
                   <td>{formatDate(fine.createdAt)}</td>
                   <td>{fine.issuedTo?.fullName}</td>
-                  <td>₹ {parseFloat(fine.amount || 0).toFixed(2)}</td>
+                  <td>INR {parseFloat(fine.amount || 0).toFixed(2)}</td>
                   <td>{fine.reason.substring(0, 50)}...</td>
                   <td>
                     <span
@@ -616,7 +616,7 @@ const FinePage = () => {
       {fullScreenImage && ReactDOM.createPortal(
         <div className="full-screen-image-viewer" onClick={() => setFullScreenImage(null)}>
           <div className="close-button" onClick={() => setFullScreenImage(null)}>
-            ✕
+            ?
           </div>
           <img src={fullScreenImage} alt="Evidence" />
         </div>,
@@ -630,7 +630,7 @@ const FinePage = () => {
             <div className="modal-header">
               <h2>{t('Fine Details')}</h2>
               <button className="btn-close" onClick={() => setViewingFine(null)}>
-                ✕
+                <X size={18} />
               </button>
             </div>
             <div className="modal-body">
@@ -648,7 +648,7 @@ const FinePage = () => {
               </div>
               <div className="detail-group">
                 <label>Amount:</label>
-                <p>₹ {parseFloat(viewingFine.amount || 0).toFixed(2)}</p>
+                <p>INR {parseFloat(viewingFine.amount || 0).toFixed(2)}</p>
               </div>
               <div className="detail-group">
                 <label>Reason:</label>
@@ -700,7 +700,7 @@ const FinePage = () => {
             <div className="modal-header">
               <h2>{t('Resolve Fine')}</h2>
               <button className="btn-close" onClick={() => setResolvingFine(null)}>
-                ✕
+                <X size={18} />
               </button>
             </div>
             <form onSubmit={handleResolveFine}>
@@ -737,7 +737,7 @@ const FinePage = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? 'Processing...' : '✓ Update Status'}
+                  {loading ? 'Processing...' : <><Check size={16} /> Update Status</>}
                 </button>
               </div>
             </form>
@@ -745,7 +745,6 @@ const FinePage = () => {
         </div>,
         document.body
       )}
-
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onConfirm={confirmDelete}

@@ -1,87 +1,176 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
-import { logout } from '../services/authService';
-import Navigation from './Navigation';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Menu, Moon, Quote, Search, Sun, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 import NotificationCenter from './NotificationCenter';
-import { useI18n } from '../context/I18nContext';
 
 const QUOTES = [
-  "To understand the soul of a horse is the closest human beings can come to knowing perfection.",
-  "Ask me to show you poetry in motion and I will show you a horse.",
-  "A pony is a childhood dream. A horse is an adulthood treasure.",
-  "The history of mankind is carried on the back of a horse."
+  'A horse is poetry in motion.',
+  'No hour is wasted spent in the saddle.',
+  'Horses lend us the wings we lack.',
+  "The horse knows. He knows to the penny how much he's worth.",
+  'In riding a horse, we borrow freedom.',
+  'There is no secret so close as between a rider and his horse.',
+  'One can get in a horse a power that no other animal can give.',
+  'Four legs move the body. The heart moves the soul.',
+  'Courage is being scared to death but saddling up anyway.',
+  'A pony is a childhood dream, a horse is an adulthood treasure.',
 ];
 
-const getRandomQuote = () => QUOTES[Math.floor(Math.random() * QUOTES.length)];
-
-const MainLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [quote, setQuote] = useState('');
-  const location = useLocation();
-  const navigate = useNavigate();
-  const innerContentRef = useRef(null);
+function MainLayout() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [theme, setTheme] = useState(() => {
+    const saved = window.localStorage.getItem('efm.ui.theme');
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
+    }
+    return 'dark';
+  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = window.localStorage.getItem('efm.sidebar.collapsed');
+    return saved === '1';
+  });
+  const { user } = useAuth();
   const { t } = useI18n();
+  const location = useLocation();
+  const innerContentRef = useRef(null);
 
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const toggleSidebar = useCallback(() => {
-    setSidebarOpen(prev => !prev);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % QUOTES.length);
+    }, 7000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  const closeSidebar = useCallback(() => {
-    setSidebarOpen(false);
-  }, []);
-
-  // Initialize quote on component mount
-  React.useEffect(() => {
-    setQuote(getRandomQuote());
-  }, []);
-
-  // Close sidebar on route change (mobile) and scroll main content to top, update quote
-  React.useEffect(() => {
-    setSidebarOpen(false);
-    setQuote(getRandomQuote());
+  useEffect(() => {
+    setMobileOpen(false);
+    setMobileSearchOpen(false);
     if (innerContentRef.current) {
       innerContentRef.current.scrollTop = 0;
     }
   }, [location.pathname]);
 
+  useEffect(() => {
+    window.localStorage.setItem('efm.sidebar.collapsed', sidebarCollapsed ? '1' : '0');
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    window.localStorage.setItem('efm.ui.theme', theme);
+    document.documentElement.setAttribute('data-efm-theme', theme);
+    document.body.classList.toggle('efm-theme-light', theme === 'light');
+    const themeColor = theme === 'light' ? '#f6f7fb' : '#09090b';
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) {
+      themeMeta.setAttribute('content', themeColor);
+    }
+  }, [theme]);
+
+  const quote = useMemo(() => QUOTES[quoteIndex], [quoteIndex]);
+
   return (
-    <div className="main-layout">
-      <Navigation onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} quote={quote} />
-      <div className="layout-container">
-        {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar} />}
-        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
-        <main className="main-content">
-          <header className="main-header desktop-only-header">
-            <div className="main-header-left">
-              <span className="nav-quote">"{quote}"</span>
+    <div className={`lovable-shell lovable-theme-${theme}`}>
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+      />
+
+      {mobileOpen && (
+        <button
+          className="lovable-shell-overlay"
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+          type="button"
+        />
+      )}
+
+      <div className="lovable-shell-body">
+        <header className="lovable-topbar">
+          <div className="lovable-topbar-left">
+            <button className="lovable-menu-btn" onClick={() => setMobileOpen(true)} aria-label="Open menu" type="button">
+              <Menu size={18} />
+            </button>
+
+            <div className="lovable-brand-mobile">EFM</div>
+
+            <button
+              className="lovable-mobile-search-btn"
+              onClick={() => setMobileSearchOpen((prev) => !prev)}
+              aria-label="Toggle search"
+              type="button"
+            >
+              <Search size={16} />
+            </button>
+
+            <div className="lovable-search-wrap lovable-topbar-sm-up">
+              <SearchBar placeholder={t('Command + K to search...')} />
             </div>
-            <div className="main-header-right">
-              <LanguageSwitcher />
-              <SearchBar />
-              <NotificationCenter />
-              <button className="logout-btn" onClick={handleLogout}>
-                {t('Logout')} <LogOut size={16} />
+
+            <div className="lovable-quote lovable-topbar-md-up">
+              <Quote size={14} className="lovable-quote-icon" />
+              <span>{quote}</span>
+            </div>
+          </div>
+
+          <div className="lovable-topbar-right">
+            <div className="lovable-topbar-actions">
+              <button
+                className="lovable-topbar-icon"
+                type="button"
+                aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+              >
+                {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
               </button>
+              <div className="lovable-topbar-sm-up">
+                <LanguageSwitcher compact />
+              </div>
+              <NotificationCenter />
             </div>
-          </header>
+            <div className="lovable-topbar-divider lovable-topbar-sm-up" />
+            <Link to="/profile" className="lovable-user-pill">
+              <div className="lovable-user-pill-copy lovable-topbar-sm-up">
+                <span className="lovable-user-name">{user?.fullName || 'Admin User'}</span>
+                <span className="lovable-user-role">{t(user?.designation || 'Super Admin')}</span>
+              </div>
+              <div className="lovable-user-avatar">
+                {user?.profileImage ? (
+                  <img src={user.profileImage} alt={user.fullName} className="lovable-user-avatar-img" />
+                ) : (
+                  <User size={16} />
+                )}
+              </div>
+            </Link>
+          </div>
+        </header>
+
+        {mobileSearchOpen && (
+          <div className="lovable-mobile-search">
+            <SearchBar placeholder={t('Search...')} />
+          </div>
+        )}
+
+        <div className="lovable-quote-mobile">
+          <Quote size={12} className="lovable-quote-icon" />
+          <span>{quote}</span>
+        </div>
+
+        <main className="lovable-main-content">
           <div className="main-content-inner" ref={innerContentRef}>
             <Outlet />
           </div>
-          <div className="powered-by">{t('Powered by LookAround')}</div>
         </main>
       </div>
     </div>
   );
-};
+}
 
 export default MainLayout;

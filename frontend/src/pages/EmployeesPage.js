@@ -8,7 +8,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Search, Download } from 'lucide-react';
+import { Camera, Download, Search, User, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
@@ -44,26 +44,25 @@ const SUPERVISORY_ROLES = [
   'Senior Executive Accounts',
 ];
 
-// Color palette for role badges - covers predefined + generates for any custom role
 const ROLE_COLORS = {
-  'Super Admin':               { bg: '#d1c4e9', color: '#311b92', border: '#9575cd' },
-  'Director':                  { bg: '#f8bbd0', color: '#880e4f', border: '#ec407a' },
-  'School Administrator':      { bg: '#ffe0b2', color: '#bf360c', border: '#ff9800' },
-  'Stable Manager':            { bg: '#b2dfdb', color: '#004d40', border: '#26a69a' },
-  'Ground Supervisor':         { bg: '#bbdefb', color: '#0d47a1', border: '#42a5f5' },
-  'Senior Executive Accounts': { bg: '#c5cae9', color: '#1a237e', border: '#7986cb' },
-  'Instructor':                { bg: '#c8e6c9', color: '#1b5e20', border: '#66bb6a' },
-  'Executive Accounts':        { bg: '#b3e5fc', color: '#01579b', border: '#29b6f6' },
-  'Executive Admin':           { bg: '#e1bee7', color: '#4a148c', border: '#ab47bc' },
-  'Jamedar':                   { bg: '#ffecb3', color: '#e65100', border: '#ffa726' },
-  'Groom':                     { bg: '#b2ebf2', color: '#006064', border: '#26c6da' },
-  'Gardener':                  { bg: '#dcedc8', color: '#33691e', border: '#8bc34a' },
-  'Riding Boy':                { bg: '#bbdefb', color: '#0d47a1', border: '#42a5f5' },
-  'Rider':                     { bg: '#90caf9', color: '#0a3d91', border: '#1e88e5' },
-  'Farrier':                   { bg: '#d7ccc8', color: '#3e2723', border: '#8d6e63' },
-  'Guard':                     { bg: '#cfd8dc', color: '#263238', border: '#78909c' },
-  'Electrician':               { bg: '#fff9c4', color: '#e65100', border: '#ffee58' },
-  'Housekeeping':              { bg: '#f8bbd0', color: '#880e4f', border: '#ec407a' },
+  'Super Admin': '#c084fc',
+  'Director': '#f472b6',
+  'School Administrator': '#f59e0b',
+  'Stable Manager': '#22c55e',
+  'Ground Supervisor': '#38bdf8',
+  'Senior Executive Accounts': '#60a5fa',
+  'Instructor': '#fb7185',
+  'Executive Accounts': '#2dd4bf',
+  'Executive Admin': '#fbbf24',
+  'Jamedar': '#f97316',
+  'Groom': '#34d399',
+  'Gardener': '#84cc16',
+  'Riding Boy': '#f97316',
+  'Rider': '#3b82f6',
+  'Farrier': '#fb923c',
+  'Guard': '#94a3b8',
+  'Electrician': '#facc15',
+  'Housekeeping': '#f472b6',
 };
 
 // Generate a consistent color from any string (for roles not in the map)
@@ -71,21 +70,17 @@ const hashStringToColor = (str) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
   const hue = Math.abs(hash) % 360;
-  return {
-    bg: `hsl(${hue}, 55%, 85%)`,
-    color: `hsl(${hue}, 70%, 25%)`,
-    border: `hsl(${hue}, 55%, 65%)`,
-  };
+  return `hsl(${hue}, 70%, 62%)`;
 };
 
 const getRoleBadgeStyle = (designation) => {
   if (!designation) return {};
-  const c = ROLE_COLORS[designation] || hashStringToColor(designation);
+  const accent = ROLE_COLORS[designation] || hashStringToColor(designation);
   return {
-    background: c.bg,
-    color: c.color,
-    borderColor: c.border,
-    border: `1px solid ${c.border}`,
+    background: `${accent}18`,
+    color: accent,
+    borderColor: `${accent}30`,
+    border: `1px solid ${accent}30`,
   };
 };
 
@@ -397,6 +392,13 @@ const EmployeesPage = () => {
       emp.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalEmployees = employees.length;
+  const approvedEmployees = employees.filter((emp) => emp.isApproved).length;
+  const pendingEmployees = totalEmployees - approvedEmployees;
+  const supervisoryEmployees = employees.filter((emp) => SUPERVISORY_ROLES.includes(emp.designation)).length;
+  const activeEmployees = employees.filter((emp) => (emp.employmentStatus || '').toLowerCase() === 'active').length;
+  const approvalRate = totalEmployees > 0 ? Math.round((approvedEmployees / totalEmployees) * 100) : 0;
+
   // Pagination logic for employees
   const totalPages = Math.ceil(filteredEmployees.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -422,7 +424,7 @@ const EmployeesPage = () => {
   if (!p.manageEmployees) return <Navigate to="/" replace />;
 
   return (
-    <div className="employees-page">
+    <div className="employees-page lovable-page-shell">
       <div className="page-header">
         <div>
           <h1>{t('Team Members')}</h1>
@@ -432,14 +434,46 @@ const EmployeesPage = () => {
               : t('Only Super Admin, Director, or School Administrator can add new employees')}
           </p>
         </div>
-        {canAddEmployee && (
-          <button 
-            className="btn-add" 
-            onClick={() => setShowModal(true)}
-          >
-            {t('+ Add New Employee')}
-          </button>
-        )}
+        <div className="lovable-header-actions">
+          {canAddEmployee && (
+            <button 
+              className="btn-add" 
+              onClick={() => setShowModal(true)}
+            >
+              {t('+ Add New Employee')}
+            </button>
+          )}
+          <div className="lovable-command-chip">
+            <div className="lovable-command-ring">{approvalRate}%</div>
+            <div className="lovable-command-copy">
+              <strong>{t('Approval Coverage')}</strong>
+              <span>{t('Directory Integrity')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lovable-metric-strip">
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Total Staff')}</div>
+          <div className="lovable-metric-card-value">{totalEmployees}</div>
+          <div className="lovable-metric-card-sub">{t('People currently visible in this directory')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Approved')}</div>
+          <div className="lovable-metric-card-value">{approvedEmployees}</div>
+          <div className="lovable-metric-card-sub">{t('Profiles cleared for active use')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Pending Approval')}</div>
+          <div className="lovable-metric-card-value">{pendingEmployees}</div>
+          <div className="lovable-metric-card-sub">{t('Records still waiting for review')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Supervisory Roles')}</div>
+          <div className="lovable-metric-card-value">{supervisoryEmployees}</div>
+          <div className="lovable-metric-card-sub">{t('Managers and leads in the current org chart')}</div>
+        </div>
       </div>
 
       {/* Modal */}
@@ -448,7 +482,7 @@ const EmployeesPage = () => {
           <div className="modal">
             <div className="modal-header">
               <h2>{t('Add New Employee')}</h2>
-              <button className="close-btn" onClick={closeModal}>✕</button>
+              <button className="close-btn" onClick={closeModal} aria-label={t('Close')}><X size={18} /></button>
             </div>
 
             <form onSubmit={handleAddEmployee} className="modal-form">
@@ -457,9 +491,9 @@ const EmployeesPage = () => {
                 <div className="add-photo-avatar" onClick={() => empImgRef.current?.click()}>
                   {newEmpImage
                     ? <img src={newEmpImage} alt="preview" className="add-photo-preview" />
-                    : <span className="add-photo-placeholder">👤</span>
+                    : <span className="add-photo-placeholder"><User size={28} /></span>
                   }
-                  <div className="add-photo-overlay">📷</div>
+                  <div className="add-photo-overlay"><Camera size={16} /></div>
                 </div>
                 <input type="file" ref={empImgRef} accept="image/*" style={{display:'none'}} onChange={handleEmpImagePick} disabled={loading} />
                 <span className="add-photo-label">{newEmpImage ? t('Tap to change photo') : t('Add Photo (optional)')}</span>
@@ -575,7 +609,7 @@ const EmployeesPage = () => {
           <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
         </div>
         <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
+          <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
           <input
             type="text"
             placeholder={t("Search by name, email, or role...")}
@@ -589,95 +623,107 @@ const EmployeesPage = () => {
           <p>{t('No employees found')}</p>
         ) : (
           <>
-          <div className="table-scroll-wrap">
-          <table className="employees-table">
-            <thead>
-              <tr>
-                <th>{t('Name')}</th>
-                <th>{t('Email')}</th>
-                <th>{t('Role')}</th>
-                <th>{t('Supervisor')}</th>
-                <th>{t('Status')}</th>
-                <th>{t('Contact')}</th>
-                {(canAddEmployee || canDeleteEmployee) && <th>{t('Actions')}</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedEmployees.map((employee) => (
-                <tr key={employee.id} id={`emp-row-${employee.id}`} className={highlightId === employee.id ? 'row-highlight' : ''}>
-                  <td>
-                    <div className="emp-name-cell">
-                      <div
-                        className="emp-avatar"
-                        onClick={() => employee.profileImage && setLightboxSrc(employee.profileImage)}
-                        style={employee.profileImage ? {cursor:'pointer'} : {}}
-                      >
-                        {employee.profileImage
-                          ? <img src={employee.profileImage} alt={employee.fullName} className="emp-avatar-img" />
-                          : <span className="emp-avatar-initials">{(employee.fullName || '?').charAt(0).toUpperCase()}</span>
+            <div className="table-scroll-wrap">
+              <table className="employees-table">
+                <thead>
+                  <tr>
+                    <th>{t('Name')}</th>
+                    <th>{t('Email')}</th>
+                    <th>{t('Role')}</th>
+                    <th>{t('Supervisor')}</th>
+                    <th>{t('Status')}</th>
+                    <th>{t('Contact')}</th>
+                    {(canAddEmployee || canDeleteEmployee) && <th>{t('Actions')}</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedEmployees.map((employee) => (
+                    <tr key={employee.id} id={`emp-row-${employee.id}`} className={highlightId === employee.id ? 'row-highlight' : ''}>
+                      <td>
+                        <div className="emp-name-cell">
+                          <div
+                            className="emp-avatar"
+                            onClick={() => employee.profileImage && setLightboxSrc(employee.profileImage)}
+                            style={employee.profileImage ? { cursor: 'pointer' } : {}}
+                          >
+                            {employee.profileImage
+                              ? <img src={employee.profileImage} alt={employee.fullName} className="emp-avatar-img" />
+                              : <span className="emp-avatar-initials">{(employee.fullName || '?').charAt(0).toUpperCase()}</span>
+                            }
+                          </div>
+                          <span>{employee.fullName}</span>
+                        </div>
+                      </td>
+                      <td>{employee.email}</td>
+                      <td><span className="role-badge" style={getRoleBadgeStyle(employee.designation)}>{t(employee.designation)}</span></td>
+                      <td>
+                        {employee.supervisor
+                          ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})`
+                          : '-'
                         }
-                      </div>
-                      <span>{employee.fullName}</span>
-                    </div>
-                  </td>
-                  <td>{employee.email}</td>
-                  <td><span className="role-badge" style={getRoleBadgeStyle(employee.designation)}>{t(employee.designation)}</span></td>
-                  <td>
-                    {employee.supervisor 
-                      ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})`
-                      : '-'
-                    }
-                  </td>
-                  <td>
-                    <span className={employee.isApproved ? 'status-approved' : 'status-pending'}>
-                      {employee.isApproved ? t('✔ Approved') : t('⏳ Pending')}
-                    </span>
-                  </td>
-                  <td>{employee.phoneNumber || t('N/A')}</td>
-                  {(canAddEmployee || canDeleteEmployee) && (
-                    <td>
-                      {canAddEmployee && !employee.isApproved && (
-                        <button
-                          className="btn-approve"
-                          onClick={() => handleApproveEmployee(employee.id)}
-                        >
-                          {t('✓ Approve')}
-                        </button>
+                      </td>
+                      <td>
+                        <span className={employee.isApproved ? 'status-approved' : 'status-pending'}>
+                          {employee.isApproved ? t('Approved') : t('Pending')}
+                        </span>
+                      </td>
+                      <td>{employee.phoneNumber || t('N/A')}</td>
+                      {(canAddEmployee || canDeleteEmployee) && (
+                        <td>
+                          {canAddEmployee && !employee.isApproved && (
+                            <button
+                              className="btn-approve"
+                              onClick={() => handleApproveEmployee(employee.id)}
+                            >
+                              {t('Approve')}
+                            </button>
+                          )}
+                          {canDeleteEmployee && employee.id !== user?.id && (
+                            <button
+                              className="btn-delete"
+                              onClick={() => handleDeleteEmployee(employee.id, employee.fullName)}
+                              style={{ marginLeft: '8px' }}
+                            >
+                              {t('Delete')}
+                            </button>
+                          )}
+                        </td>
                       )}
-                      {canDeleteEmployee && employee.id !== user?.id && (
-                        <button
-                          className="btn-delete"
-                          onClick={() => handleDeleteEmployee(employee.id, employee.fullName)}
-                          style={{ marginLeft: '8px', background: '#e74c3c', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
-                        >
-                          {t('🗑 Delete')}
-                        </button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-            </table>
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(newRows) => {
-                setRowsPerPage(newRows);
-                setCurrentPage(1);
-              }}
-              total={filteredEmployees.length}
-            />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => {
+                  setRowsPerPage(newRows);
+                  setCurrentPage(1);
+                }}
+                total={filteredEmployees.length}
+              />
+            </div>
+            <div className="lovable-metric-strip" style={{ marginTop: '18px' }}>
+              <div className="lovable-metric-card">
+                <div className="lovable-metric-card-label">{t('Active')}</div>
+                <div className="lovable-metric-card-value">{activeEmployees}</div>
+                <div className="lovable-metric-card-sub">{t('Profiles marked active in employment status')}</div>
+              </div>
+              <div className="lovable-metric-card">
+                <div className="lovable-metric-card-label">{t('Search Results')}</div>
+                <div className="lovable-metric-card-value">{filteredEmployees.length}</div>
+                <div className="lovable-metric-card-sub">{t('Rows matching the current query')}</div>
+              </div>
             </div>
           </>
-          )}
-        </div>
+        )}
+      </div>
 
       {lightboxSrc && ReactDOM.createPortal(
         <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
-          <button className="lightbox-close" onClick={() => setLightboxSrc(null)}>✕</button>
+          <button className="lightbox-close" onClick={() => setLightboxSrc(null)} aria-label={t('Close')}><X size={18} /></button>
           <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
         </div>
       , document.body)}

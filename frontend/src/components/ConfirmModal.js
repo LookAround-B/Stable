@@ -31,9 +31,15 @@ const ConfirmModal = ({
 
   return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal confirm-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal confirm-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-modal-title"
+      >
         <div className="confirm-modal-header">
-          <h3>{title}</h3>
+          <h3 id="confirm-modal-title">{title}</h3>
         </div>
         <div className="confirm-modal-body">
           <p>{message}</p>

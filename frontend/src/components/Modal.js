@@ -10,7 +10,12 @@ const Modal = ({ isOpen, onClose, children, className = '' }) => {
 
   return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className={`modal ${className}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`modal ${className}`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         {children}
       </div>
     </div>,

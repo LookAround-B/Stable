@@ -110,6 +110,9 @@ const ApprovalTasksPage = () => {
     ...approvedMedicineLogs.map(m => ({ ...m, itemType: 'medicine' }))
   ].sort((a, b) => new Date(b.createdAt || b.timeAdministered) - new Date(a.createdAt || a.timeAdministered));
 
+  const totalItems = pendingItems.length + approvedItems.length;
+  const approvalRate = totalItems > 0 ? Math.round((approvedItems.length / totalItems) * 100) : 0;
+
   const renderItemCard = (item, isApproved = false) => {
     const isTask = item.itemType === 'task';
     
@@ -215,10 +218,44 @@ const ApprovalTasksPage = () => {
   if (!p.viewApprovals) return <Navigate to="/" replace />;
 
   return (
-    <div className="page-container">
-          <div className="approval-header">
-            <h1>{t('Task & Medicine Approvals')}</h1>
-            <p>Review and approve tasks and medicine logs</p>
+    <div className="page-container lovable-page-shell approval-page">
+          <div className="page-header">
+            <div>
+              <h1>{t('Task & Medicine Approvals')}</h1>
+              <p>{t('Review and approve tasks and medicine logs')}</p>
+            </div>
+            <div className="lovable-header-actions">
+              <div className="lovable-command-chip">
+                <div className="lovable-command-ring">{approvalRate}%</div>
+                <div className="lovable-command-copy">
+                  <strong>{t('Approval Throughput')}</strong>
+                  <span>{t('Review Console')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lovable-metric-strip">
+            <div className="lovable-metric-card">
+              <div className="lovable-metric-card-label">{t('Pending Reviews')}</div>
+              <div className="lovable-metric-card-value">{pendingItems.length}</div>
+              <div className="lovable-metric-card-sub">{t('Items awaiting decision right now')}</div>
+            </div>
+            <div className="lovable-metric-card">
+              <div className="lovable-metric-card-label">{t('Approved')}</div>
+              <div className="lovable-metric-card-value">{approvedItems.length}</div>
+              <div className="lovable-metric-card-sub">{t('Items already cleared in this workspace')}</div>
+            </div>
+            <div className="lovable-metric-card">
+              <div className="lovable-metric-card-label">{t('Task Reviews')}</div>
+              <div className="lovable-metric-card-value">{pendingTasks.length + approvedTasks.length}</div>
+              <div className="lovable-metric-card-sub">{t('Task approvals visible to this account')}</div>
+            </div>
+            <div className="lovable-metric-card">
+              <div className="lovable-metric-card-label">{t('Medicine Reviews')}</div>
+              <div className="lovable-metric-card-value">{pendingMedicineLogs.length + approvedMedicineLogs.length}</div>
+              <div className="lovable-metric-card-sub">{t('Medicine log approvals in the current queue')}</div>
+            </div>
           </div>
 
           {message && (
@@ -227,27 +264,25 @@ const ApprovalTasksPage = () => {
             </div>
           )}
 
-          {/* Modern SaaS Tab Navigation */}
-          <div className="modern-tabs-wrapper">
-            <div className="modern-tabs-container">
+          <div className="lovable-grid-main">
+            <div className="lovable-panel lovable-data-panel">
+            <div className="lovable-pill-row" style={{ marginBottom: '16px' }}>
               <button
-                className={`modern-tab ${activeTab === 'pending' ? 'active' : ''}`}
+                className={`lovable-pill ${activeTab === 'pending' ? 'active' : ''}`}
                 onClick={() => setActiveTab('pending')}
               >
-                <span className="tab-label">Pending Reviews</span>
-                <span className="tab-badge">{pendingItems.length}</span>
+                <span>{t('Pending Reviews')}</span>
+                <span className="lovable-pill-count">{pendingItems.length}</span>
               </button>
               <button
-                className={`modern-tab ${activeTab === 'approved' ? 'active' : ''}`}
+                className={`lovable-pill ${activeTab === 'approved' ? 'active' : ''}`}
                 onClick={() => setActiveTab('approved')}
               >
-                <span className="tab-label">Approved</span>
-                <span className="tab-badge">{approvedItems.length}</span>
+                <span>{t('Approved')}</span>
+                <span className="lovable-pill-count">{approvedItems.length}</span>
               </button>
-              <div className="modern-tabs-indicator"></div>
             </div>
 
-            {/* Tab Content Panel */}
             <div className="modern-tab-content">
               {activeTab === 'pending' && (
                 <div className="approval-section">
@@ -279,10 +314,59 @@ const ApprovalTasksPage = () => {
                 </div>
               )}
             </div>
+            </div>
+
+            <div className="lovable-side-stack">
+              <div className="lovable-panel">
+                <div className="lovable-panel-title">{t('Approval Stats')}</div>
+                <div className="lovable-panel-subtitle">{t('Live overview of the current decision queue')}</div>
+                <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
+                  <div className="lovable-progress-head">
+                    <span>{t('Approved Rate')}</span>
+                    <strong>{approvalRate}%</strong>
+                  </div>
+                  <div className="lovable-progress-bar"><span style={{ width: `${approvalRate}%` }} /></div>
+                </div>
+                <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
+                  <div className="lovable-progress-head">
+                    <span>{t('Pending Queue')}</span>
+                    <strong>{pendingItems.length}</strong>
+                  </div>
+                  <div className="lovable-progress-bar"><span style={{ width: `${totalItems ? Math.max(8, Math.round((pendingItems.length / totalItems) * 100)) : 0}%` }} /></div>
+                </div>
+              </div>
+
+              <div className="lovable-panel">
+                <div className="lovable-panel-title">{t('Compliance')}</div>
+                <div className="lovable-panel-subtitle">{t('All approval decisions should be cleared within the active SLA window')}</div>
+                <div className="lovable-side-stack" style={{ marginTop: '16px' }}>
+                  <div className="lovable-side-stat">
+                    <div className="lovable-side-stat-icon">01</div>
+                    <div className="lovable-side-stat-copy">
+                      <strong>{pendingTasks.length} {t('Task Reviews')}</strong>
+                      <span>{t('Pending or recently processed tasks')}</span>
+                    </div>
+                  </div>
+                  <div className="lovable-side-stat">
+                    <div className="lovable-side-stat-icon">02</div>
+                    <div className="lovable-side-stat-copy">
+                      <strong>{pendingMedicineLogs.length} {t('Medicine Reviews')}</strong>
+                      <span>{t('Pending medicine log approvals')}</span>
+                    </div>
+                  </div>
+                  <div className="lovable-side-stat">
+                    <div className="lovable-side-stat-icon">03</div>
+                    <div className="lovable-side-stat-copy">
+                      <strong>{t('SLA: 24h Target')}</strong>
+                      <span>{t('Pending items should be resolved quickly for audit clarity')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
     </div>
   );
 };
 
 export default ApprovalTasksPage;
-

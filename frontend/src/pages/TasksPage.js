@@ -6,7 +6,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
-import { Download } from 'lucide-react';
+import { Camera, Check, Download, Play, X } from 'lucide-react';
 
 const TASK_TYPES = [
   'Feed',
@@ -260,14 +260,14 @@ const TasksPage = () => {
 
     try {
       if (!formData.name || !formData.assignedEmployeeId || !formData.scheduledTime) {
-        setMessage('✗ Please fill in all required fields');
+        setMessage('Error: Please fill in all required fields');
         setLoading(false);
         return;
       }
 
       const response = await apiClient.post('/tasks', formData);
       
-      setMessage('✓ Task created successfully!');
+      setMessage('Success: Task created successfully');
       setTasks([response.data, ...tasks]);
       setShowCreateForm(false);
       setFormData({
@@ -284,7 +284,7 @@ const TasksPage = () => {
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.message;
-      setMessage(`✗ Error: ${errorMsg}`);
+      setMessage(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -295,10 +295,10 @@ const TasksPage = () => {
     try {
       const response = await apiClient.patch(`/tasks/${taskId}`, { status: 'In Progress' });
       setTasks(tasks.map(t => t.id === taskId ? response.data : t));
-      setMessage('✓ Task started!');
+      setMessage('Success: Task started');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
-      setMessage(`✗ Error: ${error.response?.data?.error || error.message}`);
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -310,7 +310,7 @@ const TasksPage = () => {
     
     // If task requires proof, photo must be provided
     if (task?.requiredProof && !completionData.photoUrl) {
-      setMessage('✗ Photo evidence is required for this task');
+      setMessage('Error: Photo evidence is required for this task');
       return;
     }
 
@@ -322,13 +322,13 @@ const TasksPage = () => {
         photoUrl: completionData.photoUrl
       });
       setTasks(tasks.map(t => t.id === taskId ? response.data : t));
-      setMessage('✓ Task completed and submitted for approval!');
+      setMessage('Success: Task completed and submitted for approval');
       setCompletionData({ photoUrl: '', notes: '' });
       setSelectedTaskId(null);
       setCompletionData({ photoUrl: '', notes: '' });
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`✗ Error: ${error.response?.data?.error || error.message}`);
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -340,13 +340,13 @@ const TasksPage = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setMessage('✗ Please upload an image file');
+      setMessage('Error: Please upload an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setMessage('✗ File size must be less than 5MB');
+      setMessage('Error: File size must be less than 5MB');
       return;
     }
 
@@ -373,12 +373,12 @@ const TasksPage = () => {
         ...completionData,
         photoUrl: uploadedUrl,
       });
-      setMessage('✓ Photo uploaded successfully!');
+      setMessage('Success: Photo uploaded successfully');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       console.error('Upload error details:', error);
       const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
-      setMessage(`✗ Error uploading photo: ${errorMsg}`);
+      setMessage(`Error uploading photo: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -389,10 +389,10 @@ const TasksPage = () => {
     try {
       const response = await apiClient.patch(`/tasks/${taskId}`, { status: 'Pending' });
       setTasks(tasks.map(t => t.id === taskId ? response.data : t));
-      setMessage('✓ Task cancelled');
+      setMessage('Success: Task cancelled');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
-      setMessage(`✗ Error: ${error.response?.data?.error || error.message}`);
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -437,6 +437,21 @@ const TasksPage = () => {
     return statusMatch && searchMatch;
   });
 
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.status === 'Completed').length;
+  const inProgressTasks = tasks.filter(task => task.status === 'In Progress').length;
+  const pendingTasks = tasks.filter(task => task.status === 'Pending').length;
+  const highPriorityTasks = tasks.filter(task => ['High', 'Urgent'].includes(task.priority)).length;
+  const reviewReadyTasks = completedTasks;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  const statusPills = [
+    { key: 'All', label: t('All Tasks'), count: totalTasks },
+    { key: 'Pending', label: t('Pending'), count: pendingTasks },
+    { key: 'In Progress', label: t('In Progress'), count: inProgressTasks },
+    { key: 'Completed', label: t('Completed'), count: completedTasks },
+  ];
+
   const getHorseName = (horseId) => {
     const horse = horses.find(h => h.id === horseId);
     return horse?.name || 'Unknown Horse';
@@ -468,27 +483,57 @@ const TasksPage = () => {
   if (!p.manageTasks) return <Navigate to="/" replace />;
 
   return (
-    <div className="tasks-page">
+    <div className="tasks-page lovable-page-shell">
       <div className="page-header">
         <div>
           <h1>{t('Tasks Management')}</h1>
           <p className="role-description">{getRoleTaskDescription(user?.designation, t)}</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="lovable-header-actions">
           {canCreateTasks && (
             <button 
               className="btn-primary"
               onClick={() => setShowCreateForm(!showCreateForm)}
             >
-              {showCreateForm ? '✕ Cancel' : '+ Create New Task'}
+              {showCreateForm ? 'Cancel' : '+ Create New Task'}
             </button>
           )}
           <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+          <div className="lovable-command-chip">
+            <div className="lovable-command-ring">{completionRate}%</div>
+            <div className="lovable-command-copy">
+              <strong>{t('Operational Efficiency')}</strong>
+              <span>{t('Live Progress Matrix')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lovable-metric-strip">
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Total Tasks')}</div>
+          <div className="lovable-metric-card-value">{totalTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Current task load across the system')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('High Priority')}</div>
+          <div className="lovable-metric-card-value">{highPriorityTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Tasks requiring close attention')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('In Motion')}</div>
+          <div className="lovable-metric-card-value">{inProgressTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Tasks actively being worked right now')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Review Queue')}</div>
+          <div className="lovable-metric-card-value">{reviewReadyTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Completions waiting for verification')}</div>
         </div>
       </div>
 
       {message && (
-        <div className={`message ${message.includes('✗') ? 'error' : 'success'}`}>
+        <div className={`message ${message.startsWith('Error:') ? 'error' : 'success'}`}> 
           {message}
         </div>
       )}
@@ -616,17 +661,19 @@ const TasksPage = () => {
       )}
 
       <div className="task-filters">
-        <SearchableSelect
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          options={[
-            { value: 'All', label: t('All Tasks') },
-            { value: 'Pending', label: t('Pending') },
-            { value: 'In Progress', label: t('In Progress') },
-            { value: 'Completed', label: t('Completed') },
-          ]}
-          placeholder={t('Filter by status...')}
-        />
+        <div className="lovable-pill-row">
+          {statusPills.map((pill) => (
+            <button
+              key={pill.key}
+              type="button"
+              className={`lovable-pill ${filterStatus === pill.key ? 'active' : ''}`}
+              onClick={() => setFilterStatus(pill.key)}
+            >
+              <span>{pill.label}</span>
+              <span className="lovable-pill-count">{pill.count}</span>
+            </button>
+          ))}
+        </div>
         <div className="search-input">
           <span className="search-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -640,6 +687,7 @@ const TasksPage = () => {
         </div>
       </div>
 
+      <div className="lovable-grid-main">
       <div className="tasks-list">
         {filteredTasks.length === 0 ? (
           <p className="no-tasks">{t('No tasks found')}</p>
@@ -682,7 +730,7 @@ const TasksPage = () => {
                     onClick={() => handleStartTask(task.id)}
                     disabled={loading}
                   >
-                    ▶ Start Task
+                    <><Play size={14} /> Start Task</>
                   </button>
                 </div>
               )}
@@ -694,14 +742,14 @@ const TasksPage = () => {
                     onClick={() => setSelectedTaskId(task.id)}
                     disabled={loading}
                   >
-                    ✓ Complete Task
+                    <><Check size={14} /> Complete Task</>
                   </button>
                   <button 
                     className="btn-cancel"
                     onClick={() => handleCancelTask(task.id)}
                     disabled={loading}
                   >
-                    ✕ Cancel
+                    <><X size={14} /> Cancel</>
                   </button>
                 </div>
               )}
@@ -727,7 +775,7 @@ const TasksPage = () => {
                     <label>
                       Photo Evidence 
                       {task.requiredProof && <span style={{color: 'red'}}> *</span>}
-                      {completionData.photoUrl && <span className="photo-uploaded">✓ Photo uploaded</span>}
+                      {completionData.photoUrl && <span className="photo-uploaded">Photo uploaded</span>}
                     </label>
                     <div className="photo-upload-area">
                       <input
@@ -739,7 +787,7 @@ const TasksPage = () => {
                         style={{ display: 'none' }}
                       />
                       <label htmlFor={`photo-${task.id}`} className="photo-upload-label">
-                        <div className="upload-icon">📷</div>
+                        <div className="upload-icon"><Camera size={20} /></div>
                         <div className="upload-text">
                           {completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}
                         </div>
@@ -786,6 +834,63 @@ const TasksPage = () => {
         )}
       </div>
 
+      <div className="lovable-side-stack">
+        <div className="lovable-panel">
+          <div className="lovable-panel-title">{t('Shift Focus')}</div>
+          <div className="lovable-panel-subtitle">{t('What needs attention during the current cycle')}</div>
+          <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
+            <div className="lovable-progress-head">
+              <span>{t('Completion')}</span>
+              <strong>{completionRate}%</strong>
+            </div>
+            <div className="lovable-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
+          </div>
+          <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
+            <div className="lovable-progress-head">
+              <span>{t('High Priority')}</span>
+              <strong>{highPriorityTasks}</strong>
+            </div>
+            <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0}%` }} /></div>
+          </div>
+          <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
+            <div className="lovable-progress-head">
+              <span>{t('Review Queue')}</span>
+              <strong>{reviewReadyTasks}</strong>
+            </div>
+            <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0}%` }} /></div>
+          </div>
+        </div>
+
+        <div className="lovable-panel">
+          <div className="lovable-panel-title">{t('Ground Support')}</div>
+          <div className="lovable-panel-subtitle">{t('Quick operational readouts for this board')}</div>
+          <div className="lovable-side-stack" style={{ marginTop: '16px' }}>
+            <div className="lovable-side-stat">
+              <div className="lovable-side-stat-icon">01</div>
+              <div className="lovable-side-stat-copy">
+                <strong>{pendingTasks} {t('Awaiting Start')}</strong>
+                <span>{t('Ready to be picked up')}</span>
+              </div>
+            </div>
+            <div className="lovable-side-stat">
+              <div className="lovable-side-stat-icon">02</div>
+              <div className="lovable-side-stat-copy">
+                <strong>{inProgressTasks} {t('Live Tasks')}</strong>
+                <span>{t('Already in execution')}</span>
+              </div>
+            </div>
+            <div className="lovable-side-stat">
+              <div className="lovable-side-stat-icon">03</div>
+              <div className="lovable-side-stat-copy">
+                <strong>{canCreateTasks ? t('Supervisor Console') : t('Worker Console')}</strong>
+                <span>{canCreateTasks ? t('Creation and review actions enabled') : t('Execution and evidence submission enabled')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
       {/* Task Evidence Review Modal - Rendered at Page Level */}
       {viewingTaskId && tasks.find(t => t.id === viewingTaskId)?.status === 'Completed' && (
         <div className="task-evidence-modal">
@@ -800,7 +905,7 @@ const TasksPage = () => {
                       className="btn-close"
                       onClick={() => setViewingTaskId(null)}
                     >
-                      ✕
+                      <X size={18} />
                     </button>
                   </div>
 
@@ -844,7 +949,7 @@ const TasksPage = () => {
 
                     {task.proofImage && (
                       <div className="evidence-section">
-                        <h4>📷 Evidence Photo</h4>
+                        <h4>Evidence Photo</h4>
                         <div className="evidence-photo-container">
                           <img 
                             src={task.proofImage.startsWith('http') ? task.proofImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${task.proofImage}`} 
@@ -859,7 +964,7 @@ const TasksPage = () => {
                             }}
                           />
                         </div>
-                        <p style={{fontSize: '0.8rem', color: '#999', marginTop: '0.5rem'}}>
+                        <p style={{fontSize: '0.8rem', color: 'var(--lovable-text-soft)', marginTop: '0.5rem'}}>
                           Path: {task.proofImage}
                         </p>
                       </div>
@@ -903,7 +1008,7 @@ const TasksPage = () => {
             onClick={() => setFullscreenImage(null)}
             title="Close (ESC)"
           >
-            ✕
+            <X size={18} />
           </button>
           <div className="fullscreen-image-container">
             <img 
@@ -923,3 +1028,4 @@ const TasksPage = () => {
 };
 
 export default TasksPage;
+

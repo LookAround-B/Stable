@@ -162,7 +162,7 @@ const FarrierInventoryPage = () => {
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
                 <input type="text" name="itemName" value={formData.itemName} onChange={handleInputChange}
                   required maxLength={100} placeholder="e.g., Front Horseshoe Set"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Category *</label>
@@ -177,17 +177,17 @@ const FarrierInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Quantity</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} min="0"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Size / Type</label>
                 <input type="text" name="sizeType" value={formData.sizeType} onChange={handleInputChange} maxLength={50}
-                  placeholder="e.g., Size 2, Front" style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  placeholder="e.g., Size 2, Front" style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Material</label>
                 <input type="text" name="material" value={formData.material} onChange={handleInputChange} maxLength={100}
-                  placeholder="e.g., Steel, Aluminum" style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  placeholder="e.g., Steel, Aluminum" style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Condition</label>
@@ -202,39 +202,39 @@ const FarrierInventoryPage = () => {
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Supplier</label>
                 <input type="text" name="supplier" value={formData.supplier} onChange={handleInputChange} maxLength={200}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Cost (₹)</label>
+                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Cost (INR )</label>
                 <input type="number" name="costTracking" value={formData.costTracking} onChange={handleInputChange} min="0" step="0.01"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Replacement Cycle</label>
                 <input type="text" name="replacementCycle" value={formData.replacementCycle} onChange={handleInputChange}
                   placeholder="e.g., Every 6 weeks" maxLength={100}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Last Used Date</label>
                 <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Service Date</label>
                 <input type="date" name="serviceDate" value={formData.serviceDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
               <div>
                 <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Next Service Due</label>
                 <input type="date" name="nextServiceDue" value={formData.nextServiceDue} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
               </div>
             </div>
             <div style={{ marginTop: "12px" }}>
               <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Notes</label>
               <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows="2" maxLength={500}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
+                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
               <button type="submit" className="btn btn-primary">{editingId ? "Update" : "Add Item"}</button>
@@ -259,14 +259,14 @@ const FarrierInventoryPage = () => {
           <label style={{ fontSize: "0.9rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Search</label>
           <input type="text" placeholder="Search by name, supplier..." value={search}
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+            style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--lovable-line)", background: "rgba(255,255,255,0.04)", color: "var(--lovable-text)", fontSize: "0.875rem", boxSizing: "border-box" }} />
         </div>
         <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
       </div>
 
       {/* Overdue service alerts */}
       {overdueSvc.length > 0 && (
-        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#92400e' }}>
+        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.24)', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', color: '#f59e0b' }}>
           <strong>⚠ Service Overdue</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
             {overdueSvc.map(i => (
@@ -293,7 +293,7 @@ const FarrierInventoryPage = () => {
           <div className="table-wrapper">
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid rgba(0,0,0,0.15)" }}>
+                <tr style={{ borderBottom: "1px solid var(--lovable-line)" }}>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>#</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Item Name</th>
                   <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Category</th>
@@ -311,7 +311,7 @@ const FarrierInventoryPage = () => {
                 {paginatedItems.map((item, i) => {
                   const isOverdue = item.nextServiceDue && new Date(item.nextServiceDue) < new Date();
                   return (
-                    <tr key={item.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(item.condition === 'Damaged' ? { background: 'rgba(239,68,68,0.08)' } : isOverdue ? { background: 'rgba(245,158,11,0.08)' } : {}) }}>
+                    <tr key={item.id} style={{ borderBottom: "1px solid var(--lovable-line)", ...(item.condition === 'Damaged' ? { background: 'rgba(239,68,68,0.08)' } : isOverdue ? { background: 'rgba(245,158,11,0.08)' } : {}) }}>
                       <td style={{ padding: "10px 12px", opacity: 0.5 }}>{startIndex + i + 1}</td>
                       <td style={{ padding: "10px 12px", fontWeight: 500 }}>{item.itemName}</td>
                       <td style={{ padding: "10px 12px" }}>{item.category}</td>
@@ -327,12 +327,12 @@ const FarrierInventoryPage = () => {
                       <td style={{ padding: "10px 12px", whiteSpace: "nowrap", fontSize: "0.8rem" }}>{formatDate(item.serviceDate)}</td>
                       <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>
                         {item.nextServiceDue ? (
-                          <span style={{ color: isOverdue ? '#dc2626' : '#333', fontWeight: isOverdue ? 600 : 400, fontSize: '0.8rem' }}>
+                          <span style={{ color: isOverdue ? '#dc2626' : 'var(--lovable-text-muted)', fontWeight: isOverdue ? 600 : 400, fontSize: '0.8rem' }}>
                             {formatDate(item.nextServiceDue)}{isOverdue && ' ⚠'}
                           </span>
                         ) : "-"}
                       </td>
-                      <td style={{ padding: "10px 12px", textAlign: "right" }}>{item.costTracking ? `₹${parseFloat(item.costTracking).toFixed(2)}` : "-"}</td>
+                      <td style={{ padding: "10px 12px", textAlign: "right" }}>{item.costTracking ? `INR ${parseFloat(item.costTracking).toFixed(2)}` : "-"}</td>
                       <td style={{ padding: "10px 12px" }}>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button className="btn btn-sm btn-edit" onClick={() => handleEdit(item)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Edit</button>
@@ -358,3 +358,5 @@ const FarrierInventoryPage = () => {
 };
 
 export default FarrierInventoryPage;
+
+

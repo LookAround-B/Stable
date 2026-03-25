@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import SearchableSelect from '../components/SearchableSelect';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
 
@@ -119,6 +118,20 @@ const MyAssignedTasksPage = () => {
     return statusMatch && (searchTerm === '' || searchMatch);
   });
 
+  const totalTasks = tasks.length;
+  const pendingTasks = tasks.filter((task) => task.status === 'Pending').length;
+  const inProgressTasks = tasks.filter((task) => task.status === 'In Progress').length;
+  const reviewTasks = tasks.filter((task) => task.status === 'Pending Review').length;
+  const approvedTasks = tasks.filter((task) => task.status === 'Approved').length;
+  const completionRate = totalTasks > 0 ? Math.round((approvedTasks / totalTasks) * 100) : 0;
+  const statusPills = [
+    { key: 'All', label: t('All Tasks'), count: totalTasks },
+    { key: 'Pending', label: t('Pending'), count: pendingTasks },
+    { key: 'In Progress', label: t('In Progress'), count: inProgressTasks },
+    { key: 'Pending Review', label: t('Pending Review'), count: reviewTasks },
+    { key: 'Approved', label: t('Approved'), count: approvedTasks },
+  ];
+
   const getStatusColor = (status) => {
     const colors = {
       'Pending': '#3498db',
@@ -131,10 +144,44 @@ const MyAssignedTasksPage = () => {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container lovable-page-shell my-assigned-page">
       <div className="page-header">
-        <h1>{t('My Assigned Tasks')}</h1>
-        <p>Complete and submit your assigned tasks with evidence</p>
+        <div>
+          <h1>{t('My Assigned Tasks')}</h1>
+          <p>{t('Complete and submit your assigned tasks with evidence')}</p>
+        </div>
+        <div className="lovable-header-actions">
+          <div className="lovable-command-chip">
+            <div className="lovable-command-ring">{completionRate}%</div>
+            <div className="lovable-command-copy">
+              <strong>{t('Progress Matrix')}</strong>
+              <span>{t('Personal Task Console')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lovable-metric-strip">
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Assigned')}</div>
+          <div className="lovable-metric-card-value">{totalTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Tasks currently visible in your queue')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('In Progress')}</div>
+          <div className="lovable-metric-card-value">{inProgressTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Tasks you have already started')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Pending Review')}</div>
+          <div className="lovable-metric-card-value">{reviewTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Completions currently awaiting approval')}</div>
+        </div>
+        <div className="lovable-metric-card">
+          <div className="lovable-metric-card-label">{t('Approved')}</div>
+          <div className="lovable-metric-card-value">{approvedTasks}</div>
+          <div className="lovable-metric-card-sub">{t('Tasks fully cleared and completed')}</div>
+        </div>
       </div>
 
       {message && (
@@ -151,19 +198,19 @@ const MyAssignedTasksPage = () => {
       )}
 
       <div className="task-filters">
-        <SearchableSelect
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          options={[
-            { value: 'All', label: t('All Tasks') },
-            { value: 'Pending', label: t('Pending') },
-            { value: 'In Progress', label: t('In Progress') },
-            { value: 'Pending Review', label: t('Pending Review') },
-            { value: 'Approved', label: t('Approved') },
-            { value: 'Rejected', label: t('Rejected') },
-          ]}
-          placeholder={t('Filter by status...')}
-        />
+        <div className="lovable-pill-row">
+          {statusPills.map((pill) => (
+            <button
+              key={pill.key}
+              type="button"
+              className={`lovable-pill ${filterStatus === pill.key ? 'active' : ''}`}
+              onClick={() => setFilterStatus(pill.key)}
+            >
+              <span>{pill.label}</span>
+              <span className="lovable-pill-count">{pill.count}</span>
+            </button>
+          ))}
+        </div>
         <div className="search-input">
           <span className="search-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -177,6 +224,7 @@ const MyAssignedTasksPage = () => {
         </div>
       </div>
 
+      <div className="lovable-grid-main">
       {loading && filteredTasks.length === 0 ? (
         <div className="loading">Loading your tasks...</div>
       ) : filteredTasks.length === 0 ? (
@@ -184,7 +232,7 @@ const MyAssignedTasksPage = () => {
           <p>✓ No tasks assigned to you yet</p>
         </div>
       ) : (
-        <div className="tasks-grid">
+        <div className="tasks-grid tasks-list">
           {filteredTasks.map((task) => (
             <div key={task.id} className="task-card">
               <div className="task-header">
@@ -273,6 +321,56 @@ const MyAssignedTasksPage = () => {
           ))}
         </div>
       )}
+
+      <div className="lovable-side-stack">
+        <div className="lovable-panel">
+          <div className="lovable-panel-title">{t('Shift Focus')}</div>
+          <div className="lovable-panel-subtitle">{t('Quick readout for your current task board')}</div>
+          <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
+            <div className="lovable-progress-head">
+              <span>{t('Approved')}</span>
+              <strong>{completionRate}%</strong>
+            </div>
+            <div className="lovable-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
+          </div>
+          <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
+            <div className="lovable-progress-head">
+              <span>{t('Awaiting Review')}</span>
+              <strong>{reviewTasks}</strong>
+            </div>
+            <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewTasks / totalTasks) * 100)) : 0}%` }} /></div>
+          </div>
+        </div>
+
+        <div className="lovable-panel">
+          <div className="lovable-panel-title">{t('Execution Notes')}</div>
+          <div className="lovable-panel-subtitle">{t('Evidence is required before completion can be submitted')}</div>
+          <div className="lovable-side-stack" style={{ marginTop: '16px' }}>
+            <div className="lovable-side-stat">
+              <div className="lovable-side-stat-icon">01</div>
+              <div className="lovable-side-stat-copy">
+                <strong>{pendingTasks} {t('Ready to Start')}</strong>
+                <span>{t('Tasks sitting in your pending queue')}</span>
+              </div>
+            </div>
+            <div className="lovable-side-stat">
+              <div className="lovable-side-stat-icon">02</div>
+              <div className="lovable-side-stat-copy">
+                <strong>{inProgressTasks} {t('Live Tasks')}</strong>
+                <span>{t('Currently active tasks under execution')}</span>
+              </div>
+            </div>
+            <div className="lovable-side-stat">
+              <div className="lovable-side-stat-icon">03</div>
+              <div className="lovable-side-stat-copy">
+                <strong>{t('Upload Proof')}</strong>
+                <span>{t('Completion photos and notes keep the approval flow moving')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
 
       {selectedTaskId && (
         <div className="modal-overlay" onClick={() => setSelectedTaskId(null)}>

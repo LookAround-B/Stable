@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
@@ -320,7 +320,7 @@ const MedicineInventoryPage = () => {
       </div>
       
       <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-        <Search size={18} style={{ position: 'absolute', left: '12px', color: '#999', pointerEvents: 'none', zIndex: 1 }} />
+        <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
         <input
           type="text"
           placeholder={t("Search medicine name...")}
@@ -336,7 +336,7 @@ const MedicineInventoryPage = () => {
 
       {message && (
         <div className={`message ${messageType}`}>
-          {messageType === 'success' ? '✓' : '✕'} {message}
+          {messageType === 'success' ? 'OK' : 'ERR'} {message}
         </div>
       )}
 
@@ -471,8 +471,7 @@ const MedicineInventoryPage = () => {
           )}
 
           {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
-            <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#92400e', padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}>
-              ⚠️ <strong>Low stock alert:</strong> One or more medicine inventory items are below their configured threshold.
+            <div style={{ background: 'rgba(217,119,6,0.12)', border: '1px solid rgba(217,119,6,0.24)', color: 'var(--lovable-warning)', padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}><strong>Low stock alert:</strong> One or more medicine inventory items are below their configured threshold.
             </div>
           )}
 
@@ -487,11 +486,11 @@ const MedicineInventoryPage = () => {
                   <th style={{cursor:'pointer',userSelect:'none'}} onClick={() => {
                     setSortKey('medicineType');
                     setSortDir(prev => sortKey === 'medicineType' ? (prev === 'asc' ? 'desc' : 'asc') : 'asc');
-                  }}>Medicine {sortKey === 'medicineType' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</th>
+                  }}>Medicine {sortKey === 'medicineType' ? (sortDir === 'asc' ? '(Asc)' : '(Desc)') : ''}</th>
                   <th style={{cursor:'pointer',userSelect:'none',minWidth:'260px'}} onClick={() => {
                     setSortKey('unitsLeft');
                     setSortDir(prev => sortKey === 'unitsLeft' ? (prev === 'asc' ? 'desc' : 'asc') : 'desc');
-                  }}>Stock Level {sortKey === 'unitsLeft' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</th>
+                  }}>Stock Level {sortKey === 'unitsLeft' ? (sortDir === 'asc' ? '(Asc)' : '(Desc)') : ''}</th>
                   <th>Unit</th>
                   <th>Threshold</th>
                   <th>Actions</th>
@@ -520,34 +519,27 @@ const MedicineInventoryPage = () => {
                     <td style={{ whiteSpace: 'nowrap' }}>
                       {record.threshold !== null && record.threshold !== undefined
                         ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{record.threshold} {record.unit}</span>
-                        : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
+                        : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>-</span>
                       }
-                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">⚠️</span>}
+                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">Alert</span>}
                     </td>
                     <td className="actions">
                       <button
                         className="btn-edit"
                         onClick={() => handleEdit(record)}
                         disabled={loading || showForm}
-                      >
-                        ✎ Edit
-                      </button>
+                      >Edit</button>
                       <button
                         className="btn-delete"
                         onClick={() => handleDelete(record.id)}
                         disabled={loading || showForm}
-                      >
-                        ✕ Delete
-                      </button>
+                      >Delete</button>
                       {isAdmin && (
                         <button
                           className="btn-sm"
                           style={{ fontSize: '0.7rem', padding: '3px 8px', background: record.notifyAdmin ? 'rgba(245,158,11,0.15)' : 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: '6px', cursor: 'pointer' }}
                           onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
-                          title="Configure threshold alert"
-                        >
-                          🔔
-                        </button>
+                          title="Configure threshold alert">Threshold</button>
                       )}
                     </td>
                   </tr>
@@ -599,7 +591,7 @@ const MedicineInventoryPage = () => {
                 onClick={handleDownloadCSV}
                 disabled={downloadingCSV || !reportData}
               >
-                {downloadingCSV ? 'Downloading...' : '<Download size={14} />CSV'}
+                {downloadingCSV ? 'Downloading...' : <><Download size={14} />CSV</>}
               </button>
             </div>
           </div>
@@ -654,11 +646,11 @@ const MedicineInventoryPage = () => {
       />
 
       {thresholdModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>🔔 Set Threshold Alert</h3>
-            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{MEDICINE_LABELS[thresholdModal.record.medicineType]}</p>
-            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--lovable-overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
+          <div style={{ background: 'var(--lovable-panel)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: 'var(--lovable-shadow)', border: '1px solid var(--lovable-line)' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700, color: 'var(--lovable-text)' }}>Set Threshold Alert</h3>
+            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem', color: 'var(--lovable-text-muted)' }}>{MEDICINE_LABELS[thresholdModal.record.medicineType]}</p>
+            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500, color: 'var(--lovable-text)' }}>Threshold quantity ({thresholdModal.record.unit})</label>
             <input
               type="number"
               min="0"
@@ -666,9 +658,9 @@ const MedicineInventoryPage = () => {
               placeholder="Leave empty to disable"
               value={thresholdModal.value}
               onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input, #fff)', color: 'var(--text)' }}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input)', color: 'var(--lovable-text)' }}
             />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer', color: 'var(--lovable-text)' }}>
               <input
                 type="checkbox"
                 checked={thresholdModal.notifyAdmin}
@@ -688,3 +680,6 @@ const MedicineInventoryPage = () => {
 };
 
 export default MedicineInventoryPage;
+
+
+

@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, CheckCheck, Package, AlertTriangle, ClipboardList, FileText } from 'lucide-react';
-import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from '../services/notificationService';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Bell, Check, CheckCheck, ClipboardList, FileText, Package } from 'lucide-react';
+import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from '../services/notificationService';
 import usePermissions from '../hooks/usePermissions';
 
 const TYPE_META = {
   inventory_threshold_alert: { icon: Package, color: '#ff922b', label: 'Inventory' },
-  task_assignment:           { icon: ClipboardList, color: '#4dabf7', label: 'Task' },
-  approval_request:          { icon: Check, color: '#69db7c', label: 'Approval' },
-  task_completion:           { icon: CheckCheck, color: '#00ffd0', label: 'Task' },
-  report_filed:              { icon: FileText, color: '#f783ac', label: 'Report' },
-  farrier_reminder:          { icon: AlertTriangle, color: '#ffd43b', label: 'Farrier' },
-  general:                   { icon: Bell, color: '#868e96', label: 'General' },
+  task_assignment: { icon: ClipboardList, color: '#4dabf7', label: 'Task' },
+  approval_request: { icon: Check, color: '#69db7c', label: 'Approval' },
+  task_completion: { icon: CheckCheck, color: '#00ffd0', label: 'Task' },
+  report_filed: { icon: FileText, color: '#f783ac', label: 'Report' },
+  farrier_reminder: { icon: AlertTriangle, color: '#ffd43b', label: 'Farrier' },
+  general: { icon: Bell, color: '#868e96', label: 'General' },
 };
 
 const timeAgo = (dateStr) => {
@@ -35,81 +35,89 @@ const NotificationCenter = () => {
 
   const fetchCount = useCallback(async () => {
     try {
-      const res = await getUnreadCount();
-      setUnreadCount(res.data?.data?.count || 0);
-    } catch { /* silent */ }
+      const response = await getUnreadCount();
+      setUnreadCount(response.data?.data?.count || 0);
+    } catch {
+      // ignore sidebar polling failures
+    }
   }, []);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getNotifications();
-      setNotifications(res.data?.data || []);
-    } catch { /* silent */ }
+      const response = await getNotifications();
+      setNotifications(response.data?.data || []);
+    } catch {
+      // ignore dropdown loading failures
+    }
     setLoading(false);
   }, []);
 
-  // Poll unread count every 30s
   useEffect(() => {
-    if (!viewNotifications) return;
+    if (!viewNotifications) return undefined;
     fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
+    const interval = window.setInterval(fetchCount, 30000);
+    return () => window.clearInterval(interval);
   }, [viewNotifications, fetchCount]);
 
-  // Load full list when dropdown opens
   useEffect(() => {
-    if (open) fetchNotifications();
+    if (open) {
+      fetchNotifications();
+    }
   }, [open, fetchNotifications]);
 
-  // Close on outside click
   useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    const handleOutsideClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setOpen(false);
+      }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
   const handleMarkRead = async (id) => {
     try {
       await markAsRead(id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch { /* silent */ }
+      setNotifications((prev) => prev.map((item) => (
+        item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item
+      )));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {
+      // ignore single mark read failure
+    }
   };
 
   const handleMarkAllRead = async () => {
     try {
       await markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() })));
+      setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true, readAt: new Date().toISOString() })));
       setUnreadCount(0);
-    } catch { /* silent */ }
+    } catch {
+      // ignore bulk mark read failure
+    }
   };
 
-  if (!viewNotifications) return null;
+  if (!viewNotifications) {
+    return null;
+  }
 
   const displayCount = unreadCount > 4 ? '4+' : unreadCount;
 
   return (
     <div className="notification-center" ref={ref}>
-      <button
-        className="notification-icon"
-        onClick={() => setOpen(prev => !prev)}
-        aria-label="Notifications"
-      >
-        <Bell size={18} />
-        {unreadCount > 0 && (
-          <span className="notification-badge">{displayCount}</span>
-        )}
+      <button className="notification-icon" onClick={() => setOpen((prev) => !prev)} aria-label="Notifications" type="button">
+        <Bell size={16} />
+        {unreadCount > 0 && <span className="notification-badge">{displayCount}</span>}
       </button>
 
       {open && (
         <div className="notification-dropdown">
           <div className="notification-header">
-            <span style={{ fontWeight: 600, fontSize: 14 }}>Notifications</span>
+            <span className="notification-heading">Notifications</span>
             {unreadCount > 0 && (
-              <button className="notification-mark-all" onClick={handleMarkAllRead}>
+              <button className="notification-mark-all" onClick={handleMarkAllRead} type="button">
                 <CheckCheck size={13} />
                 Mark all read
               </button>
@@ -118,31 +126,31 @@ const NotificationCenter = () => {
 
           <div className="notification-list">
             {loading ? (
-              <div className="notification-empty">Loading…</div>
+              <div className="notification-empty">Loading...</div>
             ) : notifications.length === 0 ? (
               <div className="notification-empty">
                 <Bell size={28} strokeWidth={1} style={{ opacity: 0.3, marginBottom: 8 }} />
                 <span>No notifications yet</span>
               </div>
             ) : (
-              notifications.map(n => {
-                const meta = TYPE_META[n.type] || TYPE_META.general;
+              notifications.map((notification) => {
+                const meta = TYPE_META[notification.type] || TYPE_META.general;
                 const Icon = meta.icon;
                 return (
                   <div
-                    key={n.id}
-                    className={`notification-item ${!n.isRead ? 'unread' : ''}`}
-                    onClick={() => !n.isRead && handleMarkRead(n.id)}
+                    key={notification.id}
+                    className={`notification-item ${notification.isRead ? '' : 'unread'}`}
+                    onClick={() => !notification.isRead && handleMarkRead(notification.id)}
                   >
                     <div className="notification-type-icon" style={{ color: meta.color }}>
                       <Icon size={16} />
                     </div>
                     <div className="notification-content">
-                      <div className="notification-message">{n.title}</div>
-                      <div className="notification-detail">{n.message}</div>
-                      <div className="notification-time">{timeAgo(n.createdAt)}</div>
+                      <div className="notification-message">{notification.title}</div>
+                      <div className="notification-detail">{notification.message}</div>
+                      <div className="notification-time">{timeAgo(notification.createdAt)}</div>
                     </div>
-                    {!n.isRead && <div className="notification-unread-dot" />}
+                    {!notification.isRead && <div className="notification-unread-dot" />}
                   </div>
                 );
               })
