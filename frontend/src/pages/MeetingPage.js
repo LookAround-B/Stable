@@ -248,6 +248,11 @@ const MeetingPage = () => {
     <div className="page-container lovable-page-shell meeting-page">
       <div className="page-header">
         <div>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Coordination Desk')}</span>
+          </div>
           <h1>{t('Meetings')}</h1>
           <p>{t('Schedule and track team meetings')}</p>
         </div>
@@ -293,7 +298,7 @@ const MeetingPage = () => {
         </div>
       </div>
 
-      <div className="meeting-page-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', alignItems: 'start' }}>
+      <div className="meeting-page-grid" style={{ display: 'grid', gap: '24px', alignItems: 'start' }}>
 
         {/* CALENDAR */}
         <div style={panelShellStyle}>

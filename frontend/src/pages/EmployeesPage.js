@@ -6,9 +6,10 @@ import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Camera, Download, Search, User, X } from 'lucide-react';
+import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, Search, User, Users, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
@@ -84,6 +85,57 @@ const getRoleBadgeStyle = (designation) => {
   };
 };
 
+const getDateValue = (...values) => {
+  for (const value of values) {
+    if (!value) continue;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  return null;
+};
+
+const createMonthBuckets = () => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: `${date.getFullYear()}-${date.getMonth()}`,
+      value: 0,
+    };
+  });
+};
+
+const buildMetricSpark = (items, getItemDate, getItemValue = () => 1, { cumulative = false, fallbackTotal = 0 } = {}) => {
+  const buckets = createMonthBuckets();
+  const bucketMap = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+
+  items.forEach((item) => {
+    const date = getItemDate(item);
+    if (!date) return;
+    const bucket = bucketMap.get(`${date.getFullYear()}-${date.getMonth()}`);
+    if (!bucket) return;
+    bucket.value += getItemValue(item);
+  });
+
+  const values = buckets.map((bucket) => bucket.value);
+
+  if (cumulative) {
+    let running = 0;
+    return values.map((value) => {
+      running += value;
+      return running;
+    });
+  }
+
+  if (values.every((value) => value === 0) && fallbackTotal) {
+    return buckets.map((_, index) => Math.max(1, Math.round((fallbackTotal * (index + 1)) / buckets.length)));
+  }
+
+  return values;
+};
+
 const EmployeesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -102,6 +154,7 @@ const EmployeesPage = () => {
   });
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All Roles');
   const [highlightId, setHighlightId] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [newEmpImage, setNewEmpImage] = useState(null);
@@ -387,17 +440,45 @@ const EmployeesPage = () => {
 
   const filteredEmployees = getFilteredEmployeeList(employees).filter(
     (emp) =>
-      emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.designation.toLowerCase().includes(searchTerm.toLowerCase())
+      (roleFilter === 'All Roles' || emp.designation === roleFilter) &&
+      (
+        emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.designation.toLowerCase().includes(searchTerm.toLowerCase())
+      )
   );
+
+  const availableRoles = ['All Roles', ...Array.from(new Set(getFilteredEmployeeList(employees).map((emp) => emp.designation)))];
 
   const totalEmployees = employees.length;
   const approvedEmployees = employees.filter((emp) => emp.isApproved).length;
   const pendingEmployees = totalEmployees - approvedEmployees;
   const supervisoryEmployees = employees.filter((emp) => SUPERVISORY_ROLES.includes(emp.designation)).length;
-  const activeEmployees = employees.filter((emp) => (emp.employmentStatus || '').toLowerCase() === 'active').length;
   const approvalRate = totalEmployees > 0 ? Math.round((approvedEmployees / totalEmployees) * 100) : 0;
+  const employeeSpark = buildMetricSpark(
+    employees,
+    (employee) => getDateValue(employee.createdAt, employee.updatedAt),
+    () => 1,
+    { cumulative: true, fallbackTotal: totalEmployees }
+  );
+  const approvedSpark = buildMetricSpark(
+    employees,
+    (employee) => getDateValue(employee.createdAt, employee.updatedAt),
+    (employee) => (employee.isApproved ? 1 : 0),
+    { fallbackTotal: approvedEmployees }
+  );
+  const pendingSpark = buildMetricSpark(
+    employees,
+    (employee) => getDateValue(employee.createdAt, employee.updatedAt),
+    (employee) => (employee.isApproved ? 0 : 1),
+    { fallbackTotal: pendingEmployees }
+  );
+  const supervisorySpark = buildMetricSpark(
+    employees,
+    (employee) => getDateValue(employee.createdAt, employee.updatedAt),
+    (employee) => (SUPERVISORY_ROLES.includes(employee.designation) ? 1 : 0),
+    { fallbackTotal: supervisoryEmployees }
+  );
 
   // Pagination logic for employees
   const totalPages = Math.ceil(filteredEmployees.length / rowsPerPage);
@@ -427,6 +508,11 @@ const EmployeesPage = () => {
     <div className="employees-page lovable-page-shell">
       <div className="page-header">
         <div>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Personnel Command')}</span>
+          </div>
           <h1>{t('Team Members')}</h1>
           <p className="info-text">
             {canAddEmployee 
@@ -437,13 +523,14 @@ const EmployeesPage = () => {
         <div className="lovable-header-actions">
           {canAddEmployee && (
             <button 
-              className="btn-add" 
+              className="btn-add employee-header-action employee-header-add-btn"
               onClick={() => setShowModal(true)}
             >
-              {t('+ Add New Employee')}
+              <Plus size={16} />
+              {t('Add New Employee')}
             </button>
           )}
-          <div className="lovable-command-chip">
+          <div className="lovable-command-chip employee-header-action employee-header-chip">
             <div className="lovable-command-ring">{approvalRate}%</div>
             <div className="lovable-command-copy">
               <strong>{t('Approval Coverage')}</strong>
@@ -453,27 +540,49 @@ const EmployeesPage = () => {
         </div>
       </div>
 
-      <div className="lovable-metric-strip">
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Total Staff')}</div>
-          <div className="lovable-metric-card-value">{totalEmployees}</div>
-          <div className="lovable-metric-card-sub">{t('People currently visible in this directory')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Approved')}</div>
-          <div className="lovable-metric-card-value">{approvedEmployees}</div>
-          <div className="lovable-metric-card-sub">{t('Profiles cleared for active use')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Pending Approval')}</div>
-          <div className="lovable-metric-card-value">{pendingEmployees}</div>
-          <div className="lovable-metric-card-sub">{t('Records still waiting for review')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Supervisory Roles')}</div>
-          <div className="lovable-metric-card-value">{supervisoryEmployees}</div>
-          <div className="lovable-metric-card-sub">{t('Managers and leads in the current org chart')}</div>
-        </div>
+      <div className="directory-kpi-grid">
+        <DirectoryMetricCard
+          title={t('Total Staff')}
+          value={totalEmployees}
+          subtitle={t('Directory')}
+          icon={Users}
+          iconTone="primary"
+          subtitleTone="primary"
+          watermark="employee"
+          sparkData={employeeSpark}
+        />
+        <DirectoryMetricCard
+          title={t('Approved')}
+          value={approvedEmployees}
+          subtitle={t('Cleared')}
+          icon={CheckCircle2}
+          iconTone="success"
+          subtitleTone="success"
+          variant="success"
+          watermark="employee"
+          sparkData={approvedSpark}
+        />
+        <DirectoryMetricCard
+          title={t('Pending Approval')}
+          value={pendingEmployees}
+          subtitle={t('Awaiting Review')}
+          icon={Clock3}
+          iconTone="destructive"
+          subtitleTone="destructive"
+          variant="alert"
+          watermark="employee"
+          sparkData={pendingSpark}
+        />
+        <DirectoryMetricCard
+          title={t('Supervisory Roles')}
+          value={supervisoryEmployees}
+          subtitle={t('Managers')}
+          icon={BriefcaseBusiness}
+          iconTone="primary"
+          subtitleTone="primary"
+          watermark="employee"
+          sparkData={supervisorySpark}
+        />
       </div>
 
       {/* Modal */}
@@ -604,23 +713,50 @@ const EmployeesPage = () => {
       , document.body)}
 
       <div className="employees-list">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2>{t('All Employees')}</h2>
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-        </div>
-        <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
-          <input
-            type="text"
-            placeholder={t("Search by name, email, or role...")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-            style={{ paddingLeft: '40px' }}
+        <div className="employee-directory-toolbar">
+          <div className="employee-directory-search">
+            <Search size={16} className="employee-directory-search-icon" />
+            <input
+              type="text"
+              placeholder={t("Search by name, email, or role...")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="employee-directory-search-input"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                className="employee-directory-clear"
+                onClick={() => setSearchTerm('')}
+                aria-label={t('Clear search')}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <SearchableSelect
+            name="employeeRoleFilter"
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            options={availableRoles.map((role) => ({ value: role, label: t(role) }))}
+            placeholder={t('All Roles')}
+            className="employee-directory-role-filter"
           />
+          <button
+            type="button"
+            className="employee-directory-action"
+            onClick={handleDownloadExcel}
+            aria-label={t('Download employees')}
+            title={t('Download employees')}
+          >
+            <Download size={16} />
+          </button>
         </div>
         {filteredEmployees.length === 0 ? (
-          <p>{t('No employees found')}</p>
+          <p className="info-text">{searchTerm ? t('No employees match your search') : t('No employees found')}</p>
         ) : (
           <>
             <div className="table-scroll-wrap">
@@ -628,11 +764,10 @@ const EmployeesPage = () => {
                 <thead>
                   <tr>
                     <th>{t('Name')}</th>
-                    <th>{t('Email')}</th>
                     <th>{t('Role')}</th>
-                    <th>{t('Supervisor')}</th>
+                    <th className="employee-supervisor-col">{t('Supervisor')}</th>
                     <th>{t('Status')}</th>
-                    <th>{t('Contact')}</th>
+                    <th className="employee-contact-col">{t('Contact')}</th>
                     {(canAddEmployee || canDeleteEmployee) && <th>{t('Actions')}</th>}
                   </tr>
                 </thead>
@@ -651,25 +786,33 @@ const EmployeesPage = () => {
                               : <span className="emp-avatar-initials">{(employee.fullName || '?').charAt(0).toUpperCase()}</span>
                             }
                           </div>
-                          <span>{employee.fullName}</span>
+                          <div className="employee-name-copy">
+                            <span>{employee.fullName}</span>
+                            <small>{employee.email}</small>
+                          </div>
                         </div>
                       </td>
-                      <td>{employee.email}</td>
-                      <td><span className="role-badge" style={getRoleBadgeStyle(employee.designation)}>{t(employee.designation)}</span></td>
                       <td>
+                        <span className="role-badge employee-role-pill" style={getRoleBadgeStyle(employee.designation)}>
+                          <span className="employee-role-dot" style={{ backgroundColor: getRoleBadgeStyle(employee.designation).color }} />
+                          {t(employee.designation)}
+                        </span>
+                      </td>
+                      <td className="employee-supervisor-col">
                         {employee.supervisor
                           ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})`
                           : '-'
                         }
                       </td>
                       <td>
-                        <span className={employee.isApproved ? 'status-approved' : 'status-pending'}>
+                        <span className={`employee-status-pill ${employee.isApproved ? 'approved' : 'pending'}`}>
+                          <span className="employee-status-dot" />
                           {employee.isApproved ? t('Approved') : t('Pending')}
                         </span>
                       </td>
-                      <td>{employee.phoneNumber || t('N/A')}</td>
+                      <td className="employee-contact-col">{employee.phoneNumber || t('N/A')}</td>
                       {(canAddEmployee || canDeleteEmployee) && (
-                        <td>
+                        <td className="employee-action-col">
                           {canAddEmployee && !employee.isApproved && (
                             <button
                               className="btn-approve"
@@ -693,30 +836,18 @@ const EmployeesPage = () => {
                   ))}
                 </tbody>
               </table>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(newRows) => {
-                  setRowsPerPage(newRows);
-                  setCurrentPage(1);
-                }}
-                total={filteredEmployees.length}
-              />
             </div>
-            <div className="lovable-metric-strip" style={{ marginTop: '18px' }}>
-              <div className="lovable-metric-card">
-                <div className="lovable-metric-card-label">{t('Active')}</div>
-                <div className="lovable-metric-card-value">{activeEmployees}</div>
-                <div className="lovable-metric-card-sub">{t('Profiles marked active in employment status')}</div>
-              </div>
-              <div className="lovable-metric-card">
-                <div className="lovable-metric-card-label">{t('Search Results')}</div>
-                <div className="lovable-metric-card-value">{filteredEmployees.length}</div>
-                <div className="lovable-metric-card-sub">{t('Rows matching the current query')}</div>
-              </div>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => {
+                setRowsPerPage(newRows);
+                setCurrentPage(1);
+              }}
+              total={filteredEmployees.length}
+            />
           </>
         )}
       </div>

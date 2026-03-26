@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import apiClient from '../services/apiClient';
+import HorseIcon from '../components/HorseIcon';
 import { Package, Users, ClipboardList, ShieldAlert } from 'lucide-react';
-import { FaHorse } from 'react-icons/fa';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -92,6 +92,66 @@ const tooltipStyle = {
   padding: '8px 12px',
 };
 
+const getDateValue = (...values) => {
+  for (const value of values) {
+    if (!value) continue;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  return null;
+};
+
+const createMonthBuckets = () => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: `${date.getFullYear()}-${date.getMonth()}`,
+      value: 0,
+    };
+  });
+};
+
+const buildMetricSpark = (items, getItemDate, getItemValue = () => 1, { cumulative = false, fallbackTotal = 0 } = {}) => {
+  const buckets = createMonthBuckets();
+  const bucketMap = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+
+  items.forEach((item) => {
+    const date = getItemDate(item);
+    if (!date) return;
+    const bucket = bucketMap.get(`${date.getFullYear()}-${date.getMonth()}`);
+    if (!bucket) return;
+    bucket.value += getItemValue(item);
+  });
+
+  const values = buckets.map((bucket) => bucket.value);
+
+  if (cumulative) {
+    let running = 0;
+    return values.map((value) => {
+      running += value;
+      return running;
+    });
+  }
+
+  if (values.every((value) => value === 0) && fallbackTotal) {
+    return buckets.map((_, index) => Math.max(1, Math.round((fallbackTotal * (index + 1)) / buckets.length)));
+  }
+
+  return values;
+};
+
+const normalizeSparkData = (values = [], count = 6) => {
+  const sliced = values.slice(-count);
+  const padding = Math.max(0, count - sliced.length);
+  return Array.from({ length: count }, (_, index) => {
+    if (index < padding) return 0;
+    return Number(sliced[index - padding]) || 0;
+  });
+};
+
 const useCounterAnimation = (targetValue, duration = 900) => {
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -164,24 +224,38 @@ const MetricCard = ({
   icon: Icon,
   iconTone = 'primary',
   subtitleTone = 'primary',
-  variant = 'default'
+  variant = 'default',
+  sparkData = []
 }) => {
   const animatedValue = useCounterAnimation(typeof value === 'number' ? value : 0, 1000);
   const displayValue = typeof value === 'number' ? animatedValue : value;
+  const normalizedSpark = normalizeSparkData(sparkData);
+  const maxSpark = Math.max(...normalizedSpark, 0);
   return (
     <div className={`dashboard-lovable-card dashboard-lovable-card--${variant}`}>
       <div className="dashboard-lovable-card-watermark">
-        <FaHorse />
+        <HorseIcon />
       </div>
       <div className="dashboard-lovable-card-head">
         <span className="dashboard-lovable-card-title">{title}</span>
         <div className={`dashboard-lovable-card-icon dashboard-lovable-card-icon--${iconTone}`}>
-          <Icon size={16} strokeWidth={2} />
+          <Icon size={18} strokeWidth={2} />
         </div>
       </div>
       <div className="dashboard-lovable-card-body">
         <div className="dashboard-lovable-card-value">{displayValue}</div>
-        {subtitle && <div className={`dashboard-lovable-card-sub dashboard-lovable-card-sub--${subtitleTone}`}>{subtitle}</div>}
+        {(subtitle || normalizedSpark.some((entry) => entry > 0)) && (
+          <div className="dashboard-lovable-card-footer">
+            {subtitle && <div className={`dashboard-lovable-card-sub dashboard-lovable-card-sub--${subtitleTone}`}>{subtitle}</div>}
+            {normalizedSpark.some((entry) => entry > 0) && (
+              <div className="dashboard-lovable-card-spark" aria-hidden="true">
+                {normalizedSpark.map((entry, index) => (
+                  <span key={index} style={{ height: `${maxSpark ? (entry / maxSpark) * 100 : 0}%` }} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -222,6 +296,12 @@ const DashboardPage = () => {
     totalStaff: 0,
     pendingTasks: 0,
     auditLogs: 0,
+  });
+  const [metricSparks, setMetricSparks] = useState({
+    horses: [],
+    staff: [],
+    tasks: [],
+    audit: [],
   });
   const [employeesByRole, setEmployeesByRole] = useState([]);
   const [teamByDepartment, setTeamByDepartment] = useState([]);
@@ -271,6 +351,15 @@ const DashboardPage = () => {
         if (tasksRes.status === 'fulfilled') {
           const tasks = tasksRes.value.data.data || tasksRes.value.data || [];
           pendingTasks = tasks.filter((task) => ['Pending', 'Pending Review', 'In Progress'].includes(task.status)).length;
+          setMetricSparks((prev) => ({
+            ...prev,
+            tasks: buildMetricSpark(
+              tasks,
+              (task) => getDateValue(task.createdAt, task.updatedAt, task.scheduledDatetime, task.scheduledDate),
+              (task) => (['Pending', 'Pending Review', 'In Progress'].includes(task.status) ? 1 : 0),
+              { fallbackTotal: pendingTasks }
+            ),
+          }));
         }
 
         if (horsesRes.status === 'fulfilled') {
@@ -292,6 +381,15 @@ const DashboardPage = () => {
                 fill: GENDER_COLORS[name] || CHART_COLORS[index % CHART_COLORS.length],
               }))
           );
+          setMetricSparks((prev) => ({
+            ...prev,
+            horses: buildMetricSpark(
+              horses,
+              (horse) => getDateValue(horse.createdAt, horse.updatedAt, horse.dateOfBirth),
+              () => 1,
+              { cumulative: true, fallbackTotal: totalHorses }
+            ),
+          }));
         }
 
         if (employeesRes.status === 'fulfilled') {
@@ -328,11 +426,29 @@ const DashboardPage = () => {
               percent: departmentTotal ? Math.round((value / departmentTotal) * 100) : 0,
             }))
           );
+          setMetricSparks((prev) => ({
+            ...prev,
+            staff: buildMetricSpark(
+              employees,
+              (employee) => getDateValue(employee.createdAt, employee.updatedAt),
+              () => 1,
+              { cumulative: true, fallbackTotal: totalStaff }
+            ),
+          }));
         }
 
         if (logsRes.status === 'fulfilled') {
           const logs = logsRes.value.data.data || logsRes.value.data || [];
           auditLogs = Array.isArray(logs) ? logs.length : 0;
+          setMetricSparks((prev) => ({
+            ...prev,
+            audit: buildMetricSpark(
+              logs,
+              (log) => getDateValue(log.createdAt, log.updatedAt, log.timestamp),
+              () => 1,
+              { fallbackTotal: auditLogs }
+            ),
+          }));
         }
 
         if (expensesRes.status === 'fulfilled') {
@@ -379,7 +495,10 @@ const DashboardPage = () => {
     <div className="dashboard-page lovable-page-shell dashboard-lovable">
       <div className="dashboard-lovable-hero">
         <h1 className="dashboard-lovable-hero-title">
-          <RandomLetterReveal text={`${greeting}, ${user?.fullName || 'User'}`} />
+          <span className="dashboard-lovable-hero-greeting">{`${greeting},`}</span>
+          <span className="dashboard-lovable-hero-name">
+            <RandomLetterReveal text={user?.fullName || 'User'} />
+          </span>
         </h1>
         <p className="dashboard-lovable-hero-meta">
           {dateStr} <span className="dashboard-lovable-meta-sep">-</span> <span className="dashboard-lovable-meta-strong">{clock || '--:--:--'}</span>
@@ -389,16 +508,16 @@ const DashboardPage = () => {
       </div>
 
       <div className="dashboard-lovable-card-grid">
-        <MetricCard icon={Package} title="Total Horses" value={metrics.totalHorses} subtitle="Registered Assets" iconTone="primary" subtitleTone="destructive" />
-        <MetricCard icon={Users} title="Total Staff / Users" value={metrics.totalStaff} subtitle="Active Sessions" iconTone="primary" subtitleTone="primary" />
-        <MetricCard icon={ClipboardList} title="Pending Tasks" value={metrics.pendingTasks} subtitle="Queue Clear" iconTone="success" subtitleTone="destructive" variant="success" />
-        <MetricCard icon={ShieldAlert} title="Audit Logs / Issues" value={metrics.auditLogs} subtitle="No Critical Vulnerabilities" iconTone="destructive" subtitleTone="destructive" variant="alert" />
+        <MetricCard icon={Package} title="Total Horses" value={metrics.totalHorses} subtitle="Registered Assets" iconTone="primary" subtitleTone="destructive" sparkData={metricSparks.horses} />
+        <MetricCard icon={Users} title="Total Staff / Users" value={metrics.totalStaff} subtitle="Active Sessions" iconTone="primary" subtitleTone="primary" sparkData={metricSparks.staff} />
+        <MetricCard icon={ClipboardList} title="Pending Tasks" value={metrics.pendingTasks} subtitle="Queue Clear" iconTone="success" subtitleTone="destructive" variant="success" sparkData={metricSparks.tasks} />
+        <MetricCard icon={ShieldAlert} title="Audit Logs / Issues" value={metrics.auditLogs} subtitle="No Critical Vulnerabilities" iconTone="destructive" subtitleTone="destructive" variant="alert" sparkData={metricSparks.audit} />
       </div>
 
       <div className="dashboard-lovable-chart-grid">
         <ChartPanel title="Staff by Role">
           {employeesByRole.length === 0 ? <EmptyState label="No role data available" /> : (
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280}>
               <BarChart data={employeesByRole} margin={{ top: 16, right: 8, left: 0, bottom: 60 }} barCategoryGap="30%">
                 <XAxis
                   dataKey="shortRole"
@@ -434,7 +553,7 @@ const DashboardPage = () => {
           {teamByDepartment.length === 0 ? <EmptyState label="No department data available" /> : (
             <div className="dashboard-lovable-split">
               <div className="dashboard-lovable-donut-wrap">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={180} minWidth={0} minHeight={180}>
                   <PieChart>
                     <Pie
                       data={teamByDepartment}
@@ -483,7 +602,7 @@ const DashboardPage = () => {
           {horsesByGender.length === 0 ? <EmptyState label="No horse data available" /> : (
             <div className="dashboard-lovable-split dashboard-lovable-split--compact">
               <div className="dashboard-lovable-donut-wrap dashboard-lovable-donut-wrap--small">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={160} minWidth={0} minHeight={160}>
                   <PieChart>
                     <Pie
                       data={horsesByGender}

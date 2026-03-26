@@ -327,6 +327,11 @@ const ReportsPage = () => {
     <div className="page-container lovable-page-shell reports-page" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
       <div className="page-header">
         <div>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Analytics Module')}</span>
+          </div>
           <h1>{t('Reports')}</h1>
           <p>{t('View and generate system reports')}</p>
         </div>

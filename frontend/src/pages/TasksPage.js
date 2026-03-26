@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import Modal from '../components/Modal';
+import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
-import { Camera, Check, Download, Play, X } from 'lucide-react';
+import { BarChart3, Camera, Check, Clock3, Download, Package, Play, SlidersHorizontal, Thermometer, TrendingDown, Users, X } from 'lucide-react';
 
 const TASK_TYPES = [
   'Feed',
@@ -47,6 +49,113 @@ const getRoleTaskDescription = (role, t) => {
   return t('View and complete your assigned tasks');
 };
 
+const TASK_CATEGORY_MAP = {
+  'Health Check': 'PRIORITY ALPHA',
+  Training: 'CONDITIONING',
+  Exercise: 'TRAINING RUN',
+  Feed: 'FEED PROTOCOL',
+  Grooming: 'GROOMING',
+  Maintenance: 'MAINTENANCE',
+  Cleaning: 'DAILY CHECK',
+  Other: 'SPECIAL TASK',
+};
+
+const TasksPageSkeleton = () => (
+  <div className="tasks-page lovable-page-shell task-page-skeleton">
+    <div className="page-header">
+      <div>
+        <Skeleton variant="text" width={180} height={28} />
+        <Skeleton variant="text" width={240} height={10} style={{ marginTop: 10 }} />
+        <Skeleton variant="text" width={320} height={12} style={{ marginTop: 12 }} />
+      </div>
+      <div className="lovable-header-actions">
+        <Skeleton variant="rounded" width={156} height={40} />
+        <Skeleton variant="rounded" width={86} height={40} />
+        <div className="lovable-command-chip">
+          <Skeleton variant="circular" width={48} height={48} />
+          <div className="lovable-command-copy">
+            <Skeleton variant="text" width={134} height={12} />
+            <Skeleton variant="text" width={96} height={10} />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="lovable-metric-strip">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div className="lovable-metric-card" key={index}>
+          <Skeleton variant="text" width="54%" height={11} />
+          <Skeleton variant="text" width="28%" height={30} style={{ marginTop: 12 }} />
+          <Skeleton variant="text" width="82%" height={10} style={{ marginTop: 12 }} />
+        </div>
+      ))}
+    </div>
+
+    <div className="task-filters">
+      <div className="lovable-pill-row">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton key={index} variant="rounded" width={118} height={38} />
+        ))}
+      </div>
+      <div className="task-filter-search">
+        <Skeleton variant="rounded" width="100%" height={42} />
+      </div>
+    </div>
+
+    <div className="lovable-grid-main">
+      <div className="tasks-list task-skeleton-list">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="task-card task-card-lovable task-card-skeleton">
+            <div className="task-card-media">
+              <Skeleton variant="rectangular" width="100%" height="100%" />
+            </div>
+            <div className="task-card-main">
+              <div className="task-card-topline">
+                <Skeleton variant="rounded" width={112} height={24} />
+                <Skeleton variant="text" width={82} height={10} />
+              </div>
+              <Skeleton variant="text" width="54%" height={18} style={{ marginTop: 14 }} />
+              <Skeleton variant="text" width="34%" height={12} style={{ marginTop: 8 }} />
+              <div className="task-card-meta" style={{ marginTop: 16 }}>
+                <Skeleton variant="text" width={110} height={11} />
+                <Skeleton variant="text" width={118} height={11} />
+              </div>
+              <div className="task-card-state-row" style={{ marginTop: 16 }}>
+                <Skeleton variant="rounded" width={86} height={24} />
+                <Skeleton variant="rounded" width={76} height={24} />
+              </div>
+              <Skeleton variant="text" width="88%" height={11} style={{ marginTop: 16 }} />
+              <Skeleton variant="text" width="64%" height={11} style={{ marginTop: 8 }} />
+              <div className="task-card-footer" style={{ marginTop: 18 }}>
+                <Skeleton variant="text" width={132} height={11} />
+                <Skeleton variant="rounded" width={126} height={38} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="lovable-side-stack">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="lovable-panel task-side-widget" key={index}>
+            <div className="task-side-widget-head">
+              <Skeleton variant="rounded" width={18} height={18} />
+              <Skeleton variant="text" width={128} height={14} />
+            </div>
+            <div style={{ marginTop: 16, display: 'grid', gap: 14 }}>
+              <Skeleton variant="text" width="100%" height={12} />
+              <Skeleton variant="rounded" width="100%" height={8} />
+              <Skeleton variant="text" width="82%" height={12} />
+              <Skeleton variant="rounded" width="100%" height={8} />
+              <Skeleton variant="text" width="76%" height={12} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const TasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -55,6 +164,7 @@ const TasksPage = () => {
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -174,14 +284,26 @@ const TasksPage = () => {
   const canCreateTasks = CAN_CREATE_TASKS.includes(user?.designation);
 
   useEffect(() => {
-    loadTasks();
-    loadHorses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    let active = true;
 
-  // Reload employees once user is available (user may be null on first render)
-  useEffect(() => {
-    if (user) loadEmployees();
+    const loadInitialData = async () => {
+      setPageLoading(true);
+      await Promise.all([
+        loadTasks(),
+        loadHorses(),
+        user ? loadEmployees() : Promise.resolve(),
+      ]);
+
+      if (active) {
+        setPageLoading(false);
+      }
+    };
+
+    loadInitialData();
+
+    return () => {
+      active = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -452,15 +574,66 @@ const TasksPage = () => {
     { key: 'Completed', label: t('Completed'), count: completedTasks },
   ];
 
+  const observedStamp = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date()).toUpperCase();
+
+  const getShiftLabel = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'MORNING ALPHA';
+    if (hour < 17) return 'AFTERNOON BRAVO';
+    return 'EVENING CHARLIE';
+  };
+
+  const supportMembers = employees.slice(0, 3).map((emp) => ({
+    id: emp.id,
+    initials: (emp.fullName || 'U')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join(''),
+    name: emp.fullName,
+    role: (emp.designation || 'Staff').toUpperCase(),
+    online: emp.isApproved !== false,
+  }));
+
+  const getTaskCategory = (taskType) => TASK_CATEGORY_MAP[taskType] || (taskType || 'TASK').toUpperCase();
+
   const getHorseName = (horseId) => {
     const horse = horses.find(h => h.id === horseId);
     return horse?.name || 'Unknown Horse';
+  };
+
+  const getHorseProfileImage = (horseId) => {
+    const horse = horses.find(h => h.id === horseId);
+    return horse?.profileImage || '';
   };
 
   const getEmployeeName = (empId) => {
     const emp = employees.find(e => e.id === empId);
     return emp?.fullName || 'Unknown Employee';
   };
+
+  const getTaskTime = (scheduledTime) => {
+    if (!scheduledTime) return 'No Time Set';
+    const date = new Date(scheduledTime);
+    if (Number.isNaN(date.getTime())) return 'No Time Set';
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getTaskSupportInfo = (task) => {
+    if (task.requiredProof) return 'Evidence Required';
+    if (task.priority === 'Urgent') return 'Critical Window';
+    if (task.priority === 'High') return 'Supplies Ready';
+    if (task.type === 'Training') return 'Arena Booked';
+    if (task.type === 'Health Check') return 'Vitals Review';
+    return 'Standard Flow';
+  };
+
+  const getTaskEvidenceImage = (task) => task.proofImage || task.photoUrl || '';
 
   const handleDownloadExcel = () => {
     if (!filteredTasks.length) { alert('No data to download'); return; }
@@ -480,13 +653,23 @@ const TasksPage = () => {
     XLSX.writeFile(wb, `Tasks_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
+  const selectedTask = tasks.find((task) => task.id === selectedTaskId) || null;
+  const reviewingTask = tasks.find((task) => task.id === viewingTaskId) || null;
+
   if (!p.manageTasks) return <Navigate to="/" replace />;
+  if (pageLoading) return <TasksPageSkeleton />;
 
   return (
     <div className="tasks-page lovable-page-shell">
       <div className="page-header">
         <div>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Operations Core')}</span>
+          </div>
           <h1>{t('Tasks Management')}</h1>
+          <p className="tasks-observed-line">{`OBSERVED: ${observedStamp} - SHIFT: ${getShiftLabel()}`}</p>
           <p className="role-description">{getRoleTaskDescription(user?.designation, t)}</p>
         </div>
         <div className="lovable-header-actions">
@@ -495,7 +678,7 @@ const TasksPage = () => {
               className="btn-primary"
               onClick={() => setShowCreateForm(!showCreateForm)}
             >
-              {showCreateForm ? 'Cancel' : '+ Create New Task'}
+              {showCreateForm ? 'Close Task Composer' : '+ Create New Task'}
             </button>
           )}
           <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
@@ -503,7 +686,7 @@ const TasksPage = () => {
             <div className="lovable-command-ring">{completionRate}%</div>
             <div className="lovable-command-copy">
               <strong>{t('Operational Efficiency')}</strong>
-              <span>{t('Live Progress Matrix')}</span>
+              <span>{t('Progress Matrix')}</span>
             </div>
           </div>
         </div>
@@ -538,10 +721,212 @@ const TasksPage = () => {
         </div>
       )}
 
+      <div className="task-filters">
+        <div className="lovable-pill-row">
+          {statusPills.map((pill) => (
+            <button
+              key={pill.key}
+              type="button"
+              className={`lovable-pill ${filterStatus === pill.key ? 'active' : ''}`}
+              onClick={() => setFilterStatus(pill.key)}
+            >
+              <span>{pill.label}</span>
+              <span className="lovable-pill-count">{pill.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="search-input task-filter-search">
+          <span className="search-icon">
+            <SlidersHorizontal size={16} />
+          </span>
+          <input
+            type="text"
+            placeholder={t('Filter task ID or horse name...')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="lovable-grid-main">
+        <div className="tasks-list">
+          {filteredTasks.length === 0 ? (
+            <p className="no-tasks">{t('No tasks found')}</p>
+          ) : (
+            filteredTasks.map((task) => (
+              <div key={task.id} className="task-card task-card-lovable">
+                <div className="task-card-media">
+                  {getHorseProfileImage(task.horseId) ? (
+                    <img
+                      src={getHorseProfileImage(task.horseId)}
+                      alt={getHorseName(task.horseId)}
+                      className="task-card-image"
+                    />
+                  ) : (
+                    <div className="task-card-placeholder">
+                      <span>{getHorseName(task.horseId).charAt(0).toUpperCase()}</span>
+                      <small>{t(task.type)}</small>
+                    </div>
+                  )}
+                </div>
+
+                <div className="task-card-main">
+                  <div className="task-card-topline">
+                    <span className="task-card-category">{getTaskCategory(task.type)}</span>
+                    <span className="task-card-id">ID: {String(task.id).slice(0, 8).toUpperCase()}</span>
+                  </div>
+
+                  <h3 className="task-card-title">{task.name}</h3>
+                  <p className="task-card-horse">{getHorseName(task.horseId)}</p>
+
+                  <div className="task-card-meta">
+                    <span><Clock3 size={14} /> {getTaskTime(task.scheduledTime)}</span>
+                    <span><Package size={14} /> {getTaskSupportInfo(task)}</span>
+                  </div>
+
+                  <div className="task-card-state-row">
+                    <span
+                      className="status-badge"
+                      style={{ backgroundColor: getStatusColor(task.status) }}
+                    >
+                      {t(task.status)}
+                    </span>
+                    <span
+                      className="priority-badge"
+                      style={{ backgroundColor: getPriorityColor(task.priority) }}
+                    >
+                      {task.priority}
+                    </span>
+                  </div>
+
+                  {task.description && (
+                    <p className="task-card-copy">{task.description}</p>
+                  )}
+
+                  <div className="task-card-footer">
+                    <span className="task-card-assigned">{t('Assigned')}: {getEmployeeName(task.assignedEmployeeId)}</span>
+
+                    <div className="task-actions task-card-action-cluster">
+                      {!canCreateTasks && task.status === 'Pending' && (
+                        <button
+                          className="btn-start"
+                          onClick={() => handleStartTask(task.id)}
+                          disabled={loading}
+                        >
+                          Start Task <Play size={14} />
+                        </button>
+                      )}
+
+                      {!canCreateTasks && task.status === 'In Progress' && (
+                        <>
+                          <button
+                            className="btn-complete"
+                            onClick={() => setSelectedTaskId(task.id)}
+                            disabled={loading}
+                          >
+                            Complete Task <Check size={14} />
+                          </button>
+                          <button
+                            className="btn-cancel"
+                            onClick={() => handleCancelTask(task.id)}
+                            disabled={loading}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+
+                      {CAN_REVIEW_TASKS.includes(user?.designation) && task.status === 'Completed' && (
+                        <button
+                          className="btn-review"
+                          onClick={() => setViewingTaskId(task.id)}
+                          disabled={loading}
+                        >
+                          Review Evidence
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="lovable-side-stack">
+          <div className="lovable-panel task-side-widget">
+            <div className="task-side-widget-head">
+              <BarChart3 size={18} />
+              <h3>{t('Shift Focus')}</h3>
+            </div>
+            <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
+              <div className="lovable-progress-head">
+                <span>{t('Completion')}</span>
+                <strong>{completionRate}%</strong>
+              </div>
+              <div className="lovable-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
+            </div>
+            <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
+              <div className="lovable-progress-head">
+                <span>{t('High Priority')}</span>
+                <strong>{highPriorityTasks}</strong>
+              </div>
+              <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0}%` }} /></div>
+            </div>
+            <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
+              <div className="lovable-progress-head">
+                <span>{t('Review Queue')}</span>
+                <strong>{reviewReadyTasks}</strong>
+              </div>
+              <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0}%` }} /></div>
+            </div>
+            <p className="task-side-note"><span>{t('Note')}:</span> {t('Heavy traffic in Arena B scheduled for 11:00.')}</p>
+          </div>
+
+          <div className="lovable-panel task-side-widget">
+            <div className="task-side-widget-head">
+              <Users size={18} />
+              <h3>{t('Ground Support')}</h3>
+            </div>
+            <div className="task-support-list">
+              {supportMembers.length > 0 ? supportMembers.map((member) => (
+                <div key={member.id} className="task-support-person">
+                  <div className="task-support-avatar">{member.initials}</div>
+                  <div className="task-support-copy">
+                    <strong>{member.name}</strong>
+                    <span>{member.role}</span>
+                  </div>
+                  <i className={`task-support-dot ${member.online ? 'online' : ''}`} />
+                </div>
+              )) : (
+                <div className="task-support-empty">{t('No support roster available yet')}</div>
+              )}
+            </div>
+          </div>
+
+          <div className="lovable-panel task-side-widget task-climate-widget">
+            <p className="task-side-caption">{t('Environmental Sync')}</p>
+            <div className="task-climate-row">
+              <div>
+                <p className="task-climate-temp">18.4C</p>
+                <p className="task-climate-copy"><TrendingDown size={13} /> {t('Stable stasis optimal')}</p>
+              </div>
+              <Thermometer size={30} />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {canCreateTasks && showCreateForm && (
-        <div className="task-create-form">
-          <h2>{t('Create New Task')}</h2>
-          <form onSubmit={handleCreateTask}>
+        <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)}>
+          <div className="modal-header">
+            <h3>{t('Create New Task')}</h3>
+            <button className="btn-close" onClick={() => setShowCreateForm(false)}>
+              <X size={18} />
+            </button>
+          </div>
+
+          <form onSubmit={handleCreateTask} className="modal-form">
             <div className="form-group">
               <label>Task Name *</label>
               <input
@@ -549,7 +934,7 @@ const TasksPage = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="e.g., Feed Morning, Groom Shadow"
+                placeholder="e.g. Morning Feed, Groom Shadow"
                 required
               />
             </div>
@@ -626,378 +1011,217 @@ const TasksPage = () => {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Scheduled Date & Time *</label>
+            <div className="form-group">
+              <label>Scheduled Date & Time *</label>
+              <input
+                type="datetime-local"
+                name="scheduledTime"
+                value={formData.scheduledTime}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="form-group checkbox">
+              <label>
                 <input
-                  type="datetime-local"
-                  name="scheduledTime"
-                  value={formData.scheduledTime}
+                  type="checkbox"
+                  name="requiredProof"
+                  checked={formData.requiredProof}
                   onChange={handleInputChange}
-                  required
                 />
-              </div>
+                Require photo evidence
+              </label>
             </div>
 
-            <div className="form-row">
-              <div className="form-group checkbox">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="requiredProof"
-                    checked={formData.requiredProof}
-                    onChange={handleInputChange}
-                  />
-                  Make Photo Evidence Compulsory
-                </label>
-              </div>
+            <div className="modal-actions">
+              <button type="button" className="btn-cancel" onClick={() => setShowCreateForm(false)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-submit" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Task'}
+              </button>
             </div>
-
-            <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Task'}
-            </button>
           </form>
-        </div>
+        </Modal>
       )}
 
-      <div className="task-filters">
-        <div className="lovable-pill-row">
-          {statusPills.map((pill) => (
-            <button
-              key={pill.key}
-              type="button"
-              className={`lovable-pill ${filterStatus === pill.key ? 'active' : ''}`}
-              onClick={() => setFilterStatus(pill.key)}
-            >
-              <span>{pill.label}</span>
-              <span className="lovable-pill-count">{pill.count}</span>
+      {selectedTask && selectedTask.status === 'In Progress' && (
+        <Modal isOpen={Boolean(selectedTask)} onClose={() => setSelectedTaskId(null)}>
+          <div className="modal-header">
+            <h3>{t('Submit Task Evidence')}</h3>
+            <button className="btn-close" onClick={() => setSelectedTaskId(null)}>
+              <X size={18} />
             </button>
-          ))}
-        </div>
-        <div className="search-input">
-          <span className="search-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </span>
-          <input
-            type="text"
-            placeholder={t('Search tasks by name, type, status...')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
+          </div>
 
-      <div className="lovable-grid-main">
-      <div className="tasks-list">
-        {filteredTasks.length === 0 ? (
-          <p className="no-tasks">{t('No tasks found')}</p>
-        ) : (
-          filteredTasks.map((task) => (
-            <div key={task.id} className="task-card">
-              <div className="task-header">
-                <h3>{task.name}</h3>
-                <span
-                  className="priority-badge"
-                  style={{ backgroundColor: getPriorityColor(task.priority) }}
-                >
-                  {task.priority}
-                </span>
+          <div className="modal-form">
+            <div className="task-modal-context">
+              <div>
+                <label>{t('Task')}</label>
+                <p>{selectedTask.name}</p>
               </div>
-              <div className="task-status-row">
-                <span
-                  className="status-badge"
-                  style={{ backgroundColor: getStatusColor(task.status) }}
-                >
-                  {t(task.status)}
-                </span>
+              <div>
+                <label>{t('Horse')}</label>
+                <p>{getHorseName(selectedTask.horseId)}</p>
               </div>
-              <hr className="task-divider" />
-              <div className="task-details-section">
-                <h4 className="task-details-heading">{t('Details')}</h4>
-                <div className="task-details">
-                  <p><strong>Type:</strong> <span>{task.type}</span></p>
-                  <p><strong>Horse:</strong> <span>{getHorseName(task.horseId)}</span></p>
-                  <p><strong>Assigned To:</strong> <span>{getEmployeeName(task.assignedEmployeeId)}</span></p>
-                  {task.description && <p><strong>Description:</strong> <span>{task.description}</span></p>}
-                </div>
-              </div>
+            </div>
 
-              {/* Action Buttons for Assigned Employee */}
-              {!canCreateTasks && task.status === 'Pending' && (
-                <div className="task-actions">
-                  <button 
-                    className="btn-start"
-                    onClick={() => handleStartTask(task.id)}
-                    disabled={loading}
-                  >
-                    <><Play size={14} /> Start Task</>
-                  </button>
-                </div>
-              )}
-
-              {!canCreateTasks && task.status === 'In Progress' && (
-                <div className="task-actions">
-                  <button 
-                    className="btn-complete"
-                    onClick={() => setSelectedTaskId(task.id)}
-                    disabled={loading}
-                  >
-                    <><Check size={14} /> Complete Task</>
-                  </button>
-                  <button 
-                    className="btn-cancel"
-                    onClick={() => handleCancelTask(task.id)}
-                    disabled={loading}
-                  >
-                    <><X size={14} /> Cancel</>
-                  </button>
-                </div>
-              )}
-
-              {/* Review Button for Supervisors - Completed Tasks */}
-              {CAN_REVIEW_TASKS.includes(user?.designation) && task.status === 'Completed' && (
-                <div className="task-actions">
-                  <button 
-                    className="btn-review"
-                    onClick={() => setViewingTaskId(task.id)}
-                    disabled={loading}
-                  >
-                    View Evidence
-                  </button>
-                </div>
-              )}
-
-              {/* Task Completion Form */}
-              {selectedTaskId === task.id && task.status === 'In Progress' && (
-                <div className="task-completion-form">
-                  <h4>Complete Task - Submit Evidence</h4>
-                  <div className="form-group">
-                    <label>
-                      Photo Evidence 
-                      {task.requiredProof && <span style={{color: 'red'}}> *</span>}
-                      {completionData.photoUrl && <span className="photo-uploaded">Photo uploaded</span>}
-                    </label>
-                    <div className="photo-upload-area">
-                      <input
-                        type="file"
-                        id={`photo-${task.id}`}
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        disabled={loading}
-                        style={{ display: 'none' }}
-                      />
-                      <label htmlFor={`photo-${task.id}`} className="photo-upload-label">
-                        <div className="upload-icon"><Camera size={20} /></div>
-                        <div className="upload-text">
-                          {completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}
-                        </div>
-                        <small>JPG, PNG (Max 5MB)</small>
-                      </label>
-                      {completionData.photoUrl && (
-                        <div className="photo-preview">
-                          <img src={completionData.photoUrl} alt="Task evidence" />
-                        </div>
-                      )}
-                    </div>
+            <div className="form-group">
+              <label>
+                Photo Evidence
+                {selectedTask.requiredProof && <span className="task-required-mark"> *</span>}
+              </label>
+              <div className="photo-upload-area">
+                <input
+                  type="file"
+                  id={`photo-${selectedTask.id}`}
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  disabled={loading}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor={`photo-${selectedTask.id}`} className="photo-upload-label">
+                  <div className="upload-icon"><Camera size={20} /></div>
+                  <div className="upload-text">
+                    {completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}
                   </div>
-
-                  <div className="form-group">
-                    <label>Completion Notes</label>
-                    <textarea
-                      placeholder="Add any notes about task completion..."
-                      value={completionData.notes}
-                      onChange={(e) => setCompletionData({...completionData, notes: e.target.value})}
-                      rows="3"
-                    />
+                  <small>JPG, PNG (Max 5MB)</small>
+                </label>
+                {completionData.photoUrl && (
+                  <div className="photo-preview">
+                    <img src={completionData.photoUrl} alt="Task evidence" />
                   </div>
+                )}
+              </div>
+            </div>
 
-                  <div className="form-actions">
-                    <button 
-                      className="btn-submit-task"
-                      onClick={() => handleCompleteTask(task.id)}
-                      disabled={loading}
+            <div className="form-group">
+              <label>Completion Notes</label>
+              <textarea
+                placeholder="Add any notes about task completion..."
+                value={completionData.notes}
+                onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })}
+                rows="3"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => setSelectedTaskId(null)}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-submit-task"
+                onClick={() => handleCompleteTask(selectedTask.id)}
+                disabled={loading}
+              >
+                {loading ? 'Submitting...' : 'Submit for Approval'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {reviewingTask && reviewingTask.status === 'Completed' && (
+        <Modal isOpen={Boolean(reviewingTask)} onClose={() => setViewingTaskId(null)} className="task-evidence-review-modal">
+          <div className="modal-header">
+            <h3>Task Evidence Review</h3>
+            <button
+              className="btn-close"
+              onClick={() => setViewingTaskId(null)}
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="modal-body">
+            <div className="evidence-section">
+              <h4>Task Information</h4>
+              <div className="info-grid">
+                <div className="info-item">
+                  <label>Task Name</label>
+                  <p>{reviewingTask.name}</p>
+                </div>
+                <div className="info-item">
+                  <label>Assigned To</label>
+                  <p>{getEmployeeName(reviewingTask.assignedEmployeeId)}</p>
+                </div>
+                <div className="info-item">
+                  <label>Horse</label>
+                  <p>{getHorseName(reviewingTask.horseId)}</p>
+                </div>
+                <div className="info-item">
+                  <label>Type</label>
+                  <p>{reviewingTask.type}</p>
+                </div>
+                <div className="info-item">
+                  <label>Priority</label>
+                  <p>{reviewingTask.priority}</p>
+                </div>
+                <div className="info-item">
+                  <label>Status</label>
+                  <p>
+                    <span
+                      className="status-badge"
+                      style={{ backgroundColor: getStatusColor(reviewingTask.status) }}
                     >
-                      {loading ? 'Submitting...' : 'Submit for Approval'}
-                    </button>
-                    <button 
-                      className="btn-cancel-form"
-                      onClick={() => setSelectedTaskId(null)}
-                      disabled={loading}
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                      {t(reviewingTask.status)}
+                    </span>
+                  </p>
                 </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="lovable-side-stack">
-        <div className="lovable-panel">
-          <div className="lovable-panel-title">{t('Shift Focus')}</div>
-          <div className="lovable-panel-subtitle">{t('What needs attention during the current cycle')}</div>
-          <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
-            <div className="lovable-progress-head">
-              <span>{t('Completion')}</span>
-              <strong>{completionRate}%</strong>
-            </div>
-            <div className="lovable-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
-          </div>
-          <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
-            <div className="lovable-progress-head">
-              <span>{t('High Priority')}</span>
-              <strong>{highPriorityTasks}</strong>
-            </div>
-            <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0}%` }} /></div>
-          </div>
-          <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
-            <div className="lovable-progress-head">
-              <span>{t('Review Queue')}</span>
-              <strong>{reviewReadyTasks}</strong>
-            </div>
-            <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0}%` }} /></div>
-          </div>
-        </div>
-
-        <div className="lovable-panel">
-          <div className="lovable-panel-title">{t('Ground Support')}</div>
-          <div className="lovable-panel-subtitle">{t('Quick operational readouts for this board')}</div>
-          <div className="lovable-side-stack" style={{ marginTop: '16px' }}>
-            <div className="lovable-side-stat">
-              <div className="lovable-side-stat-icon">01</div>
-              <div className="lovable-side-stat-copy">
-                <strong>{pendingTasks} {t('Awaiting Start')}</strong>
-                <span>{t('Ready to be picked up')}</span>
               </div>
             </div>
-            <div className="lovable-side-stat">
-              <div className="lovable-side-stat-icon">02</div>
-              <div className="lovable-side-stat-copy">
-                <strong>{inProgressTasks} {t('Live Tasks')}</strong>
-                <span>{t('Already in execution')}</span>
+
+            {getTaskEvidenceImage(reviewingTask) && (
+              <div className="evidence-section">
+                <h4>Evidence Photo</h4>
+                <div className="evidence-photo-container">
+                  <img
+                    src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`}
+                    alt="Task evidence"
+                    className="evidence-photo"
+                    onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))}
+                    onDoubleClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))}
+                    style={{ cursor: 'pointer' }}
+                    title="Click to view full size"
+                    onError={(e) => {
+                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E';
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="lovable-side-stat">
-              <div className="lovable-side-stat-icon">03</div>
-              <div className="lovable-side-stat-copy">
-                <strong>{canCreateTasks ? t('Supervisor Console') : t('Worker Console')}</strong>
-                <span>{canCreateTasks ? t('Creation and review actions enabled') : t('Execution and evidence submission enabled')}</span>
+            )}
+
+            {(reviewingTask.completionNotes || reviewingTask.description) && (
+              <div className="evidence-section">
+                <h4>Completion Notes</h4>
+                <p className="notes-text">{reviewingTask.completionNotes || reviewingTask.description}</p>
               </div>
-            </div>
+            )}
+
+            {reviewingTask.completedTime && (
+              <div className="evidence-section">
+                <h4>Completion Time</h4>
+                <p>{new Date(reviewingTask.completedTime).toLocaleString()}</p>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-      </div>
 
-      {/* Task Evidence Review Modal - Rendered at Page Level */}
-      {viewingTaskId && tasks.find(t => t.id === viewingTaskId)?.status === 'Completed' && (
-        <div className="task-evidence-modal">
-          <div className="modal-content">
-            {(() => {
-              const task = tasks.find(t => t.id === viewingTaskId);
-              return (
-                <>
-                  <div className="modal-header">
-                    <h3>Task Evidence Review</h3>
-                    <button 
-                      className="btn-close"
-                      onClick={() => setViewingTaskId(null)}
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-
-                  <div className="modal-body">
-                    <div className="evidence-section">
-                      <h4>Task Information</h4>
-                      <div className="info-grid">
-                        <div className="info-item">
-                          <label>Task Name</label>
-                          <p>{task.name}</p>
-                        </div>
-                        <div className="info-item">
-                          <label>Assigned To</label>
-                          <p>{getEmployeeName(task.assignedEmployeeId)}</p>
-                        </div>
-                        <div className="info-item">
-                          <label>Horse</label>
-                          <p>{getHorseName(task.horseId)}</p>
-                        </div>
-                        <div className="info-item">
-                          <label>Type</label>
-                          <p>{task.type}</p>
-                        </div>
-                        <div className="info-item">
-                          <label>Priority</label>
-                          <p>{task.priority}</p>
-                        </div>
-                        <div className="info-item">
-                          <label>Status</label>
-                          <p>
-                            <span 
-                              className="status-badge"
-                              style={{ backgroundColor: getStatusColor(task.status) }}
-                            >
-                              {t(task.status)}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {task.proofImage && (
-                      <div className="evidence-section">
-                        <h4>Evidence Photo</h4>
-                        <div className="evidence-photo-container">
-                          <img 
-                            src={task.proofImage.startsWith('http') ? task.proofImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${task.proofImage}`} 
-                            alt="Task evidence" 
-                            className="evidence-photo"
-                            onClick={() => setFullscreenImage(task.proofImage)}
-                            onDoubleClick={() => setFullscreenImage(task.proofImage)}
-                            style={{ cursor: 'pointer' }}
-                            title="Click to view full size"
-                            onError={(e) => {
-                              e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E'
-                            }}
-                          />
-                        </div>
-                        <p style={{fontSize: '0.8rem', color: 'var(--lovable-text-soft)', marginTop: '0.5rem'}}>
-                          Path: {task.proofImage}
-                        </p>
-                      </div>
-                    )}
-
-                    {task.description && (
-                      <div className="evidence-section">
-                        <h4>Completion Notes</h4>
-                        <p className="notes-text">{task.description}</p>
-                      </div>
-                    )}
-
-                    {task.completedTime && (
-                      <div className="evidence-section">
-                        <h4>Completion Time</h4>
-                        <p>{new Date(task.completedTime).toLocaleString()}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="modal-footer">
-                    <button 
-                      className="btn-close-modal"
-                      onClick={() => setViewingTaskId(null)}
-                    >
-                      Close
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
+          <div className="modal-footer">
+            <button
+              className="btn-close-modal"
+              onClick={() => setViewingTaskId(null)}
+            >
+              Close
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Fullscreen Image Viewer - Rendered at Page Level */}

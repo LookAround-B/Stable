@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
+import AnalysisPage from './pages/AnalysisPage';
 import HorsesPage from './pages/HorsesPage';
 import HorseDetailPage from './pages/HorseDetailPage';
 import TasksPage from './pages/TasksPage';
@@ -61,6 +62,7 @@ function App() {
           
           <Route element={<PrivateRoute />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/horses" element={<HorsesPage />} />
             <Route path="/horses/:id" element={<HorseDetailPage />} />

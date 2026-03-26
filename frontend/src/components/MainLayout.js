@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Menu, Moon, Quote, Search, Sun, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { CardGridSkeleton, PageSkeleton, StatsSkeleton } from './Skeleton';
 import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -25,6 +26,7 @@ function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const [routeSkeleton, setRouteSkeleton] = useState(true);
   const [theme, setTheme] = useState(() => {
     const saved = window.localStorage.getItem('efm.ui.theme');
     if (saved === 'light' || saved === 'dark') {
@@ -54,6 +56,11 @@ function MainLayout() {
     if (innerContentRef.current) {
       innerContentRef.current.scrollTop = 0;
     }
+    setRouteSkeleton(true);
+    const timer = window.setTimeout(() => {
+      setRouteSkeleton(false);
+    }, 600);
+    return () => window.clearTimeout(timer);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -100,27 +107,30 @@ function MainLayout() {
 
             <div className="lovable-brand-mobile">EFM</div>
 
-            <button
-              className="lovable-mobile-search-btn"
-              onClick={() => setMobileSearchOpen((prev) => !prev)}
-              aria-label="Toggle search"
-              type="button"
-            >
-              <Search size={16} />
-            </button>
-
             <div className="lovable-search-wrap lovable-topbar-sm-up">
               <SearchBar placeholder={t('Command + K to search...')} />
             </div>
 
             <div className="lovable-quote lovable-topbar-md-up">
               <Quote size={14} className="lovable-quote-icon" />
-              <span>{quote}</span>
+              <div className="lovable-quote-lane">
+                <span key={quoteIndex} className="lovable-quote-text">
+                  {quote}
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="lovable-topbar-right">
             <div className="lovable-topbar-actions">
+              <button
+                className="lovable-mobile-search-btn"
+                onClick={() => setMobileSearchOpen((prev) => !prev)}
+                aria-label="Toggle search"
+                type="button"
+              >
+                <Search size={16} />
+              </button>
               <button
                 className="lovable-topbar-icon"
                 type="button"
@@ -160,12 +170,25 @@ function MainLayout() {
 
         <div className="lovable-quote-mobile">
           <Quote size={12} className="lovable-quote-icon" />
-          <span>{quote}</span>
+          <div className="lovable-quote-lane lovable-quote-lane-mobile">
+            <span key={quoteIndex} className="lovable-quote-text lovable-quote-text-mobile">
+              {quote}
+            </span>
+          </div>
         </div>
 
         <main className="lovable-main-content">
           <div className="main-content-inner" ref={innerContentRef}>
-            <Outlet />
+            {routeSkeleton ? (
+              <div className="lovable-route-skeleton">
+                <PageSkeleton>
+                  <StatsSkeleton count={4} />
+                  <CardGridSkeleton count={4} />
+                </PageSkeleton>
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </div>
         </main>
       </div>

@@ -1,5 +1,5 @@
 /* Service Worker for EFM Stable PWA */
-const CACHE_NAME = 'efm-stable-v1';
+const CACHE_NAME = 'efm-stable-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

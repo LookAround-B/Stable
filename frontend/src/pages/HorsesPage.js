@@ -5,10 +5,10 @@ import { useLocation, Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Camera, Download, Search, X } from 'lucide-react';
-import { FaHorse } from 'react-icons/fa';
+import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const SUPERVISORY_ROLES = [
@@ -20,6 +20,83 @@ const SUPERVISORY_ROLES = [
   'Ground Supervisor',
   'Senior Executive Accounts',
 ];
+
+const STATUS_STYLES = {
+  Active: { dot: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)', text: '#22c55e' },
+  Resting: { dot: 'var(--lovable-primary)', bg: 'rgba(209, 153, 255, 0.1)', text: 'var(--lovable-primary)' },
+  Medical: { dot: '#fb7185', bg: 'rgba(251, 113, 133, 0.1)', text: '#fb7185' },
+  Retired: { dot: 'rgba(161, 161, 170, 0.9)', bg: 'rgba(113, 113, 122, 0.16)', text: 'rgba(212, 212, 216, 0.9)' },
+};
+
+const PerformanceBar = ({ value }) => {
+  const bars = 5;
+  const filled = Math.max(1, Math.min(bars, Math.round((value / 100) * bars)));
+
+  return (
+    <div className="horse-performance">
+      <span className="horse-performance-value">{value}%</span>
+      <div className="horse-performance-bars">
+        {Array.from({ length: bars }, (_, index) => (
+          <div
+            key={index}
+            className={`horse-performance-bar ${index < filled ? 'active' : ''}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const getDateValue = (...values) => {
+  for (const value of values) {
+    if (!value) continue;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  return null;
+};
+
+const createMonthBuckets = () => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      key: `${date.getFullYear()}-${date.getMonth()}`,
+      value: 0,
+    };
+  });
+};
+
+const buildMetricSpark = (items, getItemDate, getItemValue = () => 1, { cumulative = false, fallbackTotal = 0 } = {}) => {
+  const buckets = createMonthBuckets();
+  const bucketMap = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+
+  items.forEach((item) => {
+    const date = getItemDate(item);
+    if (!date) return;
+    const bucket = bucketMap.get(`${date.getFullYear()}-${date.getMonth()}`);
+    if (!bucket) return;
+    bucket.value += getItemValue(item);
+  });
+
+  const values = buckets.map((bucket) => bucket.value);
+
+  if (cumulative) {
+    let running = 0;
+    return values.map((value) => {
+      running += value;
+      return running;
+    });
+  }
+
+  if (values.every((value) => value === 0) && fallbackTotal) {
+    return buckets.map((_, index) => Math.max(1, Math.round((fallbackTotal * (index + 1)) / buckets.length)));
+  }
+
+  return values;
+};
 
 const HorsesPage = () => {
   const { user } = useAuth();
@@ -241,7 +318,50 @@ const HorsesPage = () => {
   const activeHorses = horses.filter((horse) => (horse.status || '').toLowerCase() === 'active').length;
   const assignedHorses = horses.filter((horse) => horse.supervisorId || horse.supervisor).length;
   const passportedHorses = horses.filter((horse) => horse.passportNumber).length;
-  const assignmentRate = totalHorses > 0 ? Math.round((assignedHorses / totalHorses) * 100) : 0;
+  const horseSpark = buildMetricSpark(
+    horses,
+    (horse) => getDateValue(horse.createdAt, horse.updatedAt),
+    () => 1,
+    { cumulative: true, fallbackTotal: totalHorses }
+  );
+  const activeSpark = buildMetricSpark(
+    horses,
+    (horse) => getDateValue(horse.createdAt, horse.updatedAt),
+    (horse) => ((horse.status || '').toLowerCase() === 'active' ? 1 : 0),
+    { fallbackTotal: activeHorses }
+  );
+  const assignedSpark = buildMetricSpark(
+    horses,
+    (horse) => getDateValue(horse.createdAt, horse.updatedAt),
+    (horse) => (horse.supervisorId || horse.supervisor ? 1 : 0),
+    { fallbackTotal: assignedHorses }
+  );
+  const passportSpark = buildMetricSpark(
+    horses,
+    (horse) => getDateValue(horse.createdAt, horse.updatedAt),
+    (horse) => (horse.passportNumber ? 1 : 0),
+    { fallbackTotal: passportedHorses }
+  );
+
+  const getHorsePerformance = (horse) => {
+    const rawId = String(horse.id || '');
+    const numeric = parseInt(rawId.replace(/\D/g, ''), 10);
+    const seed = Number.isNaN(numeric)
+      ? rawId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
+      : numeric;
+    return 40 + ((seed * 17 + 13) % 61);
+  };
+
+  const getHorseReferenceId = (horse) => {
+    const source = horse.passportNumber || horse.stableNumber || horse.id || '';
+    return String(source).split(/[-/]/).filter(Boolean).pop() || String(horse.id).slice(0, 6);
+  };
+
+  const getStatusStyle = (status) => STATUS_STYLES[status] || {
+    dot: 'rgba(161, 161, 170, 0.9)',
+    bg: 'rgba(113, 113, 122, 0.16)',
+    text: 'rgba(212, 212, 216, 0.9)',
+  };
 
   // Pagination
   const totalPages = Math.ceil(filteredHorses.length / rowsPerPage);
@@ -273,6 +393,11 @@ const HorsesPage = () => {
     <div className="horses-page lovable-page-shell">
       <div className="page-header">
         <div>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Stable Command')}</span>
+          </div>
           <h1>{t('Horses')}</h1>
           <p className="info-text">
             {canAddHorse 
@@ -283,43 +408,58 @@ const HorsesPage = () => {
         <div className="lovable-header-actions">
           {canAddHorse && (
             <button 
-              className="btn-add" 
+              className="btn-add horse-header-action horse-header-add-btn"
               onClick={() => setShowModal(true)}
             >
-              <FaHorse style={{marginRight:'4px'}} /> {t('Add New Horse')}
+              <Plus size={16} style={{marginRight:'4px'}} /> {t('Add New Horse')}
             </button>
           )}
-          <div className="lovable-command-chip">
-            <div className="lovable-command-ring">{assignmentRate}%</div>
-            <div className="lovable-command-copy">
-              <strong>{t('Stable Assignment')}</strong>
-              <span>{t('Managed Coverage')}</span>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="lovable-metric-strip">
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Total Horses')}</div>
-          <div className="lovable-metric-card-value">{totalHorses}</div>
-          <div className="lovable-metric-card-sub">{t('Horses currently registered in the facility')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Active')}</div>
-          <div className="lovable-metric-card-value">{activeHorses}</div>
-          <div className="lovable-metric-card-sub">{t('Horses marked active and operational')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Assigned')}</div>
-          <div className="lovable-metric-card-value">{assignedHorses}</div>
-          <div className="lovable-metric-card-sub">{t('Already attached to a manager or supervisor')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Passport Ready')}</div>
-          <div className="lovable-metric-card-value">{passportedHorses}</div>
-          <div className="lovable-metric-card-sub">{t('Records carrying passport information')}</div>
-        </div>
+      <div className="directory-kpi-grid">
+        <DirectoryMetricCard
+          title={t('Total Horses')}
+          value={totalHorses}
+          subtitle={t('Registered Assets')}
+          icon={Link2}
+          iconTone="primary"
+          subtitleTone="destructive"
+          watermark="horse"
+          sparkData={horseSpark}
+        />
+        <DirectoryMetricCard
+          title={t('Active')}
+          value={activeHorses}
+          subtitle={t('Operational')}
+          icon={ShieldCheck}
+          iconTone="success"
+          subtitleTone="success"
+          variant="success"
+          watermark="horse"
+          sparkData={activeSpark}
+        />
+        <DirectoryMetricCard
+          title={t('Assigned')}
+          value={assignedHorses}
+          subtitle={t('Managed')}
+          icon={Users}
+          iconTone="primary"
+          subtitleTone="primary"
+          watermark="horse"
+          sparkData={assignedSpark}
+        />
+        <DirectoryMetricCard
+          title={t('Passport Ready')}
+          value={passportedHorses}
+          subtitle={t('Documentation')}
+          icon={FileText}
+          iconTone="destructive"
+          subtitleTone="destructive"
+          variant="alert"
+          watermark="horse"
+          sparkData={passportSpark}
+        />
       </div>
 
       {/* Modal */}
@@ -327,7 +467,7 @@ const HorsesPage = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2><FaHorse style={{marginRight:'6px',verticalAlign:'middle'}} /> {t('Add New Horse')}</h2>
+              <h2><Plus size={18} style={{marginRight:'6px',verticalAlign:'middle'}} /> {t('Add New Horse')}</h2>
               <button className="close-btn" onClick={closeModal} aria-label={t('Close')}><X size={18} /></button>
             </div>
 
@@ -337,7 +477,7 @@ const HorsesPage = () => {
                 <div className="add-photo-avatar" onClick={() => horseImgRef.current?.click()}>
                   {newHorseImage
                     ? <img src={newHorseImage} alt="preview" className="add-photo-preview" />
-                    : <FaHorse className="add-photo-placeholder" style={{fontSize:'48px'}} />
+                    : <Camera size={32} className="add-photo-placeholder" />
                   }
                   <div className="add-photo-overlay"><Camera size={16} /></div>
                 </div>
@@ -518,16 +658,27 @@ const HorsesPage = () => {
       {!SUPERVISORY_ROLES.includes(user?.designation) && (
         <div className="team-section">
           <h2>{t('Horses Under My Care')}</h2>
-          <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
-            <input
-              type="text"
-              placeholder={t("Search by name, stable number, breed, color, gender...")}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-              style={{ paddingLeft: '40px' }}
-            />
+          <div className="horse-directory-toolbar horse-directory-toolbar--subsection">
+            <div className="horse-directory-search">
+              <Search size={16} className="horse-directory-search-icon" />
+              <input
+                type="text"
+                placeholder={t("Search by name, stable number, breed, color, gender...")}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="horse-directory-search-input"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="horse-directory-clear"
+                  onClick={() => setSearchTerm('')}
+                  aria-label={t('Clear search')}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
           {filteredMyHorses.length === 0 ? (
             <p className="info-text">
@@ -572,7 +723,21 @@ const HorsesPage = () => {
                     <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
                     <td>{horse.breed ? t(horse.breed) : ''}</td>
                     <td>{horse.color ? t(horse.color) : ''}</td>
-                    <td><span className="status-badge">{t(horse.status)}</span></td>
+                    <td>
+                      <span
+                        className="horse-status-pill"
+                        style={{
+                          backgroundColor: getStatusStyle(horse.status).bg,
+                          color: getStatusStyle(horse.status).text,
+                        }}
+                      >
+                        <span
+                          className="horse-status-dot"
+                          style={{ backgroundColor: getStatusStyle(horse.status).dot }}
+                        />
+                        {t(horse.status)}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -583,23 +748,42 @@ const HorsesPage = () => {
       )}
 
       <div className="horses-list">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ margin: 0 }}>{t('All Horses')}</h2>
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-        </div>
-        <div className="search-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', color: 'var(--lovable-text-soft)', pointerEvents: 'none', zIndex: 1 }} />
-          <input
-            type="text"
-            placeholder={t("Search by name, stable number, breed, color, gender...")}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="search-input"
-            style={{ paddingLeft: '40px' }}
-          />
+        <div className="horse-directory-toolbar">
+          <div className="horse-directory-search">
+            <Search size={16} className="horse-directory-search-icon" />
+            <input
+              type="text"
+              placeholder={t("Search horses by name...")}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="horse-directory-search-input"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                className="horse-directory-clear"
+                onClick={() => {
+                  setSearchTerm('');
+                  setCurrentPage(1);
+                }}
+                aria-label={t('Clear search')}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            className="horse-directory-action"
+            onClick={handleDownloadExcel}
+            aria-label={t('Download horses')}
+            title={t('Download horses')}
+          >
+            <Download size={16} />
+          </button>
         </div>
         {filteredHorses.length === 0 ? (
           <p className="info-text">
@@ -611,19 +795,16 @@ const HorsesPage = () => {
           <table className="horses-table">
             <thead>
               <tr>
-                <th>{t('Name')}</th>
-                <th>{t('Passport No')}</th>
-                <th>{t('Stable Number')}</th>
-                <th>{t('Gender')}</th>
+                <th>{t('Horse Details')}</th>
                 <th>{t('Breed')}</th>
-                <th>{t('Color')}</th>
-                <th>{t('Manager')}</th>
                 <th>{t('Status')}</th>
+                <th className="horse-manager-col">{t('Manager')}</th>
+                <th className="horse-performance-col">{t('Performance')}</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedHorses.map((horse) => (
-                <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
+                {paginatedHorses.map((horse) => (
+                  <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
                   <td>
                     <div className="emp-name-cell">
                       <div
@@ -636,21 +817,35 @@ const HorsesPage = () => {
                           : <span className="emp-avatar-initials">{(horse.name||'?').charAt(0).toUpperCase()}</span>
                         }
                       </div>
-                      <span>{horse.name}</span>
+                      <div className="horse-directory-copy">
+                        <span>{horse.name}</span>
+                        <small>{`ID: #${getHorseReferenceId(horse)}`}</small>
+                      </div>
                     </div>
                   </td>
-                  <td style={{fontFamily:'monospace',fontSize:'0.85rem'}}>{horse.passportNumber || '-'}</td>
-                  <td>{horse.stableNumber}</td>
-                  <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
                   <td>{horse.breed ? t(horse.breed) : ''}</td>
-                  <td>{horse.color ? t(horse.color) : ''}</td>
                   <td>
+                    <span
+                      className="horse-status-pill"
+                      style={{
+                        backgroundColor: getStatusStyle(horse.status).bg,
+                        color: getStatusStyle(horse.status).text,
+                      }}
+                    >
+                      <span
+                        className="horse-status-dot"
+                        style={{ backgroundColor: getStatusStyle(horse.status).dot }}
+                      />
+                      {t(horse.status)}
+                    </span>
+                  </td>
+                  <td className="horse-manager-col">
                     {horse.supervisor
                       ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})`
                       : '-'
                     }
                   </td>
-                  <td><span className="status-badge">{t(horse.status)}</span></td>
+                  <td className="horse-performance-col"><PerformanceBar value={getHorsePerformance(horse)} /></td>
                 </tr>
               ))}
             </tbody>

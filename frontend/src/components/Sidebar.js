@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
+  BarChart3,
   CheckSquare,
   ChevronDown,
   Cog,
@@ -192,10 +193,11 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
   }, []);
 
   const isDashboardActive = location.pathname === '/' || location.pathname === '/dashboard';
+  const isAnalysisActive = location.pathname === '/analysis';
 
   return (
     <>
-      <aside className={`lovable-sidebar ${mobileOpen ? 'lovable-sidebar-open' : ''} ${collapsed ? 'lovable-sidebar-collapsed' : ''}`}>
+      <aside className={`lovable-sidebar horse-pattern ${mobileOpen ? 'lovable-sidebar-open' : ''} ${collapsed ? 'lovable-sidebar-collapsed' : ''}`}>
         <div className={`lovable-sidebar-brand ${collapsed ? 'collapsed' : ''}`}>
           <div className="lovable-sidebar-logo-copy">
             <span className="lovable-sidebar-logo">EFM</span>
@@ -226,6 +228,21 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
               <div className="lovable-group-copy">
                 <LayoutDashboard size={16} />
                 {!collapsed && <span>{t('Dashboard')}</span>}
+              </div>
+            </Link>
+          </div>
+
+          <div className="lovable-sidebar-dashboard">
+            <Link
+              to="/analysis"
+              className={`lovable-nav-link lovable-nav-link-root ${isAnalysisActive ? 'active' : ''} ${collapsed ? 'collapsed' : ''}`}
+              onClick={handleNavClick}
+              title={collapsed ? t('Analysis') : undefined}
+            >
+              {isAnalysisActive && <span className="lovable-active-rail" />}
+              <div className="lovable-group-copy">
+                <BarChart3 size={16} />
+                {!collapsed && <span>{t('Analysis')}</span>}
               </div>
             </Link>
           </div>

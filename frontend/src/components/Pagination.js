@@ -39,6 +39,7 @@ const Pagination = ({
   return (
     <div className="lovable-pagination">
       <div className="lovable-pagination-summary">
+        <span>Showing</span>
         <span className="lovable-pagination-range">{rangeStart}-{rangeEnd}</span>
         <span>of {safeTotal}</span>
       </div>
@@ -60,48 +61,43 @@ const Pagination = ({
             </select>
           </div>
         )}
+        <div className="lovable-pagination-buttons">
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="lovable-pagination-nav"
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={14} />
+          </button>
 
-        <div className="lovable-pagination-pages">
-          <span className="lovable-pagination-page-copy">Page {currentPage} / {totalPages}</span>
+          {pageItems.map((item, idx) =>
+            item === '...' ? (
+              <span key={`ellipsis-${idx}`} className="lovable-pagination-ellipsis">...</span>
+            ) : (
+              <button
+                key={item}
+                type="button"
+                onClick={() => onPageChange(item)}
+                className={`lovable-pagination-page ${currentPage === item ? 'active' : ''}`}
+                aria-label={`Go to page ${item}`}
+                aria-current={currentPage === item ? 'page' : undefined}
+              >
+                {item}
+              </button>
+            )
+          )}
 
-          <div className="lovable-pagination-buttons">
-            <button
-              type="button"
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="lovable-pagination-nav"
-              aria-label="Previous page"
-            >
-              <ChevronLeft size={14} />
-            </button>
-
-            {pageItems.map((item, idx) =>
-              item === '...' ? (
-                <span key={`ellipsis-${idx}`} className="lovable-pagination-ellipsis">...</span>
-              ) : (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => onPageChange(item)}
-                  className={`lovable-pagination-page ${currentPage === item ? 'active' : ''}`}
-                  aria-label={`Go to page ${item}`}
-                  aria-current={currentPage === item ? 'page' : undefined}
-                >
-                  {item}
-                </button>
-              )
-            )}
-
-            <button
-              type="button"
-              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="lovable-pagination-nav"
-              aria-label="Next page"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="lovable-pagination-nav"
+            aria-label="Next page"
+          >
+            <ChevronRight size={14} />
+          </button>
         </div>
       </div>
     </div>

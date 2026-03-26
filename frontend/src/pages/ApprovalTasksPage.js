@@ -221,6 +221,11 @@ const ApprovalTasksPage = () => {
     <div className="page-container lovable-page-shell approval-page">
           <div className="page-header">
             <div>
+              <div className="lovable-header-kicker">
+                <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+                <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+                <span>{t('Review Console')}</span>
+              </div>
               <h1>{t('Task & Medicine Approvals')}</h1>
               <p>{t('Review and approve tasks and medicine logs')}</p>
             </div>

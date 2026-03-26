@@ -147,6 +147,11 @@ const MyAssignedTasksPage = () => {
     <div className="page-container lovable-page-shell my-assigned-page">
       <div className="page-header">
         <div>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Personal Task Console')}</span>
+          </div>
           <h1>{t('My Assigned Tasks')}</h1>
           <p>{t('Complete and submit your assigned tasks with evidence')}</p>
         </div>
