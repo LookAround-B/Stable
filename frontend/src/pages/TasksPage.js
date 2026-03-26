@@ -655,7 +655,7 @@ const TasksPage = () => {
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) || null;
   const reviewingTask = tasks.find((task) => task.id === viewingTaskId) || null;
 
-  if (!p.manageTasks) return <Navigate to="/" replace />;
+  if (!p.manageTasks) return <Navigate to="/dashboard" replace />;
   if (pageLoading) return <TasksPageSkeleton />;
 
   return (

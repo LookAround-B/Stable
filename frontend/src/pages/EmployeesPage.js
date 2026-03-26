@@ -502,7 +502,7 @@ const EmployeesPage = () => {
     XLSX.writeFile(wb, `Employees_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.manageEmployees) return <Navigate to="/" replace />;
+  if (!p.manageEmployees) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="employees-page lovable-page-shell">

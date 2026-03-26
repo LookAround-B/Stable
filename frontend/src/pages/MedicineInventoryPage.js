@@ -297,7 +297,7 @@ const MedicineInventoryPage = () => {
     }
   };
 
-  if (!p.viewMedicineInventory) return <Navigate to="/" replace />;
+  if (!p.viewMedicineInventory) return <Navigate to="/dashboard" replace />;
 
   const totalStock = inventoryRecords.reduce((s, m) => s + (m.unitsLeft || 0), 0);
   const lowStockCount = inventoryRecords.filter(m => m.threshold !== null && m.threshold !== undefined && m.unitsLeft < m.threshold).length;

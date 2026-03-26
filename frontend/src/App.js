@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { I18nProvider } from './context/I18nContext';
 import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
+import SplashPage from './pages/SplashPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
@@ -57,11 +58,12 @@ function App() {
       <AuthProvider>
         <Router>
         <Routes>
+          <Route path="/" element={<SplashPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile-setup" element={<ProfileSetupPage />} />
           
           <Route element={<PrivateRoute />}>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/horses" element={<HorsesPage />} />

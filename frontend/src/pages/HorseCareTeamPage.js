@@ -222,7 +222,7 @@ const HorseCareTeamPage = () => {
     return careTeams.filter((team) => team.horseId === horseId);
   };
 
-  if (!p.isAdmin && user?.designation !== 'Stable Manager') return <Navigate to="/" replace />;
+  if (!p.isAdmin && user?.designation !== 'Stable Manager') return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="care-team-page">

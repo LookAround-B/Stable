@@ -186,7 +186,7 @@ const ApprovalTasksPage = () => {
     );
   };
 
-  if (!p.viewApprovals) return <Navigate to="/" replace />;
+  if (!p.viewApprovals) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="space-y-6">

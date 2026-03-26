@@ -116,7 +116,7 @@ const FeedInventoryPage = () => {
     finally { setLoading(false); }
   };
 
-  if (!p.viewFeedInventory) return <Navigate to="/" replace />;
+  if (!p.viewFeedInventory) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="space-y-6">

@@ -216,7 +216,7 @@ const GateAttendancePage = () => {
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
 
-  if (!p.viewGateEntry) return <Navigate to="/" replace />;
+  if (!p.viewGateEntry) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="space-y-6">

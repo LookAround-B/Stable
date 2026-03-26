@@ -149,7 +149,7 @@ const MedicineLogPage = () => {
     XLSX.writeFile(wb, `MedicineLog_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.viewMedicineLogs) return <Navigate to="/" replace />;
+  if (!p.viewMedicineLogs) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="medicine-page">

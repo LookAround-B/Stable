@@ -226,7 +226,7 @@ const TeamAttendancePage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedRecords = attendanceRecords.slice(startIndex, endIndex);
 
-  if (!p.viewTeamAttendance) return <Navigate to="/" replace />;
+  if (!p.viewTeamAttendance) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="team-attendance-container">

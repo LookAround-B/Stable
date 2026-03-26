@@ -212,7 +212,7 @@ const MeetingPage = () => {
     )
   }
 
-  if (!p.viewMeetings) return <Navigate to="/" replace />
+  if (!p.viewMeetings) return <Navigate to="/dashboard" replace />
 
   const filters = ['upcoming', 'past', 'all']
 

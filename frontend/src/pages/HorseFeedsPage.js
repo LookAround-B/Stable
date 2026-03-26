@@ -132,7 +132,7 @@ const HorseFeedsPage = () => {
     XLSX.writeFile(workbook, `HorseFeeds_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  if (!p.viewHorseFeeds) return <Navigate to="/" replace />;
+  if (!p.viewHorseFeeds) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="space-y-6">

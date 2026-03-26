@@ -522,7 +522,7 @@ const ExpensePage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedExpenses = expenses.slice(startIndex, endIndex);
 
-  if (!p.viewExpenses) return <Navigate to="/" replace />;
+  if (!p.viewExpenses) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="expense-page">

@@ -5,18 +5,14 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { Download } from 'lucide-react';
+import { Download, Plus, Pencil, Trash2, ClipboardList } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 
-// Helper function to get today's date in YYYY-MM-DD format (local time, no timezone conversion)
 const getTodayString = () => {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 };
 
 const CAN_CREATE_RECORDS = ['Instructor'];
@@ -35,460 +31,199 @@ const DailyWorkRecordsPage = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const canCreateRecords = CAN_CREATE_RECORDS.includes(user?.designation);
-
-  // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
-  const [formData, setFormData] = useState({
-    horseId: '',
-    riderId: '',
-    workType: 'Lesson',
-    duration: '',
-    date: getTodayString(),
-    notes: '',
-  });
-
-  // Update form date when selectedDate changes
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      date: selectedDate,
-    }));
-  }, [selectedDate]);
-
+  const [formData, setFormData] = useState({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: getTodayString(), notes: '' });
   const workTypes = ['Lesson', 'Training', 'Exercise', 'Rehab', 'Groundwork', 'Lunge', 'Hack'];
 
-  // Load records
+  useEffect(() => { setFormData(prev => ({ ...prev, date: selectedDate })); }, [selectedDate]);
+
   const loadRecords = useCallback(async () => {
     try {
       setLoading(true);
-
-      const startDateStr = selectedDate; // Use selected date directly
-      const endDateStr = selectedDate; // Same date (not next day)
-
-      console.log('Loading records for date range:', startDateStr, 'to', endDateStr);
-
-      const response = await apiClient.get('/eirs', {
-        params: {
-          startDate: startDateStr,
-          endDate: endDateStr,
-        },
-      });
-
-      console.log('Records response:', response.data);
-      setRecords(response.data.data || []);
-      setMessage('');
-    } catch (error) {
-      console.error('Error loading records:', error);
-      console.error('Error response status:', error.response?.status);
-      console.error('Error response data:', error.response?.data);
-      setMessage('Failed to load records');
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
+      const response = await apiClient.get('/eirs', { params: { startDate: selectedDate, endDate: selectedDate } });
+      setRecords(response.data.data || []); setMessage('');
+    } catch (error) { setMessage('Failed to load records'); setMessageType('error'); }
+    finally { setLoading(false); }
   }, [selectedDate]);
 
-  // Load horses and employees
   const loadHorsesAndEmployees = async () => {
     try {
-      const [horsesRes, employeesRes] = await Promise.all([
-        apiClient.get('/horses'),
-        apiClient.get('/employees'),
-      ]);
-
-      console.log('Horses response:', horsesRes.data);
-      console.log('Employees response:', employeesRes.data);
-
-      setHorses(horsesRes.data.data || []);
-      setEmployees(employeesRes.data.data || []);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      console.error('Error response:', error.response?.data);
-    }
+      const [horsesRes, employeesRes] = await Promise.all([apiClient.get('/horses'), apiClient.get('/employees')]);
+      setHorses(horsesRes.data.data || []); setEmployees(employeesRes.data.data || []);
+    } catch (error) { console.error('Error loading data:', error); }
   };
 
-  useEffect(() => {
-    loadRecords();
-    loadHorsesAndEmployees();
-  }, [selectedDate, loadRecords]);
+  useEffect(() => { loadRecords(); loadHorsesAndEmployees(); }, [selectedDate, loadRecords]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleDateChange = (e) => {
-    const newDate = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      date: newDate,
-    }));
-  };
+  const handleInputChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
+  const handleDateChange = (e) => { setFormData(prev => ({ ...prev, date: e.target.value })); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.horseId || !formData.riderId || !formData.duration) {
-      setMessage('Please fill in all required fields');
-      setMessageType('error');
-      return;
-    }
-
+    if (!formData.horseId || !formData.riderId || !formData.duration) { setMessage('Please fill all required fields'); setMessageType('error'); return; }
     try {
       setLoading(true);
-
-      console.log('Submitting form data:', formData);
-
-      if (editingId) {
-        // Update record
-        const updateResult = await apiClient.put(`/eirs/${editingId}`, {
-          ...formData,
-          duration: parseInt(formData.duration),
-        });
-        console.log('Update result:', updateResult.data);
-        setMessage('Record updated successfully');
-      } else {
-        // Create new record
-        const submitData = {
-          ...formData,
-          duration: parseInt(formData.duration),
-        };
-        console.log('Creating record with data:', submitData);
-        console.log('Date value:', submitData.date, 'Type:', typeof submitData.date);
-        console.log('HorseId:', submitData.horseId, 'RiderId:', submitData.riderId, 'WorkType:', submitData.workType);
-        await apiClient.post('/eirs', submitData);
-        setMessage('Record created successfully');
-
-      }
-
+      if (editingId) { await apiClient.put(`/eirs/${editingId}`, { ...formData, duration: parseInt(formData.duration) }); setMessage('Record updated successfully'); }
+      else { await apiClient.post('/eirs', { ...formData, duration: parseInt(formData.duration) }); setMessage('Record created successfully'); }
       setMessageType('success');
-      setFormData({
-        horseId: '',
-        riderId: '',
-        workType: 'Lesson',
-        duration: '',
-        date: selectedDate,
-        notes: '',
-      });
-      setEditingId(null);
-      setShowForm(false);
-      loadRecords();
-    } catch (error) {
-      setMessage(error.response?.data?.error || 'Failed to save record');
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
+      setFormData({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: selectedDate, notes: '' });
+      setEditingId(null); setShowForm(false); loadRecords();
+    } catch (error) { setMessage(error.response?.data?.error || 'Failed to save'); setMessageType('error'); }
+    finally { setLoading(false); }
   };
 
   const handleEdit = (record) => {
-    setFormData({
-      horseId: record.horseId,
-      riderId: record.riderId,
-      workType: record.workType,
-      duration: record.duration.toString(),
-      date: record.date.split('T')[0],
-      notes: record.notes || '',
-    });
-    setEditingId(record.id);
-    setShowForm(true);
+    setFormData({ horseId: record.horseId, riderId: record.riderId, workType: record.workType, duration: record.duration.toString(), date: record.date.split('T')[0], notes: record.notes || '' });
+    setEditingId(record.id); setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    setConfirmModal({ isOpen: true, id });
-  };
-
+  const handleDelete = (id) => setConfirmModal({ isOpen: true, id });
   const confirmDelete = async () => {
-    const id = confirmModal.id;
-    setConfirmModal({ isOpen: false, id: null });
-
-    try {
-      setLoading(true);
-      await apiClient.delete(`/eirs/${id}`);
-      setMessage('Record deleted successfully');
-      setMessageType('success');
-      loadRecords();
-    } catch (error) {
-      setMessage(error.response?.data?.error || 'Failed to delete record');
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
+    const id = confirmModal.id; setConfirmModal({ isOpen: false, id: null });
+    try { setLoading(true); await apiClient.delete(`/eirs/${id}`); setMessage('Record deleted'); setMessageType('success'); loadRecords(); }
+    catch (error) { setMessage(error.response?.data?.error || 'Failed to delete'); setMessageType('error'); }
+    finally { setLoading(false); }
   };
 
   const handleCancel = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setFormData({
-      horseId: '',
-      riderId: '',
-      workType: 'Lesson',
-      duration: '',
-      date: selectedDate,
-      notes: '',
-    });
+    setShowForm(false); setEditingId(null);
+    setFormData({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: selectedDate, notes: '' });
   };
 
   const handleDownloadExcel = () => {
-    if (records.length === 0) {
-      alert('No records to download');
-      return;
-    }
-
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB');
-    };
-
-    // Prepare data for Excel
-    const excelData = records.map((record) => ({
-      'Date': formatDate(record.date),
-      'Horse': record.horse?.name || '-',
-      'Rider': record.rider?.fullName || '-',
-      'Work Type': record.workType,
-      'Duration (mins)': record.duration || '-',
-      'Notes': record.notes || '',
-    }));
-
-    // Create workbook and worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 12 }, // Date
-      { wch: 18 }, // Horse
-      { wch: 18 }, // Rider
-      { wch: 15 }, // Work Type
-      { wch: 15 }, // Duration
-      { wch: 30 }, // Notes
-    ];
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Daily Work Records');
-
-    // Generate filename with date
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10);
-    const filename = `DailyWorkRecords_${selectedDate}_${dateStr}.xlsx`;
-
-    // Download file
-    XLSX.writeFile(workbook, filename);
-    console.log('📥 Downloaded daily work records to:', filename);
+    if (records.length === 0) { alert('No records'); return; }
+    const data = records.map(r => ({ 'Date': r.date ? new Date(r.date).toLocaleDateString('en-GB') : '', 'Horse': r.horse?.name || '-', 'Rider': r.rider?.fullName || '-', 'Work Type': r.workType, 'Duration (min)': r.duration || '-', 'Notes': r.notes || '' }));
+    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 30 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'Daily Work Records');
+    XLSX.writeFile(wb, `DailyWorkRecords_${selectedDate}.xlsx`);
   };
 
-  if (!p.viewEIRS) return <Navigate to="/" replace />;
+  const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+
+  const totalMinutes = records.reduce((sum, r) => sum + (r.duration || 0), 0);
+  const workTypeBadge = (wt) => {
+    const colors = { Lesson: 'border-blue-500/30 text-blue-400 bg-blue-500/10', Training: 'border-purple-500/30 text-purple-400 bg-purple-500/10', Exercise: 'border-green-500/30 text-green-400 bg-green-500/10', Rehab: 'border-orange-500/30 text-orange-400 bg-orange-500/10', Groundwork: 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10', Lunge: 'border-cyan-500/30 text-cyan-400 bg-cyan-500/10', Hack: 'border-pink-500/30 text-pink-400 bg-pink-500/10' };
+    return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${colors[wt] || 'border-border text-muted-foreground'}`}>{wt}</span>;
+  };
+
+  if (!p.viewEIRS) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="daily-work-records-page">
-      <div className="page-header">
-        <h1>{t('Daily Work Records (EIRS)')}</h1>
-        <button
-          className="btn-secondary"
-          onClick={handleDownloadExcel}
-          disabled={loading}
-        >
-          <Download size={14} />Excel
-        </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><ClipboardList className="w-7 h-7 inline-block mr-2 text-primary" />{t('Daily Work')} <span className="text-primary">Records (EIRS)</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">Equine Individual Record Sheets</p>
+        </div>
+        <button onClick={handleDownloadExcel} disabled={loading} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
       </div>
 
-      {message && (
-        <div className={`message ${messageType}`}>
-          {message}
-          <button onClick={() => setMessage('')} className="close-btn">✕</button>
-        </div>
-      )}
+      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}<button onClick={() => setMessage('')} className="ml-3 opacity-60 hover:opacity-100">✕</button></div>}
 
-      <div className="page-controls">
-        <label>
-          Select Date:
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-        </label>
-
-        <div className="control-buttons">
-          {!showForm && canCreateRecords && (
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowForm(true)}
-              disabled={loading}
-            >
-              + New Record
-            </button>
-          )}
-        </div>
-      </div>
-
-      {showForm && canCreateRecords && (
-        <div className="form-container">
-          <div className="form-card">
-            <h2>{editingId ? t('Edit Work Record') : t('New Work Record')}</h2>
-
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="date">Date *</label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleDateChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="horseId">Horse *</label>
-                <SearchableSelect
-                  id="horseId"
-                  name="horseId"
-                  value={formData.horseId}
-                  onChange={handleInputChange}
-                  placeholder="Select a horse"
-                  required
-                  options={[
-                    { value: '', label: 'Select a horse' },
-                    ...horses.map(h => ({ value: h.id, label: h.name }))
-                  ]}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="riderId">Rider/Student *</label>
-                <SearchableSelect
-                  id="riderId"
-                  name="riderId"
-                  value={formData.riderId}
-                  onChange={handleInputChange}
-                  placeholder="Select a rider"
-                  required
-                  options={[
-                    { value: '', label: 'Select a rider' },
-                    ...employees
-                      .filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation))
-                      .map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
-                  ]}
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="workType">Type of Work *</label>
-                  <select
-                    id="workType"
-                    name="workType"
-                    value={formData.workType}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    {workTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="duration">Duration (minutes) *</label>
-                  <input
-                    type="number"
-                    id="duration"
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleInputChange}
-                    placeholder="45"
-                    min="1"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="notes">Notes</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  placeholder="Additional notes about the session"
-                  rows={3}
-                />
-              </div>
-
-              <div className="form-actions">
-                <button type="submit" className="btn btn-success" disabled={loading}>
-                  {loading ? 'Saving...' : editingId ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleCancel}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Records Today', value: records.length },
+          { label: 'Total Minutes', value: totalMinutes },
+          { label: 'Horses Used', value: [...new Set(records.map(r => r.horseId))].length },
+          { label: 'Avg Duration', value: records.length ? `${Math.round(totalMinutes / records.length)}m` : '0m' },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
+            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
           </div>
+        ))}
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+        <div>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={inputCls} />
+        </div>
+        {!showForm && canCreateRecords && (
+          <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"><Plus className="w-4 h-4" /> New Record</button>
+        )}
+      </div>
+
+      {/* Form */}
+      {showForm && canCreateRecords && (
+        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+          <h3 className="text-lg font-bold text-foreground mb-4">{editingId ? t('Edit Work Record') : t('New Work Record')}</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                <input type="date" name="date" value={formData.date} onChange={handleDateChange} required className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
+                <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder="Select horse" required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Rider/Student *</label>
+                <SearchableSelect name="riderId" value={formData.riderId} onChange={handleInputChange} placeholder="Select rider" required options={[{ value: '', label: 'Select rider' }, ...employees.filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation)).map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))]} />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Work Type *</label>
+                <SearchableSelect name="workType" value={formData.workType} onChange={handleInputChange} required options={workTypes.map(type => ({ value: type, label: type }))} />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Duration (min) *</label>
+                <input type="number" name="duration" value={formData.duration} onChange={handleInputChange} placeholder="45" min="1" required className={inputCls} />
+              </div>
+              <div className="sm:col-span-2 lg:col-span-3">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder="Additional session notes" rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
+              <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+            </div>
+          </form>
         </div>
       )}
 
-      <div className="records-list" style={{ marginTop: '24px' }}>
-        <h2>Records for {new Date(selectedDate).toLocaleDateString()}</h2>
+      {/* Records Table */}
+      {loading && <TableSkeleton cols={6} rows={5} />}
 
-        {loading && <TableSkeleton cols={6} rows={5} />}
+      {!loading && records.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">No records for {new Date(selectedDate).toLocaleDateString()}</div>
+      )}
 
-        {!loading && records.length === 0 && (
-          <div className="no-records">No records for this date</div>
-        )}
-
-        {!loading && records.length > 0 && (
-          <div className="records-table">
-            <table>
+      {!loading && records.length > 0 && (
+        <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+          <div className="px-5 py-4 border-b border-border">
+            <h3 className="text-sm font-bold text-foreground">Records for {new Date(selectedDate).toLocaleDateString()} ({records.length})</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th>Horse</th>
-                  <th>Rider</th>
-                  {!canCreateRecords && <th>Instructor</th>}
-                  <th>Type</th>
-                  <th>Duration (min)</th>
-                  <th>Notes</th>
-                  {canCreateRecords && <th>Actions</th>}
+                <tr className="border-b border-border">
+                  {['Horse', 'Rider', ...(!canCreateRecords ? ['Instructor'] : []), 'Type', 'Duration', 'Notes', ...(canCreateRecords ? ['Actions'] : [])].map(h => (
+                    <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {records.map((record) => (
-                  <tr key={record.id}>
-                    <td>{record.horse.name}</td>
-                    <td>{record.rider.fullName}</td>
-                    {!canCreateRecords && <td>{record.instructor?.fullName || '-'}</td>}
-                    <td>{record.workType}</td>
-                    <td>{record.duration}</td>
-                    <td>{record.notes || '-'}</td>
+                  <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+                    <td className="px-3 py-3 font-medium text-foreground">{record.horse.name}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{record.rider.fullName}</td>
+                    {!canCreateRecords && <td className="px-3 py-3 text-muted-foreground text-xs">{record.instructor?.fullName || '-'}</td>}
+                    <td className="px-3 py-3">{workTypeBadge(record.workType)}</td>
+                    <td className="px-3 py-3 text-foreground mono-data font-medium">{record.duration} min</td>
+                    <td className="px-3 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{record.notes || '-'}</td>
                     {canCreateRecords && (
-                      <td className="actions">
-                        <button
-                          className="btn btn-sm btn-edit"
-                          onClick={() => handleEdit(record)}
-                          title="Edit"
-                        >
-                          ✎
-                        </button>
-                        <button
-                          className="btn btn-sm btn-delete"
-                          onClick={() => handleDelete(record.id)}
-                          title="Delete"
-                        >
-                          🗑
-                        </button>
+                      <td className="px-3 py-3">
+                        <div className="flex gap-1.5">
+                          <button onClick={() => handleEdit(record)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center gap-1"><Pencil className="w-3 h-3" /> Edit</button>
+                          <button onClick={() => handleDelete(record.id)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-1"><Trash2 className="w-3 h-3" /> Del</button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -496,18 +231,10 @@ const DailyWorkRecordsPage = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmModal({ isOpen: false, id: null })}
-        title="Delete Record"
-        message="Are you sure you want to delete this record?"
-        confirmText="Delete"
-        confirmVariant="danger"
-      />
+      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Record" message="Are you sure you want to delete this record?" confirmText="Delete" confirmVariant="danger" />
     </div>
   );
 };

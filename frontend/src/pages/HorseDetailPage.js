@@ -8,7 +8,7 @@ const HorseDetailPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
 
-  if (!p.viewHorses) return <Navigate to="/" replace />;
+  if (!p.viewHorses) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="horse-detail-page">

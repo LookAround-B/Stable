@@ -219,7 +219,7 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
         <div className="lovable-sidebar-scroll">
           <div className="lovable-sidebar-dashboard">
             <Link
-              to="/"
+              to="/dashboard"
               className={`lovable-nav-link lovable-nav-link-root ${isDashboardActive ? 'active' : ''} ${collapsed ? 'collapsed' : ''}`}
               onClick={handleNavClick}
               title={collapsed ? t('Dashboard') : undefined}

@@ -132,7 +132,7 @@ const TackInventoryPage = () => {
     XLSX.writeFile(wb, `TackInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.viewTackInventory) return <Navigate to="/" replace />;
+  if (!p.viewTackInventory) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="page-container" style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>

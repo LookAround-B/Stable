@@ -247,7 +247,7 @@ const MedicineLogsPage = () => {
     XLSX.writeFile(wb, `MedicineLogs_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.viewMedicineLogs) return <Navigate to="/" replace />;
+  if (!p.viewMedicineLogs) return <Navigate to="/dashboard" replace />;
 
   const getStatusBadge = (status) => {
     const cfg = {

@@ -107,7 +107,7 @@ const FarrierInventoryPage = () => {
     return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${cfg[cond] || 'border-border text-muted-foreground'}`}>{cond}</span>;
   };
 
-  if (!p.viewFarrierInventory) return <Navigate to="/" replace />;
+  if (!p.viewFarrierInventory) return <Navigate to="/dashboard" replace />;
 
   // input helper
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";

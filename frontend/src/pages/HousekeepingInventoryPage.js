@@ -136,7 +136,7 @@ const HousekeepingInventoryPage = () => {
 
   const lowStockItems = items.filter(i => i.reorderAlert && i.minimumStockLevel && i.quantity < i.minimumStockLevel);
 
-  if (!p.viewHousekeepingInventory) return <Navigate to="/" replace />;
+  if (!p.viewHousekeepingInventory) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="page-container" style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>

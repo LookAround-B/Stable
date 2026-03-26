@@ -393,7 +393,7 @@ const FinePage = () => {
     XLSX.writeFile(wb, `Fines_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.viewFines) return <Navigate to="/" replace />;
+  if (!p.viewFines) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="fine-page">

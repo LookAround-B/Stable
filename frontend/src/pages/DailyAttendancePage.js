@@ -5,7 +5,7 @@ import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download } from 'lucide-react';
+import { Download, Users, UserCheck, UserX, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const DailyAttendancePage = () => {
@@ -24,11 +24,7 @@ const DailyAttendancePage = () => {
   const loadAttendance = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/attendance/daily', {
-        params: {
-          date: selectedDate,
-        },
-      });
+      const response = await apiClient.get('/attendance/daily', { params: { date: selectedDate } });
       setAttendance(response.data.data || []);
       setMessage('');
     } catch (error) {
@@ -42,7 +38,6 @@ const DailyAttendancePage = () => {
   const loadEmployees = useCallback(async () => {
     try {
       const response = await apiClient.get('/employees');
-      // Filter to show only grooms
       const groomersList = response.data.data?.filter(emp => emp.designation === 'Groom') || [];
       setEmployees(groomersList);
     } catch (error) {
@@ -50,217 +45,132 @@ const DailyAttendancePage = () => {
     }
   }, []);
 
-  useEffect(() => {
-    loadAttendance();
-    loadEmployees();
-    setCurrentPage(1); // Reset pagination when date changes
-  }, [selectedDate, loadAttendance, loadEmployees]);
+  useEffect(() => { loadAttendance(); loadEmployees(); setCurrentPage(1); }, [selectedDate, loadAttendance, loadEmployees]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
-  // Reset pagination when search term changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
-  // Handle check-in/out toggle
   const handleAttendanceToggle = async (employeeId, isCheckedIn) => {
     try {
-      // Optimistic update — show the change immediately
-      const optimisticRecord = {
-        employeeId,
-        checkInTime: isCheckedIn ? new Date().toISOString() : null,
-        checkOutTime: isCheckedIn ? null : new Date().toISOString(),
-        status: 'Present',
-        remarks: isCheckedIn ? 'Checked in' : 'Checked out',
-      };
+      const optimisticRecord = { employeeId, checkInTime: isCheckedIn ? new Date().toISOString() : null, checkOutTime: isCheckedIn ? null : new Date().toISOString(), status: 'Present', remarks: isCheckedIn ? 'Checked in' : 'Checked out' };
       const existingBefore = attendance.find(a => a.employeeId === employeeId);
-      if (existingBefore) {
-        setAttendance(prev => prev.map(a => a.employeeId === employeeId ? { ...a, ...optimisticRecord } : a));
-      } else {
-        setAttendance(prev => [...prev, { id: `temp-${employeeId}`, ...optimisticRecord }]);
-      }
+      if (existingBefore) { setAttendance(prev => prev.map(a => a.employeeId === employeeId ? { ...a, ...optimisticRecord } : a)); }
+      else { setAttendance(prev => [...prev, { id: `temp-${employeeId}`, ...optimisticRecord }]); }
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-
-      const payload = {
-        employeeId,
-        date: selectedDate,
-        checkInTime: isCheckedIn ? `${selectedDate}T${timeStr}` : null,
-        checkOutTime: isCheckedIn ? null : `${selectedDate}T${timeStr}`,
-        status: 'Present',
-        remarks: isCheckedIn ? 'Checked in' : 'Checked out',
-      };
-
+      const payload = { employeeId, date: selectedDate, checkInTime: isCheckedIn ? `${selectedDate}T${timeStr}` : null, checkOutTime: isCheckedIn ? null : `${selectedDate}T${timeStr}`, status: 'Present', remarks: isCheckedIn ? 'Checked in' : 'Checked out' };
       const response = await apiClient.post('/attendance/daily', payload);
-      
-      // Replace optimistic record with real server data
-      setAttendance(prev => {
-        const exists = prev.find(a => a.employeeId === employeeId);
-        if (exists) {
-          return prev.map(a => a.employeeId === employeeId ? response.data.data : a);
-        }
-        return [...prev, response.data.data];
-      });
-
+      setAttendance(prev => { const exists = prev.find(a => a.employeeId === employeeId); if (exists) return prev.map(a => a.employeeId === employeeId ? response.data.data : a); return [...prev, response.data.data]; });
       setMessage(isCheckedIn ? '✓ Checked in successfully' : '✓ Checked out successfully');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error updating attendance:', error);
-      // Revert optimistic update on failure
       loadAttendance();
       setMessage('Failed to update attendance');
     }
   };
 
-  const isCheckedIn = (employeeId) => {
-    const record = attendance.find(a => a.employeeId === employeeId);
-    return record && record.checkInTime && !record.checkOutTime;
-  };
+  const isCheckedIn = (employeeId) => { const record = attendance.find(a => a.employeeId === employeeId); return record && record.checkInTime && !record.checkOutTime; };
+  const getCheckInTime = (employeeId) => { const record = attendance.find(a => a.employeeId === employeeId); return record?.checkInTime ? new Date(record.checkInTime).toLocaleTimeString() : '-'; };
+  const getCheckOutTime = (employeeId) => { const record = attendance.find(a => a.employeeId === employeeId); return record?.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString() : '-'; };
 
-  const getCheckInTime = (employeeId) => {
-    const record = attendance.find(a => a.employeeId === employeeId);
-    return record?.checkInTime ? new Date(record.checkInTime).toLocaleTimeString() : '-';
-  };
-
-  const getCheckOutTime = (employeeId) => {
-    const record = attendance.find(a => a.employeeId === employeeId);
-    return record?.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString() : '-';
-  };
-
-  const filteredEmployees = employees.filter(emp =>
-    emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Pagination logic
+  const filteredEmployees = employees.filter(emp => emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || emp.email.toLowerCase().includes(searchTerm.toLowerCase()));
   const totalPages = Math.ceil(filteredEmployees.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
+  const paginatedEmployees = filteredEmployees.slice(startIndex, startIndex + rowsPerPage);
 
-  const canManageAttendance = [
-    'Super Admin',
-    'Director',
-    'School Administrator',
-    'Stable Manager',
-    'Ground Supervisor',
-    'Jamedar',
-  ].includes(user?.designation);
+  const canManageAttendance = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar'].includes(user?.designation);
+
+  const checkedInCount = employees.filter(e => isCheckedIn(e.id)).length;
 
   const handleDownloadExcel = () => {
-    if (!filteredEmployees.length) { alert('No data to download'); return; }
-    const data = filteredEmployees.map(groom => ({
-      'Groom Name': groom.fullName,
-      'Email': groom.email,
-      'Check In Time': getCheckInTime(groom.id),
-      'Check Out Time': getCheckOutTime(groom.id),
-      'Status': isCheckedIn(groom.id) ? 'IN' : 'OUT',
-    }));
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Daily Attendance');
-    XLSX.writeFile(wb, `DailyAttendance_${new Date().toISOString().slice(0,10)}.xlsx`);
+    if (!filteredEmployees.length) { alert('No data'); return; }
+    const data = filteredEmployees.map(groom => ({ 'Groom Name': groom.fullName, 'Email': groom.email, 'Check In': getCheckInTime(groom.id), 'Check Out': getCheckOutTime(groom.id), 'Status': isCheckedIn(groom.id) ? 'IN' : 'OUT' }));
+    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Daily Attendance'); XLSX.writeFile(wb, `DailyAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  if (!p.viewDailyAttendance) return <Navigate to="/" replace />;
+  if (!p.viewDailyAttendance) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="daily-attendance-page">
-      <div className="page-header">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1>{t('Daily Attendance Register')}</h1>
-          <p className="info-text">
-            Groomers check in/out with the toggle switch. Track daily attendance and work hours.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Daily Attendance')} <span className="text-primary">Register</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">Groomers check in/out with the toggle. Track daily attendance.</p>
         </div>
-        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
       </div>
 
-      {message && <div className={`message ${message.includes('Failed') ? 'error' : 'success'}`}>{message}</div>}
+      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Failed') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
-      <div className="attendance-header">
-        <div className="header-left">
-          <label style={{display: 'flex', alignItems: 'center', gap: '12px', marginRight: '24px'}}>
-            Select Date:
-            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-          </label>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Total Grooms', value: employees.length, icon: Users },
+          { label: 'Checked In', value: checkedInCount, icon: UserCheck },
+          { label: 'Checked Out', value: employees.length - checkedInCount, icon: UserX },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
+              <k.icon className="w-4 h-4 text-primary/60" />
+            </div>
+            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
+          </div>
+        ))}
+      </div>
 
-          <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-            Search:
-            <input 
-              type="text" 
-              placeholder="Search by groom name or email..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </label>
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+        <div>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+        </div>
+        <div className="relative flex-1 max-w-sm">
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Search</label>
+          <input type="text" placeholder="Search by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+          <Search className="absolute right-3 bottom-2.5 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
-      {/* Attendance Table with Toggle */}
-      <>
-      <div className="attendance-table-wrapper">
-        <table className="attendance-table">
-          <thead>
-            <tr>
-              <th>Groom Name</th>
-              <th>Email</th>
-              <th>Check In Time</th>
-              <th>Check Out Time</th>
-              <th style={{ textAlign: 'center' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEmployees.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="no-data">
-                  No groomers found
-                </td>
+      {/* Table */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                {['Groom Name', 'Email', 'Check In', 'Check Out', 'Status'].map(h => (
+                  <th key={h} className={`px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap ${h === 'Status' ? 'text-center' : ''}`}>{h}</th>
+                ))}
               </tr>
-            ) : (
-              paginatedEmployees.map((groom) => {
-                const checked = isCheckedIn(groom.id);
-                return (
-                  <tr key={groom.id} className={checked ? 'checked-in' : 'checked-out'}>
-                    <td className="employee-cell">
-                      <strong>{groom.fullName}</strong>
-                    </td>
-                    <td>{groom.email}</td>
-                    <td className="time-cell">{getCheckInTime(groom.id)}</td>
-                    <td className="time-cell">{getCheckOutTime(groom.id)}</td>
-                    <td className="status-cell">
-                      <label className="attendance-toggle" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: canManageAttendance ? 'pointer' : 'default' }}>
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => handleAttendanceToggle(groom.id, !checked)}
-                          disabled={!canManageAttendance}
-                          style={{ width: '16px', height: '16px', accentColor: '#10b981', cursor: 'inherit' }}
-                        />
-                        <span className={`toggle-label ${checked ? 'checked-in-label' : 'checked-out-label'}`}>
-                          {checked ? 'IN' : 'OUT'}
-                        </span>
-                      </label>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(newRows) => {
-            setRowsPerPage(newRows);
-            setCurrentPage(1);
-          }}
-          total={filteredEmployees.length}
-        />
+            </thead>
+            <tbody>
+              {filteredEmployees.length === 0 ? (
+                <tr><td colSpan="5" className="px-3 py-12 text-center text-muted-foreground">No groomers found</td></tr>
+              ) : (
+                paginatedEmployees.map((groom) => {
+                  const checked = isCheckedIn(groom.id);
+                  return (
+                    <tr key={groom.id} className={`border-b border-border/50 hover:bg-surface-container-high transition-colors ${checked ? 'bg-success/5' : ''}`}>
+                      <td className="px-3 py-3 font-medium text-foreground">{groom.fullName}</td>
+                      <td className="px-3 py-3 text-muted-foreground text-xs">{groom.email}</td>
+                      <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{getCheckInTime(groom.id)}</td>
+                      <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{getCheckOutTime(groom.id)}</td>
+                      <td className="px-3 py-3 text-center">
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={checked} onChange={() => handleAttendanceToggle(groom.id, !checked)} disabled={!canManageAttendance} className="w-4 h-4 rounded accent-primary cursor-pointer disabled:cursor-default" />
+                          <span className={`text-xs font-bold uppercase tracking-wider ${checked ? 'text-success' : 'text-muted-foreground'}`}>{checked ? 'IN' : 'OUT'}</span>
+                        </label>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(n) => { setRowsPerPage(n); setCurrentPage(1); }} total={filteredEmployees.length} />
       </div>
-      </>
     </div>
   );
 };

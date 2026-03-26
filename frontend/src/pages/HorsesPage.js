@@ -387,7 +387,7 @@ const HorsesPage = () => {
     XLSX.writeFile(wb, `Horses_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.viewHorses) return <Navigate to="/" replace />;
+  if (!p.viewHorses) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="horses-page lovable-page-shell">

@@ -240,7 +240,7 @@ const WorkRecordPage = () => {
     XLSX.writeFile(wb, `WorkRecord_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  if (!p.viewGroomWorksheet) return <Navigate to="/" replace />;
+  if (!p.viewGroomWorksheet) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="groom-worksheet-page">

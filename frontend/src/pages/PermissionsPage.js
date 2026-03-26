@@ -330,7 +330,7 @@ const PermissionsPage = () => {
   };
 
   const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   if (loading) {
     return (

@@ -586,7 +586,7 @@ function AnalysisPage() {
   );
 
   if (!permissions.viewDashboard) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (loading) {

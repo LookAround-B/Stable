@@ -136,7 +136,7 @@ const FarrierShoeingPage = () => {
   };
 
   if (!user) return null;
-  if (!p.viewFarrierShoeing) return <Navigate to="/" replace />;
+  if (!p.viewFarrierShoeing) return <Navigate to="/dashboard" replace />;
 
   const getStatusBadge = (record) => {
     const now = new Date();

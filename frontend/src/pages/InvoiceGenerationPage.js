@@ -300,7 +300,7 @@ const InvoiceGenerationPage = () => {
     `;
   };
 
-  if (!p.viewInvoiceGeneration) return <Navigate to="/" replace />;
+  if (!p.viewInvoiceGeneration) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="invoice-generation-page">
