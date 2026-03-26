@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
-import Modal from '../components/Modal';
 import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
@@ -660,191 +659,143 @@ const TasksPage = () => {
   if (pageLoading) return <TasksPageSkeleton />;
 
   return (
-    <div className="tasks-page lovable-page-shell">
-      <div className="page-header">
+    <div className="space-y-6">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <div className="lovable-header-kicker">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Operations Core')}</span>
-          </div>
-          <h1>{t('Tasks Management')}</h1>
-          <p className="tasks-observed-line">{`OBSERVED: ${observedStamp} - SHIFT: ${getShiftLabel()}`}</p>
-          <p className="role-description">{getRoleTaskDescription(user?.designation, t)}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Task')} <span className="text-primary">{t('Management')}</span></h1>
+          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+            {`OBSERVED: ${observedStamp}`} &nbsp;·&nbsp; {`SHIFT: ${getShiftLabel()}`}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">{getRoleTaskDescription(user?.designation, t)}</p>
         </div>
-        <div className="lovable-header-actions">
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
           {canCreateTasks && (
-            <button 
-              className="btn-primary"
-              onClick={() => setShowCreateForm(!showCreateForm)}
-            >
-              {showCreateForm ? 'Close Task Composer' : '+ Create New Task'}
+            <button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all" onClick={() => setShowCreateForm(!showCreateForm)}>
+              {showCreateForm ? '✕ Close' : '+ Create Task'}
             </button>
           )}
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-          <div className="lovable-command-chip">
-            <div className="lovable-command-ring">{completionRate}%</div>
-            <div className="lovable-command-copy">
-              <strong>{t('Operational Efficiency')}</strong>
-              <span>{t('Progress Matrix')}</span>
+          <button className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2" onClick={handleDownloadExcel}><Download size={14} /> Excel</button>
+          <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+              <span className="text-lg font-bold text-primary">{completionRate}%</span>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('Operational Efficiency')}</p>
+              <p className="text-lg font-bold text-foreground">{t('Progress Matrix')}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="lovable-metric-strip">
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Total Tasks')}</div>
-          <div className="lovable-metric-card-value">{totalTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Current task load across the system')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('High Priority')}</div>
-          <div className="lovable-metric-card-value">{highPriorityTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Tasks requiring close attention')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('In Motion')}</div>
-          <div className="lovable-metric-card-value">{inProgressTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Tasks actively being worked right now')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Review Queue')}</div>
-          <div className="lovable-metric-card-value">{reviewReadyTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Completions waiting for verification')}</div>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: t('Total Tasks'), value: totalTasks, sub: t('Current task load across the system') },
+          { label: t('High Priority'), value: highPriorityTasks, sub: t('Tasks requiring close attention') },
+          { label: t('In Motion'), value: inProgressTasks, sub: t('Tasks actively being worked right now') },
+          { label: t('Review Queue'), value: reviewReadyTasks, sub: t('Completions waiting for verification') },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
+            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
+            <p className="text-xs mt-1 text-muted-foreground">{k.sub}</p>
+          </div>
+        ))}
       </div>
 
       {message && (
-        <div className={`message ${message.startsWith('Error:') ? 'error' : 'success'}`}> 
+        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.startsWith('Error:') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
           {message}
         </div>
       )}
 
-      <div className="task-filters">
-        <div className="lovable-pill-row">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
           {statusPills.map((pill) => (
             <button
               key={pill.key}
               type="button"
-              className={`lovable-pill ${filterStatus === pill.key ? 'active' : ''}`}
               onClick={() => setFilterStatus(pill.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0 flex items-center gap-2 ${
+                filterStatus === pill.key
+                  ? 'bg-primary/20 text-primary border border-primary/40'
+                  : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'
+              }`}
             >
-              <span>{pill.label}</span>
-              <span className="lovable-pill-count">{pill.count}</span>
+              {pill.label}
+              <span className="text-[10px] font-bold mono-data">{pill.count}</span>
             </button>
           ))}
         </div>
-        <div className="search-input task-filter-search">
-          <span className="search-icon">
-            <SlidersHorizontal size={16} />
-          </span>
+        <div className="relative w-full md:w-72">
           <input
             type="text"
             placeholder={t('Filter task ID or horse name...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
           />
+          <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
-      <div className="lovable-grid-main">
-        <div className="tasks-list">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+        <div className="space-y-4">
           {filteredTasks.length === 0 ? (
-            <p className="no-tasks">{t('No tasks found')}</p>
+            <div className="text-center py-12 text-muted-foreground">{t('No tasks found')}</div>
           ) : (
             filteredTasks.map((task) => (
-              <div key={task.id} className="task-card task-card-lovable">
-                <div className="task-card-media">
-                  {getHorseProfileImage(task.horseId) ? (
-                    <img
-                      src={getHorseProfileImage(task.horseId)}
-                      alt={getHorseName(task.horseId)}
-                      className="task-card-image"
-                    />
-                  ) : (
-                    <div className="task-card-placeholder">
-                      <span>{getHorseName(task.horseId).charAt(0).toUpperCase()}</span>
-                      <small>{t(task.type)}</small>
+              <div key={task.id} className="bg-surface-container-high rounded-xl overflow-hidden edge-glow border border-primary/10 hover:border-primary/30 transition-all duration-300 group">
+                <div className="flex flex-col sm:flex-row">
+                  <div className="relative w-full sm:w-44 h-48 sm:h-44 shrink-0 overflow-hidden">
+                    {getHorseProfileImage(task.horseId) ? (
+                      <img src={getHorseProfileImage(task.horseId)} alt={getHorseName(task.horseId)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full bg-surface-container-highest flex flex-col items-center justify-center">
+                        <span className="text-3xl font-bold text-muted-foreground/30">{getHorseName(task.horseId).charAt(0).toUpperCase()}</span>
+                        <small className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">{t(task.type)}</small>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent sm:hidden" />
+                  </div>
+
+                  <div className="flex-1 p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-primary/30 text-primary bg-primary/10">{getTaskCategory(task.type)}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono opacity-60">ID: {String(task.id).slice(0, 8).toUpperCase()}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-foreground leading-tight">{task.name}</h3>
+                      <p className="text-sm text-primary/90 mt-1 font-medium">{getHorseName(task.horseId)}</p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><Clock3 className="w-3.5 h-3.5 text-primary/60" /> {getTaskTime(task.scheduledTime)}</span>
+                        <span className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-primary/60" /> {getTaskSupportInfo(task)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getStatusColor(task.status) + '22', color: getStatusColor(task.status), borderColor: getStatusColor(task.status) + '44' }}>{t(task.status)}</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getPriorityColor(task.priority) + '22', color: getPriorityColor(task.priority), borderColor: getPriorityColor(task.priority) + '44' }}>{task.priority}</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                <div className="task-card-main">
-                  <div className="task-card-topline">
-                    <span className="task-card-category">{getTaskCategory(task.type)}</span>
-                    <span className="task-card-id">ID: {String(task.id).slice(0, 8).toUpperCase()}</span>
-                  </div>
-
-                  <h3 className="task-card-title">{task.name}</h3>
-                  <p className="task-card-horse">{getHorseName(task.horseId)}</p>
-
-                  <div className="task-card-meta">
-                    <span><Clock3 size={14} /> {getTaskTime(task.scheduledTime)}</span>
-                    <span><Package size={14} /> {getTaskSupportInfo(task)}</span>
-                  </div>
-
-                  <div className="task-card-state-row">
-                    <span
-                      className="status-badge"
-                      style={{ backgroundColor: getStatusColor(task.status) }}
-                    >
-                      {t(task.status)}
-                    </span>
-                    <span
-                      className="priority-badge"
-                      style={{ backgroundColor: getPriorityColor(task.priority) }}
-                    >
-                      {task.priority}
-                    </span>
-                  </div>
-
-                  {task.description && (
-                    <p className="task-card-copy">{task.description}</p>
-                  )}
-
-                  <div className="task-card-footer">
-                    <span className="task-card-assigned">{t('Assigned')}: {getEmployeeName(task.assignedEmployeeId)}</span>
-
-                    <div className="task-actions task-card-action-cluster">
-                      {!canCreateTasks && task.status === 'Pending' && (
-                        <button
-                          className="btn-start"
-                          onClick={() => handleStartTask(task.id)}
-                          disabled={loading}
-                        >
-                          Start Task <Play size={14} />
-                        </button>
-                      )}
-
-                      {!canCreateTasks && task.status === 'In Progress' && (
-                        <>
-                          <button
-                            className="btn-complete"
-                            onClick={() => setSelectedTaskId(task.id)}
-                            disabled={loading}
-                          >
-                            Complete Task <Check size={14} />
+                    {task.description && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{task.description}</p>}
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-xs text-muted-foreground">{t('Assigned')}: <strong className="text-foreground">{getEmployeeName(task.assignedEmployeeId)}</strong></span>
+                      <div className="flex gap-2">
+                        {!canCreateTasks && task.status === 'Pending' && (
+                          <button onClick={() => handleStartTask(task.id)} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 bg-primary/5 text-sm font-semibold text-foreground hover:bg-primary/20 hover:border-primary/40 hover:text-primary transition-all active:scale-95">
+                            Start Task <Play className="w-3.5 h-3.5 fill-current" />
                           </button>
-                          <button
-                            className="btn-cancel"
-                            onClick={() => handleCancelTask(task.id)}
-                            disabled={loading}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-
-                      {CAN_REVIEW_TASKS.includes(user?.designation) && task.status === 'Completed' && (
-                        <button
-                          className="btn-review"
-                          onClick={() => setViewingTaskId(task.id)}
-                          disabled={loading}
-                        >
-                          Review Evidence
-                        </button>
-                      )}
+                        )}
+                        {!canCreateTasks && task.status === 'In Progress' && (
+                          <>
+                            <button onClick={() => setSelectedTaskId(task.id)} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success/15 text-success text-sm font-semibold hover:bg-success/25 transition-all">
+                              Complete <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleCancelTask(task.id)} disabled={loading} className="px-3 py-2 rounded-lg bg-destructive/15 text-destructive text-xs font-medium hover:bg-destructive/25 transition-all">Cancel</button>
+                          </>
+                        )}
+                        {CAN_REVIEW_TASKS.includes(user?.designation) && task.status === 'Completed' && (
+                          <button onClick={() => setViewingTaskId(task.id)} disabled={loading} className="px-4 py-2 rounded-lg bg-primary/15 text-primary text-sm font-semibold hover:bg-primary/25 transition-all">Review Evidence</button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -853,398 +804,214 @@ const TasksPage = () => {
           )}
         </div>
 
-        <div className="lovable-side-stack">
-          <div className="lovable-panel task-side-widget">
-            <div className="task-side-widget-head">
-              <BarChart3 size={18} />
-              <h3>{t('Shift Focus')}</h3>
+        {/* Sidebar Widgets */}
+        <div className="space-y-4">
+          {/* Shift Focus */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-foreground">{t('Shift Focus')}</h3>
             </div>
-            <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
-              <div className="lovable-progress-head">
-                <span>{t('Completion')}</span>
-                <strong>{completionRate}%</strong>
-              </div>
-              <div className="lovable-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
+            <div className="space-y-3">
+              {[
+                { label: t('Completion'), value: completionRate, pct: completionRate },
+                { label: t('High Priority'), value: highPriorityTasks, pct: totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0 },
+                { label: t('Review Queue'), value: reviewReadyTasks, pct: totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0 },
+              ].map(row => (
+                <div key={row.label}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{row.label}</span>
+                    <span className="text-sm font-bold text-foreground">{typeof row.value === 'number' && row.label.includes('Completion') ? `${row.value}%` : row.value}</span>
+                  </div>
+                  <div className="w-full h-1 rounded-full bg-surface-container-high mt-1">
+                    <div className="h-1 rounded-full bg-primary" style={{ width: `${row.pct}%` }} />
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
-              <div className="lovable-progress-head">
-                <span>{t('High Priority')}</span>
-                <strong>{highPriorityTasks}</strong>
-              </div>
-              <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0}%` }} /></div>
-            </div>
-            <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
-              <div className="lovable-progress-head">
-                <span>{t('Review Queue')}</span>
-                <strong>{reviewReadyTasks}</strong>
-              </div>
-              <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0}%` }} /></div>
-            </div>
-            <p className="task-side-note"><span>{t('Note')}:</span> {t('Heavy traffic in Arena B scheduled for 11:00.')}</p>
+            <p className="mt-4 text-xs text-muted-foreground"><span className="text-primary font-semibold">{t('Note')}:</span> {t('Heavy traffic in Arena B scheduled for 11:00.')}</p>
           </div>
 
-          <div className="lovable-panel task-side-widget">
-            <div className="task-side-widget-head">
-              <Users size={18} />
-              <h3>{t('Ground Support')}</h3>
+          {/* Ground Support */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-foreground">{t('Ground Support')}</h3>
             </div>
-            <div className="task-support-list">
-              {supportMembers.length > 0 ? supportMembers.map((member) => (
-                <div key={member.id} className="task-support-person">
-                  <div className="task-support-avatar">{member.initials}</div>
-                  <div className="task-support-copy">
-                    <strong>{member.name}</strong>
-                    <span>{member.role}</span>
+            <div className="space-y-3">
+              {supportMembers.length > 0 ? supportMembers.map(s => (
+                <div key={s.id} className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-sm font-bold text-muted-foreground">{s.initials}</div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{s.name}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-primary">{s.role}</p>
                   </div>
-                  <i className={`task-support-dot ${member.online ? 'online' : ''}`} />
+                  <span className={`w-2.5 h-2.5 rounded-full ${s.online ? 'bg-success' : 'bg-muted-foreground/40'}`} />
                 </div>
               )) : (
-                <div className="task-support-empty">{t('No support roster available yet')}</div>
+                <p className="text-sm text-muted-foreground">{t('No support roster available yet')}</p>
               )}
             </div>
           </div>
 
-          <div className="lovable-panel task-side-widget task-climate-widget">
-            <p className="task-side-caption">{t('Environmental Sync')}</p>
-            <div className="task-climate-row">
+          {/* Environmental Sync */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t('Environmental Sync')}</p>
+            <div className="flex items-end justify-between">
               <div>
-                <p className="task-climate-temp">18.4C</p>
-                <p className="task-climate-copy"><TrendingDown size={13} /> {t('Stable stasis optimal')}</p>
+                <p className="text-4xl font-bold text-foreground tracking-tight">18.4°C</p>
+                <p className="text-xs text-primary mt-1 flex items-center gap-1"><TrendingDown className="w-3 h-3" /> {t('STABLE STASIS OPTIMAL')}</p>
               </div>
-              <Thermometer size={30} />
+              <Thermometer className="w-8 h-8 text-muted-foreground/30" />
             </div>
           </div>
         </div>
       </div>
 
       {canCreateTasks && showCreateForm && (
-        <Modal isOpen={showCreateForm} onClose={() => setShowCreateForm(false)}>
-          <div className="modal-header">
-            <h3>{t('Create New Task')}</h3>
-            <button className="btn-close" onClick={() => setShowCreateForm(false)}>
-              <X size={18} />
-            </button>
-          </div>
-
-          <form onSubmit={handleCreateTask} className="modal-form">
-            <div className="form-group">
-              <label>Task Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="e.g. Morning Feed, Groom Shadow"
-                required
-              />
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowCreateForm(false)}>
+          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-foreground">{t('Create New Task')}</h3>
+              <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShowCreateForm(false)}><X size={18} /></button>
             </div>
-
-            <div className="form-group">
-              <label>Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Task details and instructions"
-                rows="3"
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Task Type *</label>
-                <SearchableSelect
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  options={TASK_TYPES.map(type => ({ value: type, label: type }))}
-                  placeholder="Select task type..."
-                  required
-                />
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Task Name *</label>
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Morning Feed, Groom Shadow" required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
               </div>
-
-              <div className="form-group">
-                <label>Priority</label>
-                <SearchableSelect
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                  options={[
-                    { value: 'Low', label: 'Low' },
-                    { value: 'Medium', label: 'Medium' },
-                    { value: 'High', label: 'High' },
-                    { value: 'Urgent', label: 'Urgent' },
-                  ]}
-                  placeholder="Select priority..."
-                />
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Description</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Task details and instructions" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Horse</label>
-                <SearchableSelect
-                  name="horseId"
-                  value={formData.horseId}
-                  onChange={handleInputChange}
-                  placeholder="Select a horse (optional)"
-                  options={[
-                    { value: '', label: 'Select a horse (optional)' },
-                    ...horses.map(h => ({ value: h.id, label: h.name }))
-                  ]}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Task Type *</label>
+                  <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder="Select task type..." required />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Priority</label>
+                  <SearchableSelect name="priority" value={formData.priority} onChange={handleInputChange} options={[{ value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' }, { value: 'High', label: 'High' }, { value: 'Urgent', label: 'Urgent' }]} placeholder="Select priority..." />
+                </div>
               </div>
-
-              <div className="form-group">
-                <label>Assign To *</label>
-                <SearchableSelect
-                  name="assignedEmployeeId"
-                  value={formData.assignedEmployeeId}
-                  onChange={handleInputChange}
-                  placeholder="Select employee"
-                  required
-                  options={[
-                    { value: '', label: 'Select employee' },
-                    ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
-                  ]}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse</label>
+                  <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder="Select a horse (optional)" options={[{ value: '', label: 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assign To *</label>
+                  <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder="Select employee" required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
+                </div>
               </div>
-            </div>
-
-            <div className="form-group">
-              <label>Scheduled Date & Time *</label>
-              <input
-                type="datetime-local"
-                name="scheduledTime"
-                value={formData.scheduledTime}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="form-group checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  name="requiredProof"
-                  checked={formData.requiredProof}
-                  onChange={handleInputChange}
-                />
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Scheduled Date & Time *</label>
+                <input type="datetime-local" name="scheduledTime" value={formData.scheduledTime} onChange={handleInputChange} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
                 Require photo evidence
               </label>
-            </div>
-
-            <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setShowCreateForm(false)}>
-                Cancel
-              </button>
-              <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? 'Creating...' : 'Create Task'}
-              </button>
-            </div>
-          </form>
-        </Modal>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Creating...' : 'Create Task'}</button>
+                <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {selectedTask && selectedTask.status === 'In Progress' && (
-        <Modal isOpen={Boolean(selectedTask)} onClose={() => setSelectedTaskId(null)}>
-          <div className="modal-header">
-            <h3>{t('Submit Task Evidence')}</h3>
-            <button className="btn-close" onClick={() => setSelectedTaskId(null)}>
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="modal-form">
-            <div className="task-modal-context">
-              <div>
-                <label>{t('Task')}</label>
-                <p>{selectedTask.name}</p>
-              </div>
-              <div>
-                <label>{t('Horse')}</label>
-                <p>{getHorseName(selectedTask.horseId)}</p>
-              </div>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedTaskId(null)}>
+          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-foreground">{t('Submit Task Evidence')}</h3>
+              <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setSelectedTaskId(null)}><X size={18} /></button>
             </div>
-
-            <div className="form-group">
-              <label>
-                Photo Evidence
-                {selectedTask.requiredProof && <span className="task-required-mark"> *</span>}
-              </label>
-              <div className="photo-upload-area">
-                <input
-                  type="file"
-                  id={`photo-${selectedTask.id}`}
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  disabled={loading}
-                  style={{ display: 'none' }}
-                />
-                <label htmlFor={`photo-${selectedTask.id}`} className="photo-upload-label">
-                  <div className="upload-icon"><Camera size={20} /></div>
-                  <div className="upload-text">
-                    {completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}
-                  </div>
-                  <small>JPG, PNG (Max 5MB)</small>
+            <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-surface-container-high border border-border mb-4">
+              <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t('Task')}</p><p className="text-sm font-medium text-foreground mt-0.5">{selectedTask.name}</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t('Horse')}</p><p className="text-sm font-medium text-foreground mt-0.5">{getHorseName(selectedTask.horseId)}</p></div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Photo Evidence {selectedTask.requiredProof && <span className="text-destructive">*</span>}</label>
+                <input type="file" id={`photo-${selectedTask.id}`} accept="image/*" onChange={handlePhotoUpload} disabled={loading} className="hidden" />
+                <label htmlFor={`photo-${selectedTask.id}`} className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors bg-surface-container-high">
+                  <Camera className="w-5 h-5 text-primary" />
+                  <div><p className="text-sm font-medium text-foreground">{completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}</p><p className="text-xs text-muted-foreground">JPG, PNG (Max 5MB)</p></div>
                 </label>
-                {completionData.photoUrl && (
-                  <div className="photo-preview">
-                    <img src={completionData.photoUrl} alt="Task evidence" />
-                  </div>
-                )}
+                {completionData.photoUrl && <img src={completionData.photoUrl} alt="Task evidence" className="mt-3 max-w-[150px] max-h-[150px] rounded-lg border border-border" />}
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Completion Notes</label>
+                <textarea placeholder="Add any notes about task completion..." value={completionData.notes} onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => handleCompleteTask(selectedTask.id)} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Submitting...' : 'Submit for Approval'}</button>
+                <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
               </div>
             </div>
-
-            <div className="form-group">
-              <label>Completion Notes</label>
-              <textarea
-                placeholder="Add any notes about task completion..."
-                value={completionData.notes}
-                onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })}
-                rows="3"
-              />
-            </div>
-
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => setSelectedTaskId(null)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn-submit-task"
-                onClick={() => handleCompleteTask(selectedTask.id)}
-                disabled={loading}
-              >
-                {loading ? 'Submitting...' : 'Submit for Approval'}
-              </button>
-            </div>
           </div>
-        </Modal>
+        </div>
       )}
 
       {reviewingTask && reviewingTask.status === 'Completed' && (
-        <Modal isOpen={Boolean(reviewingTask)} onClose={() => setViewingTaskId(null)} className="task-evidence-review-modal">
-          <div className="modal-header">
-            <h3>Task Evidence Review</h3>
-            <button
-              className="btn-close"
-              onClick={() => setViewingTaskId(null)}
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="modal-body">
-            <div className="evidence-section">
-              <h4>Task Information</h4>
-              <div className="info-grid">
-                <div className="info-item">
-                  <label>Task Name</label>
-                  <p>{reviewingTask.name}</p>
-                </div>
-                <div className="info-item">
-                  <label>Assigned To</label>
-                  <p>{getEmployeeName(reviewingTask.assignedEmployeeId)}</p>
-                </div>
-                <div className="info-item">
-                  <label>Horse</label>
-                  <p>{getHorseName(reviewingTask.horseId)}</p>
-                </div>
-                <div className="info-item">
-                  <label>Type</label>
-                  <p>{reviewingTask.type}</p>
-                </div>
-                <div className="info-item">
-                  <label>Priority</label>
-                  <p>{reviewingTask.priority}</p>
-                </div>
-                <div className="info-item">
-                  <label>Status</label>
-                  <p>
-                    <span
-                      className="status-badge"
-                      style={{ backgroundColor: getStatusColor(reviewingTask.status) }}
-                    >
-                      {t(reviewingTask.status)}
-                    </span>
-                  </p>
-                </div>
-              </div>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewingTaskId(null)}>
+          <div className="bg-surface-container-highest border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-6 py-4 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">Task Evidence Review</h3>
+              <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setViewingTaskId(null)}><X size={18} /></button>
             </div>
-
-            {getTaskEvidenceImage(reviewingTask) && (
-              <div className="evidence-section">
-                <h4>Evidence Photo</h4>
-                <div className="evidence-photo-container">
-                  <img
-                    src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`}
-                    alt="Task evidence"
-                    className="evidence-photo"
-                    onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))}
-                    onDoubleClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))}
-                    style={{ cursor: 'pointer' }}
-                    title="Click to view full size"
-                    onError={(e) => {
-                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E';
-                    }}
-                  />
+            <div className="p-6 space-y-5">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">Task Information</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[
+                    ['Task Name', reviewingTask.name],
+                    ['Assigned To', getEmployeeName(reviewingTask.assignedEmployeeId)],
+                    ['Horse', getHorseName(reviewingTask.horseId)],
+                    ['Type', reviewingTask.type],
+                    ['Priority', reviewingTask.priority],
+                  ].map(([label, val]) => (
+                    <div key={label}><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</p><p className="text-foreground font-medium mt-0.5">{val}</p></div>
+                  ))}
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Status</p>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getStatusColor(reviewingTask.status) + '22', color: getStatusColor(reviewingTask.status), borderColor: getStatusColor(reviewingTask.status) + '44' }}>{t(reviewingTask.status)}</span>
+                  </div>
                 </div>
               </div>
-            )}
-
-            {(reviewingTask.completionNotes || reviewingTask.description) && (
-              <div className="evidence-section">
-                <h4>Completion Notes</h4>
-                <p className="notes-text">{reviewingTask.completionNotes || reviewingTask.description}</p>
-              </div>
-            )}
-
-            {reviewingTask.completedTime && (
-              <div className="evidence-section">
-                <h4>Completion Time</h4>
-                <p>{new Date(reviewingTask.completedTime).toLocaleString()}</p>
-              </div>
-            )}
+              {getTaskEvidenceImage(reviewingTask) && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">Evidence Photo</p>
+                  <img src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`} alt="Task evidence" className="w-full max-h-[300px] object-contain rounded-lg border border-border cursor-pointer" onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
+                </div>
+              )}
+              {(reviewingTask.completionNotes || reviewingTask.description) && (
+                <div className="p-3 rounded-lg bg-surface-container-high">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Completion Notes</p>
+                  <p className="text-sm text-foreground mt-1">{reviewingTask.completionNotes || reviewingTask.description}</p>
+                </div>
+              )}
+              {reviewingTask.completedTime && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Completion Time</p>
+                  <p className="text-sm text-foreground mt-0.5 mono-data">{new Date(reviewingTask.completedTime).toLocaleString()}</p>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-border">
+              <button onClick={() => setViewingTaskId(null)} className="w-full h-10 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Close</button>
+            </div>
           </div>
-
-          <div className="modal-footer">
-            <button
-              className="btn-close-modal"
-              onClick={() => setViewingTaskId(null)}
-            >
-              Close
-            </button>
-          </div>
-        </Modal>
+        </div>
       )}
 
-      {/* Fullscreen Image Viewer - Rendered at Page Level */}
+      {/* Fullscreen Image Viewer */}
       {fullscreenImage && (
-        <div className="fullscreen-image-overlay">
-          <button 
-            className="fullscreen-close-btn"
-            onClick={() => setFullscreenImage(null)}
-            title="Close (ESC)"
-          >
-            <X size={18} />
-          </button>
-          <div className="fullscreen-image-container">
-            <img 
-              src={fullscreenImage.startsWith('http') ? fullscreenImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${fullscreenImage}`}
-              alt="Full size view"
-              className="fullscreen-image"
-              onClick={() => setFullscreenImage(null)}
-              onError={(e) => {
-                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="16" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E';
-              }}
-            />
-          </div>
+        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center" onClick={() => setFullscreenImage(null)}>
+          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" onClick={() => setFullscreenImage(null)} title="Close (ESC)"><X size={18} /></button>
+          <img src={fullscreenImage.startsWith('http') ? fullscreenImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${fullscreenImage}`} alt="Full size view" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" onClick={() => setFullscreenImage(null)} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="16" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
         </div>
       )}
     </div>
@@ -1252,4 +1019,3 @@ const TasksPage = () => {
 };
 
 export default TasksPage;
-

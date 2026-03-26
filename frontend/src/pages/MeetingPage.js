@@ -5,13 +5,9 @@ import apiClient from '../services/apiClient'
 import { useI18n } from '../context/I18nContext'
 import usePermissions from '../hooks/usePermissions'
 import { Navigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, Calendar, Users, Clock, MapPin, Plus, Download, X } from 'lucide-react'
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const STATUS_COLORS = {
-  scheduled: { bg: 'var(--lovable-primary)', light: 'rgba(209,153,255,0.15)', text: 'var(--lovable-primary)' },
-  completed: { bg: 'var(--lovable-success)', light: 'rgba(0,230,199,0.14)', text: 'var(--lovable-success)' },
-  cancelled: { bg: '#fb7185', light: 'rgba(251,113,133,0.14)', text: '#fb7185' },
-}
+const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
 const MeetingPage = () => {
   const { user } = useAuth()
@@ -200,242 +196,252 @@ const MeetingPage = () => {
   const scheduledCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'scheduled').length
   const completedCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'completed').length
   const cancelledCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'cancelled').length
-  const panelShellStyle = {
-    background: 'var(--lovable-panel)',
-    border: '1px solid var(--lovable-line)',
-    borderRadius: '20px',
-    overflow: 'hidden',
-    boxShadow: 'var(--lovable-shadow-soft)',
-  }
-  const ghostButtonStyle = {
-    background: 'var(--lovable-panel-alt)',
-    border: '1px solid var(--lovable-line)',
-    color: 'var(--lovable-text)',
-    cursor: 'pointer',
-    borderRadius: '10px',
-    padding: '8px 14px',
-    fontSize: '0.95rem',
-  }
-  const primaryButtonStyle = {
-    padding: '10px 20px',
-    background: 'linear-gradient(135deg, var(--lovable-primary), var(--lovable-primary-dim))',
-    color: 'var(--lovable-bg)',
-    border: '1px solid rgba(209, 153, 255, 0.3)',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    fontWeight: 700,
-    fontSize: '0.9rem',
-    boxShadow: '0 14px 30px rgba(168, 85, 247, 0.22)',
-  }
-  const mutedCountStyle = {
-    fontSize: '0.75rem',
-    background: 'var(--lovable-primary-soft)',
-    color: 'var(--lovable-primary)',
-    padding: '2px 8px',
-    borderRadius: '20px',
-    fontWeight: 700,
-  }
+  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
-  const statusBadgeStyle = (status) => ({
-    display: 'inline-block', padding: '2px 8px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 600,
-    background: STATUS_COLORS[status?.toLowerCase()]?.light || 'var(--lovable-panel-alt)',
-    color: STATUS_COLORS[status?.toLowerCase()]?.text || 'var(--lovable-text)',
-  })
+  const getStatusBadge = (status) => {
+    const cfg = {
+      scheduled: 'border-primary/30 text-primary bg-primary/10',
+      completed: 'border-success/30 text-success bg-success/10',
+      cancelled: 'border-destructive/30 text-destructive bg-destructive/10',
+    }
+    const cls = cfg[status?.toLowerCase()] || 'border-border text-muted-foreground bg-muted'
+    return (
+      <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${cls}`}>
+        {status}
+      </span>
+    )
+  }
 
   if (!p.viewMeetings) return <Navigate to="/" replace />
 
+  const filters = ['upcoming', 'past', 'all']
+
   return (
-    <div className="page-container lovable-page-shell meeting-page">
-      <div className="page-header">
+    <div className="space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:justify-between">
         <div>
-          <div className="lovable-header-kicker">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Coordination Desk')}</span>
-          </div>
-          <h1>{t('Meetings')}</h1>
-          <p>{t('Schedule and track team meetings')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Meetings')}</h1>
+          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+            {t('Schedule and track team meetings')} &nbsp;·&nbsp; Coordination Desk
+          </p>
         </div>
-        <div className="lovable-header-actions">
+        <div className="flex items-center gap-3 shrink-0">
           {canCreateMeeting && (
             <button
-              style={primaryButtonStyle}
               onClick={() => { setFormData(prev => ({ ...prev, meetingDate: new Date().toISOString().split('T')[0] })); setShowCreateForm(true) }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:brightness-110 transition-all"
             >
-              + {t('New Meeting')}
+              <Plus className="w-4 h-4" /> {t('New Meeting')}
             </button>
           )}
-          <div className="lovable-command-chip">
-            <div className="lovable-command-ring">{scheduledCount}</div>
-            <div className="lovable-command-copy">
-              <strong>{t('Meeting Queue')}</strong>
-              <span>{t('Upcoming Schedule')}</span>
+          <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center">
+              <span className="text-lg font-bold text-primary">{scheduledCount}</span>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Upcoming</p>
+              <p className="text-lg font-bold text-foreground">{t('Meeting Queue')}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="lovable-metric-strip">
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Scheduled')}</div>
-          <div className="lovable-metric-card-value">{scheduledCount}</div>
-          <div className="lovable-metric-card-sub">{t('Meetings currently planned')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Completed')}</div>
-          <div className="lovable-metric-card-value">{completedCount}</div>
-          <div className="lovable-metric-card-sub">{t('Meetings with closed outcomes')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Cancelled')}</div>
-          <div className="lovable-metric-card-value">{cancelledCount}</div>
-          <div className="lovable-metric-card-sub">{t('Meetings removed from the active queue')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Visible')}</div>
-          <div className="lovable-metric-card-value">{filteredMeetings.length}</div>
-          <div className="lovable-metric-card-sub">{t('Meetings shown under the current filter')}</div>
-        </div>
+      {/* ── KPI Strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: 'Scheduled', value: scheduledCount, sub: t('Meetings currently planned'), icon: Calendar },
+          { label: 'Completed', value: completedCount, sub: t('Meetings with closed outcomes'), icon: Clock },
+          { label: 'Cancelled', value: cancelledCount, sub: t('Meetings removed from queue'), icon: X },
+          { label: 'Visible', value: filteredMeetings.length, sub: t('Meetings under current filter'), icon: Users },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2">
+              <k.icon className="w-3.5 h-3.5 text-primary" /> {k.label}
+            </p>
+            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
+            <p className="text-xs mt-1 text-muted-foreground">{k.sub}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="meeting-page-grid" style={{ display: 'grid', gap: '24px', alignItems: 'start' }}>
+      {/* ── Filters ── */}
+      <div className="flex gap-2 flex-wrap">
+        {filters.map(f => (
+          <button
+            key={f}
+            onClick={() => setFilterType(f)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+              filterType === f
+                ? 'bg-primary/15 text-primary border border-primary/30'
+                : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent'
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
 
-        {/* CALENDAR */}
-        <div style={panelShellStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--lovable-line)' }}>
-            <button style={ghostButtonStyle}
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}>&#8249;</button>
-            <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: 'var(--lovable-text)' }}>
-              {currentMonth.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
-            </h2>
-            <button style={ghostButtonStyle}
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}>&#8250;</button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--lovable-line)' }}>
-            {WEEKDAYS.map(d => (
-              <div key={d} style={{ textAlign: 'center', padding: '10px 4px', fontSize: '0.72rem', fontWeight: 600, color: 'var(--lovable-text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{d}</div>
-            ))}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '10px', gap: '2px' }}>
-            {calendarDays.map((date, idx) => {
-              if (!date) return <div key={idx} />
-              const dayMeetings = getMeetingsForDate(date)
-              const isToday = date.toDateString() === today.toDateString()
-              const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
-              return (
-                <div
-                  key={idx}
-                  onClick={() => handleDateClick(date)}
-                  style={{
-                    padding: '4px', minHeight: '72px', borderRadius: '10px',
-                    cursor: canCreateMeeting ? 'pointer' : 'default',
-                    background: isSelected ? 'var(--lovable-primary-soft)' : isToday ? 'rgba(209,153,255,0.08)' : 'transparent',
-                    border: isSelected ? '1.5px solid var(--lovable-line-strong)' : isToday ? '1.5px solid rgba(209,153,255,0.28)' : '1.5px solid transparent',
-                    transition: 'all 0.15s',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
-                  }}
-                >
-                  <span style={{
-                    width: '28px', height: '28px', borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.8rem', fontWeight: isToday ? 700 : 400,
-                    background: isToday ? 'var(--lovable-primary)' : 'transparent',
-                    color: isToday ? 'var(--lovable-bg)' : 'var(--lovable-text)',
-                  }}>{date.getDate()}</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', width: '100%', padding: '0 2px' }}>
-                    {dayMeetings.slice(0, 2).map(m => (
-                      <div
-                        key={m.id}
-                        onClick={e => { e.stopPropagation(); handleSelectMeeting(m) }}
-                        title={m.title}
-                        style={{
-                          background: STATUS_COLORS[m.status?.toLowerCase()]?.bg || 'var(--lovable-primary)',
-                          color: 'var(--lovable-bg)', fontSize: '0.58rem', fontWeight: 700,
-                          padding: '1px 4px', borderRadius: '4px',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer',
-                        }}
-                      >{m.title}</div>
-                    ))}
-                    {dayMeetings.length > 2 && (
-                      <div style={{ fontSize: '0.6rem', color: 'var(--lovable-text-soft)', paddingLeft: '2px' }}>+{dayMeetings.length - 2} more</div>
+      {/* ── Main Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+        {/* Calendar + Meeting Cards */}
+        <div className="space-y-4">
+          {/* Calendar */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))} className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <h2 className="text-lg font-bold text-foreground">{monthName}</h2>
+              <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))} className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-7 gap-px">
+              {WEEKDAYS.map(d => (
+                <div key={d} className="text-center text-[10px] uppercase tracking-widest text-muted-foreground font-semibold py-2">{d}</div>
+              ))}
+              {calendarDays.map((date, idx) => {
+                if (!date) return <div key={idx} className="aspect-square" />
+                const dayMeetings = getMeetingsForDate(date)
+                const hasMeeting = dayMeetings.length > 0
+                const isToday = date.toDateString() === today.toDateString()
+                const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleDateClick(date)}
+                    className={`aspect-square flex flex-col items-center justify-center relative rounded-lg text-sm transition-all cursor-pointer group ${
+                      isToday ? 'bg-primary text-primary-foreground font-bold' :
+                      isSelected ? 'bg-primary/15 text-primary border border-primary/30' :
+                      hasMeeting ? 'bg-primary/10 text-primary hover:bg-primary/20' :
+                      'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'
+                    }`}
+                  >
+                    {date.getDate()}
+                    {hasMeeting && !isToday && (
+                      <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary" />
+                    )}
+                    {!hasMeeting && !isToday && canCreateMeeting && (
+                      <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Plus className="w-2.5 h-2.5 text-primary absolute top-0.5 right-0.5" />
+                      </span>
                     )}
                   </div>
-                </div>
-              )
-            })}
-          </div>
-          <div style={{ padding: '12px 20px 16px', display: 'flex', gap: '16px', flexWrap: 'wrap', borderTop: '1px solid var(--lovable-line)', alignItems: 'center', color: 'var(--lovable-text-muted)' }}>
-            {Object.entries(STATUS_COLORS).map(([s, c]) => (
-              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.74rem' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: c.bg, display: 'inline-block' }} />
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </div>
-            ))}
-            {canCreateMeeting && <span style={{ fontSize: '0.74rem', color: 'var(--lovable-text-soft)', marginLeft: 'auto' }}>{t('Click a date to schedule')}</span>}
-          </div>
-        </div>
-
-        {/* RIGHT PANEL */}
-        <div className="lovable-side-stack">
-          <div className="lovable-panel">
-            <div className="lovable-pill-row">
-            {['upcoming', 'past', 'all'].map(f => (
-              <button key={f} onClick={() => setFilterType(f)} style={{
-                flex: 1, padding: '10px 0', borderRadius: '999px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem',
-                background: filterType === f ? 'var(--lovable-primary-soft)' : 'var(--lovable-panel-alt)',
-                color: filterType === f ? 'var(--lovable-primary)' : 'var(--lovable-text-muted)',
-                border: filterType === f ? '1px solid rgba(209,153,255,0.28)' : '1px solid var(--lovable-line)',
-                transition: 'all 0.2s',
-              }}>{f.charAt(0).toUpperCase() + f.slice(1)}</button>
-            ))}
+                )
+              })}
+            </div>
+            <div className="flex gap-4 mt-4 flex-wrap">
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-primary" /> Scheduled</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-success" /> Completed</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-destructive" /> Cancelled</span>
+              {canCreateMeeting && <span className="flex items-center gap-1.5 text-xs text-primary italic ml-auto">{t('Click any day to schedule')}</span>}
             </div>
           </div>
 
+          {/* Meeting Cards */}
+          {loading ? (
+            <div className="p-4"><CardListSkeleton count={3} /></div>
+          ) : filteredMeetings.length === 0 ? (
+            <p className="text-center py-8 text-sm text-muted-foreground">{t('No meetings found')}</p>
+          ) : filteredMeetings.map(m => (
+            <div key={m.id} onClick={() => handleSelectMeeting(m)} className="bg-surface-container-high rounded-xl p-5 edge-glow border border-primary/10 hover:border-primary/30 transition-colors cursor-pointer">
+              <div className="flex items-center justify-between mb-2">
+                {getStatusBadge(m.status)}
+                <span className="text-xs text-muted-foreground italic">ID: {m.id?.slice(0, 8).toUpperCase()}</span>
+              </div>
+              <h3 className="text-lg font-bold text-foreground">{m.title}</h3>
+              <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(m.meetingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                {m.meetingTime && <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {m.meetingTime}</span>}
+                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {m.participants?.length || 0} attendees</span>
+              </div>
+              {m.description && <p className="text-sm text-muted-foreground mt-3">{m.description}</p>}
+            </div>
+          ))}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-4">
+          {/* Quick Stats */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-foreground">{t('Quick Stats')}</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Scheduled</span>
+                <span className="text-sm font-bold text-primary">{scheduledCount}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Completed</span>
+                <span className="text-sm font-bold text-success">{completedCount}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Cancelled</span>
+                <span className="text-sm font-bold text-destructive">{cancelledCount}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Selected date meetings */}
           {selectedDate && selectedDateMeetings.length > 0 && (
-            <div style={panelShellStyle}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--lovable-line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--lovable-text)' }}>
+            <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex justify-between items-center">
+                <h3 className="text-sm font-semibold text-foreground">
                   {selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                 </h3>
-                <span style={mutedCountStyle}>{selectedDateMeetings.length}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/20 text-primary">{selectedDateMeetings.length}</span>
               </div>
               {selectedDateMeetings.map(m => (
-                <MeetingCard key={m.id} meeting={m} selected={selectedMeeting?.id === m.id} onClick={() => handleSelectMeeting(m)} statusBadgeStyle={statusBadgeStyle} t={t} />
+                <div key={m.id} onClick={() => handleSelectMeeting(m)} className={`px-5 py-3 border-b border-border/50 cursor-pointer transition-colors hover:bg-surface-container-high/50 ${selectedMeeting?.id === m.id ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}>
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <span className="font-semibold text-sm text-foreground">{m.title}</span>
+                    {getStatusBadge(m.status)}
+                  </div>
+                  <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
+                    {m.meetingTime && <span>{m.meetingTime}</span>}
+                    <span>{m.participants?.length || 0} attendees</span>
+                  </div>
+                </div>
               ))}
             </div>
           )}
 
-          <div style={panelShellStyle}>
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--lovable-line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--lovable-text)' }}>{filterType.charAt(0).toUpperCase() + filterType.slice(1)} {t('Meetings')}</h3>
-              <span style={mutedCountStyle}>{filteredMeetings.length}</span>
+          {/* Common Venues */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-4">
+              <MapPin className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-foreground">{t('Common Venues')}</h3>
             </div>
-            {loading ? (
-              <div style={{ padding: '12px' }}><CardListSkeleton count={3} /></div>
-            ) : filteredMeetings.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--lovable-text-soft)', fontSize: '0.875rem' }}>{t('No meetings found')}</div>
-            ) : filteredMeetings.map(m => (
-              <MeetingCard key={m.id} meeting={m} selected={selectedMeeting?.id === m.id} onClick={() => handleSelectMeeting(m)} statusBadgeStyle={statusBadgeStyle} t={t} />
-            ))}
+            <div className="space-y-2 text-sm">
+              {['Main Office', 'Arena Conference', 'Stable Block A'].map((venue, i) => (
+                <div key={venue} className="flex items-center justify-between text-muted-foreground">
+                  <span>{venue}</span>
+                  <span className="text-foreground font-medium">{[4, 2, 1][i]}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* DETAIL DRAWER */}
+      {/* ═══════════ DETAIL DRAWER ═══════════ */}
       {showDetailPanel && selectedMeeting && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--lovable-overlay)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }} onClick={() => setShowDetailPanel(false)}>
-          <div className="meeting-detail-drawer" style={{ width: '100%', maxWidth: '520px', height: '100%', background: 'var(--lovable-panel)', overflowY: 'auto', boxShadow: '-18px 0 48px rgba(0,0,0,0.22)', color: 'var(--lovable-text)', borderLeft: '1px solid var(--lovable-line)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '24px', borderBottom: '1px solid var(--lovable-line)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ marginBottom: '8px' }}>
-                  <span style={statusBadgeStyle(selectedMeeting.status)}>{t(selectedMeeting.status)}</span>
-                </div>
-                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--lovable-text)' }}>{selectedMeeting.title}</h2>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex justify-end" onClick={() => setShowDetailPanel(false)}>
+          <div className="w-full max-w-[520px] h-full bg-surface-container-highest overflow-y-auto border-l border-border" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-border gap-3">
+              <div className="flex-1">
+                <div className="mb-2">{getStatusBadge(selectedMeeting.status)}</div>
+                <h2 className="text-xl font-bold text-foreground leading-tight">{selectedMeeting.title}</h2>
               </div>
-              <button onClick={() => setShowDetailPanel(false)} style={ghostButtonStyle}>&#10005;</button>
+              <button onClick={() => setShowDetailPanel(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="px-6 py-5 space-y-3">
               {[
                 ['Date', new Date(selectedMeeting.meetingDate).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
                 ['Time', selectedMeeting.meetingTime || 'Not specified'],
@@ -443,28 +449,28 @@ const MeetingPage = () => {
                 ['Description', selectedMeeting.description || 'No description'],
                 ['Created by', selectedMeeting.createdBy?.fullName || '-'],
               ].map(([label, val]) => (
-                <div key={label} style={{ display: 'flex', gap: '12px', fontSize: '0.875rem' }}>
-                  <span style={{ minWidth: '90px', color: 'var(--lovable-text-soft)', flexShrink: 0, fontWeight: 500 }}>{label}</span>
-                  <span style={{ color: 'var(--lovable-text-muted)' }}>{val}</span>
+                <div key={label} className="flex gap-3 text-sm">
+                  <span className="min-w-[90px] text-muted-foreground font-medium shrink-0">{label}</span>
+                  <span className="text-foreground">{val}</span>
                 </div>
               ))}
             </div>
 
-            <div style={{ padding: '0 24px 20px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--lovable-text-soft)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '12px' }}>
+            <div className="px-6 pb-5">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">
                 Participants ({selectedMeeting.participants.length})
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              </p>
+              <div className="flex flex-wrap gap-2">
                 {selectedMeeting.participants.map(p => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'var(--lovable-panel-alt)', border: '1px solid var(--lovable-line)', borderRadius: '20px', padding: '4px 12px 4px 4px' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--lovable-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'var(--lovable-bg)', overflow: 'hidden', flexShrink: 0 }}>
+                  <div key={p.id} className="flex items-center gap-2 bg-surface-container-high border border-border rounded-full py-1 pl-1 pr-3">
+                    <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground overflow-hidden shrink-0">
                       {p.employee.profileImage
-                        ? <img src={p.employee.profileImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ? <img src={p.employee.profileImage} alt="" className="w-full h-full object-cover" />
                         : p.employee.fullName?.charAt(0)?.toUpperCase()}
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2, color: 'var(--lovable-text)' }}>{p.employee.fullName}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--lovable-text-soft)' }}>{p.employee.designation}</div>
+                      <div className="text-xs font-semibold text-foreground leading-tight">{p.employee.fullName}</div>
+                      <div className="text-[10px] text-muted-foreground">{p.employee.designation}</div>
                     </div>
                   </div>
                 ))}
@@ -472,58 +478,60 @@ const MeetingPage = () => {
             </div>
 
             {(user.id === selectedMeeting.createdBy?.id || parentRoles.includes(user.designation)) && (
-              <div style={{ padding: '0 24px 28px', borderTop: '1px solid var(--lovable-line)', paddingTop: '20px' }}>
+              <div className="px-6 pb-6 pt-5 border-t border-border">
                 {isMeetingPast(selectedMeeting) ? (
                   <>
                     <button
                       onClick={() => setShowMOMForm(!showMOMForm)}
-                      style={showMOMForm ? { ...ghostButtonStyle, width: '100%', padding: '10px 18px', fontWeight: 700, fontSize: '0.875rem' } : { ...primaryButtonStyle, width: '100%', padding: '10px 18px', fontSize: '0.875rem' }}
+                      className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all ${showMOMForm ? 'border border-border text-foreground hover:bg-surface-container-high' : 'bg-primary text-primary-foreground hover:brightness-110'}`}
                     >
-                      {showMOMForm ? 'x Hide MOM' : 'Add / Edit Minutes of Meeting'}
+                      {showMOMForm ? '✕ Hide MOM' : 'Add / Edit Minutes of Meeting'}
                     </button>
                     {showMOMForm && (
-                      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                      <div className="mt-4 space-y-5">
                         {[
                           { label: 'Points Discussed', key: 'pointsDiscussed', inputKey: 'newPoint', placeholder: 'Add a point...', handler: handleAddMOMPoint },
                           { label: 'Member Inputs', key: 'memberInputs', inputKey: 'newInput', placeholder: 'Add input from a member...', handler: handleAddMOMMemberInput },
                           { label: 'Decisions Made', key: 'decisions', inputKey: 'newDecision', placeholder: 'Add a decision...', handler: handleAddMOMDecision },
                         ].map(({ label, key, inputKey, placeholder, handler }) => (
                           <div key={key}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--lovable-text-soft)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>{label}</div>
-                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{label}</p>
+                            <div className="flex gap-2 mb-2">
                               <input
                                 type="text" placeholder={placeholder} value={momInputs[inputKey]}
                                 onChange={e => setMOMInputs(prev => ({ ...prev, [inputKey]: e.target.value }))}
                                 onKeyPress={e => e.key === 'Enter' && handler()}
-                                style={{ ...inputSt, flex: 1 }}
+                                className="flex-1 h-9 px-3 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
                               />
-                              <button onClick={handler} style={{ ...primaryButtonStyle, padding: '8px 14px', borderRadius: '10px' }}>+</button>
+                              <button onClick={handler} className="h-9 w-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold hover:brightness-110 transition-all">+</button>
                             </div>
                             {momData[key].length > 0 && (
-                              <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                              <div className="space-y-1.5">
                                 {momData[key].map((item, i) => (
-                                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--lovable-panel-alt)', border: '1px solid var(--lovable-line)', borderRadius: '10px', padding: '7px 10px', fontSize: '0.83rem', color: 'var(--lovable-text-muted)' }}>
-                                    <span style={{ flex: 1 }}>{item}</span>
-                                    <button onClick={() => handleRemoveMOMItem(key, i)} style={{ background: 'none', border: 'none', color: 'var(--lovable-text-soft)', cursor: 'pointer', fontSize: '0.85rem' }}>x</button>
-                                  </li>
+                                  <div key={i} className="flex items-center gap-2 bg-surface-container-high border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground">
+                                    <span className="flex-1">{item}</span>
+                                    <button onClick={() => handleRemoveMOMItem(key, i)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             )}
                           </div>
                         ))}
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <button onClick={handleSaveMOM} disabled={loading} style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, var(--lovable-success), #2ce2bb)', color: 'var(--lovable-bg)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}>
+                        <div className="flex gap-3">
+                          <button onClick={handleSaveMOM} disabled={loading} className="flex-1 py-2.5 rounded-lg bg-success text-success-foreground text-sm font-semibold hover:brightness-110 transition-all">
                             {loading ? 'Saving...' : 'Save MOM'}
                           </button>
                           {(momData.pointsDiscussed.length > 0 || momData.memberInputs.length > 0 || momData.decisions.length > 0) && (
-                            <button onClick={handleGenerateGmail} style={{ ...ghostButtonStyle, padding: '10px 16px', fontWeight: 700, fontSize: '0.875rem' }}>Send to Gmail</button>
+                            <button onClick={handleGenerateGmail} className="py-2.5 px-4 rounded-lg border border-border text-foreground text-sm font-semibold hover:bg-surface-container-high transition-colors">Send to Gmail</button>
                           )}
                         </div>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div style={{ padding: '14px 16px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '10px', fontSize: '0.83rem', color: '#f59e0b' }}>
+                  <div className="p-4 rounded-lg bg-warning/10 border border-warning/25 text-sm text-warning">
                     MOM available after {new Date(selectedMeeting.meetingDate).toLocaleDateString('en-IN')}{selectedMeeting.meetingTime ? ` at ${selectedMeeting.meetingTime}` : ''}.
                   </div>
                 )}
@@ -533,53 +541,61 @@ const MeetingPage = () => {
         </div>
       )}
 
-      {/* CREATE MODAL */}
+      {/* ═══════════ CREATE MODAL ═══════════ */}
       {showCreateForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--lovable-overlay)', backdropFilter: 'blur(10px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowCreateForm(false)}>
-          <div className="meeting-create-modal" style={{ background: 'var(--lovable-panel)', border: '1px solid var(--lovable-line)', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', color: 'var(--lovable-text)', boxShadow: 'var(--lovable-shadow)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--lovable-text)' }}>{t('New Meeting')}</h2>
-              <button onClick={() => setShowCreateForm(false)} style={ghostButtonStyle}>&#10005;</button>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setShowCreateForm(false)}>
+          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-foreground">{t('New Meeting')}</h2>
+              <button onClick={() => setShowCreateForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <form onSubmit={handleCreateMeeting} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <FieldWrap label="Meeting Title *">
-                <input type="text" required value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g., Quarterly Review" style={inputSt} />
-              </FieldWrap>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <FieldWrap label="Date *">
-                  <input type="date" required value={formData.meetingDate} onChange={e => setFormData(prev => ({ ...prev, meetingDate: e.target.value }))} style={inputSt} />
-                </FieldWrap>
-                <FieldWrap label="Time">
-                  <input type="time" value={formData.meetingTime} onChange={e => setFormData(prev => ({ ...prev, meetingTime: e.target.value }))} style={inputSt} />
-                </FieldWrap>
+            <form onSubmit={handleCreateMeeting} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Meeting Title *</label>
+                <input type="text" required value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g., Quarterly Review" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
               </div>
-              <FieldWrap label="Location">
-                <input type="text" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="e.g., Conference Room A" style={inputSt} />
-              </FieldWrap>
-              <FieldWrap label="Description">
-                <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Meeting purpose and agenda" rows={3} style={{ ...inputSt, resize: 'vertical' }} />
-              </FieldWrap>
-              <FieldWrap label={`Participants${formData.participants.length > 0 ? ` (${formData.participants.length} selected)` : ''}`}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '160px', overflowY: 'auto', padding: '8px', background: 'var(--lovable-panel-alt)', borderRadius: '10px', border: '1px solid var(--lovable-line)' }}>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                  <input type="date" required value={formData.meetingDate} onChange={e => setFormData(prev => ({ ...prev, meetingDate: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Time</label>
+                  <input type="time" value={formData.meetingTime} onChange={e => setFormData(prev => ({ ...prev, meetingTime: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Location</label>
+                <input type="text" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="e.g., Conference Room A" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Description</label>
+                <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Meeting purpose and agenda" rows={3} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Participants{formData.participants.length > 0 ? ` (${formData.participants.length} selected)` : ''}</label>
+                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto p-3 bg-surface-container-high rounded-lg border border-border">
                   {employees.map(emp => {
                     const sel = formData.participants.includes(emp.id)
                     return (
                       <div
                         key={emp.id}
                         onClick={() => setFormData(prev => ({ ...prev, participants: sel ? prev.participants.filter(id => id !== emp.id) : [...prev.participants, emp.id] }))}
-                        style={{ padding: '5px 10px', borderRadius: '20px', fontSize: '0.78rem', cursor: 'pointer', fontWeight: sel ? 700 : 500, background: sel ? 'linear-gradient(135deg, var(--lovable-primary), var(--lovable-primary-dim))' : 'var(--lovable-panel-alt)', color: sel ? 'var(--lovable-bg)' : 'var(--lovable-text-muted)', border: sel ? '1px solid rgba(209,153,255,0.3)' : '1px solid var(--lovable-line)', transition: 'all 0.15s', userSelect: 'none' }}
+                        className={`px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all select-none ${sel ? 'bg-primary text-primary-foreground font-bold' : 'bg-surface-container-highest text-muted-foreground hover:text-foreground border border-border'}`}
                       >
                         {emp.fullName}
                       </div>
                     )
                   })}
                 </div>
-              </FieldWrap>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-                <button type="submit" disabled={loading} style={{ ...primaryButtonStyle, flex: 1, padding: '12px', fontSize: '0.9rem' }}>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">
                   {loading ? 'Creating...' : 'Create Meeting'}
                 </button>
-                <button type="button" onClick={() => setShowCreateForm(false)} style={{ ...ghostButtonStyle, padding: '12px 20px', fontWeight: 700 }}>Cancel</button>
+                <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
               </div>
             </form>
           </div>
@@ -587,40 +603,6 @@ const MeetingPage = () => {
       )}
     </div>
   )
-}
-
-const MeetingCard = ({ meeting, selected, onClick, statusBadgeStyle, t }) => (
-  <div
-    onClick={onClick}
-    style={{
-      padding: '14px 20px', borderBottom: '1px solid var(--lovable-line)', cursor: 'pointer',
-      background: selected ? 'rgba(209,153,255,0.08)' : 'transparent',
-      borderLeft: selected ? '3px solid var(--lovable-primary)' : '3px solid transparent',
-      transition: 'all 0.15s',
-    }}
-  >
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '5px' }}>
-      <span style={{ fontWeight: 600, fontSize: '0.875rem', lineHeight: 1.3, color: 'var(--lovable-text)' }}>{meeting.title}</span>
-      <span style={statusBadgeStyle(meeting.status)}>{t(meeting.status)}</span>
-    </div>
-    <div style={{ display: 'flex', gap: '12px', fontSize: '0.77rem', color: 'var(--lovable-text-soft)', flexWrap: 'wrap' }}>
-      <span>{new Date(meeting.meetingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-      {meeting.meetingTime && <span>{meeting.meetingTime}</span>}
-      <span>{meeting.participants.length} attendee{meeting.participants.length !== 1 ? 's' : ''}</span>
-    </div>
-  </div>
-)
-
-const FieldWrap = ({ label, children }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--lovable-text-soft)' }}>{label}</label>
-    {children}
-  </div>
-)
-
-const inputSt = {
-  padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--lovable-line)',
-  background: 'var(--bg-input)', color: 'var(--lovable-text)', fontSize: '0.875rem', width: '100%', boxSizing: 'border-box',
 }
 
 export default MeetingPage

@@ -4,6 +4,412 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --base-font-size: 16px;
+    --heading-font-size-scale: 1;
+    --text-scale: 1;
+    /* Dark theme (default) - obsidian sheets */
+    --background: 240 7% 4%;
+    --foreground: 320 30% 97%;
+
+    --surface: 240 7% 4%;
+    --surface-container-low: 240 5% 8%;
+    --surface-container: 240 4% 11%;
+    --surface-container-high: 240 3% 13%;
+    --surface-container-highest: 260 3% 16%;
+    --surface-bright: 260 3% 20%;
+    --surface-variant: 270 3% 15%;
+
+    --card: 240 5% 8%;
+    --card-foreground: 320 30% 97%;
+
+    --popover: 270 3% 15%;
+    --popover-foreground: 320 30% 97%;
+
+    --primary: 273 100% 80%;
+    --primary-foreground: 240 7% 4%;
+    --primary-dim: 273 78% 60%;
+    --primary-container: 273 60% 20%;
+    --primary-glow: 273 100% 80%;
+    --primary-rgb: 209, 153, 255;
+
+    --secondary: 260 100% 77%;
+    --secondary-foreground: 240 7% 4%;
+
+    --muted: 240 4% 11%;
+    --muted-foreground: 240 5% 50%;
+
+    --accent: 273 60% 20%;
+    --accent-foreground: 273 100% 80%;
+
+    --destructive: 340 90% 60%;
+    --destructive-foreground: 320 30% 97%;
+    --success: 180 100% 45%;
+    --success-foreground: 240 7% 4%;
+    --warning: 40 100% 60%;
+    --warning-foreground: 240 7% 4%;
+
+    --border: 260 5% 18%;
+    --input: 260 5% 18%;
+    --ring: 273 100% 80%;
+
+    --radius: 0.5rem;
+
+    --outline-variant: 260 3% 29%;
+
+    --sidebar-background: 240 5% 6%;
+    --sidebar-foreground: 320 30% 97%;
+    --sidebar-primary: 273 100% 80%;
+    --sidebar-primary-foreground: 240 7% 4%;
+    --sidebar-accent: 273 60% 20%;
+    --sidebar-accent-foreground: 273 100% 80%;
+    --sidebar-border: 260 5% 12%;
+    --sidebar-ring: 273 100% 80%;
+  }
+
+  /* Light theme */
+  .light {
+    --background: 210 20% 97%;
+    --foreground: 200 6% 18%;
+
+    --surface: 210 20% 97%;
+    --surface-container-low: 210 12% 93%;
+    --surface-container: 210 10% 95%;
+    --surface-container-high: 210 8% 88%;
+    --surface-container-highest: 0 0% 100%;
+    --surface-bright: 0 0% 100%;
+    --surface-variant: 210 12% 93%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 6% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 6% 18%;
+
+    --primary: 273 70% 48%;
+    --primary-foreground: 0 0% 100%;
+    --primary-dim: 273 60% 62%;
+    --primary-container: 273 80% 94%;
+    --primary-glow: 273 70% 48%;
+
+    --secondary: 260 60% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 12% 93%;
+    --muted-foreground: 200 5% 46%;
+
+    --accent: 273 80% 94%;
+    --accent-foreground: 273 70% 48%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 200 6% 18%;
+
+    --border: 210 8% 88%;
+    --input: 210 8% 88%;
+    --ring: 273 70% 48%;
+
+    --outline-variant: 210 5% 78%;
+
+    --sidebar-background: 210 8% 88%;
+    --sidebar-foreground: 200 6% 18%;
+    --sidebar-primary: 273 70% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 273 80% 94%;
+    --sidebar-accent-foreground: 273 70% 48%;
+    --sidebar-border: 210 12% 93%;
+    --sidebar-ring: 273 70% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  /* Typography scale */
+  .display-lg { @apply font-display text-5xl font-bold tracking-tight; }
+  .display-md { @apply font-display text-3xl font-bold tracking-tight font-mono-data; }
+  .display-sm { @apply font-display text-2xl font-semibold tracking-tight; }
+  .heading-lg { @apply font-display text-xl font-semibold; }
+  .heading-md { @apply font-display text-lg font-semibold; }
+  .label-lg { @apply font-body text-sm font-semibold uppercase tracking-widest; }
+  .label-md { @apply font-body text-xs font-semibold uppercase tracking-wider; }
+  .label-sm { @apply font-body text-[10px] font-medium uppercase tracking-wider; }
+  .body-sm { @apply font-body text-sm leading-relaxed; }
+  .mono-data { @apply font-mono-data tabular-nums; }
+}
+
+@layer utilities {
+  /* ═══ SIGNATURE EFFECTS ═══ */
+
+  /* Lens flare - theme-aware */
+  .lens-flare { position: relative; }
+  .lens-flare::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60%; height: 60%;
+    background: radial-gradient(ellipse at 20% 20%, hsl(var(--primary) / 0.05), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glass morphism - theme-aware */
+  .glass {
+    background: hsl(var(--surface-variant) / 0.6);
+    backdrop-filter: blur(20px);
+  }
+
+  /* Ambient glow */
+  .glow-primary {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.08);
+  }
+
+  /* Ghost border */
+  .ghost-border {
+    box-shadow: inset 0 0 0 1px hsl(var(--outline-variant) / 0.15);
+  }
+
+  /* Edge illumination */
+  .edge-glow {
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.1);
+  }
+
+  /* Neon text glow */
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Hide scrollbar */
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+
+
+  /* ═══ HORSE-THEMED TEXTURES (theme-aware) ═══ */
+
+  /* Horseshoe subtle repeating pattern — dark: white, light: dark */
+  .horse-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 8c-4.4 0-8 3.6-8 8v4c0 1.1.9 2 2 2s2-.9 2-2v-4c0-2.2 1.8-4 4-4s4 1.8 4 4v4c0 1.1.9 2 2 2s2-.9 2-2v-4c0-4.4-3.6-8-8-8z' fill='%23ffffff' fill-opacity='0.015'/%3E%3C/svg%3E");
+  }
+  .light .horse-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 8c-4.4 0-8 3.6-8 8v4c0 1.1.9 2 2 2s2-.9 2-2v-4c0-2.2 1.8-4 4-4s4 1.8 4 4v4c0 1.1.9 2 2 2s2-.9 2-2v-4c0-4.4-3.6-8-8-8z' fill='%23000000' fill-opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  /* Leather grain texture — theme-aware */
+  .leather-grain {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, hsl(30 15% 12% / 0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, hsl(25 20% 15% / 0.1) 0%, transparent 50%);
+  }
+  .light .leather-grain {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, hsl(30 15% 85% / 0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, hsl(25 20% 80% / 0.2) 0%, transparent 50%);
+  }
+
+  /* Mane wave divider — theme-aware */
+  .mane-wave { position: relative; }
+  .mane-wave::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.3) 20%,
+      hsl(var(--primary) / 0.6) 50%,
+      hsl(var(--primary) / 0.3) 80%,
+      transparent 100%
+    );
+    border-radius: 2px;
+  }
+
+
+  /* ═══ WOW-FACTOR ANIMATIONS ═══ */
+
+  /* Gallop keyframe */
+  @keyframes gallop {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-3px); }
+    75% { transform: translateY(2px); }
+  }
+  .animate-gallop { animation: gallop 0.8s ease-in-out infinite; }
+
+  /* Card hover lift */
+  .card-hover {
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    will-change: transform;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 12px 40px hsl(var(--primary) / 0.1),
+      0 4px 12px hsl(var(--primary) / 0.05);
+  }
+
+  /* GPU acceleration */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Animated number counter */
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-count { animation: count-up 0.4s ease-out forwards; }
+
+  /* Stagger children entrance */
+  .stagger-children > * { animation: count-up 0.3s ease-out both; }
+  .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+  /* ═══ WOW: Shimmer sparkle effect ═══ */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer-border {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.4) 25%,
+      hsl(var(--primary) / 0.8) 50%,
+      hsl(var(--primary) / 0.4) 75%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ═══ WOW: Floating dot particle field ═══ */
+  @keyframes float-particle {
+    0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
+    50% { transform: translateY(-20px) translateX(10px) scale(1.5); opacity: 0.8; }
+  }
+  .particle-field { position: relative; overflow: hidden; }
+  .particle-field::before,
+  .particle-field::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    background: hsl(var(--primary) / 0.2);
+    animation: float-particle 4s ease-in-out infinite;
+  }
+  .particle-field::before {
+    width: 4px; height: 4px;
+    top: 20%; left: 85%;
+    animation-delay: 0s;
+  }
+  .particle-field::after {
+    width: 3px; height: 3px;
+    top: 60%; left: 10%;
+    animation-delay: 2s;
+  }
+
+  /* ═══ WOW: Gradient border animation ═══ */
+  @keyframes gradient-rotate {
+    0% { --angle: 0deg; }
+    100% { --angle: 360deg; }
+  }
+  .gradient-border {
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--primary) / 0.1),
+      hsl(var(--primary) / 0.3),
+      hsl(var(--secondary) / 0.2),
+      hsl(var(--primary) / 0.1)
+    );
+    z-index: -1;
+    animation: spin 4s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ═══ WOW: Pulse ring on key metric values ═══ */
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+    70% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+  }
+  .pulse-ring { animation: pulse-ring 2.5s ease-in-out infinite; }
+
+  /* ═══ WOW: Smooth slide-in from left ═══ */
+  @keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .animate-slide-in { animation: slide-in-left 0.5s ease-out forwards; }
+
+  /* ═══ WOW: Glow text on hover ═══ */
+  .hover-glow-text {
+    transition: text-shadow 0.3s ease;
+  }
+  .hover-glow-text:hover {
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.5), 0 0 24px hsl(var(--primary) / 0.2);
+  }
+
+  /* ═══ Light mode edge-glow override ═══ */
+  .light .edge-glow {
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06), inset 0 0 0 1px hsl(var(--primary) / 0.08);
+  }
+  .light .card-hover:hover {
+    box-shadow: 0 8px 30px hsl(var(--primary) / 0.12), 0 2px 8px hsl(0 0% 0% / 0.06);
+  }
+  .light .glow-primary {
+    box-shadow: 0 2px 20px hsl(var(--primary) / 0.1);
+  }
+  .light .lens-flare::before {
+    background: radial-gradient(ellipse at 20% 20%, hsl(var(--primary) / 0.04), transparent 70%);
+  }
+}
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ============================================================
    EFM Tailwind CSS Variables (HSL-based for shadcn/ui components)
    ============================================================ */

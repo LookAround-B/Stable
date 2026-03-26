@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
+import { Clock, Package, Play, SlidersHorizontal, Users, BarChart3, Check, X, Camera } from 'lucide-react';
 
 const MyAssignedTasksPage = () => {
   const { t } = useI18n();
@@ -132,310 +133,275 @@ const MyAssignedTasksPage = () => {
     { key: 'Approved', label: t('Approved'), count: approvedTasks },
   ];
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'Pending': '#3498db',
-      'In Progress': '#f39c12',
-      'Pending Review': '#e74c3c',
-      'Approved': '#27ae60',
-      'Rejected': '#95a5a6',
+  const getStatusBadge = (status) => {
+    const cfg = {
+      'Pending': 'border-blue-500/30 text-blue-400 bg-blue-500/10',
+      'In Progress': 'border-warning/30 text-warning bg-warning/10',
+      'Pending Review': 'border-destructive/30 text-destructive bg-destructive/10',
+      'Approved': 'border-success/30 text-success bg-success/10',
+      'Rejected': 'border-muted-foreground/30 text-muted-foreground bg-muted',
     };
-    return colors[status] || '#95a5a6';
+    const cls = cfg[status] || 'border-border text-muted-foreground bg-muted';
+    return (
+      <span className={`inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${cls}`}>
+        {t(status)}
+      </span>
+    );
+  };
+
+  const getPriorityBadge = (priority) => {
+    const cfg = {
+      'High': 'border-destructive/30 text-destructive bg-destructive/10',
+      'Urgent': 'border-destructive/30 text-destructive bg-destructive/10',
+      'Medium': 'border-warning/30 text-warning bg-warning/10',
+      'Low': 'border-success/30 text-success bg-success/10',
+    };
+    const cls = cfg[priority] || 'border-border text-muted-foreground bg-muted';
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${cls}`}>
+        {priority}
+      </span>
+    );
   };
 
   return (
-    <div className="page-container lovable-page-shell my-assigned-page">
-      <div className="page-header">
+    <div className="space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <div className="lovable-header-kicker">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Personal Task Console')}</span>
-          </div>
-          <h1>{t('My Assigned Tasks')}</h1>
-          <p>{t('Complete and submit your assigned tasks with evidence')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">My Assigned <span className="text-primary">Tasks</span></h1>
+          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+            {t('Personal Task Console')} &nbsp;·&nbsp; {t('Complete and submit your assigned tasks with evidence')}
+          </p>
         </div>
-        <div className="lovable-header-actions">
-          <div className="lovable-command-chip">
-            <div className="lovable-command-ring">{completionRate}%</div>
-            <div className="lovable-command-copy">
-              <strong>{t('Progress Matrix')}</strong>
-              <span>{t('Personal Task Console')}</span>
-            </div>
+        <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+            <span className="text-lg font-bold text-primary">{completionRate}%</span>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('Progress Matrix')}</p>
+            <p className="text-lg font-bold text-foreground">{t('Personal Task Console')}</p>
           </div>
         </div>
       </div>
 
-      <div className="lovable-metric-strip">
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Assigned')}</div>
-          <div className="lovable-metric-card-value">{totalTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Tasks currently visible in your queue')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('In Progress')}</div>
-          <div className="lovable-metric-card-value">{inProgressTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Tasks you have already started')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Pending Review')}</div>
-          <div className="lovable-metric-card-value">{reviewTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Completions currently awaiting approval')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Approved')}</div>
-          <div className="lovable-metric-card-value">{approvedTasks}</div>
-          <div className="lovable-metric-card-sub">{t('Tasks fully cleared and completed')}</div>
-        </div>
+      {/* ── KPI Cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: t('Assigned'), value: totalTasks, sub: t('Tasks currently visible in your queue') },
+          { label: t('In Progress'), value: inProgressTasks, sub: t('Tasks you have already started') },
+          { label: t('Pending Review'), value: reviewTasks, sub: t('Completions currently awaiting approval') },
+          { label: t('Approved'), value: approvedTasks, sub: t('Tasks fully cleared and completed') },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
+            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
+            <p className="text-xs mt-1 text-muted-foreground">{k.sub}</p>
+          </div>
+        ))}
       </div>
 
+      {/* ── Message ── */}
       {message && (
-        <div className={`message ${message.includes('✗') ? 'error' : 'success'}`}>
+        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('✗') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
           {message}
         </div>
       )}
 
-      {fullscreenImage && (
-        <div className="fullscreen-overlay" onClick={() => setFullscreenImage(null)}>
-          <img src={fullscreenImage} alt="Full size" className="fullscreen-image" />
-          <button className="close-fullscreen" onClick={() => setFullscreenImage(null)}>✕</button>
-        </div>
-      )}
-
-      <div className="task-filters">
-        <div className="lovable-pill-row">
-          {statusPills.map((pill) => (
+      {/* ── Filters + Search ── */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar scroll-smooth">
+          {statusPills.map(pill => (
             <button
               key={pill.key}
-              type="button"
-              className={`lovable-pill ${filterStatus === pill.key ? 'active' : ''}`}
               onClick={() => setFilterStatus(pill.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0 flex items-center gap-2 ${
+                filterStatus === pill.key
+                  ? 'bg-primary/20 text-primary border border-primary/40'
+                  : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'
+              }`}
             >
-              <span>{pill.label}</span>
-              <span className="lovable-pill-count">{pill.count}</span>
+              {pill.label}
+              <span className="text-[10px] font-bold mono-data">{pill.count}</span>
             </button>
           ))}
         </div>
-        <div className="search-input">
-          <span className="search-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </span>
+        <div className="relative w-full md:w-72">
           <input
             type="text"
             placeholder={t('Search tasks by name, type, horse...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
           />
+          <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
-      <div className="lovable-grid-main">
-      {loading && filteredTasks.length === 0 ? (
-        <div className="loading">Loading your tasks...</div>
-      ) : filteredTasks.length === 0 ? (
-        <div className="no-tasks">
-          <p>✓ No tasks assigned to you yet</p>
+      {/* ── Main Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+        {/* Task Cards */}
+        <div className="space-y-4">
+          {loading && filteredTasks.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">{t('Loading your tasks...')}</div>
+          ) : filteredTasks.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">✓ {t('No tasks assigned to you yet')}</div>
+          ) : (
+            filteredTasks.map((task) => (
+              <div key={task.id} className="bg-surface-container-high rounded-xl overflow-hidden edge-glow border border-primary/10 hover:border-primary/30 transition-all duration-300 group">
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(task.status)}
+                      {getPriorityBadge(task.priority)}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-mono opacity-60">ID: {String(task.id).slice(0, 8).toUpperCase()}</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-foreground leading-tight">{task.name}</h3>
+                  <p className="text-sm text-primary/90 mt-1 font-medium">{task.type}</p>
+
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary/60" /> {new Date(task.scheduledTime).toLocaleString()}</span>
+                    {task.horse?.name && <span className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-primary/60" /> {task.horse.name}</span>}
+                    {task.createdBy?.fullName && <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-primary/60" /> {task.createdBy.fullName}</span>}
+                  </div>
+
+                  {task.description && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{task.description}</p>}
+
+                  {task.proofImage && (
+                    <div className="mt-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Evidence</p>
+                      <img src={task.proofImage} alt="Task evidence" className="max-w-[120px] max-h-[80px] rounded-lg border border-border cursor-pointer object-cover" onClick={() => setFullscreenImage(task.proofImage)} />
+                    </div>
+                  )}
+
+                  {task.completionNotes && (
+                    <div className="mt-3 p-3 rounded-lg bg-surface-container-highest">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Completion Notes</p>
+                      <p className="text-sm text-foreground mt-1">{task.completionNotes}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 mt-4">
+                    {task.status === 'Pending' && (
+                      <button onClick={() => handleStartTask(task.id)} disabled={loading} className="flex items-center gap-2 px-5 py-2 rounded-lg border border-primary/20 bg-primary/5 text-sm font-semibold text-foreground hover:bg-primary/20 hover:border-primary/40 hover:text-primary transition-all active:scale-95">
+                        Start Task <Play className="w-3.5 h-3.5 fill-current" />
+                      </button>
+                    )}
+                    {task.status === 'In Progress' && (
+                      <button onClick={() => setSelectedTaskId(task.id)} disabled={loading} className="flex items-center gap-2 px-5 py-2 rounded-lg bg-success/15 text-success text-sm font-semibold hover:bg-success/25 transition-all">
+                        Submit Completion <Check className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {task.status === 'Approved' && <span className="text-xs text-success font-semibold">✔ Approved</span>}
+                    {task.status === 'Rejected' && <span className="text-xs text-destructive font-semibold">✗ Rejected</span>}
+                    {task.status === 'Pending Review' && <span className="text-xs text-warning font-semibold">⏳ Awaiting Review</span>}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-      ) : (
-        <div className="tasks-grid tasks-list">
-          {filteredTasks.map((task) => (
-            <div key={task.id} className="task-card">
-              <div className="task-header">
-                <h3>{task.name}</h3>
-                <span
-                  className="priority-badge"
-                  style={{ backgroundColor: getStatusColor(task.priority === 'High' ? 'Rejected' : task.priority === 'Medium' ? 'In Progress' : 'Approved'), padding: '4px 12px', borderRadius: '20px', color: '#fff', fontSize: '0.78rem', fontWeight: 600 }}
-                >
-                  {task.priority}
-                </span>
-              </div>
-              <p className="task-type" style={{ fontWeight: 700, color: '#000', fontSize: '1.0625rem' }}>{task.type}</p>
 
-              <div className="task-status-row">
-                <div className="card-status" style={{ backgroundColor: getStatusColor(task.status), padding: '4px 12px', borderRadius: '20px', color: '#fff', fontSize: '0.78rem', fontWeight: 600, display: 'inline-block' }}>
-                  {t(task.status)}
+        {/* Sidebar Widgets */}
+        <div className="space-y-4">
+          {/* Shift Focus */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-foreground">{t('Shift Focus')}</h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">{t('Quick readout for your current task board')}</p>
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t('Approved')}</span>
+                  <span className="text-sm font-bold text-foreground">{completionRate}%</span>
+                </div>
+                <div className="w-full h-1 rounded-full bg-surface-container-high mt-1">
+                  <div className="h-1 rounded-full bg-primary" style={{ width: `${completionRate}%` }} />
                 </div>
               </div>
-
-              <hr className="task-divider" />
-
-              <div className="task-details-section">
-                <h4 className="task-details-heading">{t('Details')}</h4>
-                <div className="task-details">
-                  <p><strong>Description:</strong> <span>{task.description || 'No description'}</span></p>
-                  <p><strong>Horse:</strong> <span>{task.horse?.name || 'N/A'}</span></p>
-                  <p><strong>Created by:</strong> <span>{task.createdBy?.fullName || 'Unknown'}</span></p>
-                  <p><strong>Scheduled:</strong> <span>{new Date(task.scheduledTime).toLocaleString()}</span></p>
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t('Awaiting Review')}</span>
+                  <span className="text-sm font-bold text-foreground">{reviewTasks}</span>
                 </div>
-
-                {task.proofImage && (
-                  <div className="proof-section">
-                    <p><strong>Evidence:</strong></p>
-                    <img 
-                      src={task.proofImage} 
-                      alt="Task evidence" 
-                      className="proof-thumbnail"
-                      onClick={() => setFullscreenImage(task.proofImage)}
-                    />
-                  </div>
-                )}
-
-                {task.completionNotes && (
-                  <div className="notes-section">
-                    <p><strong>Completion Notes:</strong> {task.completionNotes}</p>
-                  </div>
-                )}
-
-                {task.submittedAt && (
-                  <p className="submitted-at">
-                    <strong>Submitted:</strong> {new Date(task.submittedAt).toLocaleString()}
-                  </p>
-                )}
-              </div>
-
-              <div className="card-actions" style={{ marginTop: '12px' }}>
-                {task.status === 'Pending' && (
-                  <button
-                    className="btn btn-start"
-                    onClick={() => handleStartTask(task.id)}
-                    disabled={loading}
-                  >
-                    ► Start Task
-                  </button>
-                )}
-
-                {task.status === 'In Progress' && (
-                  <button
-                    className="btn btn-submit"
-                    onClick={() => setSelectedTaskId(task.id)}
-                    disabled={loading}
-                  >
-                    ✓ Submit Completion
-                  </button>
-                )}
-
-                {(task.status === 'Pending Review' || task.status === 'Approved' || task.status === 'Rejected') && (
-                  <div className="status-info">
-                    {task.status === 'Approved' && <p className="approved">✔ Approved</p>}
-                    {task.status === 'Rejected' && <p className="rejected">✗ Rejected</p>}
-                    {task.status === 'Pending Review' && <p className="pending">⏳ Awaiting Review</p>}
-                  </div>
-                )}
+                <div className="w-full h-1 rounded-full bg-surface-container-high mt-1">
+                  <div className="h-1 rounded-full bg-primary" style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewTasks / totalTasks) * 100)) : 0}%` }} />
+                </div>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Execution Notes */}
+          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-2">
+              <Package className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-foreground">{t('Execution Notes')}</h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">{t('Evidence is required before completion can be submitted')}</p>
+            <div className="space-y-3">
+              {[
+                { num: '01', label: `${pendingTasks} ${t('Ready to Start')}`, sub: t('Tasks sitting in your pending queue') },
+                { num: '02', label: `${inProgressTasks} ${t('Live Tasks')}`, sub: t('Currently active tasks under execution') },
+                { num: '03', label: t('Upload Proof'), sub: t('Completion photos and notes keep the approval flow moving') },
+              ].map(item => (
+                <div key={item.num} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">{item.num}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════ SUBMISSION MODAL ═══════════ */}
+      {selectedTaskId && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedTaskId(null)}>
+          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-foreground">{t('Submit Task Completion')}</h3>
+              <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setSelectedTaskId(null)}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Upload Evidence Photo *</label>
+                <input type="file" id="proof-upload" accept="image/*" onChange={handleImageUpload} disabled={loading} className="hidden" />
+                <label htmlFor="proof-upload" className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors bg-surface-container-high">
+                  <Camera className="w-5 h-5 text-primary" />
+                  <div><p className="text-sm font-medium text-foreground">{submissionData.proofImage ? 'Change Photo' : 'Click to Upload'}</p><p className="text-xs text-muted-foreground">JPG, PNG</p></div>
+                </label>
+                {submissionData.proofImage && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <img src={submissionData.proofImage} alt="Preview" className="max-w-[100px] max-h-[80px] rounded-lg border border-border object-cover" />
+                    <span className="text-xs text-success font-medium">✓ Photo uploaded</span>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Completion Notes (Optional)</label>
+                <textarea value={submissionData.completionNotes} onChange={(e) => setSubmissionData((prev) => ({ ...prev, completionNotes: e.target.value }))} placeholder="Any notes about task completion..." rows="4" disabled={loading} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => handleSubmitTask(selectedTaskId)} disabled={loading || !submissionData.proofImage} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50">{loading ? 'Submitting...' : 'Submit Completion'}</button>
+                <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="lovable-side-stack">
-        <div className="lovable-panel">
-          <div className="lovable-panel-title">{t('Shift Focus')}</div>
-          <div className="lovable-panel-subtitle">{t('Quick readout for your current task board')}</div>
-          <div className="lovable-progress-row" style={{ marginTop: '16px' }}>
-            <div className="lovable-progress-head">
-              <span>{t('Approved')}</span>
-              <strong>{completionRate}%</strong>
-            </div>
-            <div className="lovable-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
-          </div>
-          <div className="lovable-progress-row" style={{ marginTop: '14px' }}>
-            <div className="lovable-progress-head">
-              <span>{t('Awaiting Review')}</span>
-              <strong>{reviewTasks}</strong>
-            </div>
-            <div className="lovable-progress-bar"><span style={{ width: `${totalTasks ? Math.max(8, Math.round((reviewTasks / totalTasks) * 100)) : 0}%` }} /></div>
-          </div>
-        </div>
-
-        <div className="lovable-panel">
-          <div className="lovable-panel-title">{t('Execution Notes')}</div>
-          <div className="lovable-panel-subtitle">{t('Evidence is required before completion can be submitted')}</div>
-          <div className="lovable-side-stack" style={{ marginTop: '16px' }}>
-            <div className="lovable-side-stat">
-              <div className="lovable-side-stat-icon">01</div>
-              <div className="lovable-side-stat-copy">
-                <strong>{pendingTasks} {t('Ready to Start')}</strong>
-                <span>{t('Tasks sitting in your pending queue')}</span>
-              </div>
-            </div>
-            <div className="lovable-side-stat">
-              <div className="lovable-side-stat-icon">02</div>
-              <div className="lovable-side-stat-copy">
-                <strong>{inProgressTasks} {t('Live Tasks')}</strong>
-                <span>{t('Currently active tasks under execution')}</span>
-              </div>
-            </div>
-            <div className="lovable-side-stat">
-              <div className="lovable-side-stat-icon">03</div>
-              <div className="lovable-side-stat-copy">
-                <strong>{t('Upload Proof')}</strong>
-                <span>{t('Completion photos and notes keep the approval flow moving')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-
-      {selectedTaskId && (
-        <div className="modal-overlay" onClick={() => setSelectedTaskId(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{t('Submit Task Completion')}</h2>
-              <button className="close-btn" onClick={() => setSelectedTaskId(null)}>✕</button>
-            </div>
-
-            <div className="modal-content">
-              <div className="form-group">
-                <label>Upload Evidence Photo *</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={loading}
-                />
-                {submissionData.proofImage && (
-                  <div className="image-preview">
-                    <img src={submissionData.proofImage} alt="Preview" />
-                    <span className="upload-success">✓ Photo uploaded</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>Completion Notes (Optional)</label>
-                <textarea
-                  value={submissionData.completionNotes}
-                  onChange={(e) => setSubmissionData((prev) => ({
-                    ...prev,
-                    completionNotes: e.target.value,
-                  }))}
-                  placeholder="Any notes about task completion..."
-                  rows="4"
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn btn-cancel"
-                  onClick={() => setSelectedTaskId(null)}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-submit-modal"
-                  onClick={() => handleSubmitTask(selectedTaskId)}
-                  disabled={loading || !submissionData.proofImage}
-                >
-                  {loading ? 'Submitting...' : 'Submit Completion'}
-                </button>
-              </div>
-            </div>
-          </div>
+      {/* ── Fullscreen Image ── */}
+      {fullscreenImage && (
+        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center" onClick={() => setFullscreenImage(null)}>
+          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" onClick={() => setFullscreenImage(null)}>✕</button>
+          <img src={fullscreenImage} alt="Full size" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" />
         </div>
       )}
     </div>

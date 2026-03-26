@@ -3,7 +3,7 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw, Download } from 'lucide-react';
+import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -11,19 +11,9 @@ import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
 
 const FEED_LABELS = {
-  balance: 'Himalayan Balance',
-  barley: 'Barley',
-  oats: 'Oats',
-  soya: 'Soya',
-  lucerne: 'Lucerne',
-  linseed: 'Linseed',
-  rOil: 'R.Oil',
-  biotin: 'Biotin',
-  joint: 'Joint',
-  epsom: 'Epsom',
-  heylase: 'Heylase',
+  balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
+  linseed: 'Linseed', rOil: 'R.Oil', biotin: 'Biotin', joint: 'Joint', epsom: 'Epsom', heylase: 'Heylase',
 };
-
 const FEED_TYPES = Object.keys(FEED_LABELS);
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -35,338 +25,177 @@ const FeedInventoryPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
-  const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'report'
+  const [activeTab, setActiveTab] = useState('inventory');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
 
-  // Inventory state
   const [inventoryRecords, setInventoryRecords] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [formData, setFormData] = useState({
-    feedType: '',
-    unitsBrought: '',
-    openingStock: '',
-    unit: 'kg',
-    notes: '',
-  });
+  const [formData, setFormData] = useState({ feedType: '', unitsBrought: '', openingStock: '', unit: 'kg', notes: '' });
 
-  // Report state
-  const [reportStartDate, setReportStartDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
-  );
+  const [reportStartDate, setReportStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportData, setReportData] = useState(null);
   const [downloadingCSV, setDownloadingCSV] = useState(false);
+  const [thresholdModal, setThresholdModal] = useState(null);
 
-  const showMessage = (msg, type = 'success') => {
-    setMessage(msg);
-    setMessageType(type);
-    setTimeout(() => setMessage(''), 5000);
-  };
+  const showMessage = (msg, type = 'success') => { setMessage(msg); setMessageType(type); setTimeout(() => setMessage(''), 5000); };
 
   const loadInventory = useCallback(async () => {
-    try {
-      setLoading(true);
-      setCurrentPage(1); // Reset pagination
-      const result = await feedInventoryService.getInventory({
-        month: selectedMonth,
-        year: selectedYear,
-      });
-      setInventoryRecords(result.data || []);
-    } catch (error) {
-      showMessage('Failed to load inventory records', 'error');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); setCurrentPage(1); const result = await feedInventoryService.getInventory({ month: selectedMonth, year: selectedYear }); setInventoryRecords(result.data || []); }
+    catch (error) { showMessage('Failed to load inventory records', 'error'); }
+    finally { setLoading(false); }
   }, [selectedMonth, selectedYear]);
 
-  useEffect(() => {
-    if (activeTab === 'inventory') {
-      loadInventory();
-    }
-  }, [activeTab, loadInventory]);
+  useEffect(() => { if (activeTab === 'inventory') { loadInventory(); } }, [activeTab, loadInventory]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       if (editingRecord) {
-        await feedInventoryService.updateInventory({
-          id: editingRecord.id,
-          unitsBrought: formData.unitsBrought,
-          openingStock: formData.openingStock,
-          unit: formData.unit,
-          notes: formData.notes,
-        });
+        await feedInventoryService.updateInventory({ id: editingRecord.id, unitsBrought: formData.unitsBrought, openingStock: formData.openingStock, unit: formData.unit, notes: formData.notes });
         showMessage('Inventory record updated successfully');
       } else {
-        await feedInventoryService.createInventory({
-          feedType: formData.feedType,
-          month: selectedMonth,
-          year: selectedYear,
-          unitsBrought: formData.unitsBrought,
-          openingStock: formData.openingStock,
-          unit: formData.unit,
-          notes: formData.notes,
-        });
+        await feedInventoryService.createInventory({ feedType: formData.feedType, month: selectedMonth, year: selectedYear, unitsBrought: formData.unitsBrought, openingStock: formData.openingStock, unit: formData.unit, notes: formData.notes });
         showMessage('Inventory record created successfully');
       }
-      setShowForm(false);
-      setEditingRecord(null);
-      resetForm();
-      loadInventory();
-    } catch (error) {
-      showMessage(error.error || 'Failed to save inventory record', 'error');
-    } finally {
-      setLoading(false);
-    }
+      setShowForm(false); setEditingRecord(null); resetForm(); loadInventory();
+    } catch (error) { showMessage(error.error || 'Failed to save inventory record', 'error'); }
+    finally { setLoading(false); }
   };
 
   const handleEdit = (record) => {
     setEditingRecord(record);
-    setFormData({
-      feedType: record.feedType,
-      unitsBrought: record.unitsBrought.toString(),
-      openingStock: record.openingStock.toString(),
-      unit: record.unit,
-      notes: record.notes || '',
-    });
+    setFormData({ feedType: record.feedType, unitsBrought: record.unitsBrought.toString(), openingStock: record.openingStock.toString(), unit: record.unit, notes: record.notes || '' });
     setShowForm(true);
   };
 
   const handleRecalculate = async () => {
-    try {
-      setLoading(true);
-      const result = await feedInventoryService.recalculate(selectedMonth, selectedYear);
-      showMessage(result.message || 'Usage recalculated successfully');
-      loadInventory();
-    } catch (error) {
-      showMessage(error.error || 'Failed to recalculate usage', 'error');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); const result = await feedInventoryService.recalculate(selectedMonth, selectedYear); showMessage(result.message || 'Usage recalculated successfully'); loadInventory(); }
+    catch (error) { showMessage(error.error || 'Failed to recalculate usage', 'error'); }
+    finally { setLoading(false); }
   };
 
-  const resetForm = () => {
-    setFormData({ feedType: '', unitsBrought: '', openingStock: '', unit: 'kg', notes: '' });
-  };
+  const resetForm = () => setFormData({ feedType: '', unitsBrought: '', openingStock: '', unit: 'kg', notes: '' });
 
-  // Get feed types that don't have records yet for the selected month
-  const availableFeedTypes = FEED_TYPES.filter(
-    (ft) => !inventoryRecords.some((r) => r.feedType === ft)
-  );
+  const availableFeedTypes = FEED_TYPES.filter((ft) => !inventoryRecords.some((r) => r.feedType === ft));
 
-  // === Report Functions ===
   const loadReport = async () => {
-    try {
-      setLoading(true);
-      const result = await feedInventoryService.getConsumptionReport(reportStartDate, reportEndDate);
-      setReportData(result.data);
-    } catch (error) {
-      showMessage('Failed to load consumption report', 'error');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); const result = await feedInventoryService.getConsumptionReport(reportStartDate, reportEndDate); setReportData(result.data); }
+    catch (error) { showMessage('Failed to load consumption report', 'error'); }
+    finally { setLoading(false); }
   };
 
   const handleDownloadCSV = async () => {
-    try {
-      setDownloadingCSV(true);
-      await feedInventoryService.downloadConsumptionCSV(reportStartDate, reportEndDate);
-      showMessage('CSV report downloaded successfully');
-    } catch (error) {
-      showMessage('Failed to download CSV report', 'error');
-    } finally {
-      setDownloadingCSV(false);
-    }
+    try { setDownloadingCSV(true); await feedInventoryService.downloadConsumptionCSV(reportStartDate, reportEndDate); showMessage('CSV report downloaded successfully'); }
+    catch (error) { showMessage('Failed to download CSV report', 'error'); }
+    finally { setDownloadingCSV(false); }
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(inventoryRecords.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedRecords = inventoryRecords.slice(startIndex, endIndex);
+  const paginatedRecords = inventoryRecords.slice(startIndex, startIndex + rowsPerPage);
 
   const handleDownloadExcel = () => {
     if (!inventoryRecords.length) { alert('No data to download'); return; }
-    const data = inventoryRecords.map(r => ({
-      'Feed Type': FEED_LABELS[r.feedType] || r.feedType,
-      'Opening Stock (kg)': r.openingStock,
-      'Units Brought': r.unitsBrought,
-      'Total Available': r.totalAvailable,
-      'Used Today': r.usedToday,
-      'Total Used': r.totalUsed,
-      'Units Left': r.unitsLeft,
-      'Unit': r.unit,
-      'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}`,
-    }));
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Feed Inventory');
-    XLSX.writeFile(wb, `FeedInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+    const data = inventoryRecords.map(r => ({ 'Feed Type': FEED_LABELS[r.feedType] || r.feedType, 'Opening Stock (kg)': r.openingStock, 'Units Brought': r.unitsBrought, 'Total Available': r.totalAvailable, 'Used Today': r.usedToday, 'Total Used': r.totalUsed, 'Units Left': r.unitsLeft, 'Unit': r.unit, 'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}` }));
+    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Feed Inventory'); XLSX.writeFile(wb, `FeedInventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
-
-  // Threshold modal state (admin only)
-  const [thresholdModal, setThresholdModal] = useState(null);
 
   const handleSaveThreshold = async () => {
     if (!thresholdModal) return;
     try {
       setLoading(true);
-      await feedInventoryService.setThreshold(
-        thresholdModal.record.id,
-        thresholdModal.value === '' ? null : parseFloat(thresholdModal.value),
-        thresholdModal.notifyAdmin
-      );
-      showMessage('Threshold updated');
-      setThresholdModal(null);
-      loadInventory();
-    } catch {
-      showMessage('Failed to update threshold', 'error');
-    } finally {
-      setLoading(false);
-    }
+      await feedInventoryService.setThreshold(thresholdModal.record.id, thresholdModal.value === '' ? null : parseFloat(thresholdModal.value), thresholdModal.notifyAdmin);
+      showMessage('Threshold updated'); setThresholdModal(null); loadInventory();
+    } catch { showMessage('Failed to update threshold', 'error'); }
+    finally { setLoading(false); }
   };
 
   if (!p.viewFeedInventory) return <Navigate to="/" replace />;
 
   return (
-    <div className="feed-inventory-page">
-      <div className="inventory-header">
-        <h1>{t('Feed Inventory Management')}</h1>
-        <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Feed <span className="text-primary">Inventory</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('Feed Inventory Management')}</p>
+        </div>
+        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
       </div>
 
-      {message && <div className={`message ${messageType}`}>{message}</div>}
+      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button
-          className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`}
-          onClick={() => setActiveTab('inventory')}
-        >
-          Monthly Inventory
+      {/* Tabs */}
+      <div className="flex items-center gap-3">
+        <button onClick={() => setActiveTab('inventory')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'inventory' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+          <Package className="w-4 h-4" /> Monthly Inventory
         </button>
-        <button
-          className={`tab-btn ${activeTab === 'report' ? 'active' : ''}`}
-          onClick={() => setActiveTab('report')}
-        >
-          Consumption Report
+        <button onClick={() => setActiveTab('report')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'report' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+          <TrendingUp className="w-4 h-4" /> Consumption Report
         </button>
       </div>
 
-      {/* ========== INVENTORY TAB ========== */}
+      {/* ═══ INVENTORY TAB ═══ */}
       {activeTab === 'inventory' && (
-        <div className="inventory-section">
-          {/* Month/Year Selector */}
-          <div className="filters-section">
-            <div className="filter-group" style={{minWidth: '160px'}}>
-              <label>Month</label>
-              <SearchableSelect
-                name="month"
-                value={selectedMonth.toString()}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
-                placeholder="Select month..."
-              />
+        <div className="space-y-5">
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+            <div className="flex items-end gap-3">
+              <div className="min-w-[160px]">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Month</label>
+                <SearchableSelect name="month" value={selectedMonth.toString()} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))} placeholder="Select month..." />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Year</label>
+                <SearchableSelect name="year" value={selectedYear.toString()} onChange={(e) => setSelectedYear(parseInt(e.target.value))} options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))} placeholder="Select year..." />
+              </div>
             </div>
-            <div className="filter-group">
-              <label>Year</label>
-              <SearchableSelect
-                name="year"
-                value={selectedYear.toString()}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))}
-                placeholder="Select year..."
-              />
-            </div>
-            <div className="filter-actions">
-              <button className="btn-primary" onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm}>
-                {showForm ? 'Cancel' : '+ Add Stock Entry'}
+            <div className="flex gap-2 md:ml-auto">
+              <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+                {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Stock Entry</>}
               </button>
-              <button className="btn-secondary" onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0}>
-                <RotateCw size={16} style={{display: 'inline', marginRight: '6px'}} /> Recalculate Usage
-              </button>
+              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 disabled:opacity-50"><RotateCw className="w-4 h-4" /> Recalculate</button>
             </div>
           </div>
 
-          {/* Add/Edit Form */}
+          {/* Form */}
           {showForm && (
-            <div className="inventory-form-section">
-              <h3>{editingRecord ? `Edit: ${FEED_LABELS[editingRecord.feedType]}` : 'Add Stock Entry'}</h3>
-              <form onSubmit={handleSubmit}>
-                <div className="form-grid">
+            <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+              <h3 className="text-lg font-bold text-foreground mb-4">{editingRecord ? `Edit: ${FEED_LABELS[editingRecord.feedType]}` : 'Add Stock Entry'}</h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {!editingRecord && (
-                    <div className="form-group">
-                      <label>Feed Type *</label>
-                      <SearchableSelect
-                        name="feedType"
-                        value={formData.feedType}
-                        onChange={(e) => setFormData({ ...formData, feedType: e.target.value })}
-                        options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))}
-                        placeholder="Select feed type..."
-                        required
-                      />
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Feed Type *</label>
+                      <SearchableSelect name="feedType" value={formData.feedType} onChange={(e) => setFormData({ ...formData, feedType: e.target.value })} options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))} placeholder="Select feed type..." required />
                     </div>
                   )}
-                  <div className="form-group">
-                    <label>Opening Stock</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.openingStock}
-                      onChange={(e) => setFormData({ ...formData, openingStock: e.target.value })}
-                      placeholder="0"
-                    />
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Opening Stock</label>
+                    <input type="number" step="0.01" min="0" value={formData.openingStock} onChange={(e) => setFormData({ ...formData, openingStock: e.target.value })} placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
-                  <div className="form-group">
-                    <label>Units Brought *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.unitsBrought}
-                      onChange={(e) => setFormData({ ...formData, unitsBrought: e.target.value })}
-                      required
-                      placeholder="0"
-                    />
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Units Brought *</label>
+                    <input type="number" step="0.01" min="0" value={formData.unitsBrought} onChange={(e) => setFormData({ ...formData, unitsBrought: e.target.value })} required placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
-                  <div className="form-group">
-                    <label>Unit</label>
-                    <SearchableSelect
-                      name="unit"
-                      value={formData.unit}
-                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                      options={[
-                        { value: 'kg', label: 'Kilograms (kg)' },
-                        { value: 'liters', label: 'Liters' },
-                        { value: 'packets', label: 'Packets' },
-                        { value: 'bags', label: 'Bags' },
-                        { value: 'units', label: 'Units' },
-                      ]}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>Notes</label>
-                    <textarea
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder="Optional notes..."
-                      rows={2}
-                    />
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
+                    <SearchableSelect name="unit" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} options={[{ value: 'kg', label: 'Kilograms (kg)' }, { value: 'liters', label: 'Liters' }, { value: 'packets', label: 'Packets' }, { value: 'bags', label: 'Bags' }, { value: 'units', label: 'Units' }]} />
                   </div>
                 </div>
-                <div className="form-actions">
-                  <button type="submit" className="btn-primary" disabled={loading}>
-                    {loading ? 'Saving...' : editingRecord ? 'Update' : 'Create'}
-                  </button>
-                  <button type="button" className="btn-cancel" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
-                    Cancel
-                  </button>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                  <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                </div>
+                <div className="flex gap-3">
+                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingRecord ? 'Update' : 'Create'}</button>
+                  <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
                 </div>
               </form>
             </div>
@@ -374,186 +203,160 @@ const FeedInventoryPage = () => {
 
           <InventoryCharts type="feed" records={inventoryRecords} labels={FEED_LABELS} />
 
+          {/* Low Stock Alert */}
           {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
-            <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#92400e', padding: '10px 16px', borderRadius: '8px', margin: '12px 0', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}>
-              ⚠️ <strong>Low stock alert:</strong> One or more feed inventory items are below their configured threshold.
+            <div className="rounded-xl p-4 border border-warning/30 bg-warning/10 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
+              <p className="text-sm text-foreground font-medium"><strong>Low stock alert:</strong> One or more feed inventory items are below their configured threshold.</p>
             </div>
           )}
 
           {/* Inventory Table */}
-          <div className="inventory-table-container">
-            <h3>{MONTH_NAMES[selectedMonth - 1]} {selectedYear} - Feed Stock Status</h3>
+          <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+            <div className="px-5 py-4 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} — Feed Stock Status</h3>
+            </div>
             {loading ? (
-              <div className="loading">Loading inventory...</div>
+              <div className="text-center py-12 text-muted-foreground">Loading inventory...</div>
             ) : inventoryRecords.length === 0 ? (
-              <div className="empty-state">
+              <div className="text-center py-12 text-muted-foreground">
                 <p>No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.</p>
-                <p>Click "Add Stock Entry" to start tracking feed inventory.</p>
+                <p className="text-xs mt-1">Click "Add Stock Entry" to start tracking feed inventory.</p>
               </div>
             ) : (
               <>
-              <div className="table-wrapper">
-                <table className="inventory-table">
-                  <thead>
-                    <tr>
-                      <th>Feed Type</th>
-                      <th>Opening Stock</th>
-                      <th>Units Brought</th>
-                      <th>Total Available</th>
-                      <th>Used Today</th>
-                      <th>Total Used</th>
-                      <th>Units Left</th>
-                      <th>Unit</th>
-                      <th>Status</th>
-                      <th>Threshold</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedRecords.map((record) => {
-                      const totalAvailable = record.openingStock + record.unitsBrought;
-                      const percentUsed = totalAvailable > 0 ? (record.totalUsed / totalAvailable) * 100 : 0;
-                      const isLow = record.unitsLeft < totalAvailable * 0.2;
-                      const isEmpty = record.unitsLeft <= 0;
-                      const isBelowThreshold = record.threshold !== null && record.threshold !== undefined && record.unitsLeft < record.threshold;
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        {['Feed Type', 'Opening', 'Brought', 'Total', 'Used Today', 'Total Used', 'Left', 'Unit', 'Status', 'Threshold', 'Actions'].map(h => (
+                          <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedRecords.map((record) => {
+                        const totalAvailable = record.openingStock + record.unitsBrought;
+                        const percentUsed = totalAvailable > 0 ? (record.totalUsed / totalAvailable) * 100 : 0;
+                        const isLow = record.unitsLeft < totalAvailable * 0.2;
+                        const isEmpty = record.unitsLeft <= 0;
+                        const isBelowThreshold = record.threshold !== null && record.threshold !== undefined && record.unitsLeft < record.threshold;
+                        const barColor = percentUsed > 80 ? 'bg-destructive' : percentUsed > 50 ? 'bg-warning' : 'bg-success';
 
-                      return (
-                        <tr key={record.id} className={isEmpty ? 'row-danger' : isLow ? 'row-warning' : ''} style={isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : {}}>
-                          <td className="feed-name">{FEED_LABELS[record.feedType] || record.feedType}</td>
-                          <td>{record.openingStock}</td>
-                          <td>{record.unitsBrought}</td>
-                          <td className="total-available">{totalAvailable}</td>
-                          <td className={record.usedToday > 0 ? 'text-warning' : ''}>
-                            {record.usedToday ?? 0}
-                          </td>
-                          <td>{record.totalUsed}</td>
-                          <td className={`units-left ${isEmpty ? 'text-danger' : isLow ? 'text-warning' : 'text-success'}`}>
-                            {record.unitsLeft}
-                          </td>
-                          <td>{record.unit}</td>
-                          <td>
-                            <div className="usage-bar">
-                              <div
-                                className={`usage-fill ${percentUsed > 80 ? 'danger' : percentUsed > 50 ? 'warning' : 'normal'}`}
-                                style={{ width: `${Math.min(100, percentUsed)}%` }}
-                              />
-                            </div>
-                            <span className="usage-percent">{percentUsed.toFixed(1)}% used</span>
-                          </td>
-                          <td style={{ whiteSpace: 'nowrap' }}>
-                            {record.threshold !== null && record.threshold !== undefined
-                              ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{record.threshold} {record.unit}</span>
-                              : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
-                            }
-                            {isBelowThreshold && <span style={{ marginLeft: 4, color: '#ef4444' }} title="Below threshold">⚠️</span>}
-                          </td>
-                          <td>
-                            <button className="btn-sm btn-edit" onClick={() => handleEdit(record)}>Edit</button>
-                            {isAdmin && (
-                              <button
-                                className="btn-sm"
-                                style={{ marginLeft: 4, fontSize: '0.7rem', padding: '3px 8px', background: record.notifyAdmin ? 'rgba(245,158,11,0.15)' : 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: '6px', cursor: 'pointer' }}
-                                onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
-                                title="Configure threshold alert"
-                              >
-                                🔔
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-                <Pagination 
-                  currentPage={currentPage} 
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={(newRows) => {
-                    setRowsPerPage(newRows);
-                    setCurrentPage(1);
-                  }}
-                  total={inventoryRecords.length}
-                />
+                        return (
+                          <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high transition-colors ${isBelowThreshold ? 'bg-destructive/5' : isEmpty ? 'bg-destructive/5' : isLow ? 'bg-warning/5' : ''}`}>
+                            <td className="px-3 py-3 font-medium text-foreground whitespace-nowrap">{FEED_LABELS[record.feedType] || record.feedType}</td>
+                            <td className="px-3 py-3 text-muted-foreground mono-data">{record.openingStock}</td>
+                            <td className="px-3 py-3 text-muted-foreground mono-data">{record.unitsBrought}</td>
+                            <td className="px-3 py-3 font-medium text-foreground mono-data">{totalAvailable}</td>
+                            <td className={`px-3 py-3 mono-data ${record.usedToday > 0 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>{record.usedToday ?? 0}</td>
+                            <td className="px-3 py-3 text-muted-foreground mono-data">{record.totalUsed}</td>
+                            <td className={`px-3 py-3 font-bold mono-data ${isEmpty ? 'text-destructive' : isLow ? 'text-warning' : 'text-success'}`}>{record.unitsLeft}</td>
+                            <td className="px-3 py-3 text-muted-foreground">{record.unit}</td>
+                            <td className="px-3 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-12 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+                                  <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(100, percentUsed)}%` }} />
+                                </div>
+                                <span className="text-[10px] text-muted-foreground mono-data">{percentUsed.toFixed(0)}%</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              {record.threshold !== null && record.threshold !== undefined
+                                ? <span className="text-xs mono-data">{record.threshold} {record.unit}</span>
+                                : <span className="text-muted-foreground/40 text-xs">—</span>
+                              }
+                              {isBelowThreshold && <span className="ml-1 text-destructive" title="Below threshold">⚠️</span>}
+                            </td>
+                            <td className="px-3 py-3">
+                              <div className="flex gap-1.5">
+                                <button onClick={() => handleEdit(record)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-border text-foreground hover:bg-surface-container-high transition-colors">Edit</button>
+                                {isAdmin && (
+                                  <button onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })} className={`h-7 px-2 rounded text-[10px] border transition-colors ${record.notifyAdmin ? 'bg-warning/15 border-warning/30 text-warning' : 'border-border text-muted-foreground hover:bg-surface-container-high'}`} title="Configure threshold alert">🔔</button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }} total={inventoryRecords.length} />
               </>
             )}
           </div>
         </div>
       )}
 
-      {/* ========== CONSUMPTION REPORT TAB ========== */}
+      {/* ═══ CONSUMPTION REPORT TAB ═══ */}
       {activeTab === 'report' && (
-        <div className="report-section">
-          <div className="filters-section">
-            <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-              <label>Start Date</label>
-              <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} />
+        <div className="space-y-5">
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+            <div className="flex items-end gap-3">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
+                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
+                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
             </div>
-            <div className="filter-group" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-              <label>End Date</label>
-              <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} />
-            </div>
-            <div className="filter-actions">
-              <button className="btn-primary" onClick={loadReport} disabled={loading}>
-                  {loading ? 'Loading...' : 'Generate Report'}
-              </button>
+            <div className="flex gap-2 md:ml-auto">
+              <button onClick={loadReport} disabled={loading} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? 'Loading...' : 'Generate Report'}</button>
               {reportData && (
-                <button className="btn-secondary" onClick={handleDownloadCSV} disabled={downloadingCSV}>
-                  {downloadingCSV ? 'Downloading...' : '<Download size={14} />CSV'}
-                </button>
+                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />{downloadingCSV ? 'Downloading...' : 'CSV'}</button>
               )}
             </div>
           </div>
 
           {reportData && (
-            <>
-              {/* Total Consumption Summary */}
-              <div className="report-summary">
-                <h3>Total Feed Consumption ({reportStartDate} to {reportEndDate})</h3>
-                <div className="summary-cards">
+            <div className="space-y-5">
+              {/* Total Consumption Cards */}
+              <div>
+                <h3 className="text-sm font-bold text-foreground mb-3">Total Feed Consumption ({reportStartDate} to {reportEndDate})</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                   {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                    <div key={ft} className="summary-card">
-                      <div className="card-label">{FEED_LABELS[ft]}</div>
-                      <div className="card-value">{reportData.totalConsumption[ft]}</div>
+                    <div key={ft} className="bg-surface-container-highest rounded-xl p-4 edge-glow">
+                      <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{FEED_LABELS[ft]}</p>
+                      <p className="text-2xl font-bold text-foreground mt-1 mono-data">{reportData.totalConsumption[ft]}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Per-Horse Consumption Table */}
-              <div className="inventory-table-container">
-                <h3>Horse-wise Consumption</h3>
-                <div className="table-wrapper">
-                  <table className="inventory-table consumption-table">
+              {/* Horse-wise Consumption */}
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                <div className="px-5 py-4 border-b border-border"><h3 className="text-sm font-bold text-foreground">Horse-wise Consumption</h3></div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
                     <thead>
-                      <tr>
-                        <th>Horse</th>
-                        <th>Stable No</th>
-                        <th>Days</th>
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Horse</th>
+                        <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Stable</th>
+                        <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Days</th>
                         {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                          <th key={ft}>{FEED_LABELS[ft]}</th>
+                          <th key={ft} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{FEED_LABELS[ft]}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {Object.entries(reportData.horseConsumption).map(([horseId, hc]) => (
-                        <tr key={horseId}>
-                          <td className="feed-name">{hc.horseName}</td>
-                          <td>{hc.stableNumber || '-'}</td>
-                          <td>{hc.daysRecorded}</td>
+                        <tr key={horseId} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+                          <td className="px-3 py-3 font-medium text-foreground">{hc.horseName}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{hc.stableNumber || '-'}</td>
+                          <td className="px-3 py-3 text-muted-foreground mono-data">{hc.daysRecorded}</td>
                           {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                            <td key={ft}>{hc.feeds[ft] || '-'}</td>
+                            <td key={ft} className="px-3 py-3 text-muted-foreground mono-data">{hc.feeds[ft] || '-'}</td>
                           ))}
                         </tr>
                       ))}
-                      <tr className="total-row">
-                        <td><strong>TOTAL</strong></td>
-                        <td></td>
-                        <td></td>
+                      <tr className="border-t-2 border-primary/20 bg-primary/5">
+                        <td className="px-3 py-3 font-bold text-foreground">TOTAL</td>
+                        <td></td><td></td>
                         {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                          <td key={ft}><strong>{reportData.totalConsumption[ft]}</strong></td>
+                          <td key={ft} className="px-3 py-3 font-bold text-primary mono-data">{reportData.totalConsumption[ft]}</td>
                         ))}
                       </tr>
                     </tbody>
@@ -563,71 +366,64 @@ const FeedInventoryPage = () => {
 
               {/* Inventory Status */}
               {reportData.inventory && reportData.inventory.length > 0 && (
-                <div className="inventory-table-container">
-                  <h3>Inventory Status for Period</h3>
-                  <div className="table-wrapper">
-                    <table className="inventory-table">
+                <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                  <div className="px-5 py-4 border-b border-border"><h3 className="text-sm font-bold text-foreground">Inventory Status for Period</h3></div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
                       <thead>
-                        <tr>
-                          <th>Feed Type</th>
-                          <th>Month/Year</th>
-                          <th>Opening Stock</th>
-                          <th>Units Brought</th>
-                          <th>Total Used</th>
-                          <th>Units Left</th>
-                          <th>Unit</th>
+                        <tr className="border-b border-border">
+                          {['Feed Type', 'Month/Year', 'Opening', 'Brought', 'Used', 'Left', 'Unit'].map(h => (
+                            <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {reportData.inventory.map((inv) => (
-                          <tr key={inv.id}>
-                            <td className="feed-name">{FEED_LABELS[inv.feedType] || inv.feedType}</td>
-                            <td>{MONTH_NAMES[inv.month - 1]} {inv.year}</td>
-                            <td>{inv.openingStock}</td>
-                            <td>{inv.unitsBrought}</td>
-                            <td>{inv.totalUsed}</td>
-                            <td className={inv.unitsLeft <= 0 ? 'text-danger' : inv.unitsLeft < (inv.openingStock + inv.unitsBrought) * 0.2 ? 'text-warning' : 'text-success'}>
-                              {inv.unitsLeft}
-                            </td>
-                            <td>{inv.unit}</td>
-                          </tr>
-                        ))}
+                        {reportData.inventory.map((inv) => {
+                          const isLow = inv.unitsLeft < (inv.openingStock + inv.unitsBrought) * 0.2;
+                          return (
+                            <tr key={inv.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+                              <td className="px-3 py-3 font-medium text-foreground">{FEED_LABELS[inv.feedType] || inv.feedType}</td>
+                              <td className="px-3 py-3 text-muted-foreground">{MONTH_NAMES[inv.month - 1]} {inv.year}</td>
+                              <td className="px-3 py-3 text-muted-foreground mono-data">{inv.openingStock}</td>
+                              <td className="px-3 py-3 text-muted-foreground mono-data">{inv.unitsBrought}</td>
+                              <td className="px-3 py-3 text-muted-foreground mono-data">{inv.totalUsed}</td>
+                              <td className={`px-3 py-3 font-bold mono-data ${inv.unitsLeft <= 0 ? 'text-destructive' : isLow ? 'text-warning' : 'text-success'}`}>{inv.unitsLeft}</td>
+                              <td className="px-3 py-3 text-muted-foreground">{inv.unit}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       )}
 
+      {/* Threshold Modal */}
       {thresholdModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>Set Threshold Alert</h3>
-            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{FEED_LABELS[thresholdModal.record.feedType] || thresholdModal.record.feedType}</p>
-            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Leave empty to disable"
-              value={thresholdModal.value}
-              onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input, #fff)', color: 'var(--text)' }}
-            />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={thresholdModal.notifyAdmin}
-                onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))}
-              />
-              Notify admin when below threshold
-            </label>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button className="btn-secondary" onClick={() => setThresholdModal(null)}>Cancel</button>
-              <button className="btn-primary" onClick={handleSaveThreshold} disabled={loading}>Save</button>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setThresholdModal(null)}>
+          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-lg font-bold text-foreground">Set Threshold Alert</h3>
+              <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setThresholdModal(null)}><X className="w-4 h-4" /></button>
+            </div>
+            <p className="text-xs text-muted-foreground mb-5">{FEED_LABELS[thresholdModal.record.feedType] || thresholdModal.record.feedType}</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Threshold quantity ({thresholdModal.record.unit})</label>
+                <input type="number" min="0" step="0.01" placeholder="Leave empty to disable" value={thresholdModal.value} onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={thresholdModal.notifyAdmin} onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))} className="w-4 h-4 rounded accent-primary" />
+                Notify admin when below threshold
+              </label>
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleSaveThreshold} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">Save</button>
+                <button onClick={() => setThresholdModal(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+              </div>
             </div>
           </div>
         </div>
@@ -637,4 +433,3 @@ const FeedInventoryPage = () => {
 };
 
 export default FeedInventoryPage;
-

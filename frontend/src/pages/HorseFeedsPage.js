@@ -5,7 +5,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download } from 'lucide-react';
+import { Download, Plus, X, SlidersHorizontal } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const HorseFeedsPage = () => {
@@ -19,112 +19,61 @@ const HorseFeedsPage = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
   const [summaryData, setSummaryData] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
 
   const feedTypes = ['balance', 'barley', 'oats', 'soya', 'lucerne', 'linseed', 'rOil', 'biotin', 'joint', 'epsom', 'heylase'];
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
 
-  // Display names for feed types
   const getFeedTypeDisplayName = (feedType) => {
-    const displayNames = {
-      'balance': 'Himalayan Balance',
-      'rOil': 'R.Oil',
-    };
+    const displayNames = { 'balance': 'Himalayan Balance', 'rOil': 'R.Oil' };
     return displayNames[feedType] || feedType.charAt(0).toUpperCase() + feedType.slice(1);
   };
 
   const [formData, setFormData] = useState({
-    horseId: '',
-    date: new Date().toISOString().split('T')[0],
-    balance: '',
-    barley: '',
-    oats: '',
-    soya: '',
-    lucerne: '',
-    linseed: '',
-    rOil: '',
-    biotin: '',
-    joint: '',
-    epsom: '',
-    heylase: '',
-    notes: '',
+    horseId: '', date: new Date().toISOString().split('T')[0],
+    balance: '', barley: '', oats: '', soya: '', lucerne: '', linseed: '',
+    rOil: '', biotin: '', joint: '', epsom: '', heylase: '', notes: '',
   });
 
-  // Sync form date with toDate
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      date: toDate,
-    }));
-  }, [toDate]);
+  useEffect(() => { setFormData((prev) => ({ ...prev, date: toDate })); }, [toDate]);
 
   const loadRecords = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('Loading horse feed summary for range:', fromDate, 'to', toDate);
-
-      const response = await apiClient.get('/horse-feeds/summary', {
-        params: {
-          fromDate,
-          toDate,
-        },
-      });
-
-      console.log('Summary response:', response.data);
+      const response = await apiClient.get('/horse-feeds/summary', { params: { fromDate, toDate } });
       setSummaryData(response.data.data || {});
-      setCurrentPage(1); // Reset pagination
+      setCurrentPage(1);
       setMessage('');
     } catch (error) {
       console.error('Error loading summary:', error);
       setMessage('Failed to load summary');
       setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [fromDate, toDate]);
 
   const loadHorses = useCallback(async () => {
     try {
       const response = await apiClient.get('/horses');
-      console.log('Horses response:', response.data);
       setHorses(response.data.data || []);
-    } catch (error) {
-      console.error('Error loading horses:', error);
-    }
+    } catch (error) { console.error('Error loading horses:', error); }
   }, []);
 
-  useEffect(() => {
-    loadHorses();
-    loadRecords();
-  }, [loadHorses, loadRecords]);
+  useEffect(() => { loadHorses(); loadRecords(); }, [loadHorses, loadRecords]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setMessageType('success');
-
-    if (!formData.horseId || !formData.date) {
-      setMessage('Please fill in required fields (Horse and Date)');
-      setMessageType('error');
-      return;
-    }
-
+    setMessage(''); setMessageType('success');
+    if (!formData.horseId || !formData.date) { setMessage('Please fill in required fields (Horse and Date)'); setMessageType('error'); return; }
     try {
       setLoading(true);
-
-      console.log('Submitting form data:', formData);
-
       const submitData = {
-        horseId: formData.horseId,
-        date: formData.date,
+        horseId: formData.horseId, date: formData.date,
         balance: formData.balance ? parseFloat(formData.balance) : null,
         barley: formData.barley ? parseFloat(formData.barley) : null,
         oats: formData.oats ? parseFloat(formData.oats) : null,
@@ -138,301 +87,190 @@ const HorseFeedsPage = () => {
         heylase: formData.heylase ? parseFloat(formData.heylase) : null,
         notes: formData.notes,
       };
-
-      console.log('Creating record with data:', submitData);
-
       await apiClient.post('/horse-feeds', submitData);
-      setMessage('Feed record created successfully');
-      setMessageType('success');
-
-      setFormData({
-        horseId: '',
-        date: toDate,
-        balance: '',
-        barley: '',
-        oats: '',
-        soya: '',
-        lucerne: '',
-        linseed: '',
-        rOil: '',
-        biotin: '',
-        joint: '',
-        epsom: '',
-        heylase: '',
-        notes: '',
-      });
+      setMessage('Feed record created successfully'); setMessageType('success');
+      setFormData({ horseId: '', date: toDate, balance: '', barley: '', oats: '', soya: '', lucerne: '', linseed: '', rOil: '', biotin: '', joint: '', epsom: '', heylase: '', notes: '' });
       setShowForm(false);
       loadRecords();
     } catch (error) {
-      console.error('Error creating record:', error);
-      setMessage(error.response?.data?.error || 'Failed to create record');
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
+      setMessage(error.response?.data?.error || 'Failed to create record'); setMessageType('error');
+    } finally { setLoading(false); }
   };
 
-  // Pagination logic - convert Object.entries to array and paginate
   const summaryDataArray = Object.entries(summaryData).map(([horseId, data]) => ({ horseId, data }));
-  const totalPages = Math.ceil(summaryDataArray.length / rowsPerPage);
+
+  // Filter by search
+  const filteredSummary = summaryDataArray.filter(({ data }) =>
+    searchTerm === '' || data.horseName?.toLowerCase().includes(searchTerm.toLowerCase()) || (data.stableNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const totalPages = Math.ceil(filteredSummary.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedSummary = summaryDataArray.slice(startIndex, endIndex);
+  const paginatedSummary = filteredSummary.slice(startIndex, startIndex + rowsPerPage);
+
+  // KPIs
+  const totalHorses = summaryDataArray.length;
+  const totalFeedKg = summaryDataArray.reduce((acc, { data }) => acc + feedTypes.reduce((s, ft) => s + (data[ft] || 0), 0), 0);
 
   const handleDownloadExcel = () => {
     if (summaryDataArray.length === 0) return;
-    const excelData = summaryDataArray.map(({ horseId, data }) => {
-      const total = (
-        (data.balance || 0) + (data.barley || 0) + (data.oats || 0) + (data.soya || 0) +
-        (data.lucerne || 0) + (data.linseed || 0) + (data.rOil || 0) + (data.biotin || 0) +
-        (data.joint || 0) + (data.epsom || 0) + (data.heylase || 0)
-      ).toFixed(2);
+    const excelData = summaryDataArray.map(({ data }) => {
+      const total = feedTypes.reduce((s, ft) => s + (data[ft] || 0), 0).toFixed(2);
       return {
-        'Horse': data.horseName || '-',
-        'Stable Number': data.stableNumber || '-',
+        'Horse': data.horseName || '-', 'Stable Number': data.stableNumber || '-',
         'Himalayan Balance': data.balance ? data.balance.toFixed(2) : '-',
-        'Barley': data.barley ? data.barley.toFixed(2) : '-',
-        'Oats': data.oats ? data.oats.toFixed(2) : '-',
-        'Soya': data.soya ? data.soya.toFixed(2) : '-',
-        'Lucerne': data.lucerne ? data.lucerne.toFixed(2) : '-',
-        'Linseed': data.linseed ? data.linseed.toFixed(2) : '-',
-        'R.Oil': data.rOil ? data.rOil.toFixed(2) : '-',
-        'Biotin': data.biotin ? data.biotin.toFixed(2) : '-',
-        'Joint': data.joint ? data.joint.toFixed(2) : '-',
-        'Epsom': data.epsom ? data.epsom.toFixed(2) : '-',
-        'Heylase': data.heylase ? data.heylase.toFixed(2) : '-',
+        'Barley': data.barley ? data.barley.toFixed(2) : '-', 'Oats': data.oats ? data.oats.toFixed(2) : '-',
+        'Soya': data.soya ? data.soya.toFixed(2) : '-', 'Lucerne': data.lucerne ? data.lucerne.toFixed(2) : '-',
+        'Linseed': data.linseed ? data.linseed.toFixed(2) : '-', 'R.Oil': data.rOil ? data.rOil.toFixed(2) : '-',
+        'Biotin': data.biotin ? data.biotin.toFixed(2) : '-', 'Joint': data.joint ? data.joint.toFixed(2) : '-',
+        'Epsom': data.epsom ? data.epsom.toFixed(2) : '-', 'Heylase': data.heylase ? data.heylase.toFixed(2) : '-',
         'Total (kg)': total,
       };
     });
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Horse Feeds');
-    const dateStr = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(workbook, `HorseFeeds_${dateStr}.xlsx`);
+    XLSX.writeFile(workbook, `HorseFeeds_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   if (!p.viewHorseFeeds) return <Navigate to="/" replace />;
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>{t('Horse Feeds')}</h1>
-        <p>Record daily feed consumption for horses</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">Feeds</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('Record daily feed consumption for horses')}</p>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button onClick={() => setShowForm(!showForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+            {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add Feed Record</>}
+          </button>
+          {summaryDataArray.length > 0 && (
+            <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+          )}
+        </div>
       </div>
 
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: t('Total Horses'), value: totalHorses },
+          { label: t('Total Feed (kg)'), value: totalFeedKg.toFixed(1) },
+          { label: t('Date Range'), value: `${new Date(fromDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} - ${new Date(toDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}` },
+          { label: t('Avg per Horse (kg)'), value: totalHorses > 0 ? (totalFeedKg / totalHorses).toFixed(1) : '0' },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Message */}
       {message && (
-        <div className={`message ${messageType}`}>
+        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
           {messageType === 'success' ? '✓' : '✕'} {message}
         </div>
       )}
 
-      <div className="page-controls">
-        <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-          From Date:
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-          />
-        </label>
-
-        <label style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-          To Date:
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-          />
-        </label>
-
-        {!showForm && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowForm(true)}
-            disabled={loading}
-            style={{marginLeft: 'auto'}}
-          >
-            + Add Feed Record
-          </button>
-        )}
-        {!showForm && summaryDataArray.length > 0 && (
-          <button
-            className="btn-secondary"
-            onClick={handleDownloadExcel}
-            disabled={loading}
-          >
-            <Download size={14} />Excel
-          </button>
-        )}
+      {/* Date Filters + Search */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+        <div className="flex items-center gap-3">
+          <div>
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">From</label>
+            <div className="relative">
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">To</label>
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+          </div>
+        </div>
+        <div className="relative flex-1 max-w-xs">
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Search</label>
+          <input type="text" placeholder="Search horse name..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+          <SlidersHorizontal className="absolute right-3 bottom-2.5 w-4 h-4 text-muted-foreground" />
+        </div>
       </div>
 
+      {/* Add Feed Record Form */}
       {showForm && (
-        <div className="form-section">
-          <div className="form-card">
-            <h2>{t('New Feed Record')}</h2>
-
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="horseId">Horse *</label>
-                <SearchableSelect
-                  id="horseId"
-                  name="horseId"
-                  value={formData.horseId}
-                  onChange={handleFormChange}
-                  placeholder="Select a horse"
-                  required
-                  options={[
-                    { value: '', label: 'Select a horse' },
-                    ...horses.map(h => ({ value: h.id, label: `${h.name} (${h.stableNumber || 'No Stable #'})` }))
-                  ]}
-                />
+        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+          <h3 className="text-lg font-bold text-foreground mb-4">{t('New Feed Record')}</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
+                <SearchableSelect id="horseId" name="horseId" value={formData.horseId} onChange={handleFormChange} placeholder="Select a horse" required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (${h.stableNumber || 'No Stable #'})` }))]} />
               </div>
-
-              <div className="form-group">
-                <label htmlFor="date">Date *</label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleFormChange}
-                  required
-                />
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                <input type="date" id="date" name="date" value={formData.date} onChange={handleFormChange} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
-
-              <div className="feed-inputs-grid">
-                {feedTypes.map((feedType) => (
-                  <div className="form-group" key={feedType}>
-                    <label htmlFor={feedType}>
-                      {getFeedTypeDisplayName(feedType)}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      id={feedType}
-                      name={feedType}
-                      value={formData[feedType]}
-                      onChange={handleFormChange}
-                      placeholder="Amount (kg)"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="notes">Notes (Optional)</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleFormChange}
-                  placeholder="Any additional notes"
-                  rows="3"
-                />
-              </div>
-
-              <div className="form-actions">
-                <button type="submit" className="btn btn-success" disabled={loading}>
-                  {loading ? 'Saving...' : 'Save Record'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowForm(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+              {feedTypes.map((feedType) => (
+                <div key={feedType}>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{getFeedTypeDisplayName(feedType)}</label>
+                  <input type="number" step="0.1" id={feedType} name={feedType} value={formData[feedType]} onChange={handleFormChange} placeholder="kg" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+              ))}
+            </div>
+            <div>
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes (Optional)</label>
+              <textarea id="notes" name="notes" value={formData.notes} onChange={handleFormChange} placeholder="Any additional notes" rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Record'}</button>
+              <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* Summary Section */}
-      <div className="summary-section" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        <div style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid var(--border)' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-            Feed Consumption Summary - {new Date(fromDate).toLocaleDateString('en-IN')} to {new Date(toDate).toLocaleDateString('en-IN')}
+      {/* Summary Table */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        <div className="px-5 py-4 border-b border-border">
+          <h3 className="text-sm font-bold text-foreground">
+            Feed Consumption Summary — {new Date(fromDate).toLocaleDateString('en-IN')} to {new Date(toDate).toLocaleDateString('en-IN')}
           </h3>
         </div>
-
         {loading ? (
-          <div className="loading">Loading summary...</div>
+          <div className="text-center py-12 text-muted-foreground">Loading summary...</div>
         ) : Object.keys(summaryData).length > 0 ? (
-          <div style={{ width: '100%' }}>
-          <div className="summary-table-wrapper">
-            <table className="summary-table">
-              <thead>
-                <tr>
-                  <th>Horse</th>
-                  <th>Stable Number</th>
-                  <th>Himalayan Balance</th>
-                  <th>Barley</th>
-                  <th>Oats</th>
-                  <th>Soya</th>
-                  <th>Lucerne</th>
-                  <th>Linseed</th>
-                  <th>R.Oil</th>
-                  <th>Biotin</th>
-                  <th>Joint</th>
-                  <th>Epsom</th>
-                  <th>Heylase</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedSummary.map(({ horseId, data }) => {
-                  const total = (
-                    (data.balance || 0) +
-                    (data.barley || 0) +
-                    (data.oats || 0) +
-                    (data.soya || 0) +
-                    (data.lucerne || 0) +
-                    (data.linseed || 0) +
-                    (data.rOil || 0) +
-                    (data.biotin || 0) +
-                    (data.joint || 0) +
-                    (data.epsom || 0) +
-                    (data.heylase || 0)
-                  ).toFixed(2);
-
-                  return (
-                    <tr key={horseId}>
-                      <td className="horse-name">{data.horseName}</td>
-                      <td>{data.stableNumber || '-'}</td>
-                      <td>{data.balance ? data.balance.toFixed(2) : '-'}</td>
-                      <td>{data.barley ? data.barley.toFixed(2) : '-'}</td>
-                      <td>{data.oats ? data.oats.toFixed(2) : '-'}</td>
-                      <td>{data.soya ? data.soya.toFixed(2) : '-'}</td>
-                      <td>{data.lucerne ? data.lucerne.toFixed(2) : '-'}</td>
-                      <td>{data.linseed ? data.linseed.toFixed(2) : '-'}</td>
-                      <td>{data.rOil ? data.rOil.toFixed(2) : '-'}</td>
-                      <td>{data.biotin ? data.biotin.toFixed(2) : '-'}</td>
-                      <td>{data.joint ? data.joint.toFixed(2) : '-'}</td>
-                      <td>{data.epsom ? data.epsom.toFixed(2) : '-'}</td>
-                      <td>{data.heylase ? data.heylase.toFixed(2) : '-'}</td>
-                      <td className="total">{total}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(newRows) => {
-                setRowsPerPage(newRows);
-                setCurrentPage(1);
-              }}
-              total={summaryDataArray.length}
-            />
-          </div>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    {['Horse', 'Stable #', 'H.Balance', 'Barley', 'Oats', 'Soya', 'Lucerne', 'Linseed', 'R.Oil', 'Biotin', 'Joint', 'Epsom', 'Heylase', 'Total'].map(h => (
+                      <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedSummary.map(({ horseId, data }) => {
+                    const total = feedTypes.reduce((s, ft) => s + (data[ft] || 0), 0).toFixed(2);
+                    return (
+                      <tr key={horseId} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+                        <td className="px-3 py-3 font-medium text-foreground whitespace-nowrap">{data.horseName}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{data.stableNumber || '-'}</td>
+                        {feedTypes.map(ft => (
+                          <td key={ft} className="px-3 py-3 text-muted-foreground mono-data">{data[ft] ? data[ft].toFixed(2) : '-'}</td>
+                        ))}
+                        <td className="px-3 py-3 font-bold text-primary mono-data">{total}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }} total={filteredSummary.length} />
+          </>
         ) : (
-          <div className="no-records">No feed data available for the selected date range</div>
+          <div className="text-center py-12 text-muted-foreground">No feed data available for the selected date range</div>
         )}
       </div>
     </div>
