@@ -5,7 +5,7 @@ import apiClient from '../services/apiClient'
 import { useI18n } from '../context/I18nContext'
 import usePermissions from '../hooks/usePermissions'
 import { Navigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Calendar, Users, Clock, MapPin, Plus, Download, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, Users, Clock, MapPin, Plus, X } from 'lucide-react'
 
 const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 

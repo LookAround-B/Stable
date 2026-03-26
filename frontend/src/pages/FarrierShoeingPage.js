@@ -5,7 +5,6 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { TableSkeleton } from '../components/Skeleton';
 import ConfirmModal from '../components/ConfirmModal';
-import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Bell, BellOff, Send, Plus, X, Trash2, Hammer, Clock, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -21,7 +20,6 @@ const getLocalDateTimeString = () => {
 
 const FarrierShoeingPage = () => {
   const { user } = useAuth();
-  const { t } = useI18n();
   const p = usePermissions();
   const [activeTab, setActiveTab] = useState('completed');
   const [loading, setLoading] = useState(false);
