@@ -1,4 +1,248 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Inter+Tight:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   EFM Tailwind CSS Variables (HSL-based for shadcn/ui components)
+   ============================================================ */
+@layer base {
+  :root {
+    --base-font-size: 16px;
+    --heading-font-size-scale: 1;
+    --text-scale: 1;
+    /* Dark theme (default) - EFM design tokens */
+    --background: 240 7% 4%;
+    --foreground: 320 30% 97%;
+
+    --surface: 240 7% 4%;
+    --surface-container-low: 240 5% 8%;
+    --surface-container: 240 4% 11%;
+    --surface-container-high: 240 3% 13%;
+    --surface-container-highest: 260 3% 16%;
+    --surface-bright: 260 3% 20%;
+    --surface-variant: 270 3% 15%;
+
+    --card: 240 5% 8%;
+    --card-foreground: 320 30% 97%;
+
+    --popover: 270 3% 15%;
+    --popover-foreground: 320 30% 97%;
+
+    --primary: 273 100% 80%;
+    --primary-foreground: 240 7% 4%;
+    --primary-dim: 273 78% 60%;
+    --primary-container: 273 60% 20%;
+    --primary-glow: 273 100% 80%;
+    --primary-rgb: 209, 153, 255;
+
+    --secondary: 260 100% 77%;
+    --secondary-foreground: 240 7% 4%;
+
+    --muted: 240 4% 11%;
+    --muted-foreground: 240 5% 50%;
+
+    --accent: 273 60% 20%;
+    --accent-foreground: 273 100% 80%;
+
+    --destructive: 340 90% 60%;
+    --destructive-foreground: 320 30% 97%;
+    --success: 180 100% 45%;
+    --success-foreground: 240 7% 4%;
+    --warning: 40 100% 60%;
+    --warning-foreground: 240 7% 4%;
+
+    --border: 260 5% 18%;
+    --input: 260 5% 18%;
+    --ring: 273 100% 80%;
+
+    --radius: 0.5rem;
+
+    --outline-variant: 260 3% 29%;
+
+    --sidebar-background: 240 5% 6%;
+    --sidebar-foreground: 320 30% 97%;
+    --sidebar-primary: 273 100% 80%;
+    --sidebar-primary-foreground: 240 7% 4%;
+    --sidebar-accent: 273 60% 20%;
+    --sidebar-accent-foreground: 273 100% 80%;
+    --sidebar-border: 260 5% 12%;
+    --sidebar-ring: 273 100% 80%;
+  }
+
+  .light {
+    --background: 210 20% 97%;
+    --foreground: 200 6% 18%;
+
+    --surface: 210 20% 97%;
+    --surface-container-low: 210 12% 93%;
+    --surface-container: 210 10% 95%;
+    --surface-container-high: 210 8% 88%;
+    --surface-container-highest: 0 0% 100%;
+    --surface-bright: 0 0% 100%;
+    --surface-variant: 210 12% 93%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 6% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 6% 18%;
+
+    --primary: 273 70% 48%;
+    --primary-foreground: 0 0% 100%;
+    --primary-dim: 273 60% 62%;
+    --primary-container: 273 80% 94%;
+    --primary-glow: 273 70% 48%;
+
+    --secondary: 260 60% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 12% 93%;
+    --muted-foreground: 200 5% 46%;
+
+    --accent: 273 80% 94%;
+    --accent-foreground: 273 70% 48%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 200 6% 18%;
+
+    --border: 210 8% 88%;
+    --input: 210 8% 88%;
+    --ring: 273 70% 48%;
+
+    --outline-variant: 210 5% 78%;
+
+    --sidebar-background: 210 8% 88%;
+    --sidebar-foreground: 200 6% 18%;
+    --sidebar-primary: 273 70% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 273 80% 94%;
+    --sidebar-accent-foreground: 273 70% 48%;
+    --sidebar-border: 210 12% 93%;
+    --sidebar-ring: 273 70% 48%;
+  }
+}
+
+/* EFM Typography & Effect Utilities */
+@layer base {
+  .display-lg { @apply font-display text-5xl font-bold tracking-tight; }
+  .display-md { @apply font-display text-3xl font-bold tracking-tight; }
+  .display-sm { @apply font-display text-2xl font-semibold tracking-tight; }
+  .heading-lg { @apply font-display text-xl font-semibold; }
+  .heading-md { @apply font-display text-lg font-semibold; }
+  .label-lg { @apply font-body text-sm font-semibold uppercase tracking-widest; }
+  .label-md { @apply font-body text-xs font-semibold uppercase tracking-wider; }
+  .label-sm { @apply font-body text-[10px] font-medium uppercase tracking-wider; }
+  .body-sm { @apply font-body text-sm leading-relaxed; }
+  .mono-data { @apply font-mono-data tabular-nums; }
+}
+
+@layer utilities {
+  .lens-flare { position: relative; }
+  .lens-flare::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60%; height: 60%;
+    background: radial-gradient(ellipse at 20% 20%, hsl(var(--primary) / 0.05), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glass {
+    background: hsl(var(--surface-variant) / 0.6);
+    backdrop-filter: blur(20px);
+  }
+  .glow-primary {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.08);
+  }
+  .ghost-border {
+    box-shadow: inset 0 0 0 1px hsl(var(--outline-variant) / 0.15);
+  }
+  .edge-glow {
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.1);
+  }
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .card-hover {
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    will-change: transform;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 12px 40px hsl(var(--primary) / 0.1),
+      0 4px 12px hsl(var(--primary) / 0.05);
+  }
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-count { animation: count-up 0.4s ease-out forwards; }
+  .stagger-children > * { animation: count-up 0.3s ease-out both; }
+  .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer-border { position: relative; overflow: hidden; }
+  .shimmer-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.4) 25%, hsl(var(--primary) / 0.8) 50%, hsl(var(--primary) / 0.4) 75%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+    70% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+  }
+  .pulse-ring { animation: pulse-ring 2.5s ease-in-out infinite; }
+  @keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .animate-slide-in { animation: slide-in-left 0.5s ease-out forwards; }
+  .hover-glow-text { transition: text-shadow 0.3s ease; }
+  .hover-glow-text:hover {
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.5), 0 0 24px hsl(var(--primary) / 0.2);
+  }
+  .light .edge-glow {
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06), inset 0 0 0 1px hsl(var(--primary) / 0.08);
+  }
+  .light .card-hover:hover {
+    box-shadow: 0 8px 30px hsl(var(--primary) / 0.12), 0 2px 8px hsl(0 0% 0% / 0.06);
+  }
+  .light .glow-primary {
+    box-shadow: 0 2px 20px hsl(var(--primary) / 0.1);
+  }
+}
 
 /* ============================================================
    EFM — Production Design System
@@ -17507,5 +17751,262 @@ body.efm-theme-light .crop-area {
     width: 100%;
     max-width: 100%;
     margin: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APPROVALS PAGE — EFM-style layout
+   ═══════════════════════════════════════════════════════════════ */
+
+.approvals-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.approvals-page .approval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.approvals-page .approval-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -.04em;
+  margin: 0;
+}
+
+.approvals-page .approval-header .label-overline {
+  margin-top: 6px;
+}
+
+/* Pending queue badge in header */
+.approvals-page .approval-header .stat-card {
+  border-radius: var(--r-xl);
+}
+
+/* Two-column layout: cards + sidebar */
+.approvals-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* Cards column — stack vertically */
+.approvals-layout .approval-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  grid-template-columns: unset;
+}
+
+/* Approval card — larger padding to match EFM */
+.approvals-page .approval-card {
+  padding: 20px 24px;
+  border-radius: var(--r-xl);
+}
+
+.approvals-page .approval-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.approvals-page .approval-card .card-header {
+  margin-bottom: 12px;
+}
+
+.approvals-page .approval-card .card-content p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 2px 0;
+}
+
+.approvals-page .approval-card .card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar */
+.approvals-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+}
+
+.approvals-sidebar .card {
+  padding: 20px;
+  border-radius: var(--r-xl);
+}
+
+.approvals-sidebar .card-header {
+  margin-bottom: 16px;
+}
+
+.approvals-sidebar .card-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Progress bars */
+.progress-bar-track {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--gray-200);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  transition: width 0.4s var(--ease);
+}
+
+.progress-bar-success { background: var(--success); }
+.progress-bar-warning { background: var(--warning); }
+
+/* Card sub-elements for approvals */
+.approvals-page .card-subtitle {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  margin-top: 4px;
+}
+
+.approvals-page .card-id {
+  font-family: var(--font-mono);
+  opacity: 0.6;
+}
+
+.approvals-page .card-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.approvals-page .card-actions-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Pending queue badge in header */
+.pending-queue-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+}
+
+.pending-queue-count {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 2px solid var(--warning-border);
+  font-size: 1.125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pending-queue-label {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Sidebar card titles */
+.sidebar-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Stat rows */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.stat-value-success { color: var(--success); }
+.stat-value-warning { color: var(--warning); }
+
+/* Compliance card */
+.compliance-text {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.compliance-sla {
+  margin-top: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+/* Responsive: collapse to single column */
+@media (max-width: 1024px) {
+  .approvals-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .approvals-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .approvals-page .approval-card {
+    padding: 16px;
+  }
+
+  .approvals-page .approval-header {
+    flex-direction: column;
+  }
+
+  .approvals-page .approval-card .card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .approvals-page .approval-card .card-footer > div {
+    display: flex;
+    gap: 8px;
+  }
+
+  .approvals-page .approval-card .card-footer > div .btn-approve,
+  .approvals-page .approval-card .card-footer > div .btn-reject {
+    flex: 1;
+    justify-content: center;
   }
 }
