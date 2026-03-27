@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
-import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download } from 'lucide-react';
+import { Download, FileText, Printer, SlidersHorizontal, TrendingUp, Zap } from 'lucide-react';
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
-  const { t } = useI18n();
   const p = usePermissions();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -88,7 +86,7 @@ const InvoiceGenerationPage = () => {
     }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadExcel = () => {
     if (!invoice) return;
 
     // Create workbook and worksheet
@@ -136,44 +134,6 @@ const InvoiceGenerationPage = () => {
 
     // Write file
     XLSX.writeFile(workbook, fileName);
-  };
-
-  const handleDownloadCSV = () => {
-    if (!invoice) return;
-
-    const escape = (val) => {
-      const s = String(val ?? '');
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-
-    const summaryRows = [
-      ['Invoice Report'],
-      [`Instructor: ${invoice.instructor.fullName}`],
-      [`Period: ${new Date(invoice.periodStart).toLocaleDateString('en-IN')} to ${new Date(invoice.periodEnd).toLocaleDateString('en-IN')}`],
-      [`Total Sessions: ${invoice.summary.totalSessions}`],
-      [`Total Hours: ${invoice.summary.totalHours}`],
-      [],
-      ['Date', 'Horse', 'Rider', 'Work Type', 'Duration (min)', 'Notes'],
-      ...invoice.records.map(record => [
-        new Date(record.date).toLocaleDateString('en-IN'),
-        record.horse.name,
-        record.rider.fullName,
-        record.workType,
-        record.duration,
-        record.notes || '-',
-      ]),
-    ];
-
-    const csvContent = '\uFEFF' + summaryRows.map(row => row.map(escape).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Invoice_${invoice.instructor.fullName}_${new Date(invoice.periodStart).toLocaleDateString('en-IN').replace(/\//g, '-')}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => {
@@ -238,7 +198,7 @@ const InvoiceGenerationPage = () => {
         </style>
       </head>
       <body>
-        <h1>{t('EIRS Invoice')}</h1>
+        <h1>EIRS Invoice</h1>
         
         <div class="header-info">
           <p><strong>Instructor:</strong> ${invoiceData.instructor.fullName}</p>
@@ -247,7 +207,7 @@ const InvoiceGenerationPage = () => {
           <p><strong>Generated:</strong> ${new Date(invoiceData.generatedDate).toLocaleString()}</p>
         </div>
 
-        <h2>{t('Work Sessions')}</h2>
+        <h2>Work Sessions</h2>
         <table>
           <thead>
             <tr>
@@ -264,7 +224,7 @@ const InvoiceGenerationPage = () => {
           </tbody>
         </table>
 
-        <h2>{t('Summary by Work Type')}</h2>
+        <h2>Summary by Work Type</h2>
         <table>
           <thead>
             <tr>
@@ -303,203 +263,293 @@ const InvoiceGenerationPage = () => {
   if (!p.viewInvoiceGeneration) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="invoice-generation-page">
-      <div className="page-header">
+    <div className="invoice-generation-page space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1>{t('Invoice Generation')}</h1>
-          <p>{t('Generate and download instructor invoices')}</p>
+          <div className="lovable-header-kicker mb-2">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>FINANCIAL CONTROL CENTER</span>
+          </div>
+          <h1 className="display-sm text-foreground mt-1">Invoice Generation</h1>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleDownloadExcel}
+            disabled={!invoice}
+            className="h-9 px-4 rounded-lg border border-black/20 dark:border-white/20 text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export</span>
+          </button>
         </div>
       </div>
 
       {message && (
-        <div className={`message ${messageType}`}>
+        <div
+          className={`px-4 py-3 rounded-lg text-sm font-medium ${
+            messageType === 'error'
+              ? 'bg-destructive/15 text-destructive border border-destructive/30'
+              : 'bg-success/15 text-success border border-success/30'
+          }`}
+        >
           {message}
-          <button onClick={() => setMessage('')} className="close-btn">✕</button>
         </div>
       )}
 
-      <div className="card" style={{ padding: '24px', marginBottom: '24px', overflow: 'visible' }}>
-        <form onSubmit={handleGenerateInvoice}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end' }} className="invoice-filters">
-            {user?.designation !== 'Instructor' && (
-              <div className="filter-group" style={{ flex: '1 1 200px', minWidth: '180px' }}>
-                <label htmlFor="instructorId">Select Instructor</label>
-                <SearchableSelect
-                  id="instructorId"
-                  value={filters.instructorId}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      instructorId: e.target.value,
-                    }))
-                  }
-                  placeholder="All Instructors"
-                  options={[
-                    { value: '', label: 'All Instructors' },
-                    ...instructors.map(i => ({ value: i.id, label: i.fullName }))
-                  ]}
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-4 space-y-4">
+          <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+            <div className="flex items-center gap-2 mb-5">
+              <SlidersHorizontal className="w-4 h-4 text-primary" />
+              <h2 className="heading-md text-foreground">Parameters</h2>
+            </div>
+
+            <form onSubmit={handleGenerateInvoice} className="space-y-4">
+              {user?.designation !== 'Instructor' && (
+                <div>
+                  <label className="label-sm text-muted-foreground block mb-1.5">SELECT INSTRUCTOR</label>
+                  <SearchableSelect
+                    id="instructorId"
+                    value={filters.instructorId}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        instructorId: e.target.value,
+                      }))
+                    }
+                    placeholder="Select instructor..."
+                    options={[
+                      { value: '', label: 'All Instructors' },
+                      ...instructors.map((i) => ({ value: i.id, label: i.fullName })),
+                    ]}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="label-sm text-muted-foreground block mb-2">DATE RANGE</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="date"
+                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    value={filters.startDate}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        startDate: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                  <input
+                    type="date"
+                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    value={filters.endDate}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        endDate: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </div>
               </div>
-            )}
 
-            <div className="filter-group" style={{ flex: '0 1 180px' }}>
-              <label htmlFor="startDate">From Date</label>
-              <input
-                type="date"
-                id="startDate"
-                className="form-input"
-                value={filters.startDate}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    startDate: e.target.value,
-                  }))
-                }
-                required
-              />
-            </div>
-
-            <div className="filter-group" style={{ flex: '0 1 180px' }}>
-              <label htmlFor="endDate">To Date</label>
-              <input
-                type="date"
-                id="endDate"
-                className="form-input"
-                value={filters.endDate}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    endDate: e.target.value,
-                  }))
-                }
-                required
-              />
-            </div>
-
-            <div style={{ marginLeft: 'auto', alignSelf: 'flex-end' }}>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="w-full h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase"
                 disabled={loading}
               >
-                {loading ? 'Generating...' : 'Generate Invoice'}
+                {loading ? 'Generating Invoice...' : 'Generate Invoice'}
               </button>
-            </div>
+            </form>
           </div>
-        </form>
-      </div>
 
-      {invoice && (
-        <div className="card invoice-result-card" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
-            <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>Invoice #{invoice.invoiceId}</h2>
-              <p style={{ fontWeight: 500, marginBottom: '2px' }}>{invoice.instructor.fullName}</p>
-              <p className="period">
-                {new Date(invoice.periodStart).toLocaleDateString()} to{' '}
-                {new Date(invoice.periodEnd).toLocaleDateString()}
+          <div className="bg-surface-container-highest rounded-lg p-5 edge-glow border-l-2 border-primary">
+            <p className="label-sm text-primary mb-1">ESTIMATED TOTAL HOURS</p>
+            <div className="flex items-end justify-between">
+              <p className="text-3xl font-bold text-foreground mono-data">
+                {invoice ? invoice.summary.totalHours.toFixed(2) : '0.00'}
               </p>
+              <TrendingUp className="w-8 h-8 text-primary/30" />
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button className="btn btn-success" onClick={handlePrint}>
-                Print
-              </button>
-              <button className="btn btn-info" onClick={handleDownloadPDF}>
-                <Download size={14} />Excel
-              </button>
-              <button className="btn btn-secondary" onClick={handleDownloadCSV}>
-                <Download size={14} />CSV
-              </button>
-            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {invoice ? `${invoice.summary.totalSessions} verified sessions` : 'Awaiting invoice generation'}
+            </p>
           </div>
+        </div>
 
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Work Sessions</h3>
-            <div className="table-wrapper">
-            <table className="records-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Horse</th>
-                  <th>Rider</th>
-                  <th>Type</th>
-                  <th>Duration (min)</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoice.records.map((record, index) => (
-                  <tr key={index}>
-                    <td>{new Date(record.date).toLocaleDateString()}</td>
-                    <td>{record.horse.name}</td>
-                    <td>{record.rider.fullName}</td>
-                    <td>{record.workType}</td>
-                    <td>{record.duration}</td>
-                    <td>{record.notes || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="lg:col-span-8">
+          <div className="bg-surface-container-highest rounded-lg edge-glow overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-surface-container-high border-b border-border">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <span className="label-sm text-muted-foreground">
+                  PREVIEW: {invoice ? invoice.invoiceId : 'NOT GENERATED'}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadExcel}
+                  disabled={!invoice}
+                  className="p-2 rounded hover:bg-surface-container-highest text-muted-foreground disabled:opacity-40"
+                >
+                  <FileText className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  disabled={!invoice}
+                  className="p-2 rounded hover:bg-surface-container-highest text-muted-foreground disabled:opacity-40"
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="invoice-summary-grid" style={{ gap: '20px', marginTop: '24px' }}>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Summary by Work Type</h3>
-                <div className="table-wrapper">
-                <table className="records-table">
-                  <thead>
-                    <tr>
-                      <th>Work Type</th>
-                      <th>Sessions</th>
-                      <th>Duration</th>
-                      <th>Hours</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(invoice.summary.byWorkType).map(
-                      ([type, data]) => (
-                        <tr key={type}>
-                          <td>{type}</td>
-                          <td>{data.count}</td>
-                          <td>{data.duration} min</td>
-                          <td>{Math.round((data.duration / 60) * 100) / 100}</td>
+            {invoice ? (
+              <div className="p-4 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground tracking-wider">THE NEON STABLE</h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      EIRS Operations Ledger
+                      <br />
+                      Instructor Billing Console
+                      <br />
+                      Internal Generated Statement
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-4xl font-bold text-surface-container-high/50 tracking-widest">INVOICE</p>
+                    <div className="text-xs text-muted-foreground mt-2 space-y-0.5 mono-data">
+                      <p>NO: <span className="text-foreground font-medium">{invoice.invoiceId}</span></p>
+                      <p>DATE: <span className="text-foreground font-medium">{new Date(invoice.generatedDate).toLocaleDateString('en-GB')}</span></p>
+                      <p>DUE: <span className="text-foreground font-medium">{new Date(invoice.periodEnd).toLocaleDateString('en-GB')}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-border" />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <p className="label-sm text-primary mb-1">INSTRUCTOR ENTITY</p>
+                    <p className="font-semibold text-foreground">{invoice.instructor.fullName}</p>
+                    <p className="text-xs text-muted-foreground mono-data mt-1">
+                      ROLE: {invoice.instructor.designation}
+                      <br />
+                      PERIOD: {new Date(invoice.periodStart).toLocaleDateString('en-GB')} - {new Date(invoice.periodEnd).toLocaleDateString('en-GB')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="label-sm text-primary mb-1">PAYMENT CHANNEL</p>
+                    <p className="font-semibold text-foreground">Stable Ops Ledger</p>
+                    <p className="text-xs text-muted-foreground mono-data mt-1">
+                      VERIFIED BY EIRS
+                      <br />
+                      GENERATED FROM DAILY WORK RECORDS
+                    </p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[420px]">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="py-2 text-left label-sm text-muted-foreground">SESSION DESCRIPTION</th>
+                        <th className="py-2 text-right label-sm text-muted-foreground">HRS</th>
+                        <th className="py-2 text-right label-sm text-muted-foreground">TYPE</th>
+                        <th className="py-2 text-right label-sm text-muted-foreground">RIDER / HORSE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoice.records.map((record) => (
+                        <tr key={record.id} className="border-b border-border/30">
+                          <td className="py-3">
+                            <span className="font-semibold text-foreground block">
+                              {new Date(record.date).toLocaleDateString('en-GB')}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {record.notes || 'Verified EIRS work log'}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right mono-data text-foreground">
+                            {(record.duration / 60).toFixed(2)}
+                          </td>
+                          <td className="py-3 text-right text-foreground">{record.workType}</td>
+                          <td className="py-3 text-right text-muted-foreground">
+                            {record.rider.fullName} / {record.horse.name}
+                          </td>
                         </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
 
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Totals</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Sessions</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{invoice.summary.totalSessions}</div>
+                <div className="border-t border-border pt-4 space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Total Sessions</span>
+                    <span className="mono-data">{invoice.summary.totalSessions}</span>
                   </div>
-                  <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Duration</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{invoice.summary.totalDuration} min</div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Total Duration</span>
+                    <span className="mono-data">{invoice.summary.totalDuration} min</span>
                   </div>
-                  <div className="card" style={{ padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Hours</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{invoice.summary.totalHours}</div>
+                  <div className="border-t border-border pt-2 flex justify-between">
+                    <span className="text-primary font-bold">TOTAL HOURS</span>
+                    <span className="text-xl mono-data font-bold text-foreground">
+                      {invoice.summary.totalHours.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/30 pt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[280px]">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="py-2 text-left label-sm text-muted-foreground">WORK TYPE</th>
+                          <th className="py-2 text-right label-sm text-muted-foreground">SESSIONS</th>
+                          <th className="py-2 text-right label-sm text-muted-foreground">HOURS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(invoice.summary.byWorkType).map(([type, data]) => (
+                          <tr key={type} className="border-b border-border/30">
+                            <td className="py-3 text-foreground font-medium">{type}</td>
+                            <td className="py-3 text-right mono-data text-foreground">{data.count}</td>
+                            <td className="py-3 text-right mono-data text-foreground">{(data.duration / 60).toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <p className="text-[10px] text-muted-foreground max-w-[300px]">
+                      All invoice values on this page are derived from verified EIRS work logs. No mock rate or payment data is introduced into the preview.
+                    </p>
+                    <p className="label-sm text-muted-foreground mt-4">AUTHORIZED DIGITALLY</p>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-6 sm:p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Generate an invoice by selecting an instructor and date range.
+                </p>
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      {!invoice && !loading && (
-        <div className="no-invoice">
-          <p>Generate an invoice by selecting dates and clicking "Generate Invoice"</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
 
 export default InvoiceGenerationPage;
+

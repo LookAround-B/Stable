@@ -1,29 +1,27 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { Download } from 'lucide-react';
+import { CheckCircle, FileText, Filter, Plus, TrendingUp, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
-import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 
 const ExpensePage = () => {
   const { user } = useAuth();
-  const { t } = useI18n();
   const p = usePermissions();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [message, setMessage] = useState('');
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [viewMode, setViewMode] = useState('Facility');
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
@@ -154,7 +152,7 @@ const ExpensePage = () => {
       const data = await expenseService.getAllExpenses(filters);
       console.log('Expenses data received:', data);
       if (data.expenses && data.expenses.length > 0) {
-        console.log('📋 Sample expense with horse data:', {
+        console.log('Sample expense with horse data:', {
           id: data.expenses[0].id,
           horseId: data.expenses[0].horseId,
           horse: data.expenses[0].horse,
@@ -164,8 +162,8 @@ const ExpensePage = () => {
       }
       setExpenses(data.expenses || []);
     } catch (error) {
-      console.error('✗ Error loading expenses:', error);
-      setMessage(`✗ Error loading expenses: ${error.error || error.message}`);
+      console.error('Error loading expenses:', error);
+      setMessage(`Error loading expenses: ${error.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -263,10 +261,10 @@ const ExpensePage = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    console.log(`🔄 Form field changed: ${name} = ${value}`);
+    console.log(`Form field changed: ${name} = ${value}`);
     setFormData((prev) => {
       const updated = { ...prev, [name]: value };
-      console.log(`📝 Updated formData:`, updated);
+      console.log('Updated formData:', updated);
       return updated;
     });
   };
@@ -279,7 +277,7 @@ const ExpensePage = () => {
       if (file.size <= MAX_FILE_SIZE) {
         validFiles.push(file);
       } else {
-        setMessage(`✗ File ${file.name} exceeds 5MB limit`);
+        setMessage(`File ${file.name} exceeds 5MB limit.`);
       }
     });
 
@@ -321,37 +319,37 @@ const ExpensePage = () => {
         attachments: formData.attachments,
       };
 
-      console.log('📨 Submitting expense with formData:', formData);
-      console.log('📨 Final submitData:', submitData);
+      console.log('Submitting expense with formData:', formData);
+      console.log('Final submitData:', submitData);
 
       if (editingExpense) {
         const updatedExpense = await expenseService.updateExpense(editingExpense.id, submitData);
-        console.log('✅ Expense updated:', updatedExpense);
-        console.log('   📝 Returned horseId:', updatedExpense.horseId);
-        console.log('   📝 Returned employeeId:', updatedExpense.employeeId);
-        setMessage('✓ Expense updated successfully!');
+        console.log('Expense updated:', updatedExpense);
+        console.log('Returned horseId:', updatedExpense.horseId);
+        console.log('Returned employeeId:', updatedExpense.employeeId);
+        setMessage('Expense updated successfully.');
       } else {
         const createdExpense = await expenseService.createExpense(submitData);
-        console.log('✅ Expense created:', createdExpense);
-        console.log('   📝 Returned horseId:', createdExpense.horseId);
-        console.log('   📝 Returned horseId:', createdExpense.horseId);
-        console.log('   📝 Returned employeeId:', createdExpense.employeeId);
+        console.log('Expense created:', createdExpense);
+        console.log('Returned horseId:', createdExpense.horseId);
+        console.log('Returned horseId:', createdExpense.horseId);
+        console.log('Returned employeeId:', createdExpense.employeeId);
       }
 
       resetForm();
       await loadExpenses();
-      setMessage('✓ Expense saved successfully!');
+      setMessage('Expense saved successfully.');
 
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`✗ Error: ${error.error || error.message}`);
+      setMessage(`Error: ${error.error || error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = (expense) => {
-    console.log('📝 EDIT EXPENSE DATA:', expense);
+    console.log('EDIT EXPENSE DATA:', expense);
     console.log('   horseId:', expense.horseId);
     console.log('   horse:', expense.horse);
     console.log('   employeeId:', expense.employeeId);
@@ -378,7 +376,6 @@ const ExpensePage = () => {
       employeeId: expense.employeeId || '',
       attachments: parsedAttachments,
     });
-    setShowForm(true);
   };
 
   const handleDownloadExcel = () => {
@@ -394,7 +391,7 @@ const ExpensePage = () => {
     };
 
     const formatCurrency = (amount) => {
-      return `₹ ${parseFloat(amount || 0).toFixed(2)}`;
+      return `\u20B9 ${parseFloat(amount || 0).toFixed(2)}`;
     };
 
     // Prepare data for Excel
@@ -432,7 +429,7 @@ const ExpensePage = () => {
 
     // Download file
     XLSX.writeFile(workbook, filename);
-    console.log('📥 Downloaded expenses to:', filename);
+    console.log('Downloaded expenses to:', filename);
   };
 
   // eslint-disable-next-line no-unused-vars
@@ -485,11 +482,11 @@ const ExpensePage = () => {
     try {
       setLoading(true);
       await expenseService.deleteExpense(id);
-      setMessage('✓ Expense deleted successfully!');
+      setMessage('Expense deleted successfully.');
       await loadExpenses();
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`✗ Error deleting expense: ${error.error}`);
+      setMessage(`Error deleting expense: ${error.error}`);
     } finally {
       setLoading(false);
     }
@@ -506,409 +503,546 @@ const ExpensePage = () => {
       attachments: [],
     });
     setEditingExpense(null);
-    setShowForm(false);
   };
 
-  const formatCurrency = (amount) => `₹${amount.toFixed(2)}`;
+  const formatCurrency = (amount) => `\u20B9${amount.toFixed(2)}`;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN');
   };
 
+  const categoryMeta = {
+    Medicine: { label: 'MEDICINE', cls: 'bg-destructive/15 text-destructive border border-destructive/20' },
+    Treatment: { label: 'TREATMENT', cls: 'bg-warning/15 text-warning border border-warning/20' },
+    Maintenance: { label: 'MAINTENANCE', cls: 'bg-primary/15 text-primary border border-primary/20' },
+    Miscellaneous: { label: 'MISC', cls: 'bg-success/15 text-success border border-success/20' },
+  };
+
+  const visibleExpenses = useMemo(() => {
+    if (viewMode === 'Asset') {
+      return expenses.filter((expense) => expense.horseId || expense.horse);
+    }
+    return expenses;
+  }, [expenses, viewMode]);
+
+  const totalSpend = useMemo(
+    () => visibleExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0),
+    [visibleExpenses]
+  );
+
+  const averageSpend = useMemo(
+    () => (visibleExpenses.length ? totalSpend / visibleExpenses.length : 0),
+    [visibleExpenses, totalSpend]
+  );
+
+  const topCategory = useMemo(() => {
+    const totals = visibleExpenses.reduce((acc, expense) => {
+      acc[expense.type] = (acc[expense.type] || 0) + parseFloat(expense.amount || 0);
+      return acc;
+    }, {});
+    const entry = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
+    return entry ? entry[0] : 'No Data';
+  }, [visibleExpenses]);
+
+  const latestTransactions = useMemo(
+    () => visibleExpenses.slice(0, 4),
+    [visibleExpenses]
+  );
+
+  const clearFilters = () => {
+    setFilters({
+      type: '',
+      horseId: '',
+      employeeId: '',
+      startDate: '',
+      endDate: '',
+    });
+  };
+
   // Pagination logic
-  const totalPages = Math.ceil(expenses.length / rowsPerPage);
+  const totalPages = Math.ceil(visibleExpenses.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedExpenses = expenses.slice(startIndex, endIndex);
+  const paginatedExpenses = visibleExpenses.slice(startIndex, endIndex);
 
   if (!p.viewExpenses) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="expense-page">
-      <div className="expense-header">
-        <h1>{t('Expense Tracking')}</h1>
+    <div className="expense-page space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="lovable-header-kicker mb-2">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>FINANCIAL INTELLIGENCE DASHBOARD</span>
+          </div>
+          <h1 className="display-sm text-foreground mt-1">Expense Tracking</h1>
+        </div>
         {isAccountsUser && (
-          <button
-            className="btn-primary"
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-          >
-            + Add Expense
-          </button>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <div className="flex rounded-lg overflow-hidden border border-border">
+              {['Facility', 'Asset'].map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setViewMode(mode);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3 sm:px-4 h-9 text-xs sm:text-sm font-medium transition-colors ${
+                    viewMode === mode
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {mode === 'Facility' ? 'FACILITY' : 'ASSET'}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setEditingExpense(null);
+              }}
+              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New Expense
+            </button>
+          </div>
         )}
       </div>
 
-      {message && <div className={`message ${message.includes('✓') ? 'success' : 'error'}`}>{message}</div>}
+      {message && (
+        <div
+          className={`px-4 py-3 rounded-lg text-sm font-medium ${
+            /success|saved|updated|deleted/i.test(message)
+              ? 'bg-success/15 text-success border border-success/30'
+              : 'bg-destructive/15 text-destructive border border-destructive/30'
+          }`}
+        >
+          {message}
+        </div>
+      )}
 
-      {/* Filters */}
-      <div className="filters-section">
-        <div className="filter-group">
-          <label>Expense Type</label>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+          <span className="label-sm text-muted-foreground">MONTHLY TOTAL SPEND</span>
+          <div className="flex items-end gap-2 mt-2">
+            <p className="text-2xl font-bold text-foreground mono-data">{formatCurrency(totalSpend)}</p>
+            <span className="text-xs text-primary font-medium mb-1">{visibleExpenses.length} entries</span>
+          </div>
+          <div className="w-full h-1 bg-primary/20 rounded-full mt-3">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, visibleExpenses.length * 8 || 12)}%` }} />
+          </div>
+        </div>
+        <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+          <span className="label-sm text-muted-foreground">PRIMARY COST CENTER</span>
+          <p className="text-lg font-bold text-foreground mt-2">{topCategory === 'No Data' ? 'NO ACTIVE DATA' : topCategory.toUpperCase()}</p>
+          <p className="text-xs text-primary mt-1">Live backend aggregation</p>
+        </div>
+        <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+          <span className="label-sm text-muted-foreground">AVERAGE TICKET</span>
+          <p className="text-2xl font-bold text-foreground mono-data mt-2">{formatCurrency(averageSpend)}</p>
+          <p className="text-xs text-muted-foreground mt-1">Per registered transaction</p>
+        </div>
+        <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+          <span className="label-sm text-muted-foreground">LIVE REGISTRY</span>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-2xl font-bold text-foreground mono-data">{visibleExpenses.length}</p>
+            <TrendingUp className="w-6 h-6 text-primary/40" />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{viewMode === 'Asset' ? 'Horse-linked expenses only' : 'Facility-wide expense feed'}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 xl:flex-row xl:flex-nowrap xl:items-center">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+          <Filter className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">ACTIVE FILTERS:</span>
+        </div>
+        <div className="w-full xl:w-[280px] xl:shrink-0">
           <SearchableSelect
             name="type"
             value={filters.type}
             onChange={handleFilterChange}
-            placeholder="All Types"
+            placeholder="All Expense Categories"
             options={[
-              { value: '', label: 'All Types' },
-              ...EXPENSE_TYPES.map((type) => ({ value: type, label: type }))
+              { value: '', label: 'All Expense Categories' },
+              ...EXPENSE_TYPES.map((type) => ({ value: type, label: type })),
             ]}
+            className="w-full"
           />
         </div>
-
-        <div className="filter-group">
-          <label>Horse</label>
+        <div className="w-full sm:w-[220px] xl:shrink-0">
           <SearchableSelect
             name="horseId"
             value={filters.horseId}
             onChange={handleFilterChange}
-            placeholder="All Horses"
+            placeholder="All Equine Assets"
             options={[
-              { value: '', label: 'All Horses' },
-              ...horses.map((h) => ({ value: h.id, label: h.name }))
+              { value: '', label: 'All Equine Assets' },
+              ...horses.map((h) => ({ value: h.id, label: h.name })),
             ]}
+            className="w-full"
           />
         </div>
-
-        <div className="filter-group">
-          <label>Employee</label>
+        <div className="w-full sm:w-[200px] xl:shrink-0">
           <SearchableSelect
             name="employeeId"
             value={filters.employeeId}
             onChange={handleFilterChange}
-            placeholder="All Employees"
+            placeholder="All Handlers"
             options={[
-              { value: '', label: 'All Employees' },
-              ...employees.map((emp) => ({ value: emp.id, label: emp.fullName }))
+              { value: '', label: 'All Handlers' },
+              ...employees.map((emp) => ({ value: emp.id, label: emp.fullName })),
             ]}
+            className="w-full"
           />
         </div>
-
-        <div className="filter-group">
-          <label>From Date</label>
+        <div className="flex items-center gap-2 flex-nowrap xl:shrink-0">
           <input
             type="date"
             name="startDate"
             value={filters.startDate}
             onChange={handleFilterChange}
+            className="h-8 w-[148px] px-3 rounded-lg border border-border bg-surface-container-high text-foreground text-xs focus:ring-1 focus:ring-primary outline-none"
           />
-        </div>
-
-        <div className="filter-group">
-          <label>To Date</label>
           <input
             type="date"
             name="endDate"
             value={filters.endDate}
             onChange={handleFilterChange}
+            className="h-8 w-[148px] px-3 rounded-lg border border-border bg-surface-container-high text-foreground text-xs focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
+        {Object.values(filters).some(Boolean) && (
+          <button
+            type="button"
+            onClick={() => {
+              clearFilters();
+              setCurrentPage(1);
+            }}
+            className="h-8 px-3 rounded-lg border border-border text-muted-foreground text-xs hover:bg-surface-container-high transition-colors shrink-0"
+          >
+            Clear
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleDownloadExcel}
+          disabled={!visibleExpenses.length}
+          className="h-8 px-3 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground text-xs flex items-center gap-1.5 hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
+        >
+          <Upload className="w-3 h-3" />
+          Export
+        </button>
       </div>
 
-      {/* Form */}
-      {showForm && isAccountsUser && (
-        <div className="expense-form-section">
-          <h2>{editingExpense ? t('Edit Expense') : t('New Expense')}</h2>
-          <form onSubmit={handleSubmit} className="expense-form">
-            <div className="form-group">
-              <label htmlFor="type-select">Expense Type *</label>
-              <SearchableSelect
-                name="type"
-                value={formData.type}
-                onChange={handleFormChange}
-                options={EXPENSE_TYPES.map((type) => ({ value: type, label: type }))}
-                placeholder="Select expense type..."
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="amount-input">Amount (₹) *</label>
-              <input
-                id="amount-input"
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleFormChange}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="description-textarea">Description *</label>
-              <textarea
-                id="description-textarea"
-                name="description"
-                value={formData.description}
-                onChange={handleFormChange}
-                placeholder="Enter expense details"
-                rows="3"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="date-input">Date *</label>
-              <input
-                id="date-input"
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleFormChange}
-                required
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="horse-select">Horse</label>
-                {editingExpense && editingExpense.horseId && editingExpense.horse && (
-                  <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px', padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '3px', fontWeight: '500' }}>
-                    ✓ {editingExpense.horse.name}
-                  </div>
-                )}
-                {editingExpense && !editingExpense.horseId && (
-                  <div style={{ fontSize: '13px', color: '#999', marginBottom: '5px', padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '3px' }}>
-                    (No horse assigned)
-                  </div>
-                )}
-                {!editingExpense && (
-                  <div style={{ fontSize: '13px', color: '#999', marginBottom: '5px', padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '3px' }}>
-                    Select a horse for this expense
-                  </div>
-                )}
-                <SearchableSelect
-                  name="horseId"
-                  value={formData.horseId}
-                  onChange={(e) => {
-                    console.log(`🐴 Horse selected: ${e.target.value}`);
-                    handleFormChange(e);
-                  }}
-                  options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: h.name }))]}
-                  placeholder="Select horse..."
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className={isAccountsUser ? 'lg:col-span-7 min-w-0' : 'lg:col-span-12 min-w-0'}>
+          <div className="bg-surface-container-highest rounded-lg edge-glow overflow-hidden min-w-0">
+            <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-border">
+              <div>
+                <h2 className="heading-md text-foreground uppercase tracking-wider">Expense Ledger</h2>
+                <p className="text-xs text-muted-foreground mt-1">Live entries from your current expense API.</p>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="employee-select">Employee</label>
-                {editingExpense && editingExpense.employeeId && editingExpense.employee && (
-                  <div style={{ fontSize: '13px', color: '#666', marginBottom: '5px', padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '3px', fontWeight: '500' }}>
-                    ✓ {editingExpense.employee.fullName}
-                  </div>
-                )}
-                {editingExpense && !editingExpense.employeeId && (
-                  <div style={{ fontSize: '13px', color: '#999', marginBottom: '5px', padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '3px' }}>
-                    (No employee assigned)
-                  </div>
-                )}
-                {!editingExpense && (
-                  <div style={{ fontSize: '13px', color: '#999', marginBottom: '5px', padding: '8px', backgroundColor: '#f0f0f0', borderRadius: '3px' }}>
-                    Select an employee for this expense
-                  </div>
-                )}
-                <SearchableSelect
-                  name="employeeId"
-                  value={formData.employeeId}
-                  onChange={(e) => {
-                    console.log(`👤 Employee selected: ${e.target.value}`);
-                    handleFormChange(e);
-                  }}
-                  options={[{ value: '', label: 'Select Employee' }, ...employees.map((emp) => ({ value: emp.id, label: emp.fullName }))]}
-                  placeholder="Select employee..."
-                />
-              </div>
+              <span className="text-xs text-primary font-medium">{visibleExpenses.length} rows</span>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="attachments-input">Attachments (Bill/Images) - Max 5MB</label>
-              <input
-                id="attachments-input"
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                accept="image/*,.pdf"
-              />
-              {formData.attachments.length > 0 && (
-                <div className="file-list">
-                  {formData.attachments.map((file, idx) => {
-                    const isUrl = typeof file === 'string';
-                    const displayName = isUrl ? file.split('/').pop() : file.name;
-                    return (
-                      <div key={idx} className="file-item">
-                        <span>
-                          {isUrl ? '📎' : '📄'} {displayName}
-                        </span>
-                        {isUrl && (
-                          <a href={file} target="_blank" rel="noopener noreferrer" className="file-link">
-                            View
-                          </a>
-                        )}
-                        <button
-                          type="button"
-                          className="btn-remove"
-                          onClick={() => removeAttachment(idx)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    );
-                  })}
+            {loading && <div className="p-4"><TableSkeleton cols={6} rows={5} /></div>}
+
+            {!loading && !visibleExpenses.length && (
+              <div className="px-5 py-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {Object.values(filters).some(Boolean)
+                    ? 'No expenses match the current filters.'
+                    : 'No expenses have been registered yet.'}
+                </p>
+                {Object.values(filters).some(Boolean) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearFilters();
+                      setCurrentPage(1);
+                    }}
+                    className="mt-4 h-9 px-4 rounded-lg border border-border text-foreground text-sm hover:bg-surface-container-high transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            )}
+
+            {!loading && !!visibleExpenses.length && (
+              <>
+                <div className="overflow-x-auto max-w-full">
+                  <table className="w-full text-sm min-w-[860px]">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-5 py-3 text-left label-sm text-muted-foreground">DATE</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">CATEGORY</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">DESCRIPTION</th>
+                        <th className="px-3 py-3 text-right label-sm text-muted-foreground">AMOUNT</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">ASSET</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">HANDLER</th>
+                        {isAccountsUser && <th className="px-3 py-3 text-right label-sm text-muted-foreground">ACTIONS</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedExpenses.map((expense) => {
+                        const meta = categoryMeta[expense.type] || {
+                          label: expense.type?.toUpperCase() || 'UNKNOWN',
+                          cls: 'bg-muted text-muted-foreground border border-border',
+                        };
+                        return (
+                          <tr key={expense.id} className="border-b border-border/30 hover:bg-surface-container-high/50 transition-colors">
+                            <td className="px-5 py-4 mono-data text-xs text-muted-foreground whitespace-nowrap">
+                              {formatDate(expense.date)}
+                            </td>
+                            <td className="px-3 py-4">
+                              <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${meta.cls}`}>
+                                {meta.label}
+                              </span>
+                            </td>
+                            <td className="px-3 py-4">
+                              <p className="font-medium text-foreground">{expense.description}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {expense.createdBy?.fullName ? `Registered by ${expense.createdBy.fullName}` : 'Live expense entry'}
+                              </p>
+                            </td>
+                            <td className="px-3 py-4 text-right mono-data font-bold text-foreground">
+                              {formatCurrency(parseFloat(expense.amount || 0))}
+                            </td>
+                            <td className="px-3 py-4 text-muted-foreground">
+                              {expense.horse?.name || 'Facility Wide'}
+                            </td>
+                            <td className="px-3 py-4 text-muted-foreground">
+                              {expense.employee?.fullName || expense.createdBy?.fullName || 'Unassigned'}
+                            </td>
+                            {isAccountsUser && (
+                              <td className="px-3 py-4">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    className="text-xs text-primary hover:underline font-medium"
+                                    onClick={() => handleEdit(expense)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="text-xs text-destructive hover:underline font-medium"
+                                    onClick={() => handleDelete(expense.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Expense'}
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={resetForm}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="expenses-list">
-        <div className="section-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-          <h2 style={{ margin: 0 }}>Expenses ({expenses.length})</h2>
-          <div className="header-buttons">
-            {expenses.length > 0 && (
-              <button
-                className="btn-secondary"
-                onClick={handleDownloadExcel}
-                title="Download filtered expenses as Excel"
-              >
-                <Download size={14} />Excel
-              </button>
-            )}
-
-            {(filters.type || filters.horseId || filters.employeeId || filters.startDate || filters.endDate) && (
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  setFilters({
-                    type: '',
-                    horseId: '',
-                    employeeId: '',
-                    startDate: '',
-                    endDate: '',
-                  });
-                }}
-              >
-                Clear Filters
-              </button>
+                <div className="px-4 sm:px-5 py-3 border-t border-border">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={(newRows) => {
+                      setRowsPerPage(newRows);
+                      setCurrentPage(1);
+                    }}
+                    total={visibleExpenses.length}
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>
 
-        {loading && <TableSkeleton cols={6} rows={5} />}
-        
-        {!loading && expenses.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
-            <p style={{ color: '#999', marginBottom: '10px' }}>
-              {Object.values(filters).some(v => v) 
-                ? '❌ No expenses found with these filters' 
-                : '📭 No expenses created yet'}
-            </p>
-            {Object.values(filters).some(v => v) && (
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  setFilters({
-                    type: '',
-                    horseId: '',
-                    employeeId: '',
-                    startDate: '',
-                    endDate: '',
-                  });
-                }}
-                style={{ padding: '8px 16px', fontSize: '13px' }}
-              >
-                Clear All Filters
-              </button>
-            )}
-          </div>
-        )}
+        {isAccountsUser && (
+          <div className="lg:col-span-5 space-y-4">
+            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+              <div className="flex items-center gap-2 mb-5">
+                <Plus className="w-5 h-5 text-primary" />
+                <h2 className="heading-md text-foreground uppercase tracking-wider">
+                  {editingExpense ? 'Edit Expense' : 'Post New Entry'}
+                </h2>
+              </div>
 
-        {!loading && expenses.length > 0 && (
-          <>
-          <div className="table-responsive">
-            <table className="expenses-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Assigned Horse</th>
-                  <th>Assigned Employee</th>
-                  <th>Created By</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedExpenses.map((expense) => (
-                  <tr key={expense.id}>
-                    <td>{formatDate(expense.date)}</td>
-                    <td>
-                      <span className={`badge badge-${expense.type ? expense.type.toLowerCase() : 'unknown'}`}>
-                        {expense.type || '(no type)'}
-                      </span>
-                    </td>
-                    <td>{expense.description}</td>
-                    <td className="amount">{formatCurrency(expense.amount)}</td>
-                    <td>{expense.horse?.name || '-'}</td>
-                    <td>{expense.employee?.fullName || '-'}</td>
-                    <td>{expense.createdBy?.fullName}</td>
-                    <td className="actions">
-                      {isAccountsUser && (
-                        <>
-                          <button
-                            className="btn-edit"
-                            onClick={() => handleEdit(expense)}
-                            title="Edit"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            className="btn-delete"
-                            onClick={() => handleDelete(expense.id)}
-                            title="Delete"
-                          >
-                            ✕
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="label-sm text-muted-foreground block mb-1.5">EXPENSE TYPE</label>
+                  <SearchableSelect
+                    name="type"
+                    value={formData.type}
+                    onChange={handleFormChange}
+                    options={EXPENSE_TYPES.map((type) => ({ value: type, label: type }))}
+                    placeholder="Select expense type..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="label-sm text-primary block mb-1.5">ENTRY DESCRIPTION</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleFormChange}
+                    placeholder="Describe the expense..."
+                    rows="3"
+                    required
+                    className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label-sm text-primary block mb-1.5">AMOUNT (INR)</label>
+                    <input
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleFormChange}
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                      required
+                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm mono-data focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="label-sm text-primary block mb-1.5">ENTRY DATE</label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="label-sm text-muted-foreground block mb-1.5">ASSET ATTRIBUTION</label>
+                    <SearchableSelect
+                      name="horseId"
+                      value={formData.horseId}
+                      onChange={handleFormChange}
+                      options={[{ value: '', label: 'Facility Wide' }, ...horses.map((h) => ({ value: h.id, label: h.name }))]}
+                      placeholder="Facility Wide"
+                    />
+                  </div>
+                  <div>
+                    <label className="label-sm text-muted-foreground block mb-1.5">HANDLER</label>
+                    <SearchableSelect
+                      name="employeeId"
+                      value={formData.employeeId}
+                      onChange={handleFormChange}
+                      options={[{ value: '', label: 'Unassigned' }, ...employees.map((emp) => ({ value: emp.id, label: emp.fullName }))]}
+                      placeholder="Unassigned"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="label-sm text-muted-foreground block mb-1.5">PROOF OF PURCHASE</label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                    <Upload className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+                    <p className="text-xs text-muted-foreground">Drop or click to attach files (max 5MB each)</p>
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileChange}
+                      accept="image/*,.pdf"
+                      className="w-full mt-2 text-xs text-muted-foreground file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary/15 file:text-primary"
+                    />
+                  </div>
+                  {formData.attachments.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {formData.attachments.map((file, idx) => {
+                        const isUrl = typeof file === 'string';
+                        const displayName = isUrl ? file.split('/').pop() : file.name;
+                        return (
+                          <div key={`${displayName}-${idx}`} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-container-high px-3 py-2">
+                            <div className="min-w-0">
+                              <p className="text-sm text-foreground truncate">{displayName}</p>
+                              {isUrl && (
+                                <a href={file} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+                                  View uploaded file
+                                </a>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(idx)}
+                              className="text-xs text-destructive hover:underline shrink-0"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Log Expense'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    disabled={loading}
+                    className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+              <div className="flex items-center gap-2 mb-5">
+                <FileText className="w-5 h-5 text-primary" />
+                <h2 className="heading-md text-foreground uppercase tracking-wider">Live Transaction Stream</h2>
+              </div>
+              <div className="space-y-3">
+                {latestTransactions.length ? (
+                  latestTransactions.map((expense) => (
+                    <div key={expense.id} className="rounded-lg border border-border bg-surface-container-high px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${categoryMeta[expense.type]?.cls || 'bg-muted text-muted-foreground border border-border'}`}>
+                          {categoryMeta[expense.type]?.label || expense.type}
+                        </span>
+                        <span className="mono-data text-sm font-bold text-foreground">{formatCurrency(parseFloat(expense.amount || 0))}</span>
+                      </div>
+                      <p className="text-sm text-foreground font-medium mt-2">{expense.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {expense.horse?.name || 'Facility Wide'} · {expense.employee?.fullName || expense.createdBy?.fullName || 'Unassigned'}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No transactions available for the current filters.</p>
+                )}
+              </div>
+            </div>
           </div>
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(newRows) => {
-                setRowsPerPage(newRows);
-                setCurrentPage(1);
-              }}
-              total={expenses.length}
-            />
-          </>
         )}
       </div>
 
@@ -926,3 +1060,4 @@ const ExpensePage = () => {
 };
 
 export default ExpensePage;
+

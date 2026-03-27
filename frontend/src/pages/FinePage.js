@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { TableSkeleton } from '../components/Skeleton';
@@ -12,7 +12,6 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
 
-const STATUS_OPTIONS = ['Open', 'Resolved', 'Dismissed'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor'];
 
@@ -29,6 +28,7 @@ const FinePage = () => {
   const [employees, setEmployees] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [activeTab, setActiveTab] = useState('All');
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
@@ -159,8 +159,8 @@ const FinePage = () => {
       console.log('Fines data received:', data);
       setFines(data.fines || []);
     } catch (error) {
-      console.error('✗ Error loading fines:', error);
-      setMessage(`✗ Error loading fines: ${error.message}`);
+      console.error('Error loading fines:', error);
+      setMessage(`Error loading fines: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -244,23 +244,23 @@ const FinePage = () => {
 
     // Validation
     if (!formData.issuedToId) {
-      setMessage('✗ Please select an employee');
+      setMessage('Please select an employee.');
       return;
     }
     if (!formData.reason.trim()) {
-      setMessage('✗ Please enter a reason');
+      setMessage('Please enter a reason.');
       return;
     }
     if (formData.reason.length > 500) {
-      setMessage('✗ Reason cannot exceed 500 characters');
+      setMessage('Reason cannot exceed 500 characters.');
       return;
     }
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      setMessage('✗ Please enter a valid amount');
+      setMessage('Please enter a valid amount.');
       return;
     }
     if (!formData.evidenceImage) {
-      setMessage('✗ Please upload evidence image');
+      setMessage('Please upload evidence image.');
       return;
     }
 
@@ -272,7 +272,7 @@ const FinePage = () => {
       const data = await fineService.issueFine(formData);
       console.log('Fine created:', data);
 
-      setMessage('✓ Fine issued successfully');
+      setMessage('Fine issued successfully.');
       setFormData({
         issuedToId: '',
         reason: '',
@@ -287,8 +287,8 @@ const FinePage = () => {
       // Refresh the list
       loadFines();
     } catch (error) {
-      console.error('❌ Error issuing fine:', error);
-      setMessage(`✗ Error: ${error.message}`);
+      console.error('Error issuing fine:', error);
+      setMessage(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -311,7 +311,7 @@ const FinePage = () => {
       );
       console.log('Fine updated:', data);
 
-      setMessage('✓ Fine status updated successfully');
+      setMessage('Fine status updated successfully.');
       setResolvingFine(null);
       setResolveData({
         status: 'Resolved',
@@ -321,8 +321,8 @@ const FinePage = () => {
       // Refresh the list
       loadFines();
     } catch (error) {
-      console.error('❌ Error updating fine:', error);
-      setMessage(`✗ Error: ${error.message}`);
+      console.error('Error updating fine:', error);
+      setMessage(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -340,11 +340,11 @@ const FinePage = () => {
       setLoading(true);
       console.log('Deleting fine:', fineId);
       await fineService.deleteFine(fineId);
-      setMessage('✓ Fine deleted successfully');
+      setMessage('Fine deleted successfully.');
       loadFines();
     } catch (error) {
-      console.error('❌ Error deleting fine:', error);
-      setMessage(`✗ Error: ${error.message}`);
+      console.error('Error deleting fine:', error);
+      setMessage(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -356,15 +356,25 @@ const FinePage = () => {
     return date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const filteredFines = useMemo(() => {
+    if (activeTab === 'Pending') {
+      return fines.filter((fine) => fine.status === 'Open');
+    }
+    if (activeTab === 'Resolved') {
+      return fines.filter((fine) => ['Resolved', 'Dismissed'].includes(fine.status));
+    }
+    return fines;
+  }, [activeTab, fines]);
+
   // Pagination logic
-  const totalPages = Math.ceil(fines.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredFines.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
-  const paginatedFines = fines.slice(startIndex, endIndex);
+  const paginatedFines = filteredFines.slice(startIndex, endIndex);
 
   const handleDownloadExcel = () => {
-    if (!fines.length) { alert('No data to download'); return; }
-    const data = fines.map(f => ({
+    if (!filteredFines.length) { alert('No data to download'); return; }
+    const data = filteredFines.map(f => ({
       'Date': f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-GB') : '',
       'Issued To': f.issuedTo?.fullName || '',
       'Amount (INR)': f.amount,
@@ -382,8 +392,8 @@ const FinePage = () => {
   if (!p.viewFines) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
-      {/* ── Header ── */}
+    <div className="fine-page space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center mt-1 shrink-0">
@@ -409,14 +419,14 @@ const FinePage = () => {
         </div>
       </div>
 
-      {/* ── Message ── */}
+      {/* Message */}
       {message && (
         <div className={`px-4 py-3 rounded-lg text-sm font-medium ${/success|issued|resolved|updated/i.test(message) ? 'bg-success/15 text-success border border-success/30' : 'bg-destructive/15 text-destructive border border-destructive/30'}`}>
           {message}
         </div>
       )}
 
-      {/* ── Two-Column Layout ── */}
+      {/* Two-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Issue Enforcement Form */}
         {canIssueFines && (
@@ -424,7 +434,7 @@ const FinePage = () => {
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
                 <Plus className="w-5 h-5 text-success" />
-                <h2 className="text-base font-bold text-foreground uppercase tracking-wider">{t('Issue Fine')}</h2>
+                <h2 className="text-base font-bold text-foreground uppercase tracking-wider">Issue Enforcement</h2>
               </div>
               <form onSubmit={handleSubmitForm} className="space-y-4">
                 <div>
@@ -500,48 +510,42 @@ const FinePage = () => {
         <div className={canIssueFines ? 'lg:col-span-8 order-1 lg:order-2' : 'lg:col-span-12'}>
           <div className="bg-surface-container-highest rounded-lg edge-glow overflow-hidden">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border gap-3">
               <h2 className="text-base font-bold text-foreground uppercase tracking-wider">{t('Audit History')}</h2>
-              <div className="flex items-center gap-2 flex-wrap">
-                <SearchableSelect
-                  name="status"
-                  value={filters.status}
-                  onChange={handleFilterChange}
-                  placeholder="All Status"
-                  options={[
-                    { value: '', label: 'All Status' },
-                    ...STATUS_OPTIONS.map((status) => ({ value: status, label: status }))
-                  ]}
-                  className="w-full sm:w-36"
-                />
-                <input
-                  type="date"
-                  name="startDate"
-                  value={filters.startDate}
-                  onChange={handleFilterChange}
-                  className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
-                />
-                <input
-                  type="date"
-                  name="endDate"
-                  value={filters.endDate}
-                  onChange={handleFilterChange}
-                  className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
-                />
-                <button
-                  onClick={handleDownloadExcel}
-                  className="h-10 px-3 rounded-lg border border-border text-xs text-muted-foreground flex items-center gap-1.5 hover:bg-surface-container-high transition-colors"
-                >
-                  <Download className="w-3 h-3" /> Export
-                </button>
+              <div className="flex items-center gap-2 flex-nowrap w-full lg:w-auto">
+                  <div className="flex rounded-lg overflow-hidden border border-border shrink-0">
+                    {['All', 'Pending', 'Resolved'].map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(tab);
+                          setCurrentPage(1);
+                        }}
+                        className={`px-3 sm:px-4 h-8 text-xs font-medium transition-colors ${
+                          activeTab === tab
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleDownloadExcel}
+                    className="h-8 px-3 rounded-lg border border-black/20 dark:border-white/20 text-xs text-muted-foreground flex items-center gap-1.5 hover:bg-surface-container-high transition-colors shrink-0"
+                  >
+                    <Download className="w-3 h-3" /> Export
+                  </button>
               </div>
             </div>
 
             {/* Table */}
             {loading && <div className="p-4"><TableSkeleton cols={5} rows={5} /></div>}
-            {!loading && fines.length === 0 && <p className="text-center py-8 text-sm text-muted-foreground">{t('No fines found')}</p>}
+            {!loading && filteredFines.length === 0 && <p className="text-center py-8 text-sm text-muted-foreground">{t('No fines found')}</p>}
 
-            {!loading && fines.length > 0 && (
+            {!loading && filteredFines.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[600px]">
                   <thead>
@@ -605,19 +609,21 @@ const FinePage = () => {
             )}
 
             {/* Pagination */}
-            <div className="px-4 sm:px-5 py-3 border-t border-border">
-              <Pagination 
-                currentPage={currentPage} 
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(newRows) => {
-                  setRowsPerPage(newRows);
-                  setCurrentPage(1);
-                }}
-                total={fines.length}
-              />
-            </div>
+            {filteredFines.length > 0 && (
+              <div className="px-4 sm:px-5 py-3 border-t border-border">
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(newRows) => {
+                    setRowsPerPage(newRows);
+                    setCurrentPage(1);
+                  }}
+                  total={filteredFines.length}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -760,3 +766,5 @@ const FinePage = () => {
 };
 
 export default FinePage;
+
+

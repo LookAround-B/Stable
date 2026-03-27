@@ -15130,6 +15130,150 @@ html[data-text-size="large"] {
   background: #ffffff;
 }
 
+/* Groceries Page */
+.groceries-page {
+  background: transparent;
+}
+
+.groceries-page .display-sm {
+  font-size: 1.9rem;
+  line-height: 1.05;
+}
+
+.groceries-page .edge-glow {
+  border-radius: 14px;
+}
+
+.groceries-page-header .lovable-header-kicker {
+  margin-bottom: 10px;
+}
+
+.groceries-kpi-grid > div,
+.groceries-main-grid > div > .edge-glow,
+.groceries-ledger-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.groceries-ledger-card table thead th {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+
+.groceries-ledger-card table tbody td {
+  vertical-align: top;
+}
+
+.groceries-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.groceries-pagination-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--lovable-text-soft);
+}
+
+.groceries-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.groceries-pagination-select {
+  height: 32px;
+  min-width: 58px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--lovable-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lovable-text);
+  font-size: 12px;
+  outline: none;
+}
+
+.groceries-pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.groceries-pagination-page,
+.groceries-pagination-nav {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--lovable-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lovable-text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.groceries-pagination-page:hover,
+.groceries-pagination-nav:hover:not(:disabled) {
+  color: var(--lovable-text);
+  border-color: rgba(209, 153, 255, 0.22);
+  background: rgba(209, 153, 255, 0.1);
+}
+
+.groceries-pagination-page.active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+}
+
+.groceries-pagination-nav:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.groceries-pagination-ellipsis {
+  padding: 0 2px;
+  color: var(--lovable-text-soft);
+  font-size: 12px;
+}
+
+.lovable-shell.lovable-theme-light .groceries-kpi-grid > div,
+.lovable-shell.lovable-theme-light .groceries-main-grid > div > .edge-glow,
+.lovable-shell.lovable-theme-light .groceries-ledger-card {
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+.lovable-shell.lovable-theme-light .groceries-pagination-select,
+.lovable-shell.lovable-theme-light .groceries-pagination-page,
+.lovable-shell.lovable-theme-light .groceries-pagination-nav {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 768px) {
+  .groceries-page .display-sm {
+    font-size: 1.6rem;
+  }
+
+  .groceries-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .groceries-pagination-summary {
+    justify-content: center;
+  }
+
+  .groceries-pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
 .my-assigned-submit-btn {
   border: 1px solid rgba(209, 153, 255, 0.4);
   background: rgba(209, 153, 255, 0.12);
@@ -15924,6 +16068,62 @@ html[data-text-size="large"] {
 .searchable-select .ss-placeholder,
 .searchable-select .ss-search::placeholder {
   color: rgba(161, 161, 170, 0.82);
+}
+
+.searchable-select .ss-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lovable-main-content .btn-download,
+.lovable-main-content button:has(.lucide-download) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: var(--lovable-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.lovable-main-content .btn-download:hover,
+.lovable-main-content button:has(.lucide-download):hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.lovable-main-content .btn-download:disabled,
+.lovable-main-content button:has(.lucide-download):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.lovable-main-content .btn-download .lucide-download,
+.lovable-main-content button:has(.lucide-download) .lucide-download {
+  width: 14px;
+  height: 14px;
+}
+
+.lovable-shell.lovable-theme-light .lovable-main-content .btn-download,
+.lovable-shell.lovable-theme-light .lovable-main-content button:has(.lucide-download) {
+  border-color: rgba(9, 9, 11, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  color: #18181b;
+}
+
+.lovable-shell.lovable-theme-light .lovable-main-content .btn-download:hover,
+.lovable-shell.lovable-theme-light .lovable-main-content button:has(.lucide-download):hover {
+  background: rgba(244, 244, 245, 0.98);
+  border-color: rgba(9, 9, 11, 0.24);
 }
 
 .modal input:focus,
