@@ -85,13 +85,13 @@ const FarrierShoeingPage = () => {
     try {
       setReminderSending(true);
       const response = await apiClient.post('/farrier-shoeing/reminders', {});
-      if (response.data.sent) { showMsg('✓ Reminder email sent successfully'); } else { showMsg(response.data.message || 'No reminder sent', 'error'); }
+      if (response.data.sent) { showMsg('? Reminder email sent successfully'); } else { showMsg(response.data.message || 'No reminder sent', 'error'); }
       loadReminderStatus();
     } catch (error) { showMsg('Failed to send reminder email', 'error'); } finally { setReminderSending(false); }
   };
 
   const handleSnooze = async () => {
-    try { setReminderSending(true); await apiClient.post('/farrier-shoeing/reminders', { action: 'snooze' }); showMsg('✓ Reminder snoozed for 24 hours'); loadReminderStatus(); }
+    try { setReminderSending(true); await apiClient.post('/farrier-shoeing/reminders', { action: 'snooze' }); showMsg('? Reminder snoozed for 24 hours'); loadReminderStatus(); }
     catch (error) { showMsg('Failed to snooze reminder', 'error'); } finally { setReminderSending(false); }
   };
 
@@ -101,7 +101,7 @@ const FarrierShoeingPage = () => {
     try {
       setLoading(true);
       await apiClient.post('/farrier-shoeing', { horseId: formData.horseId, farrierId: formData.farrierId, shoeingDate: new Date(formData.shoeingDate).toISOString(), notes: formData.notes || '' });
-      showMsg('✓ Shoeing record created successfully');
+      showMsg('? Shoeing record created successfully');
       setFormData({ horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), notes: '' });
       setShowForm(false);
       loadRecords(); loadPendingHorses();
@@ -112,7 +112,7 @@ const FarrierShoeingPage = () => {
 
   const confirmDelete = async () => {
     const id = confirmModal.id; setConfirmModal({ isOpen: false, id: null });
-    try { setLoading(true); await apiClient.delete('/farrier-shoeing', { data: { id } }); showMsg('✓ Record deleted'); loadRecords(); loadPendingHorses(); }
+    try { setLoading(true); await apiClient.delete('/farrier-shoeing', { data: { id } }); showMsg('? Record deleted'); loadRecords(); loadPendingHorses(); }
     catch (error) { showMsg('Failed to delete record', 'error'); } finally { setLoading(false); }
   };
 
@@ -151,7 +151,7 @@ const FarrierShoeingPage = () => {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Farrier <span className="text-primary">Shoeing</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule — every {SHOEING_INTERVAL_DAYS} days</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule � every {SHOEING_INTERVAL_DAYS} days</p>
         </div>
         <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
       </div>
@@ -170,7 +170,7 @@ const FarrierShoeingPage = () => {
             <Bell className={`w-5 h-5 shrink-0 mt-0.5 ${reminder.isSnoozed ? 'text-warning' : 'text-destructive'}`} />
             <div>
               <p className="text-sm font-bold text-foreground">
-                {reminder.isSnoozed ? '🔕 Reminder Snoozed' : `⚠️ ${reminder.pendingCount} horse${reminder.pendingCount !== 1 ? 's' : ''} pending shoeing`}
+                {reminder.isSnoozed ? '?? Reminder Snoozed' : `?? ${reminder.pendingCount} horse${reminder.pendingCount !== 1 ? 's' : ''} pending shoeing`}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {reminder.isSnoozed ? `Snoozed until ${new Date(reminder.snoozedUntil).toLocaleString('en-GB')}` : 'You have pending horse shoeing tasks. Please complete them.'}
@@ -255,12 +255,12 @@ const FarrierShoeingPage = () => {
                     {records.map((record) => (
                       <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{record.horse?.name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{record.horse?.stableNumber || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{record.horse?.stableNumber || '�'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{record.farrier?.fullName || 'Unknown'}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.shoeingDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.nextDueDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3">{getStatusBadge(record)}</td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || '�'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleDelete(record.id)} disabled={loading} className="h-8 px-3 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition-colors flex items-center gap-1.5"><Trash2 className="w-3 h-3" /> Delete</button>
                         </td>
@@ -295,15 +295,15 @@ const FarrierShoeingPage = () => {
                     {pendingHorses.map((item, idx) => (
                       <tr key={idx} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{item.horse?.name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || '�'}</td>
                         <td className="px-4 py-3">{item.neverShoed ? <span className="text-destructive font-semibold text-xs">Never Shoed</span> : <span className="text-muted-foreground mono-data">{new Date(item.lastShoeingDate).toLocaleDateString('en-GB')}</span>}</td>
-                        <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : '�'}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-destructive/30 text-destructive bg-destructive/10">
                             {item.neverShoed ? 'Never Shoed' : `${item.daysOverdue} day${item.daysOverdue !== 1 ? 's' : ''} overdue`}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || '�'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleQuickShoe(item.horse?.id)} className="h-8 px-4 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1.5"><Hammer className="w-3 h-3" /> Shoe Now</button>
                         </td>

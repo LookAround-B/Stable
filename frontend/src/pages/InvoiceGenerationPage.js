@@ -1,11 +1,11 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import * as XLSX from 'xlsx';
 import usePermissions from '../hooks/usePermissions';
-import { Download, FileText, Printer, SlidersHorizontal, TrendingUp, Zap } from 'lucide-react';
+import { Download, FileText, Printer, SlidersHorizontal, TrendingUp } from 'lucide-react';
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();

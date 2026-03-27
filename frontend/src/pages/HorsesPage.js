@@ -28,24 +28,6 @@ const STATUS_STYLES = {
   Retired: { dot: 'rgba(161, 161, 170, 0.9)', bg: 'rgba(113, 113, 122, 0.16)', text: 'rgba(212, 212, 216, 0.9)' },
 };
 
-const PerformanceBar = ({ value }) => {
-  const bars = 5;
-  const filled = Math.max(1, Math.min(bars, Math.round((value / 100) * bars)));
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-sm font-semibold text-foreground">{value}%</span>
-      <div className="flex gap-0.5">
-        {Array.from({ length: bars }, (_, index) => (
-          <div
-            key={index}
-            className={`w-4 h-1.5 rounded-sm ${index < filled ? 'bg-primary' : 'bg-muted'}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const getDateValue = (...values) => {
   for (const value of values) {
@@ -294,19 +276,8 @@ const HorsesPage = () => {
     });
   };
 
-  // Get horses assigned to current user (if supervisor)
-  const myHorses = horses.filter((horse) => horse.supervisorId === user?.id);
-
   // Filter horses based on search term
   const filteredHorses = horses.filter((horse) =>
-    horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const filteredMyHorses = myHorses.filter((horse) =>
     horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -342,15 +313,6 @@ const HorsesPage = () => {
     (horse) => (horse.passportNumber ? 1 : 0),
     { fallbackTotal: passportedHorses }
   );
-
-  const getHorsePerformance = (horse) => {
-    const rawId = String(horse.id || '');
-    const numeric = parseInt(rawId.replace(/\D/g, ''), 10);
-    const seed = Number.isNaN(numeric)
-      ? rawId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
-      : numeric;
-    return 40 + ((seed * 17 + 13) % 61);
-  };
 
   const getHorseReferenceId = (horse) => {
     const source = horse.passportNumber || horse.stableNumber || horse.id || '';
@@ -390,10 +352,15 @@ const HorsesPage = () => {
   if (!p.viewHorses) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="horses-page space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
+          <div className="lovable-header-kicker mb-2">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>FLEET MANAGEMENT</span>
+          </div>
           <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Horses</h1>
           <p className="text-muted-foreground mt-2 text-sm">
             {canAddHorse 
@@ -409,48 +376,75 @@ const HorsesPage = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'TOTAL HORSES', value: totalHorses, color: 'text-primary', icon: Link2 },
-          { label: 'ACTIVE', value: activeHorses, color: 'text-success', icon: ShieldCheck },
-          { label: 'ASSIGNED', value: assignedHorses, color: 'text-primary', icon: Users },
-          { label: 'PASSPORT READY', value: passportedHorses, color: 'text-destructive', icon: FileText },
-        ].map(card => {
-          const Icon = card.icon;
-          return (
-            <div key={card.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                <Icon className="w-24 h-24" />
-              </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1 relative z-10">{card.label}</p>
-              <p className={`text-2xl sm:text-3xl font-bold mono-data relative z-10 ${card.color}`}>{String(card.value).padStart(2, '0')}</p>
-            </div>
-          );
-        })}
+      <div className="dashboard-lovable">
+        <div className="dashboard-lovable-card-grid directory-kpi-grid">
+          <DirectoryMetricCard
+            title="Total Horses"
+            value={totalHorses}
+            subtitle="Registered Assets"
+            icon={Link2}
+            sparkData={horseSpark}
+            watermark="horse"
+            iconTone="primary"
+            subtitleTone="destructive"
+          />
+          <DirectoryMetricCard
+            title="Active Horses"
+            value={activeHorses}
+            subtitle="Stable Ready"
+            icon={ShieldCheck}
+            sparkData={activeSpark}
+            watermark="horse"
+            iconTone="success"
+            subtitleTone="success"
+            variant="success"
+          />
+          <DirectoryMetricCard
+            title="Assigned Horses"
+            value={assignedHorses}
+            subtitle="Manager Linked"
+            icon={Users}
+            sparkData={assignedSpark}
+            watermark="horse"
+            iconTone="primary"
+            subtitleTone="primary"
+          />
+          <DirectoryMetricCard
+            title="Passport Ready"
+            value={passportedHorses}
+            subtitle="Travel Cleared"
+            icon={FileText}
+            sparkData={passportSpark}
+            watermark="horse"
+            iconTone="destructive"
+            subtitleTone="destructive"
+            variant="alert"
+          />
+        </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+      <div className="bg-surface-container-highest rounded-[18px] edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
-          <div className="flex-1 max-w-sm flex items-center gap-2 px-4 h-10 rounded-lg bg-surface-container-high border border-border">
-            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="horse-directory-toolbar flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
+          <div className="horse-directory-search">
+            <Search className="horse-directory-search-icon w-4 h-4" />
             <input
               type="text"
               placeholder={t("Search horses by name, status, breed...")}
               value={searchTerm}
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full"
+              className="horse-directory-search-input"
             />
             {searchTerm && (
-              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="horse-directory-clear">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           <button
             onClick={handleDownloadExcel}
-            className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
+            className="btn-download h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
             title={t('Download horses')}
           >
             <Download className="w-4 h-4" />
@@ -461,15 +455,15 @@ const HorsesPage = () => {
           <p className="text-center py-12 text-muted-foreground">{searchTerm ? t('No horses match your search') : t('No horses found')}</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[700px]">
+            <div className="table-scroll-wrap overflow-x-auto">
+              <table className="horses-table w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-border/50">
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Horse Details</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Breed</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Manager</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Performance</th>
+                    {/* <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Performance</th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -506,9 +500,9 @@ const HorsesPage = () => {
                         <td className="px-4 sm:px-6 py-4 text-muted-foreground hidden lg:table-cell">
                           {horse.supervisor ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})` : '-'}
                         </td>
-                        <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
+                        {/* <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
                           <PerformanceBar value={getHorsePerformance(horse)} />
-                        </td>
+                        </td> */}
                       </tr>
                     );
                   })}

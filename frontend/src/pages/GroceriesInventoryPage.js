@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import * as XLSX from "xlsx";
 import { TableSkeleton } from "../components/Skeleton";
@@ -191,6 +190,7 @@ const GroceriesInventoryPage = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, selectedYear]);
 
   const fetchEmployees = useCallback(async () => {
@@ -249,29 +249,6 @@ const GroceriesInventoryPage = () => {
     startIndex,
     startIndex + rowsPerPage
   );
-  const pageItems = useMemo(() => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    const items = [1];
-
-    if (currentPage > 3) items.push("...");
-
-    for (
-      let page = Math.max(2, currentPage - 1);
-      page <= Math.min(totalPages - 1, currentPage + 1);
-      page += 1
-    ) {
-      items.push(page);
-    }
-
-    if (currentPage < totalPages - 2) items.push("...");
-
-    items.push(totalPages);
-    return items.filter((item, index) => item !== "..." || items[index - 1] !== "...");
-  }, [currentPage, totalPages]);
-
   const totalValue = useMemo(
     () => groceries.reduce((sum, record) => sum + Number(record.totalPrice || 0), 0),
     [groceries]

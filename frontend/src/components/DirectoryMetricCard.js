@@ -2,13 +2,34 @@ import React, { useEffect, useState } from 'react';
 import HorseIcon from './HorseIcon';
 import EmployeeFaceIcon from './EmployeeFaceIcon';
 
-const normalizeSparkData = (values = [], count = 6) => {
-  const sliced = values.slice(-count);
-  const padding = Math.max(0, count - sliced.length);
-  return Array.from({ length: count }, (_, index) => {
-    if (index < padding) return 0;
-    return Number(sliced[index - padding]) || 0;
+const normalizeSparkData = (values = []) => {
+  const raw = values.map((value) => Number(value) || 0);
+  const active = raw.filter((value) => value > 0);
+  const source = (active.length ? active : raw).slice(-6);
+  const count = Math.min(6, Math.max(3, source.length || 0));
+  const padded = Array.from({ length: count }, (_, index) => {
+    const offset = count - source.length;
+    return index < offset ? 0 : source[index - offset] || 0;
   });
+
+  const max = Math.max(...padded, 0);
+  let heights = padded.map((value, index) => {
+    if (!max) {
+      return 34 + index * 11;
+    }
+    return Math.max(Math.round((value / max) * 100), 30 + index * 8);
+  });
+
+  heights = heights.reduce((acc, height, index) => {
+    const previous = index ? acc[index - 1] : 0;
+    const nextHeight = index === 0
+      ? Math.max(height, 34)
+      : Math.min(Math.max(height, previous + 8), previous + 14);
+    acc.push(Math.min(nextHeight, 100));
+    return acc;
+  }, []);
+
+  return heights;
 };
 
 const useCounterAnimation = (targetValue, duration = 900) => {
@@ -63,30 +84,35 @@ export default function DirectoryMetricCard({
   const animatedValue = useCounterAnimation(typeof value === 'number' ? value : 0, 1000);
   const displayValue = typeof value === 'number' ? animatedValue : value;
   const normalizedSpark = normalizeSparkData(sparkData);
-  const maxSpark = Math.max(...normalizedSpark, 0);
   const WatermarkIcon = WATERMARK_ICON[watermark] || HorseIcon;
+  const renderIcon = () => {
+    if (Icon === HorseIcon || Icon === EmployeeFaceIcon) {
+      return <Icon className="dashboard-lovable-card-icon-svg" />;
+    }
+    return <Icon size={18} strokeWidth={2} className="dashboard-lovable-card-icon-svg" />;
+  };
 
   return (
-    <div className={`directory-kpi-card directory-kpi-card--${variant} ${hideTitle ? 'directory-kpi-card--hide-title' : ''}`}>
-      <div className={`directory-kpi-card-watermark directory-kpi-card-watermark--${watermark}`}>
+    <div className={`dashboard-lovable-card dashboard-lovable-card--${variant} directory-kpi-card-shell ${hideTitle ? 'directory-kpi-card-shell--hide-title' : ''}`}>
+      <div className={`dashboard-lovable-card-watermark directory-kpi-card-watermark--${watermark}`}>
         <WatermarkIcon />
       </div>
 
-      <div className="directory-kpi-card-head">
-        {!hideTitle && <span className="directory-kpi-card-title">{title}</span>}
-        <div className={`directory-kpi-card-icon directory-kpi-card-icon--${iconTone}`}>
-          <Icon size={18} strokeWidth={2} />
+      <div className="dashboard-lovable-card-head">
+        {!hideTitle && <span className="dashboard-lovable-card-title">{title}</span>}
+        <div className={`dashboard-lovable-card-icon dashboard-lovable-card-icon--${iconTone}`}>
+          {renderIcon()}
         </div>
       </div>
 
-      <div className="directory-kpi-card-body">
-        <div className="directory-kpi-card-value">{displayValue}</div>
-        <div className="directory-kpi-card-footer">
-          <div className={`directory-kpi-card-sub directory-kpi-card-sub--${subtitleTone}`}>{subtitle}</div>
+      <div className="dashboard-lovable-card-body">
+        <div className="dashboard-lovable-card-value">{displayValue}</div>
+        <div className="dashboard-lovable-card-footer">
+          <div className={`dashboard-lovable-card-sub dashboard-lovable-card-sub--${subtitleTone}`}>{subtitle}</div>
           {normalizedSpark.some((entry) => entry > 0) && (
-            <div className="directory-kpi-card-spark" aria-hidden="true">
+            <div className="dashboard-lovable-card-spark" aria-hidden="true">
               {normalizedSpark.map((entry, index) => (
-                <span key={index} style={{ height: `${maxSpark ? (entry / maxSpark) * 100 : 0}%` }} />
+                <span key={index} style={{ height: `${entry}%` }} />
               ))}
             </div>
           )}

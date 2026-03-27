@@ -3,12 +3,11 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, Bell, BellRing, Settings } from 'lucide-react';
+import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
-import * as XLSX from 'xlsx';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
@@ -101,12 +100,6 @@ const FeedInventoryPage = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedRecords = inventoryRecords.slice(startIndex, startIndex + rowsPerPage);
 
-  const handleDownloadExcel = () => {
-    if (!inventoryRecords.length) { alert('No data to download'); return; }
-    const data = inventoryRecords.map(r => ({ 'Feed Type': FEED_LABELS[r.feedType] || r.feedType, 'Opening Stock (kg)': r.openingStock, 'Units Brought': r.unitsBrought, 'Total Available': r.totalAvailable, 'Used Today': r.usedToday, 'Total Used': r.totalUsed, 'Units Left': r.unitsLeft, 'Unit': r.unit, 'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}` }));
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Feed Inventory'); XLSX.writeFile(wb, `FeedInventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  };
-
   const handleSaveThreshold = async () => {
     if (!thresholdModal) return;
     try {
@@ -127,9 +120,6 @@ const FeedInventoryPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Feed <span className="text-primary">Inventory</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Feed Inventory Management')}</p>
         </div>
-        <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 max-lg:w-full max-lg:justify-center">
-          <Download className="w-4 h-4" /> Export
-        </button>
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{messageType === 'success' ? '✓' : '✕'} {message}</div>}
@@ -152,22 +142,29 @@ const FeedInventoryPage = () => {
             <div className="flex items-end gap-3 w-full sm:w-auto">
               <div className="flex-1 min-w-[140px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Month</label>
-                <select value={selectedMonth.toString()} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} className="w-full h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                  {MONTH_NAMES.map((name, i) => <option key={name} value={(i + 1).toString()}>{name}</option>)}
-                </select>
+                <SearchableSelect
+                  value={selectedMonth.toString()}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
+                  options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
+                  placeholder="Select month..."
+                />
               </div>
               <div className="flex-1 min-w-[120px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Year</label>
-                <select value={selectedYear.toString()} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className="w-full h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                  {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y.toString()}>{y}</option>)}
-                </select>
+                <SearchableSelect
+                  value={selectedYear.toString()}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+                  options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))}
+                  placeholder="Select year..."
+                  searchable={false}
+                />
               </div>
             </div>
             <div className="flex gap-2 md:ml-auto w-full sm:w-auto">
               <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
                 {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Entry</>}
               </button>
-              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
+              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="h-10 px-4 rounded-lg border border-border/90 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
                 <RotateCw className="w-4 h-4" /> Recalculate
               </button>
             </div>
@@ -209,8 +206,6 @@ const FeedInventoryPage = () => {
               </form>
             </div>
           )}
-
-          <InventoryCharts type="feed" records={inventoryRecords} labels={FEED_LABELS} />
 
           {/* Low Stock Alert */}
           {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
@@ -304,6 +299,8 @@ const FeedInventoryPage = () => {
               </>
             )}
           </div>
+
+          <InventoryCharts type="feed" records={inventoryRecords} labels={FEED_LABELS} />
         </div>
       )}
 

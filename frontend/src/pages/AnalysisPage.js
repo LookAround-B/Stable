@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import {
   CheckSquare,
   Cog,
-  Download,
 } from 'lucide-react';
 import {
   Area,
@@ -200,13 +199,34 @@ const buildTrendData = (horses, employees, tasks, overallScore) => {
   }));
 };
 
-const normalizeSparkData = (values = [], count = 6) => {
-  const sliced = values.slice(-count);
-  const padding = Math.max(0, count - sliced.length);
-  return Array.from({ length: count }, (_, index) => {
-    if (index < padding) return 0;
-    return Number(sliced[index - padding]) || 0;
+const normalizeSparkData = (values = []) => {
+  const raw = values.map((value) => Number(value) || 0);
+  const active = raw.filter((value) => value > 0);
+  const source = (active.length ? active : raw).slice(-6);
+  const count = Math.min(6, Math.max(3, source.length || 0));
+  const padded = Array.from({ length: count }, (_, index) => {
+    const offset = count - source.length;
+    return index < offset ? 0 : source[index - offset] || 0;
   });
+
+  const max = Math.max(...padded, 0);
+  let heights = padded.map((value, index) => {
+    if (!max) {
+      return 34 + index * 11;
+    }
+    return Math.max(Math.round((value / max) * 100), 30 + index * 8);
+  });
+
+  heights = heights.reduce((acc, height, index) => {
+    const previous = index ? acc[index - 1] : 0;
+    const nextHeight = index === 0
+      ? Math.max(height, 34)
+      : Math.min(Math.max(height, previous + 8), previous + 14);
+    acc.push(Math.min(nextHeight, 100));
+    return acc;
+  }, []);
+
+  return heights;
 };
 
 const useCounter = (target, duration = 1000) => {
@@ -286,7 +306,6 @@ const KpiTile = ({ icon: Icon, watermarkIcon: WatermarkIcon = HorseIcon, label, 
   const animatedValue = useCounter(typeof value === 'number' ? value : 0);
   const displayValue = typeof value === 'number' ? animatedValue : value;
   const normalizedSpark = normalizeSparkData(sparkData);
-  const maxSpark = Math.max(...normalizedSpark, 0);
 
   return (
     <div className="analysis-kpi-card">
@@ -300,7 +319,7 @@ const KpiTile = ({ icon: Icon, watermarkIcon: WatermarkIcon = HorseIcon, label, 
         {normalizedSpark.some((entry) => entry > 0) && (
           <div className="analysis-kpi-spark" aria-hidden="true">
             {normalizedSpark.map((entry, index) => (
-              <span key={index} style={{ height: `${maxSpark ? (entry / maxSpark) * 100 : 0}%` }} />
+              <span key={index} style={{ height: `${entry}%` }} />
             ))}
           </div>
         )}
@@ -521,16 +540,6 @@ function AnalysisPage() {
     };
   }, []);
 
-  const exportAnalysis = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `analysis-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   const transactionMax = useMemo(
     () => Math.max(...data.transactionsByDepartment.map((entry) => entry.value), 0),
     [data.transactionsByDepartment]
@@ -567,11 +576,6 @@ function AnalysisPage() {
           </div>
           <h1 className="analysis-title">Analysis</h1>
           <p className="info-text">Operational intelligence across horses, staff, tasks, and expenses.</p>
-        </div>
-        <div className="lovable-header-actions">
-          <button className="analysis-toolbar-btn" type="button" onClick={exportAnalysis}>
-            <Download size={14} /> Export
-          </button>
         </div>
       </div>
 

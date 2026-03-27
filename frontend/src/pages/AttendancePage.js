@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
-import { Download, Plus, Users, UserCheck, UserX, Clock, X, Search } from 'lucide-react';
+import { Download, Plus, Users, UserCheck, Clock, X, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';

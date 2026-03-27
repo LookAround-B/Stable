@@ -74,17 +74,6 @@ const hashStringToColor = (str) => {
   return `hsl(${hue}, 70%, 62%)`;
 };
 
-const getRoleBadgeStyle = (designation) => {
-  if (!designation) return {};
-  const accent = ROLE_COLORS[designation] || hashStringToColor(designation);
-  return {
-    background: `${accent}18`,
-    color: accent,
-    borderColor: `${accent}30`,
-    border: `1px solid ${accent}30`,
-  };
-};
-
 const getDateValue = (...values) => {
   for (const value of values) {
     if (!value) continue;
@@ -504,7 +493,7 @@ const EmployeesPage = () => {
   if (!p.manageEmployees) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="employees-page space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -525,55 +514,84 @@ const EmployeesPage = () => {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'TOTAL STAFF', value: totalEmployees, color: 'text-primary' },
-          { label: 'APPROVED', value: approvedEmployees, color: 'text-success' },
-          { label: 'PENDING APPROVAL', value: pendingEmployees, color: 'text-warning' },
-          { label: 'SUPERVISORY ROLES', value: supervisoryEmployees, color: 'text-primary' },
-        ].map(card => (
-          <div key={card.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-              <Users className="w-24 h-24" />
-            </div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1 relative z-10">{card.label}</p>
-            <p className={`text-2xl sm:text-3xl font-bold mono-data relative z-10 ${card.color}`}>{String(card.value).padStart(2, '0')}</p>
-          </div>
-        ))}
+      <div className="dashboard-lovable">
+        <div className="dashboard-lovable-card-grid directory-kpi-grid">
+          <DirectoryMetricCard
+            title="Total Staff"
+            value={totalEmployees}
+            subtitle="Registered Profiles"
+            icon={Users}
+            sparkData={employeeSpark}
+            watermark="employee"
+            iconTone="primary"
+            subtitleTone="primary"
+          />
+          <DirectoryMetricCard
+            title="Approved Staff"
+            value={approvedEmployees}
+            subtitle="Verified Access"
+            icon={CheckCircle2}
+            sparkData={approvedSpark}
+            watermark="employee"
+            iconTone="success"
+            subtitleTone="success"
+            variant="success"
+          />
+          <DirectoryMetricCard
+            title="Pending Approval"
+            value={pendingEmployees}
+            subtitle="Needs Review"
+            icon={Clock3}
+            sparkData={pendingSpark}
+            watermark="employee"
+            iconTone="destructive"
+            subtitleTone="destructive"
+            variant="alert"
+          />
+          <DirectoryMetricCard
+            title="Supervisory Roles"
+            value={supervisoryEmployees}
+            subtitle="Leadership Layer"
+            icon={BriefcaseBusiness}
+            sparkData={supervisorySpark}
+            watermark="employee"
+            iconTone="primary"
+            subtitleTone="primary"
+          />
+        </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+      <div className="bg-surface-container-highest rounded-[18px] edge-glow">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
-          <div className="flex-1 max-w-sm flex items-center gap-2 px-4 h-10 rounded-lg bg-surface-container-high border border-border">
-            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="employee-directory-toolbar flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
+          <div className="employee-directory-search">
+            <Search className="employee-directory-search-icon w-4 h-4" />
             <input
               type="text"
               placeholder={t("Search by name, email, or role...")}
               value={searchTerm}
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full"
+              className="employee-directory-search-input"
             />
             {searchTerm && (
-              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="employee-directory-clear">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-48">
-              <SearchableSelect
-                name="employeeRoleFilter"
-                value={roleFilter}
-                onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
-                options={availableRoles.map((role) => ({ value: role, label: t(role) }))}
-                placeholder={t('All Roles')}
-              />
-            </div>
+            <SearchableSelect
+              name="employeeRoleFilter"
+              className="employee-directory-role-filter"
+              value={roleFilter}
+              onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+              options={availableRoles.map((role) => ({ value: role, label: t(role) }))}
+              placeholder={t('All Roles')}
+            />
             <button
               onClick={handleDownloadExcel}
-              className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
+              className="btn-download h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
               title={t('Download employees')}
             >
               <Download className="w-4 h-4" />
@@ -585,8 +603,8 @@ const EmployeesPage = () => {
           <p className="text-center py-12 text-muted-foreground">{searchTerm ? t('No employees match your search') : t('No employees found')}</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[700px]">
+            <div className="table-scroll-wrap overflow-x-auto">
+              <table className="employees-table w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-border/50">
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</th>

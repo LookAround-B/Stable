@@ -134,7 +134,7 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
     setOpenGroups((prev) => {
       const next = { ...prev };
       visibleGroups.forEach((group) => {
-        const shouldBeOpen = group.items.some((item) => isActive(item.to)) || group.label === 'Organisation';
+        const shouldBeOpen = group.items.some((item) => isActive(item.to));
         if (typeof next[group.label] !== 'boolean') {
           next[group.label] = shouldBeOpen;
         }

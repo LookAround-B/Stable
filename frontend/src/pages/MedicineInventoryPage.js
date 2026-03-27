@@ -8,7 +8,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
-import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus, Pencil, Trash2, Settings, BellRing } from 'lucide-react';
+import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus, Pencil, Trash2, BellRing } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const MEDICINE_LABELS = {
@@ -23,6 +23,7 @@ const MEDICINE_LABELS = {
 };
 
 const MEDICINE_TYPES = Object.keys(MEDICINE_LABELS);
+const OTHER_MEDICINE_VALUE = '__other__';
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 const MedicineInventoryPage = () => {
@@ -51,6 +52,7 @@ const MedicineInventoryPage = () => {
     unit: 'ml',
     notes: '',
   });
+  const [customMedicineType, setCustomMedicineType] = useState('');
 
   const [reportStartDate, setReportStartDate] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
@@ -98,6 +100,12 @@ const MedicineInventoryPage = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      const medicineTypeToSave = formData.medicineType === OTHER_MEDICINE_VALUE ? customMedicineType.trim() : formData.medicineType;
+      if (!medicineTypeToSave) {
+        showMessage('Medicine type is required', 'error');
+        setLoading(false);
+        return;
+      }
       if (editingRecord) {
         await medicineInventoryService.updateInventory({
           id: editingRecord.id,
@@ -109,7 +117,8 @@ const MedicineInventoryPage = () => {
         showMessage('Inventory record updated successfully');
       } else {
         await medicineInventoryService.createInventory({
-          medicineType: formData.medicineType,
+          medicineType: medicineTypeToSave,
+          customMedicineType: customMedicineType.trim(),
           month: selectedMonth,
           year: selectedYear,
           unitsPurchased: formData.unitsPurchased,
@@ -169,6 +178,7 @@ const MedicineInventoryPage = () => {
       unit: 'ml',
       notes: '',
     });
+    setCustomMedicineType('');
   };
 
   const handleCancel = () => {
@@ -302,6 +312,15 @@ const MedicineInventoryPage = () => {
   const totalStock = inventoryRecords.reduce((s, m) => s + (m.unitsLeft || 0), 0);
   const lowStockCount = inventoryRecords.filter(m => m.threshold !== null && m.threshold !== undefined && m.unitsLeft < m.threshold).length;
   const efficiency = inventoryRecords.length > 0 ? Math.round((totalStock / Math.max(1, inventoryRecords.reduce((s, m) => s + (m.openingStock || 0) + (m.unitsPurchased || 0), 0))) * 100) : 0;
+  const reportControlClass = 'h-10 w-full min-w-[180px] px-4 rounded-xl border border-border bg-surface-container-high text-foreground text-sm font-medium focus:ring-1 focus:ring-primary outline-none';
+  const reportButtonClass = 'h-10 min-w-[180px] px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2';
+  const medicineTypeOptions = [
+    ...MEDICINE_TYPES.map((type) => ({ value: type, label: MEDICINE_LABELS[type] })),
+    ...(editingRecord && !MEDICINE_LABELS[editingRecord.medicineType]
+      ? [{ value: editingRecord.medicineType, label: editingRecord.medicineType }]
+      : []),
+    { value: OTHER_MEDICINE_VALUE, label: 'Others' },
+  ];
 
   const kpis = [
     { label: 'TOTAL INVENTORY UNITS', value: Math.round(totalStock).toLocaleString(), sub: `${inventoryRecords.length} medicine types`, subColor: 'text-success', icon: Package },
@@ -318,9 +337,6 @@ const MedicineInventoryPage = () => {
           <p className="text-sm text-muted-foreground mt-1">{t('Manage and track medicine stock levels across the facility.')}</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> Export
-          </button>
           <button
             onClick={() => !showForm && setShowForm(true)}
             disabled={loading || showForm}
@@ -401,7 +417,7 @@ const MedicineInventoryPage = () => {
                       const { name, value } = e.target;
                       setFormData((prev) => ({ ...prev, [name]: value }));
                     }}
-                    options={MEDICINE_TYPES.map((type) => ({ value: type, label: MEDICINE_LABELS[type] }))}
+                    options={medicineTypeOptions}
                     placeholder="Select medicine type..."
                     disabled={editingRecord !== null}
                     required
@@ -427,6 +443,19 @@ const MedicineInventoryPage = () => {
                   />
                 </div>
               </div>
+              {formData.medicineType === OTHER_MEDICINE_VALUE && !editingRecord && (
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Other Medicine Type *</label>
+                  <input
+                    type="text"
+                    value={customMedicineType}
+                    onChange={(e) => setCustomMedicineType(e.target.value)}
+                    placeholder="Enter medicine type..."
+                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
+                    required
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Opening Stock</label>
@@ -453,17 +482,22 @@ const MedicineInventoryPage = () => {
           {/* Table */}
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 border-b border-border gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <input
                     value={medicineSearch}
                     onChange={e => { setMedicineSearch(e.target.value); setCurrentPage(1); }}
                     placeholder={t("Search medicine...")}
-                    className="h-8 pl-8 pr-3 w-44 rounded-lg bg-surface-container-high text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                    className="h-10 pl-9 pr-3 w-full sm:w-72 rounded-xl border border-border bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                   />
                   {medicineSearch && <button onClick={() => setMedicineSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>}
                 </div>
+              </div>
+              <div className="flex justify-end">
+                <button onClick={handleDownloadExcel} className="btn-download h-10 px-4 sm:px-5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+                  <Download className="w-4 h-4" /> Export
+                </button>
               </div>
             </div>
 
@@ -573,20 +607,22 @@ const MedicineInventoryPage = () => {
         <div className="space-y-4">
           <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
             <div className="flex flex-wrap items-end gap-4">
-              <div>
+              <div className="flex-1 min-w-[180px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
-                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className={reportControlClass} />
               </div>
-              <div>
+              <div className="flex-1 min-w-[180px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
-                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className={reportControlClass} />
               </div>
-              <button onClick={handleLoadReport} disabled={loading} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
+              <button onClick={handleLoadReport} disabled={loading} className={`${reportButtonClass} bg-primary text-primary-foreground hover:brightness-110`}>
                 {loading ? 'Loading...' : 'Generate Report'}
               </button>
-              <button onClick={handleDownloadCSV} disabled={downloadingCSV || !reportData} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                <Download className="w-4 h-4" /> {downloadingCSV ? 'Downloading...' : 'CSV'}
-              </button>
+              {reportData && Object.keys(reportData).length > 0 && (
+                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className={`${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high`}>
+                  <Download className="w-4 h-4" /> {downloadingCSV ? 'Downloading...' : 'CSV'}
+                </button>
+              )}
             </div>
           </div>
 

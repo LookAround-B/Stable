@@ -126,14 +126,15 @@ async function handlePost(
   res: NextApiResponse,
   user: { id: string; fullName: string; designation: string }
 ) {
-  const { medicineType, month, year, unitsPurchased, openingStock, unit, notes } = req.body;
+  const { medicineType, customMedicineType, month, year, unitsPurchased, openingStock, unit, notes } = req.body;
+  const rawMedicineType =
+    medicineType === '__other__' || medicineType === 'Others'
+      ? customMedicineType
+      : medicineType;
+  const normalizedMedicineType = typeof rawMedicineType === 'string' ? rawMedicineType.trim() : '';
 
-  if (!medicineType || !month || !year) {
+  if (!normalizedMedicineType || !month || !year) {
     return res.status(400).json({ error: 'Medicine type, month, and year are required' });
-  }
-
-  if (!MEDICINE_TYPES.includes(medicineType)) {
-    return res.status(400).json({ error: `Invalid medicine type. Must be one of: ${MEDICINE_TYPES.join(', ')}` });
   }
 
   const monthNum = parseInt(month);
@@ -148,7 +149,7 @@ async function handlePost(
     const existing = await prisma.medicineInventory.findUnique({
       where: {
         medicineType_month_year: {
-          medicineType,
+          medicineType: normalizedMedicineType,
           month: monthNum,
           year: yearNum,
         },
@@ -161,7 +162,7 @@ async function handlePost(
 
     const record = await prisma.medicineInventory.create({
       data: {
-        medicineType,
+        medicineType: normalizedMedicineType,
         month: monthNum,
         year: yearNum,
         unitsPurchased: parseFloat(unitsPurchased) || 0,

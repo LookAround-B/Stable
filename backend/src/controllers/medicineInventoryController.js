@@ -64,10 +64,14 @@ exports.getInventoryById = async (req, res) => {
 // Create new medicine inventory entry
 exports.createInventory = async (req, res) => {
   try {
-    const { medicineType, month, year, unitsPurchased, openingStock, unit, notes } = req.body;
+    const { medicineType, customMedicineType, month, year, unitsPurchased, openingStock, unit, notes } = req.body;
+    const rawMedicineType = medicineType === '__other__' || medicineType === 'Others'
+      ? customMedicineType
+      : medicineType;
+    const normalizedMedicineType = typeof rawMedicineType === 'string' ? rawMedicineType.trim() : '';
     const userId = req.user?.id;
 
-    if (!medicineType || !month || !year || !userId) {
+    if (!normalizedMedicineType || !month || !year || !userId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -75,7 +79,7 @@ exports.createInventory = async (req, res) => {
     const existing = await prisma.medicineInventory.findUnique({
       where: {
         medicineType_month_year: {
-          medicineType,
+          medicineType: normalizedMedicineType,
           month: parseInt(month),
           year: parseInt(year),
         },
@@ -92,7 +96,7 @@ exports.createInventory = async (req, res) => {
 
     const record = await prisma.medicineInventory.create({
       data: {
-        medicineType,
+        medicineType: normalizedMedicineType,
         month: parseInt(month),
         year: parseInt(year),
         openingStock: totalOpening,

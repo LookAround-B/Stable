@@ -15130,6 +15130,12 @@ html[data-text-size="large"] {
   background: #ffffff;
 }
 
+.lovable-shell.lovable-theme-light .approvals-page .bg-surface-container-high,
+.lovable-shell.lovable-theme-light .approvals-page .approval-card,
+.lovable-shell.lovable-theme-light .approvals-page .approval-card.card {
+  background: #ffffff;
+}
+
 /* Groceries Page */
 .groceries-page {
   background: transparent;
@@ -16642,7 +16648,7 @@ body.efm-theme-light .crop-area {
   justify-content: space-between;
   gap: 18px;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   padding: 0;
   background: transparent;
   border: 0;
@@ -16675,7 +16681,7 @@ body.efm-theme-light .crop-area {
   gap: 12px;
   width: 100%;
   padding: 0;
-  margin-top: 0;
+  margin-top: -10px;
   margin-bottom: 14px;
   border: 0;
   border-radius: 0;
@@ -17966,6 +17972,36 @@ body.efm-theme-light .crop-area {
   background: rgba(124, 58, 237, 0.4);
 }
 
+.directory-kpi-grid .dashboard-lovable-card {
+  min-height: 140px;
+}
+
+.directory-kpi-grid .dashboard-lovable-card-watermark--employee svg {
+  width: 104px;
+  height: 104px;
+}
+
+.lovable-main-content .horses-page .table-scroll-wrap,
+.lovable-main-content .employees-page .table-scroll-wrap {
+  overflow: auto;
+  border-radius: 18px;
+}
+
+.lovable-main-content .horses-page .table-scroll-wrap > table,
+.lovable-main-content .employees-page .table-scroll-wrap > table {
+  border-radius: inherit;
+}
+
+.lovable-main-content .horses-page .table-scroll-wrap thead th:first-child,
+.lovable-main-content .employees-page .table-scroll-wrap thead th:first-child {
+  border-top-left-radius: 18px;
+}
+
+.lovable-main-content .horses-page .table-scroll-wrap thead th:last-child,
+.lovable-main-content .employees-page .table-scroll-wrap thead th:last-child {
+  border-top-right-radius: 18px;
+}
+
 @media (max-width: 1024px) {
   .employees-page .employees-page-header,
   .horses-page .horses-page-header,
@@ -18832,7 +18868,7 @@ body.efm-theme-light .crop-area {
 .approvals-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .approvals-page .approval-header {
@@ -18841,6 +18877,11 @@ body.efm-theme-light .crop-area {
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
+  margin-bottom: 0;
+}
+
+.approvals-page > .flex.flex-col.md\:flex-row.items-stretch.md\:items-center.justify-between.gap-4 {
+  margin-top: -8px;
 }
 
 .approvals-page .approval-header h1 {

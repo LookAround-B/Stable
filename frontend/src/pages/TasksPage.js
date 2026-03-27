@@ -540,12 +540,6 @@ const TasksPage = () => {
     return filterMatch && searchMatch;
   });
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.status === 'Completed').length;
-  const highPriorityTasks = tasks.filter(task => ['High', 'Urgent'].includes(task.priority)).length;
-  const reviewReadyTasks = completedTasks;
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
   const filterPills = TASK_FILTERS.map((filterKey) => ({
     key: filterKey,
     label: t(filterKey),
@@ -558,10 +552,7 @@ const TasksPage = () => {
   }).format(new Date()).toUpperCase();
 
   const getShiftLabel = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'MORNING ALPHA';
-    if (hour < 17) return 'AFTERNOON BRAVO';
-    return 'EVENING CHARLIE';
+    return shiftRange.label;
   };
 
   const supportMembers = employees.slice(0, 3).map((emp) => ({
@@ -601,6 +592,13 @@ const TasksPage = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getTaskScheduledDate = (task) => {
+    const source = task?.scheduledTime || task?.scheduledDatetime || task?.scheduledDate;
+    if (!source) return null;
+    const date = new Date(source);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
   const getTaskSupportInfo = (task) => {
     if (task.requiredProof) return 'Evidence Required';
     if (task.priority === 'Urgent') return 'Critical Window';
@@ -611,6 +609,73 @@ const TasksPage = () => {
   };
 
   const getTaskEvidenceImage = (task) => task.proofImage || task.photoUrl || '';
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const shiftRange = currentHour < 12
+    ? { start: 0, end: 11, label: 'MORNING ALPHA' }
+    : currentHour < 17
+      ? { start: 12, end: 16, label: 'AFTERNOON BRAVO' }
+      : { start: 17, end: 23, label: 'EVENING CHARLIE' };
+
+  const sameDayTasks = tasks.filter((task) => {
+    const date = getTaskScheduledDate(task);
+    if (!date) return false;
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  });
+
+  const shiftTasks = sameDayTasks.filter((task) => {
+    const date = getTaskScheduledDate(task);
+    if (!date) return false;
+    const hour = date.getHours();
+    return hour >= shiftRange.start && hour <= shiftRange.end;
+  });
+
+  const shiftPendingTasks = shiftTasks.filter((task) => ['Pending', 'In Progress', 'Pending Review'].includes(task.status));
+  const shiftCompletedTasks = shiftTasks.filter((task) => task.status === 'Completed');
+  const shiftPriorityTasks = shiftTasks.filter((task) => ['High', 'Urgent'].includes(task.priority));
+  const shiftReviewQueue = shiftTasks.filter((task) => task.status === 'Completed' || task.status === 'Pending Review');
+  const shiftCompletionRate = shiftTasks.length ? Math.round((shiftCompletedTasks.length / shiftTasks.length) * 100) : 0;
+
+  const assignedShiftTasks = shiftTasks.filter((task) => task.assignedEmployeeId).length;
+  const proofRequiredShiftTasks = shiftTasks.filter((task) => task.requiredProof).length;
+  const trainingShiftTasks = shiftTasks.filter((task) => ['Training', 'Exercise'].includes(task.type)).length;
+  const healthShiftTasks = shiftTasks.filter((task) => ['Health Check', 'Medical'].includes(task.type)).length;
+  const shiftCoverage = shiftTasks.length ? Math.round((assignedShiftTasks / shiftTasks.length) * 100) : 0;
+  const syncScore = shiftTasks.length
+    ? Math.max(
+        34,
+        Math.min(
+          96,
+          Math.round(
+            shiftCoverage * 0.45 +
+            shiftCompletionRate * 0.35 +
+            ((shiftTasks.length - shiftPendingTasks.length) / shiftTasks.length) * 20
+          )
+        )
+      )
+    : 72;
+
+  const environmentTrendUp = shiftPendingTasks.length > Math.max(2, shiftCompletedTasks.length);
+  const environmentStatus = syncScore >= 80
+    ? t('SHIFT FLOW ALIGNED')
+    : syncScore >= 60
+      ? t('MONITORING LOAD')
+      : t('QUEUE PRESSURE ELEVATED');
+
+  const focusNote = shiftTasks.length
+    ? (
+        shiftPriorityTasks.length > 0
+          ? `${shiftPriorityTasks.length} high-priority task(s) scheduled in the current shift.`
+          : shiftReviewQueue.length > 0
+            ? `${shiftReviewQueue.length} task(s) awaiting review in the current shift.`
+            : `Current shift schedule is stable with ${shiftPendingTasks.length} active task(s).`
+      )
+    : t('No live tasks scheduled in the current shift.');
 
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) || null;
   const reviewingTask = tasks.find((task) => task.id === viewingTaskId) || null;
@@ -794,16 +859,16 @@ const TasksPage = () => {
             </div>
             <div className="space-y-3 mt-4">
               {[
-                { label: t('Completion'), value: `${completionRate}%`, pct: completionRate },
+                { label: t('Shift Completion'), value: `${shiftCompletionRate}%`, pct: shiftCompletionRate },
                 {
                   label: t('High Priority'),
-                  value: highPriorityTasks,
-                  pct: totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0,
+                  value: shiftPriorityTasks.length,
+                  pct: shiftTasks.length ? Math.max(8, Math.round((shiftPriorityTasks.length / shiftTasks.length) * 100)) : 0,
                 },
                 {
                   label: t('Review Queue'),
-                  value: reviewReadyTasks,
-                  pct: totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0,
+                  value: shiftReviewQueue.length,
+                  pct: shiftTasks.length ? Math.max(8, Math.round((shiftReviewQueue.length / shiftTasks.length) * 100)) : 0,
                 },
               ].map((row) => (
                 <div key={row.label}>
@@ -818,7 +883,7 @@ const TasksPage = () => {
               ))}
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              <span className="text-primary font-semibold">{t('Note')}:</span> {t('Heavy traffic in Arena B scheduled for 11:00.')}
+              <span className="text-primary font-semibold">{t('Note')}:</span> {focusNote}
             </p>
           </div>
 
@@ -851,12 +916,26 @@ const TasksPage = () => {
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t('Environmental Sync')}</p>
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-4xl font-bold text-foreground tracking-tight">{`18.4\u00B0C`}</p>
+                <p className="text-4xl font-bold text-foreground tracking-tight">{`${syncScore}%`}</p>
                 <p className="text-xs text-primary mt-1 flex items-center gap-1">
-                  <TrendingDown className="w-3 h-3" /> {t('STABLE STASIS OPTIMAL')}
+                  <TrendingDown className={`w-3 h-3 ${environmentTrendUp ? 'rotate-180' : ''}`} /> {environmentStatus}
                 </p>
               </div>
               <Thermometer className="w-8 h-8 text-muted-foreground/30" />
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t('Coverage')}</p>
+                <p className="text-sm font-bold text-foreground mt-1">{`${shiftCoverage}%`}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t('Training')}</p>
+                <p className="text-sm font-bold text-foreground mt-1">{trainingShiftTasks}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t('Health')}</p>
+                <p className="text-sm font-bold text-foreground mt-1">{healthShiftTasks + proofRequiredShiftTasks}</p>
+              </div>
             </div>
           </div>
         </div>

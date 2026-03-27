@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { TableSkeleton } from '../components/Skeleton';
@@ -34,6 +34,7 @@ const FinePage = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   // Filters
+  // eslint-disable-next-line no-unused-vars
   const [filters, setFilters] = useState({
     status: '',
     startDate: '',
@@ -214,11 +215,6 @@ const FinePage = () => {
     window.addEventListener('keydown', handleEscKey);
     return () => window.removeEventListener('keydown', handleEscKey);
   }, []);
-
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleFormChange = (e) => {
     const { name, value, files } = e.target;

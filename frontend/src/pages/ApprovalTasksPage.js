@@ -189,7 +189,7 @@ const ApprovalTasksPage = () => {
   if (!p.viewApprovals) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="approvals-page space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>

@@ -19,20 +19,21 @@ const HorseCareTeamPage = () => {
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [selectedHorse, setSelectedHorse] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [formData, setFormData] = useState({
     horseId: '',
-    role: 'Primary Groom', 
+    role: 'Groom', 
     staffId: '',
   });
 
-  const ROLES = ['Primary Groom', 'Alternative Groom', 'Rider', 'Jamedar', 'Instructor'];
+  const ROLES = ['Groom', 'Rider', 'Jamedar', 'Instructor', 'Farrier'];
   const STAFF_ROLES = {
-    'Primary Groom': ['Groom', 'Stable Manager'],
-    'Alternative Groom': ['Groom'],
+    'Groom': ['Groom', 'Stable Manager'],
     'Rider': ['Riding Boy', 'Rider'],
     'Jamedar': ['Jamedar'],
     'Instructor': ['Instructor'],
+    'Farrier': ['Farrier'],
   };
 
   const showMsg = (msg, type = "success") => {
@@ -170,10 +171,10 @@ const HorseCareTeamPage = () => {
       showMsg('Care team member assigned successfully!');
       setCareTeams([response.data, ...careTeams]);
       setShowForm(false);
-      setFormData({ horseId: '', role: 'Primary Groom', staffId: '' });
+      setFormData({ horseId: '', role: 'Groom', staffId: '' });
       setSelectedHorse(null);
     } catch (error) {
-      showMsg(error.response?.data?.message || error.message, 'error');
+      showMsg(error.response?.data?.error || error.response?.data?.message || error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -188,11 +189,45 @@ const HorseCareTeamPage = () => {
     return careTeams.filter((team) => team.horseId === horseId);
   };
 
+  const getHorseAgeLabel = (horse) => {
+    if (!horse) return 'N/A';
+    if (horse.age !== null && horse.age !== undefined && horse.age !== '') {
+      return `${horse.age} years`;
+    }
+    if (horse.dateOfBirth) {
+      const dob = new Date(horse.dateOfBirth);
+      if (!Number.isNaN(dob.getTime())) {
+        const today = new Date();
+        let years = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+          years -= 1;
+        }
+        if (years >= 0) {
+          return `${years} years`;
+        }
+      }
+    }
+    return 'N/A';
+  };
+
   if (!p.isAdmin && user?.designation !== 'Stable Manager') return <Navigate to="/dashboard" replace />;
 
   const totalHorses = horses.length;
   const horsesWithTeams = horses.filter((h) => getHorseCareTeam(h.id).length > 0).length;
   const unassignedHorses = totalHorses - horsesWithTeams;
+  const filteredHorses = horses.filter((horse) => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return true;
+    return [
+      horse.name,
+      horse.registrationNumber,
+      horse.stableNumber,
+      horse.breed,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(q));
+  });
 
   return (
     <div className="space-y-6">
@@ -261,7 +296,7 @@ const HorseCareTeamPage = () => {
                 </div>
                 {selectedHorse && (
                   <div className="p-3 rounded-lg bg-surface-container-high border border-border space-y-1 text-sm">
-                    <p><span className="text-muted-foreground w-24 inline-block">Age:</span> <strong className="text-foreground">{selectedHorse.age || 'N/A'} years</strong></p>
+                    <p><span className="text-muted-foreground w-24 inline-block">Age:</span> <strong className="text-foreground">{getHorseAgeLabel(selectedHorse)}</strong></p>
                     <p><span className="text-muted-foreground w-24 inline-block">Breed:</span> <strong className="text-foreground">{t(selectedHorse.breed) || 'N/A'}</strong></p>
                     <p><span className="text-muted-foreground w-24 inline-block">Current Team:</span> <strong className="text-foreground">{getHorseCareTeam(selectedHorse.id).length} members</strong></p>
                   </div>
@@ -270,15 +305,14 @@ const HorseCareTeamPage = () => {
 
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Team Role *</label>
-                <select
+                <SearchableSelect
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  required disabled={loading}
-                  className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
-                >
-                  {ROLES.map((role) => <option key={role} value={role}>{role}</option>)}
-                </select>
+                  options={ROLES.map((role) => ({ value: role, label: role }))}
+                  required
+                  disabled={loading}
+                />
                 <p className="text-[10px] text-muted-foreground mt-2">Available staff types: {STAFF_ROLES[formData.role]?.join(', ')}</p>
               </div>
 
@@ -303,12 +337,23 @@ const HorseCareTeamPage = () => {
       )}
 
       {/* Horses Grid */}
-      <h2 className="text-xl font-bold text-foreground pt-2">Horse Care Teams</h2>
-      {horses.length === 0 ? (
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pt-2">
+        <h2 className="text-xl font-bold text-foreground">Horse Care Teams</h2>
+        <div className="relative w-full sm:w-[320px]">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search horse care teams..."
+            className="w-full h-10 rounded-lg border border-border bg-surface-container-high px-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-primary outline-none"
+          />
+        </div>
+      </div>
+      {filteredHorses.length === 0 ? (
         <p className="text-muted-foreground py-8">No horses available</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {horses.map((horse) => {
+          {filteredHorses.map((horse) => {
             const team = getHorseCareTeam(horse.id);
             return (
               <div key={horse.id} className="bg-surface-container-highest rounded-xl p-5 edge-glow flex flex-col hover:border-border/50 transition-colors border border-transparent">
