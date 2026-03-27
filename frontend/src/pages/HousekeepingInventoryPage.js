@@ -4,16 +4,21 @@ import { TableSkeleton } from '../components/Skeleton';
 import housekeepingInventoryService from "../services/housekeepingInventoryService";
 import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
-import Pagination from "../components/Pagination";
 import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { AlertTriangle, Download, Package, Plus, Search, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
 const UNIT_TYPES = ["Liters", "Pieces", "Kg"];
 const USAGE_AREAS = ["Stable", "Arena", "Wash Area"];
+
+const categoryStyle = {
+  'Cleaning Supplies': 'bg-primary/20 text-primary',
+  'Tools': 'bg-warning/20 text-warning',
+  'Consumables': 'bg-success/20 text-success',
+};
 
 const HousekeepingInventoryPage = () => {
   const { t } = useI18n();
@@ -26,7 +31,8 @@ const HousekeepingInventoryPage = () => {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("success");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [rowsPerPage] = useState(5);
+  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [filterCategory, setFilterCategory] = useState("");
@@ -115,7 +121,7 @@ const HousekeepingInventoryPage = () => {
     catch { showMsg("Failed to delete", "error"); }
   };
 
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-GB") : "-";
+  const formatDate = (d) => d ? new Date(d).toISOString().split('T')[0] : "-";
 
   const handleDownloadExcel = () => {
     if (items.length === 0) { alert("No data"); return; }
@@ -135,6 +141,10 @@ const HousekeepingInventoryPage = () => {
   };
 
   const lowStockItems = items.filter(i => i.reorderAlert && i.minimumStockLevel && i.quantity < i.minimumStockLevel);
+  const expiredItems = items.filter(i => i.expiryDate && new Date(i.expiryDate) < new Date());
+
+  const hasActiveFilters = filterCategory || filterArea;
+  const clearFilters = () => { setFilterCategory(''); setFilterArea(''); setCurrentPage(1); };
 
   if (!p.viewHousekeepingInventory) return <Navigate to="/dashboard" replace />;
 
@@ -143,7 +153,7 @@ const HousekeepingInventoryPage = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2"><Sparkles className="w-6 h-6 text-primary" /> Housekeeping <span className="text-primary">Inventory</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Housekeeping <span className="text-primary">Inventory</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -167,33 +177,25 @@ const HousekeepingInventoryPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
           <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> TOTAL ITEMS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{items.length}</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(items.length).padStart(2, '0')}</p>
           <p className="text-xs mt-1 text-muted-foreground">Across all categories</p>
         </div>
         <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
           <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5 text-warning" /> LOW STOCK</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{lowStockItems.length}</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(lowStockItems.length).padStart(2, '0')}</p>
           <p className="text-xs mt-1 text-warning">Needs reorder</p>
         </div>
         <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /> EXPIRED</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{items.filter(i => i.expiryDate && new Date(i.expiryDate) < new Date()).length}</p>
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-destructive" /> EXPIRED</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(expiredItems.length).padStart(2, '0')}</p>
           <p className="text-xs mt-1 text-destructive">Past expiry date</p>
         </div>
       </div>
 
       {/* ── Low Stock Alert ── */}
       {lowStockItems.length > 0 && (
-        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-start gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-          <div>
-            <strong>Low Stock Alert</strong>
-            <ul className="mt-1 pl-4 list-disc text-xs">
-              {lowStockItems.map(i => (
-                <li key={i.id}>{i.itemName}: {i.quantity} {i.unitType} remaining (min: {i.minimumStockLevel})</li>
-              ))}
-            </ul>
-          </div>
+        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Low Stock Alert:</strong> {lowStockItems.map(i => `${i.itemName} (${i.quantity} ${i.unitType})`).join(', ')}
         </div>
       )}
 
@@ -260,7 +262,7 @@ const HousekeepingInventoryPage = () => {
                 <SearchableSelect name="assignedStaffId" value={formData.assignedStaffId} onChange={handleInputChange} options={[{ value: '', label: '-- None --' }, ...employees.map(e => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]} />
               </div>
               <div className="flex items-center gap-2 pt-6">
-                <input type="checkbox" name="reorderAlert" checked={formData.reorderAlert} onChange={handleInputChange} className="w-4 h-4 rounded" />
+                <input type="checkbox" name="reorderAlert" checked={formData.reorderAlert} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
                 <label className="text-sm text-foreground">Enable Reorder Alert</label>
               </div>
             </div>
@@ -269,88 +271,150 @@ const HousekeepingInventoryPage = () => {
               <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows="2" maxLength={500} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none resize-none" />
             </div>
             <div className="flex gap-3">
-              <button type="submit" className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{editingId ? "Update" : "Add Item"}</button>
+              <button type="submit" className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{editingId ? "Save Changes" : "Add Item"}</button>
               <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={resetForm}>Cancel</button>
             </div>
           </form>
         </div>
       )}
 
-      {/* ── Table Container ── */}
+      {/* ── Table Container (EFM Replica) ── */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 sm:px-6 py-4 border-b border-border">
-          <div className="flex-1 flex items-center gap-2 px-4 h-11 rounded-lg border border-border bg-background">
-            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-            <input type="text" placeholder="Search by name, supplier..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full" />
-            {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+              placeholder={t("Search items...")}
+              className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+            />
+            {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
-          <SearchableSelect value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }} options={[{ value: '', label: 'All Categories' }, ...CATEGORIES.map(c => ({ value: c, label: c }))]} placeholder="All Categories" className="w-full sm:w-44" />
-          <SearchableSelect value={filterArea} onChange={e => { setFilterArea(e.target.value); setCurrentPage(1); }} options={[{ value: '', label: 'All Areas' }, ...USAGE_AREAS.map(a => ({ value: a, label: a }))]} placeholder="All Areas" className="w-full sm:w-40" />
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowFilters(v => !v)}
+              className={`flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors ${showFilters || hasActiveFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
+              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            </button>
+            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} of {items.length} items</span>
+          </div>
         </div>
 
+        {/* Filter Panel */}
+        {showFilters && (
+          <div className="px-3 sm:px-6 py-4 border-b border-border bg-surface-container-high/50">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="w-44">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
+                <select value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
+                  <option value="">All Areas</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="w-40">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Usage Area</label>
+                <select value={filterArea} onChange={e => { setFilterArea(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
+                  <option value="">All</option>
+                  {USAGE_AREAS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
+                  <X className="w-3 h-3" /> Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Table */}
-        {loading ? <div className="p-4"><TableSkeleton cols={10} rows={5} /></div> : items.length === 0 ? (
-          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : "No housekeeping items found."}</p>
+        {loading ? <div className="p-4"><TableSkeleton cols={8} rows={5} /></div> : items.length === 0 ? (
+          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : "No items found."}</p>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[1100px]">
+              <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Item Name</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Category</th>
-                    <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Qty</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Unit</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Area</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Supplier</th>
-                    <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cost/Unit</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Expiry</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Staff</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stock</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Actions</th>
+                    {['ITEM NAME', 'CATEGORY', 'QTY', 'UNIT', 'AREA', 'EXPIRY', 'STATUS', ''].map(h => (
+                      <th key={h || 'actions'} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedItems.map((item, i) => {
+                  {paginatedItems.map(item => {
                     const isLowStock = item.reorderAlert && item.minimumStockLevel && item.quantity < item.minimumStockLevel;
                     const isExpired = item.expiryDate && new Date(item.expiryDate) < new Date();
+                    const catCls = categoryStyle[item.category] || 'bg-muted text-muted-foreground';
+
                     return (
-                      <tr key={item.id} className={`border-b border-border/30 hover:bg-surface-container-high/50 transition-colors ${isExpired ? 'bg-destructive/5' : isLowStock ? 'bg-warning/5' : ''}`}>
-                        <td className="px-4 py-4 text-muted-foreground">{startIndex + i + 1}</td>
-                        <td className="px-4 py-4 font-semibold text-foreground">{item.itemName}</td>
-                        <td className="px-4 py-4 text-foreground">{item.category}</td>
-                        <td className="px-4 py-4 text-right mono-data text-foreground">{item.quantity}</td>
-                        <td className="px-4 py-4 text-foreground">{item.unitType}</td>
-                        <td className="px-4 py-4 text-foreground">{item.usageArea || "-"}</td>
-                        <td className="px-4 py-4 text-foreground">{item.supplierName || "-"}</td>
-                        <td className="px-4 py-4 text-right mono-data text-foreground">{item.costPerUnit ? `₹${parseFloat(item.costPerUnit).toFixed(2)}` : "-"}</td>
-                        <td className="px-4 py-4 whitespace-nowrap">
+                      <tr key={item.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isExpired ? 'bg-destructive/5' : isLowStock ? 'bg-warning/5' : ''}`}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0">{(item.itemName || '?').charAt(0).toUpperCase()}</div>
+                            <span className="font-semibold text-sm text-foreground">{item.itemName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${catCls}`}>{item.category}</span>
+                        </td>
+                        <td className="px-6 py-4 mono-data text-sm font-semibold text-foreground">{item.quantity}</td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">{item.unitType}</td>
+                        <td className="px-6 py-4 text-sm text-foreground">{item.usageArea || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
                           {item.expiryDate ? (
-                            <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${isExpired ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}>
+                            <span className={`text-xs mono-data ${isExpired ? 'text-destructive font-semibold' : 'text-foreground'}`}>
                               {formatDate(item.expiryDate)}{isExpired && ' [EXP]'}
                             </span>
                           ) : <span className="text-muted-foreground">-</span>}
                         </td>
-                        <td className="px-4 py-4 text-xs text-foreground">{item.assignedStaff?.fullName || "-"}</td>
-                        <td className="px-4 py-4">
-                          {isLowStock ? <span className="text-warning font-semibold text-xs">LOW</span> : <span className="text-muted-foreground text-xs">OK</span>}
+                        <td className="px-6 py-4">
+                          {isExpired ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-destructive"><span className="w-1.5 h-1.5 rounded-full bg-destructive" /> EXPIRED</span>
+                          ) : isLowStock ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-warning"><span className="w-1.5 h-1.5 rounded-full bg-warning" /> LOW STOCK</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-success"><span className="w-1.5 h-1.5 rounded-full bg-success" /> OK</span>
+                          )}
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
-                            <button className="text-xs text-primary hover:underline font-medium" onClick={() => handleEdit(item)}>Edit</button>
-                            <button className="text-xs text-destructive hover:underline font-medium" onClick={() => handleDelete(item.id)}>Delete</button>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title="Delete">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
                     );
                   })}
+                  {paginatedItems.length === 0 && (
+                    <tr><td colSpan={8} className="px-6 py-8 text-center text-sm text-muted-foreground">No items match your filters.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="px-4 sm:px-6 py-3 border-t border-border">
-              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(n) => { setRowsPerPage(n); setCurrentPage(1); }} totalRows={items.length} />
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-3 sm:px-6 py-3 border-t border-border">
+              <div className="flex gap-2">
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
+                  <ChevronLeft className="w-3 h-3" /> Previous
+                </button>
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage >= totalPages} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
+                  Next <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages || 1 }, (_, i) => (
+                  <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-7 h-7 rounded text-xs font-medium transition-colors ${currentPage === i + 1 ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-surface-container-high'}`}>{i + 1}</button>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -364,5 +428,3 @@ const HousekeepingInventoryPage = () => {
 };
 
 export default HousekeepingInventoryPage;
-
-

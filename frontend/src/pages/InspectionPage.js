@@ -4,9 +4,10 @@ import { CardGridSkeleton } from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import inspectionService from '../services/inspectionService';
+import apiClient from '../services/apiClient';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
-import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, Search } from 'lucide-react';
+import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, Search, AlertOctagon, ClipboardList, CheckCircle2, Activity } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 
@@ -47,12 +48,8 @@ const InspectionPage = () => {
 
   const loadHorses = useCallback(async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL;
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${apiUrl}/horses`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const responseData = await response.json();
-      setHorses(Array.isArray(responseData) ? responseData : (responseData.data || []));
+      const response = await apiClient.get('/horses');
+      setHorses(response.data.data || []);
     } catch { setHorses([]); }
   }, []);
 
@@ -156,6 +153,29 @@ const InspectionPage = () => {
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('✗') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'TOTAL RECORDED', value: String(inspections.length).padStart(2, '0'), icon: ClipboardList, colorClass: 'text-primary', bgClass: 'bg-primary/10' },
+          { label: 'OPEN ISSUES', value: String(inspections.filter(i => i.status !== 'Resolved').length).padStart(2, '0'), icon: Activity, colorClass: 'text-warning', bgClass: 'bg-warning/10' },
+          { label: 'CRITICAL', value: String(inspections.filter(i => i.severityLevel === 'Critical' && i.status !== 'Resolved').length).padStart(2, '0'), icon: AlertOctagon, colorClass: 'text-destructive', bgClass: 'bg-destructive/10' },
+          { label: 'RESOLVED', value: String(inspections.filter(i => i.status === 'Resolved').length).padStart(2, '0'), icon: CheckCircle2, colorClass: 'text-success', bgClass: 'bg-success/10' },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+              <k.icon className="w-24 h-24" />
+            </div>
+            <div className="flex items-center justify-between mb-3 relative z-10">
+              <span className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</span>
+              <div className={`w-9 h-9 rounded-lg ${k.bgClass} flex items-center justify-center`}>
+                <k.icon className={`w-4 h-4 ${k.colorClass}`} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-foreground mt-1 mono-data relative z-10">{k.value}</p>
+          </div>
+        ))}
+      </div>
 
       {/* Filters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+import apiClient from './apiClient';
 
 // Convert a File or data-URL to a base64 data URL string
 const toBase64 = (img) => {
@@ -15,26 +13,10 @@ const toBase64 = (img) => {
   return Promise.resolve(img);
 };
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
-
 const inspectionService = {
   getAllInspections: async (filters = {}) => {
     try {
-      const queryParams = new URLSearchParams();
-      if (filters.round) queryParams.append('round', filters.round);
-      if (filters.horseId) queryParams.append('horseId', filters.horseId);
-      if (filters.severityLevel) queryParams.append('severityLevel', filters.severityLevel);
-      if (filters.area) queryParams.append('area', filters.area);
-      if (filters.startDate) queryParams.append('startDate', filters.startDate);
-      if (filters.endDate) queryParams.append('endDate', filters.endDate);
-      if (filters.jamedarId) queryParams.append('jamedarId', filters.jamedarId);
-      const response = await axios.get(`${API_BASE_URL}/inspections?${queryParams}`, { headers: getAuthHeaders() });
+      const response = await apiClient.get('/inspections', { params: filters });
       return response.data;
     } catch (error) {
       const err = new Error(error.response?.data?.error || error.message);
@@ -45,7 +27,7 @@ const inspectionService = {
 
   getInspectionById: async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/inspections/${id}`, { headers: getAuthHeaders() });
+      const response = await apiClient.get(`/inspections/${id}`);
       return response.data;
     } catch (error) {
       const err = new Error(error.response?.data?.error || error.message);
@@ -66,7 +48,7 @@ const inspectionService = {
         severityLevel: formData.severityLevel,
         images: imageDataArray,
       };
-      const response = await axios.post(`${API_BASE_URL}/inspections`, payload, { headers: getAuthHeaders() });
+      const response = await apiClient.post('/inspections', payload);
       return response.data;
     } catch (error) {
       const err = new Error(error.response?.data?.error || error.message);
@@ -91,7 +73,7 @@ const inspectionService = {
       if (formData.images && Array.isArray(formData.images)) {
         payload.images = await Promise.all(formData.images.map(toBase64));
       }
-      const response = await axios.put(`${API_BASE_URL}/inspections/${id}`, payload, { headers: getAuthHeaders() });
+      const response = await apiClient.put(`/inspections/${id}`, payload);
       return response.data;
     } catch (error) {
       const err = new Error(error.response?.data?.error || error.message);
@@ -102,7 +84,7 @@ const inspectionService = {
 
   deleteInspection: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/inspections/${id}`, { headers: getAuthHeaders() });
+      const response = await apiClient.delete(`/inspections/${id}`);
       return response.data;
     } catch (error) {
       const err = new Error(error.response?.data?.error || error.message);

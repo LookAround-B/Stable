@@ -2,25 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
-import { Download, Plus, X, CalendarCheck, Clock, CheckCircle2, History } from 'lucide-react';
+import { Download, Plus, X, CalendarCheck, Clock, CheckCircle2, History, Calendar, LayoutDashboard } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none disabled:opacity-50';
-const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
+const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
 
 const StatusBadge = ({ status }) => {
-  if (!status) return <span>-</span>;
-  let colorClass = 'bg-surface-container-high text-muted-foreground border-border';
-  if (status.toLowerCase() === 'present') colorClass = 'bg-success/20 text-success border-success/30';
-  else if (status.toLowerCase() === 'absent') colorClass = 'bg-destructive/20 text-destructive border-destructive/30';
-  else if (status.toLowerCase().includes('half') || status.toLowerCase().includes('leave')) colorClass = 'bg-warning/20 text-warning border-warning/30';
-  else if (status.toLowerCase() === 'woff') colorClass = 'bg-primary/20 text-primary border-primary/30';
-
-  return (
-    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${colorClass}`}>
-      {status}
-    </span>
-  );
+  if (!status) return <span className="text-muted-foreground">-</span>;
+  if (status.toLowerCase() === 'present') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-success"><span className="w-1.5 h-1.5 rounded-full bg-success" /> PRESENT</span>;
+  if (status.toLowerCase() === 'absent') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-destructive"><span className="w-1.5 h-1.5 rounded-full bg-destructive" /> ABSENT</span>;
+  if (status.toLowerCase().includes('half') || status.toLowerCase().includes('leave')) return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-warning"><span className="w-1.5 h-1.5 rounded-full bg-warning" /> {status.toUpperCase()}</span>;
+  if (status.toLowerCase() === 'woff') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-primary"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> WEEKLY OFF</span>;
+  return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-muted" /> {status.toUpperCase()}</span>;
 };
 
 const DigitalAttendancePage = () => {
@@ -118,44 +112,38 @@ const DigitalAttendancePage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Digital Attendance')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manual attendance logging for <span className="text-primary">{user?.fullName || 'Staff'}</span></p>
+          <p className="text-sm text-muted-foreground mt-1">Manual attendance logging for <span className="text-primary font-medium">{user?.fullName || 'Staff'}</span></p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export CSV')}</span>
+          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
+          <button onClick={() => setShowForm(!showForm)} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span><span className="sm:hidden">{t('Mark')}</span>
+            <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span>
           </button>
         </div>
       </div>
 
-      {successMessage && <div className="p-4 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30">✓ {successMessage}</div>}
-      {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
+      {successMessage && <div className="p-4 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30 flex items-center gap-2">✓ {successMessage}</div>}
+      {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-2">✕ {error}</div>}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Filter Month Logs')}</span>
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><History className="w-4 h-4 text-primary" /></div>
-          </div>
-          <p className="text-3xl font-bold text-foreground">{String(attendanceRecords.length).padStart(2, '0')}</p>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><History className="w-3.5 h-3.5 text-primary" /> MONTH LOGS</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(attendanceRecords.length).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-muted-foreground">Total records found</p>
         </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Present Days')}</span>
-            <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-success" /></div>
-          </div>
-          <p className="text-3xl font-bold text-success">{String(presentCount).padStart(2, '0')}</p>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-success" /> PRESENT</p>
+          <p className="text-4xl font-bold text-success mt-2 mono-data">{String(presentCount).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-success">Total present days</p>
         </div>
-        <div className="col-span-2 lg:col-span-1 bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Leaves / Absences')}</span>
-            <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center"><CalendarCheck className="w-4 h-4 text-warning" /></div>
-          </div>
-          <p className="text-3xl font-bold text-warning">{String(leaveCount).padStart(2, '0')}</p>
+        <div className="col-span-2 lg:col-span-1 bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CalendarCheck className="w-3.5 h-3.5 text-warning" /> ABSENCES</p>
+          <p className="text-4xl font-bold text-warning mt-2 mono-data">{String(leaveCount).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-warning">Total leaves & absences</p>
         </div>
       </div>
 
@@ -172,7 +160,6 @@ const DigitalAttendancePage = () => {
               <div>
                 <label className={lbl}>{t('Date')} *</label>
                 <input type="date" name="date" value={formData.date} onChange={handleFormChange} required className={inp} />
-                {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider mt-1.5 block">⚠ Monday is weekly off (WOFF)</span>}
               </div>
               <div>
                 <label className={lbl}>{t('Attendance Status')} *</label>
@@ -189,8 +176,9 @@ const DigitalAttendancePage = () => {
                 <input type="text" name="remarks" value={formData.remarks} onChange={handleFormChange} placeholder={t("Add any notes...")} className={inp} />
               </div>
             </div>
-            <div className="pt-2">
-              <button type="submit" className="w-full md:w-auto h-10 px-8 rounded-lg bg-gradient-to-r from-success to-success/80 text-white text-sm font-semibold tracking-wider uppercase flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+            {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider block bg-primary/10 px-3 py-1.5 rounded w-fit mt-1 border border-primary/30">⚠ Monday is weekly off (WOFF)</span>}
+            <div className="pt-2 flex gap-3">
+              <button type="submit" className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">
                 {t('Submit Attendance')}
               </button>
             </div>
@@ -198,41 +186,43 @@ const DigitalAttendancePage = () => {
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">{t('View Records for Date:')}</label>
-        <div className="relative">
-          <CalendarCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input type="date" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} className={`${inp} pl-9 max-w-[200px]`} />
-        </div>
-      </div>
-
-      {/* Table */}
+      {/* Table Container */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+            <span className="text-sm font-medium text-foreground whitespace-nowrap">{t('Records for Date:')}</span>
+            <input type="date" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} className="h-9 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+          </div>
+          <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : attendanceRecords.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[500px]">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
-                <tr className="bg-surface-container-high border-b border-border">
-                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Date')}</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Status')}</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Check-in')}</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Check-out')}</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Remarks')}</th>
+                <tr className="border-b border-border">
+                  {['DATE', 'STATUS', 'CHECK-IN', 'CHECK-OUT', 'REMARKS'].map(h => (
+                    <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {attendanceRecords.map((record) => (
-                  <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{new Date(record.date).toLocaleDateString('en-GB')}</td>
-                    <td className="px-4 py-3"><StatusBadge status={record.status} /></td>
-                    <td className="px-4 py-3 font-mono text-xs text-foreground">{record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString() : '-'}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-foreground">{record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString() : '-'}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{record.remarks || '-'}</td>
-                  </tr>
-                ))}
+                {attendanceRecords.map((record) => {
+                  const isAbs = record.status === 'Absent' || record.status === 'Leave';
+                  return (
+                    <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isAbs ? 'bg-destructive/5' : ''}`}>
+                      <td className="px-6 py-4 font-mono text-sm text-foreground">{new Date(record.date).toLocaleDateString('en-GB')}</td>
+                      <td className="px-6 py-4"><StatusBadge status={record.status} /></td>
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-sm">{record.remarks || '-'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

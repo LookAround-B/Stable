@@ -3,22 +3,21 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
-import { Download, Plus, X, Users, UserCheck, CalendarCheck, Clock } from 'lucide-react';
+import { Download, Plus, X, Users, UserCheck, CalendarCheck, Clock, CheckCircle2, XCircle, Calendar, Sparkles } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
-const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
+const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
 
 const StatusBadge = ({ status }) => {
   if (!status) return <span>-</span>;
-  let cls = 'bg-surface-container-high text-muted-foreground border-border';
-  if (status === 'Present') cls = 'bg-success/20 text-success border-success/30';
-  else if (status === 'Absent') cls = 'bg-destructive/20 text-destructive border-destructive/30';
-  else if (status === 'Leave' || status === 'Half Day') cls = 'bg-warning/20 text-warning border-warning/30';
-  else if (status === 'WOFF') cls = 'bg-primary/20 text-primary border-primary/30';
-  return <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${cls}`}>{status}</span>;
+  if (status === 'Present') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-success"><span className="w-1.5 h-1.5 rounded-full bg-success" /> PRESENT</span>;
+  if (status === 'Absent') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-destructive"><span className="w-1.5 h-1.5 rounded-full bg-destructive" /> ABSENT</span>;
+  if (status === 'Leave' || status === 'Half Day') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-warning"><span className="w-1.5 h-1.5 rounded-full bg-warning" /> {status.toUpperCase()}</span>;
+  if (status === 'WOFF') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-primary"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> WEEKLY OFF</span>;
+  return <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-muted" /> {status}</span>;
 };
 
 const TeamAttendancePage = () => {
@@ -42,8 +41,7 @@ const TeamAttendancePage = () => {
     if (dateObj.getDay() === 1) {
       setFormData(prev => ({ ...prev, status: 'WOFF' }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate]); // eslint-disable-line
 
   const loadData = async () => {
     setLoading(true); setError('');
@@ -118,15 +116,15 @@ const TeamAttendancePage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Mark Team')} <span className="text-primary">{t('Attendance')}</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('Mark attendance for team members')}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t('Manage and report daily attendance for staff')}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
             <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
+          <button onClick={() => setShowForm(!showForm)} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span><span className="sm:hidden">{t('Mark')}</span>
+            <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span>
           </button>
         </div>
       </div>
@@ -134,35 +132,27 @@ const TeamAttendancePage = () => {
       {successMessage && <div className="p-4 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30">✓ {successMessage}</div>}
       {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
 
-      {/* KPI Cards */}
+      {/* KPI Cards (EFM matched) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Team Members')}</span>
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-4 h-4 text-primary" /></div>
-          </div>
-          <p className="text-3xl font-bold text-foreground">{String(teamMembers.length).padStart(2, '0')}</p>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Users className="w-3.5 h-3.5 text-primary" /> TEAM MEMBERS</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(teamMembers.length).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-muted-foreground">Total assigned staff</p>
         </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Total Marked')}</span>
-            <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center"><CalendarCheck className="w-4 h-4 text-success" /></div>
-          </div>
-          <p className="text-3xl font-bold text-foreground">{String(attendanceRecords.length).padStart(2, '0')}</p>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CalendarCheck className="w-3.5 h-3.5 text-accent" /> TOTAL MARKED</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(attendanceRecords.length).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-accent">Records saved today</p>
         </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Present')}</span>
-            <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center"><UserCheck className="w-4 h-4 text-success" /></div>
-          </div>
-          <p className="text-3xl font-bold text-success">{String(presentCount).padStart(2, '0')}</p>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-success" /> PRESENT</p>
+          <p className="text-4xl font-bold text-success mt-2 mono-data">{String(presentCount).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-success">Currently on shift</p>
         </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Absent / Leave')}</span>
-            <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center"><Clock className="w-4 h-4 text-destructive" /></div>
-          </div>
-          <p className="text-3xl font-bold text-destructive">{String(absentCount).padStart(2, '0')}</p>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><XCircle className="w-3.5 h-3.5 text-destructive" /> ABSENT / LEAVE</p>
+          <p className="text-4xl font-bold text-destructive mt-2 mono-data">{String(absentCount).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-destructive">Unavailable staff</p>
         </div>
       </div>
 
@@ -171,8 +161,8 @@ const TeamAttendancePage = () => {
         <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg edge-glow">
           <h3 className="text-lg font-bold text-foreground mb-5 pb-3 border-b border-border/50">{t('Quick Mark Attendance')}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="z-10 relative">
                 <label className={lbl}>{t('Team Member')} *</label>
                 <SearchableSelect
                   name="employeeId"
@@ -186,16 +176,7 @@ const TeamAttendancePage = () => {
                   ]}
                 />
               </div>
-              <div>
-                <label className={lbl}>{t('Date')} *</label>
-                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required className={inp} />
-                {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider mt-1.5 block">⚠ Monday is weekly off (WOFF)</span>}
-              </div>
-              <div>
-                <label className={lbl}>{t('Role')}</label>
-                <input type="text" value={formData.employeeId ? t(getTeamMemberRole(formData.employeeId)) : ''} disabled className={`${inp} opacity-50`} />
-              </div>
-              <div className="z-10">
+              <div className="relative">
                 <label className={lbl}>{t('Attendance Status')} *</label>
                 <SearchableSelect
                   name="status"
@@ -213,13 +194,22 @@ const TeamAttendancePage = () => {
                   required
                 />
               </div>
-              <div className="md:col-span-2">
+              <div>
+                <label className={lbl}>{t('Date')} *</label>
+                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>{t('Role')}</label>
+                <input type="text" value={formData.employeeId ? t(getTeamMemberRole(formData.employeeId)) : ''} disabled className={`${inp} opacity-50`} />
+              </div>
+              <div className="md:col-span-4">
                 <label className={lbl}>{t('Remarks (Optional)')}</label>
                 <input type="text" name="remarks" value={formData.remarks} onChange={handleFormChange} placeholder={t("Add any notes...")} className={inp} />
               </div>
             </div>
-            <div className="pt-2">
-              <button type="submit" className="w-full md:w-auto h-10 px-8 rounded-lg bg-gradient-to-r from-success to-success/80 text-white text-sm font-semibold tracking-wider uppercase hover:opacity-90 transition-opacity">
+            {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider block bg-primary/10 px-3 py-1.5 rounded w-fit mt-1 border border-primary/30">⚠ Monday is weekly off (WOFF)</span>}
+            <div className="pt-2 flex gap-3">
+              <button type="submit" className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">
                 {t('Mark Attendance')}
               </button>
             </div>
@@ -227,48 +217,62 @@ const TeamAttendancePage = () => {
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">{t('Records for:')}</label>
-        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={`${inp} max-w-[200px]`} />
-      </div>
-
-      {/* Table */}
+      {/* Table Container */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+            <span className="text-sm font-medium text-foreground whitespace-nowrap">{t('Records for:')}</span>
+            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+          </div>
+          <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : attendanceRecords.length > 0 ? (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[600px]">
+              <table className="w-full text-sm min-w-[700px]">
                 <thead>
-                  <tr className="bg-surface-container-high border-b border-border">
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Employee')}</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Role')}</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Status')}</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Remarks')}</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Marked At')}</th>
+                  <tr className="border-b border-border">
+                    {['EMPLOYEE', 'ROLE', 'STATUS', 'REMARKS', 'MARKED AT'].map(h => (
+                      <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedRecords.map((record) => (
-                    <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-foreground">{record.employee?.fullName || 'Unknown'}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{record.employee?.designation ? t(record.employee.designation) : 'Unknown'}</td>
-                      <td className="px-4 py-3"><StatusBadge status={record.status} /></td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{record.remarks || '-'}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                        {record.markedAt ? (() => {
-                          const date = new Date(record.markedAt);
-                          return `${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString('en-GB')}`;
-                        })() : 'Not marked'}
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedRecords.map((record) => {
+                    const statusStr = record.status || '';
+                    const isAbs = statusStr === 'Absent' || statusStr === 'Leave';
+                    
+                    return (
+                      <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isAbs ? 'bg-destructive/5' : ''}`}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0">{(record.employee?.fullName || '?').charAt(0).toUpperCase()}</div>
+                            <span className="font-semibold text-sm text-foreground">{record.employee?.fullName || 'Unknown'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-surface-container text-foreground`}>{record.employee?.designation ? t(record.employee.designation) : 'UNKNOWN'}</span>
+                        </td>
+                        <td className="px-6 py-4"><StatusBadge status={record.status} /></td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">{record.remarks || '-'}</td>
+                        <td className="px-6 py-4 text-xs text-muted-foreground mono-data">
+                          {record.markedAt ? (() => {
+                            const date = new Date(record.markedAt);
+                            return `${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                          })() : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            <div className="px-4 py-3 border-t border-border">
+            <div className="px-4 py-1 border-t border-border">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -280,7 +284,7 @@ const TeamAttendancePage = () => {
             </div>
           </>
         ) : (
-          <div className="text-center py-12 text-muted-foreground text-sm">
+          <div className="text-center py-12 text-sm text-muted-foreground">
             {t('No attendance records found for')} {new Date(selectedDate).toLocaleDateString('en-GB')}
           </div>
         )}

@@ -3,7 +3,7 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp } from 'lucide-react';
+import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, Bell, BellRing, Settings } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -72,6 +72,7 @@ const FeedInventoryPage = () => {
     setEditingRecord(record);
     setFormData({ feedType: record.feedType, unitsBrought: record.unitsBrought.toString(), openingStock: record.openingStock.toString(), unit: record.unit, notes: record.notes || '' });
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleRecalculate = async () => {
@@ -123,20 +124,22 @@ const FeedInventoryPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Feed <span className="text-primary">Inventory</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Feed <span className="text-primary">Inventory</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Feed Inventory Management')}</p>
         </div>
-        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+        <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 max-lg:w-full max-lg:justify-center">
+          <Download className="w-4 h-4" /> Export
+        </button>
       </div>
 
-      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
+      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{messageType === 'success' ? '✓' : '✕'} {message}</div>}
 
       {/* Tabs */}
-      <div className="flex items-center gap-3">
-        <button onClick={() => setActiveTab('inventory')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'inventory' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+      <div className="flex items-center gap-3 w-full overflow-x-auto pb-1 hide-scrollbar">
+        <button onClick={() => setActiveTab('inventory')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'inventory' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
           <Package className="w-4 h-4" /> Monthly Inventory
         </button>
-        <button onClick={() => setActiveTab('report')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'report' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+        <button onClick={() => setActiveTab('report')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'report' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
           <TrendingUp className="w-4 h-4" /> Consumption Report
         </button>
       </div>
@@ -145,22 +148,28 @@ const FeedInventoryPage = () => {
       {activeTab === 'inventory' && (
         <div className="space-y-5">
           {/* Filters */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
-            <div className="flex items-end gap-3">
-              <div className="min-w-[160px]">
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
+            <div className="flex items-end gap-3 w-full sm:w-auto">
+              <div className="flex-1 min-w-[140px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Month</label>
-                <SearchableSelect name="month" value={selectedMonth.toString()} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))} placeholder="Select month..." />
+                <select value={selectedMonth.toString()} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} className="w-full h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
+                  {MONTH_NAMES.map((name, i) => <option key={name} value={(i + 1).toString()}>{name}</option>)}
+                </select>
               </div>
-              <div>
+              <div className="flex-1 min-w-[120px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Year</label>
-                <SearchableSelect name="year" value={selectedYear.toString()} onChange={(e) => setSelectedYear(parseInt(e.target.value))} options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))} placeholder="Select year..." />
+                <select value={selectedYear.toString()} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className="w-full h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
+                  {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y.toString()}>{y}</option>)}
+                </select>
               </div>
             </div>
-            <div className="flex gap-2 md:ml-auto">
-              <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-                {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Stock Entry</>}
+            <div className="flex gap-2 md:ml-auto w-full sm:w-auto">
+              <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
+                {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Entry</>}
               </button>
-              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 disabled:opacity-50"><RotateCw className="w-4 h-4" /> Recalculate</button>
+              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
+                <RotateCw className="w-4 h-4" /> Recalculate
+              </button>
             </div>
           </div>
 
@@ -194,7 +203,7 @@ const FeedInventoryPage = () => {
                   <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                 </div>
                 <div className="flex gap-3">
-                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingRecord ? 'Update' : 'Create'}</button>
+                  <button type="submit" disabled={loading} className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{loading ? 'Saving...' : editingRecord ? 'Save Changes' : 'Create Entry'}</button>
                   <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
                 </div>
               </form>
@@ -211,26 +220,27 @@ const FeedInventoryPage = () => {
             </div>
           )}
 
-          {/* Inventory Table */}
+          {/* Inventory Table (EFM style) */}
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-            <div className="px-5 py-4 border-b border-border">
-              <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} — Feed Stock Status</h3>
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Status</h3>
+              <span className="text-xs text-muted-foreground mono-data">{inventoryRecords.length} records</span>
             </div>
             {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Loading inventory...</div>
+              <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>
             ) : inventoryRecords.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p>No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.</p>
-                <p className="text-xs mt-1">Click "Add Stock Entry" to start tracking feed inventory.</p>
+                <p className="text-xs mt-1">Click "Add Entry" to start tracking feed inventory.</p>
               </div>
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm min-w-[900px]">
                     <thead>
                       <tr className="border-b border-border">
-                        {['Feed Type', 'Opening', 'Brought', 'Total', 'Used Today', 'Total Used', 'Left', 'Unit', 'Status', 'Threshold', 'Actions'].map(h => (
-                          <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                        {['FEED TYPE', 'OPENING', 'BROUGHT', 'TOTAL', 'USED TODAY', 'TOTAL USED', 'LEFT', 'UNIT', 'STATUS', 'THRESHOLD', ''].map(h => (
+                          <th key={h || 'actions'} className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] uppercase text-muted-foreground whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -242,37 +252,43 @@ const FeedInventoryPage = () => {
                         const isEmpty = record.unitsLeft <= 0;
                         const isBelowThreshold = record.threshold !== null && record.threshold !== undefined && record.unitsLeft < record.threshold;
                         const barColor = percentUsed > 80 ? 'bg-destructive' : percentUsed > 50 ? 'bg-warning' : 'bg-success';
+                        const label = FEED_LABELS[record.feedType] || record.feedType;
 
                         return (
-                          <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high transition-colors ${isBelowThreshold ? 'bg-destructive/5' : isEmpty ? 'bg-destructive/5' : isLow ? 'bg-warning/5' : ''}`}>
-                            <td className="px-3 py-3 font-medium text-foreground whitespace-nowrap">{FEED_LABELS[record.feedType] || record.feedType}</td>
-                            <td className="px-3 py-3 text-muted-foreground mono-data">{record.openingStock}</td>
-                            <td className="px-3 py-3 text-muted-foreground mono-data">{record.unitsBrought}</td>
-                            <td className="px-3 py-3 font-medium text-foreground mono-data">{totalAvailable}</td>
-                            <td className={`px-3 py-3 mono-data ${record.usedToday > 0 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>{record.usedToday ?? 0}</td>
-                            <td className="px-3 py-3 text-muted-foreground mono-data">{record.totalUsed}</td>
-                            <td className={`px-3 py-3 font-bold mono-data ${isEmpty ? 'text-destructive' : isLow ? 'text-warning' : 'text-success'}`}>{record.unitsLeft}</td>
-                            <td className="px-3 py-3 text-muted-foreground">{record.unit}</td>
-                            <td className="px-3 py-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-12 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
-                                  <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(100, percentUsed)}%` }} />
-                                </div>
-                                <span className="text-[10px] text-muted-foreground mono-data">{percentUsed.toFixed(0)}%</span>
+                          <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isBelowThreshold ? 'bg-destructive/5' : isEmpty ? 'bg-destructive/5' : isLow ? 'bg-warning/5' : ''}`}>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0">{(label || '?').charAt(0).toUpperCase()}</div>
+                                <span className="font-semibold text-sm text-foreground">{label}</span>
                               </div>
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap">
+                            <td className="px-5 py-4 text-muted-foreground mono-data">{record.openingStock}</td>
+                            <td className="px-5 py-4 text-muted-foreground mono-data">{record.unitsBrought}</td>
+                            <td className="px-5 py-4 font-medium text-foreground mono-data">{totalAvailable}</td>
+                            <td className={`px-5 py-4 mono-data ${record.usedToday > 0 ? 'text-warning font-medium' : 'text-muted-foreground'}`}>{record.usedToday ?? 0}</td>
+                            <td className="px-5 py-4 text-muted-foreground mono-data">{record.totalUsed}</td>
+                            <td className={`px-5 py-4 font-bold mono-data ${isEmpty ? 'text-destructive' : isLow ? 'text-warning' : 'text-success'}`}>{record.unitsLeft}</td>
+                            <td className="px-5 py-4 text-xs text-muted-foreground">{record.unit}</td>
+                            <td className="px-5 py-4 min-w-[120px]">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-1.5 rounded-full bg-surface-container overflow-hidden">
+                                  <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(100, percentUsed)}%` }} />
+                                </div>
+                                <span className="text-[10px] text-muted-foreground mono-data w-7 text-right">{percentUsed.toFixed(0)}%</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 whitespace-nowrap">
                               {record.threshold !== null && record.threshold !== undefined
-                                ? <span className="text-xs mono-data">{record.threshold} {record.unit}</span>
+                                ? <span className="text-xs mono-data">{record.threshold}</span>
                                 : <span className="text-muted-foreground/40 text-xs">—</span>
                               }
-                              {isBelowThreshold && <span className="ml-1 text-destructive" title="Below threshold">⚠️</span>}
+                              {isBelowThreshold && <span className="ml-1 text-destructive" title="Below threshold">⚠</span>}
                             </td>
-                            <td className="px-3 py-3">
-                              <div className="flex gap-1.5">
-                                <button onClick={() => handleEdit(record)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-border text-foreground hover:bg-surface-container-high transition-colors">Edit</button>
+                            <td className="px-5 py-4">
+                              <div className="flex gap-1">
+                                <button onClick={() => handleEdit(record)} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit Entry"><Pencil className="w-3.5 h-3.5" /></button>
                                 {isAdmin && (
-                                  <button onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })} className={`h-7 px-2 rounded text-[10px] border transition-colors ${record.notifyAdmin ? 'bg-warning/15 border-warning/30 text-warning' : 'border-border text-muted-foreground hover:bg-surface-container-high'}`} title="Configure threshold alert">🔔</button>
+                                  <button onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })} className={`p-1.5 rounded transition-colors ${record.notifyAdmin ? 'bg-warning/15 text-warning' : 'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'}`} title="Configure threshold alert"><Settings className="w-3.5 h-3.5" /></button>
                                 )}
                               </div>
                             </td>
@@ -282,7 +298,9 @@ const FeedInventoryPage = () => {
                     </tbody>
                   </table>
                 </div>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }} total={inventoryRecords.length} />
+                <div className="px-4 py-1 border-t border-border">
+                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }} total={inventoryRecords.length} />
+                </div>
               </>
             )}
           </div>
@@ -292,33 +310,33 @@ const FeedInventoryPage = () => {
       {/* ═══ CONSUMPTION REPORT TAB ═══ */}
       {activeTab === 'report' && (
         <div className="space-y-5">
-          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
-            <div className="flex items-end gap-3">
-              <div>
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
+            <div className="flex flex-wrap sm:flex-nowrap items-end gap-3 w-full sm:w-auto">
+              <div className="w-full sm:w-auto">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
-                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className="w-full sm:w-auto h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
-              <div>
+              <div className="w-full sm:w-auto">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
-                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className="w-full sm:w-auto h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
             </div>
-            <div className="flex gap-2 md:ml-auto">
-              <button onClick={loadReport} disabled={loading} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? 'Loading...' : 'Generate Report'}</button>
+            <div className="flex gap-2 md:ml-auto w-full sm:w-auto">
+              <button onClick={loadReport} disabled={loading} className="flex-1 sm:flex-none h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all disabled:opacity-50 min-w-[150px]">{loading ? 'Loading...' : 'Generate'}</button>
               {reportData && (
-                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />{downloadingCSV ? 'Downloading...' : 'CSV'}</button>
+                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-2"><Download className="w-4 h-4" />{downloadingCSV ? 'CSV...' : 'CSV'}</button>
               )}
             </div>
           </div>
 
           {reportData && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Total Consumption Cards */}
               <div>
-                <h3 className="text-sm font-bold text-foreground mb-3">Total Feed Consumption ({reportStartDate} to {reportEndDate})</h3>
+                <h3 className="text-sm font-bold text-foreground mb-3 px-1">Total Consumption ({new Date(reportStartDate).toLocaleDateString('en-GB')} to {new Date(reportEndDate).toLocaleDateString('en-GB')})</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                   {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                    <div key={ft} className="bg-surface-container-highest rounded-xl p-4 edge-glow">
+                    <div key={ft} className="bg-surface-container-highest rounded-xl p-4 edge-glow relative overflow-hidden">
                       <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{FEED_LABELS[ft]}</p>
                       <p className="text-2xl font-bold text-foreground mt-1 mono-data">{reportData.totalConsumption[ft]}</p>
                     </div>
@@ -333,70 +351,36 @@ const FeedInventoryPage = () => {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Horse</th>
-                        <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Stable</th>
-                        <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Days</th>
+                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">HORSE</th>
+                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">STABLE</th>
+                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">DAYS</th>
                         {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                          <th key={ft} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{FEED_LABELS[ft]}</th>
+                          <th key={ft} className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground whitespace-nowrap">{FEED_LABELS[ft]}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {Object.entries(reportData.horseConsumption).map(([horseId, hc]) => (
-                        <tr key={horseId} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
-                          <td className="px-3 py-3 font-medium text-foreground">{hc.horseName}</td>
-                          <td className="px-3 py-3 text-muted-foreground">{hc.stableNumber || '-'}</td>
-                          <td className="px-3 py-3 text-muted-foreground mono-data">{hc.daysRecorded}</td>
+                        <tr key={horseId} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-5 py-3 font-medium text-foreground">{hc.horseName}</td>
+                          <td className="px-5 py-3 text-muted-foreground">{hc.stableNumber || '-'}</td>
+                          <td className="px-5 py-3 text-muted-foreground mono-data">{hc.daysRecorded}</td>
                           {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                            <td key={ft} className="px-3 py-3 text-muted-foreground mono-data">{hc.feeds[ft] || '-'}</td>
+                            <td key={ft} className="px-5 py-3 text-muted-foreground mono-data">{hc.feeds[ft] || '-'}</td>
                           ))}
                         </tr>
                       ))}
                       <tr className="border-t-2 border-primary/20 bg-primary/5">
-                        <td className="px-3 py-3 font-bold text-foreground">TOTAL</td>
+                        <td className="px-5 py-4 font-bold text-foreground">TOTAL</td>
                         <td></td><td></td>
                         {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
-                          <td key={ft} className="px-3 py-3 font-bold text-primary mono-data">{reportData.totalConsumption[ft]}</td>
+                          <td key={ft} className="px-5 py-4 font-bold text-primary mono-data">{reportData.totalConsumption[ft]}</td>
                         ))}
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
-
-              {/* Inventory Status */}
-              {reportData.inventory && reportData.inventory.length > 0 && (
-                <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-                  <div className="px-5 py-4 border-b border-border"><h3 className="text-sm font-bold text-foreground">Inventory Status for Period</h3></div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          {['Feed Type', 'Month/Year', 'Opening', 'Brought', 'Used', 'Left', 'Unit'].map(h => (
-                            <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.inventory.map((inv) => {
-                          const isLow = inv.unitsLeft < (inv.openingStock + inv.unitsBrought) * 0.2;
-                          return (
-                            <tr key={inv.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
-                              <td className="px-3 py-3 font-medium text-foreground">{FEED_LABELS[inv.feedType] || inv.feedType}</td>
-                              <td className="px-3 py-3 text-muted-foreground">{MONTH_NAMES[inv.month - 1]} {inv.year}</td>
-                              <td className="px-3 py-3 text-muted-foreground mono-data">{inv.openingStock}</td>
-                              <td className="px-3 py-3 text-muted-foreground mono-data">{inv.unitsBrought}</td>
-                              <td className="px-3 py-3 text-muted-foreground mono-data">{inv.totalUsed}</td>
-                              <td className={`px-3 py-3 font-bold mono-data ${inv.unitsLeft <= 0 ? 'text-destructive' : isLow ? 'text-warning' : 'text-success'}`}>{inv.unitsLeft}</td>
-                              <td className="px-3 py-3 text-muted-foreground">{inv.unit}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -405,23 +389,23 @@ const FeedInventoryPage = () => {
       {/* Threshold Modal */}
       {thresholdModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setThresholdModal(null)}>
-          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-sm edge-glow" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-lg font-bold text-foreground">Set Threshold Alert</h3>
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2"><BellRing className="w-5 h-5 text-warning" /> Set Alert Threshold</h3>
               <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setThresholdModal(null)}><X className="w-4 h-4" /></button>
             </div>
-            <p className="text-xs text-muted-foreground mb-5">{FEED_LABELS[thresholdModal.record.feedType] || thresholdModal.record.feedType}</p>
+            <p className="text-sm font-medium text-foreground mb-5 mt-2 bg-surface-container px-3 py-1.5 rounded">{FEED_LABELS[thresholdModal.record.feedType] || thresholdModal.record.feedType}</p>
             <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Threshold quantity ({thresholdModal.record.unit})</label>
                 <input type="number" min="0" step="0.01" placeholder="Leave empty to disable" value={thresholdModal.value} onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
-              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+              <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer bg-surface-container p-3 rounded-lg border border-border/50">
                 <input type="checkbox" checked={thresholdModal.notifyAdmin} onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))} className="w-4 h-4 rounded accent-primary" />
                 Notify admin when below threshold
               </label>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleSaveThreshold} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">Save</button>
+                <button onClick={handleSaveThreshold} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">Save Alert</button>
                 <button onClick={() => setThresholdModal(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
               </div>
             </div>

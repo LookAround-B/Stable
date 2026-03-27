@@ -8,7 +8,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
-import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus } from 'lucide-react';
+import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus, Pencil, Trash2, Settings, BellRing } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const MEDICINE_LABELS = {
@@ -476,7 +476,7 @@ const MedicineInventoryPage = () => {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase cursor-pointer" onClick={() => { setSortKey('medicineType'); setSortDir(prev => sortKey === 'medicineType' ? (prev === 'asc' ? 'desc' : 'asc') : 'asc'); }}>
-                          Medicine {sortKey === 'medicineType' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                          Medicine Type {sortKey === 'medicineType' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                         </th>
                         <th className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase cursor-pointer" style={{minWidth: '260px'}} onClick={() => { setSortKey('unitsLeft'); setSortDir(prev => sortKey === 'unitsLeft' ? (prev === 'asc' ? 'desc' : 'asc') : 'desc'); }}>
                           Stock Level {sortKey === 'unitsLeft' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
@@ -495,7 +495,12 @@ const MedicineInventoryPage = () => {
                         const isLow = pct < 25;
                         return (
                           <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isBelowThreshold ? 'bg-destructive/5' : ''}`}>
-                            <td className="px-6 py-4 font-semibold text-sm text-foreground">{MEDICINE_LABELS[record.medicineType] || record.medicineType}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0">{(MEDICINE_LABELS[record.medicineType] || record.medicineType || '?').charAt(0).toUpperCase()}</div>
+                                <span className="font-semibold text-sm text-foreground">{MEDICINE_LABELS[record.medicineType] || record.medicineType}</span>
+                              </div>
+                            </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                 <span className="mono-data text-sm min-w-[40px]">{unitsLeft}</span>
@@ -511,18 +516,25 @@ const MedicineInventoryPage = () => {
                                 ? <span className="mono-data">{record.threshold} {record.unit}</span>
                                 : <span className="text-muted-foreground/40">—</span>
                               }
-                              {isBelowThreshold && <span className="ml-1.5 text-[10px] text-destructive font-bold">⚠ LOW</span>}
+                              {isBelowThreshold && <span className="ml-1.5 text-[10px] text-destructive font-bold cursor-help" title="Low stock! Below threshold limit.">⚠ LOW</span>}
                             </td>
                             <td className="px-6 py-4">
-                              <div className="flex gap-1">
-                                <button onClick={() => handleEdit(record)} disabled={loading || showForm} className="px-2 py-1 rounded text-[10px] bg-surface-bright text-foreground font-medium hover:bg-surface-container-high transition-colors">Edit</button>
-                                <button onClick={() => handleDelete(record.id)} disabled={loading || showForm} className="px-2 py-1 rounded text-[10px] bg-destructive/15 text-destructive font-medium hover:bg-destructive/25 transition-colors">Delete</button>
+                              <div className="flex gap-1.5">
+                                <button onClick={() => handleEdit(record)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary disabled:opacity-50" title="Edit">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDelete(record.id)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive disabled:opacity-50" title="Delete">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                                 {isAdmin && (
                                   <button
                                     onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
+                                    disabled={loading || showForm}
                                     title="Configure threshold alert"
-                                    className="px-2 py-1 rounded text-[10px] bg-warning/15 text-warning border border-warning/30 font-medium hover:bg-warning/25 transition-colors"
-                                  >Threshold</button>
+                                    className={`p-1.5 rounded transition-colors disabled:opacity-50 ${record.notifyAdmin ? 'bg-warning/15 text-warning' : 'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'}`}
+                                  >
+                                    <BellRing className="w-3.5 h-3.5" />
+                                  </button>
                                 )}
                               </div>
                             </td>

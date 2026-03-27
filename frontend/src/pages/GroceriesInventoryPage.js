@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import * as XLSX from "xlsx";
 import { TableSkeleton } from "../components/Skeleton";
@@ -23,7 +23,11 @@ import {
   Upload,
   Users,
   X,
+  Pencil,
+  Trash2,
+  BellRing
 } from "lucide-react";
+import Pagination from "../components/Pagination";
 
 const MONTH_NAMES = [
   "January",
@@ -960,52 +964,60 @@ const GroceriesInventoryPage = () => {
                             className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors"
                           >
                             <td className="px-5 py-4">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-semibold text-foreground block">{record.name}</span>
-                                  {isBelowThreshold && (
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-destructive/15 text-destructive border border-destructive/20">
-                                      LOW STOCK
-                                    </span>
-                                  )}
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0 mt-0.5">
+                                  {(record.name || '?').charAt(0).toUpperCase()}
                                 </div>
-                                <p className="text-[10px] text-muted-foreground tracking-wider">
-                                  {record.employee?.fullName
-                                    ? `ASSIGNED TO ${record.employee.fullName.toUpperCase()}`
-                                    : record.createdBy?.fullName
-                                    ? `LOGGED BY ${record.createdBy.fullName.toUpperCase()}`
-                                    : "INVENTORY ENTRY"}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-3 pt-1">
-                                  <button
-                                    type="button"
-                                    className="text-[11px] text-primary hover:underline font-medium"
-                                    onClick={() => handleEdit(record)}
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="text-[11px] text-destructive hover:underline font-medium"
-                                    onClick={() => handleDelete(record.id)}
-                                  >
-                                    Delete
-                                  </button>
-                                  {isAdmin && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-semibold text-foreground block">{record.name}</span>
+                                    {isBelowThreshold && (
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-destructive/15 text-destructive border border-destructive/20">
+                                        LOW STOCK
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground tracking-wider">
+                                    {record.employee?.fullName
+                                      ? `ASSIGNED TO ${record.employee.fullName.toUpperCase()}`
+                                      : record.createdBy?.fullName
+                                      ? `LOGGED BY ${record.createdBy.fullName.toUpperCase()}`
+                                      : "INVENTORY ENTRY"}
+                                  </p>
+                                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
                                     <button
                                       type="button"
-                                      className="text-[11px] text-muted-foreground hover:text-foreground hover:underline font-medium"
-                                      onClick={() =>
-                                        setThresholdModal({
-                                          record,
-                                          value: record.threshold ?? "",
-                                          notifyAdmin: record.notifyAdmin ?? false,
-                                        })
-                                      }
+                                      className="p-1 rounded text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                                      onClick={() => handleEdit(record)}
+                                      title="Edit"
                                     >
-                                      Alert
+                                      <Pencil className="w-3.5 h-3.5" />
                                     </button>
-                                  )}
+                                    <button
+                                      type="button"
+                                      className="p-1 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                      onClick={() => handleDelete(record.id)}
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    {isAdmin && (
+                                      <button
+                                        type="button"
+                                        className="p-1 rounded text-muted-foreground hover:bg-surface-container-high hover:text-foreground transition-colors"
+                                        onClick={() =>
+                                          setThresholdModal({
+                                            record,
+                                            value: record.threshold ?? "",
+                                            notifyAdmin: record.notifyAdmin ?? false,
+                                          })
+                                        }
+                                        title="Configure Alert"
+                                      >
+                                        <BellRing className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -1042,71 +1054,18 @@ const GroceriesInventoryPage = () => {
                   </table>
                 </div>
 
-                <div className="groceries-pagination px-5 py-3 border-t border-border">
-                  <div className="groceries-pagination-summary">
-                    <span>
-                      Showing{" "}
-                      {filteredGroceries.length === 0
-                        ? 0
-                        : `${startIndex + 1}-${Math.min(
-                            startIndex + rowsPerPage,
-                            filteredGroceries.length
-                          )}`}
-                    </span>
-                    <span>of {filteredGroceries.length} items</span>
-                  </div>
-                  <div className="groceries-pagination-controls">
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        setRowsPerPage(parseInt(e.target.value, 10));
-                        setCurrentPage(1);
-                      }}
-                      className="groceries-pagination-select"
-                      aria-label="Rows per page"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={15}>15</option>
-                      <option value={20}>20</option>
-                    </select>
-                    <div className="groceries-pagination-buttons">
-                      <button
-                        type="button"
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        className="groceries-pagination-nav"
-                      >
-                        &lt;
-                      </button>
-                      {pageItems.map((item, index) =>
-                        item === "..." ? (
-                          <span key={`ellipsis-${index}`} className="groceries-pagination-ellipsis">
-                            ...
-                          </span>
-                        ) : (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => setCurrentPage(item)}
-                            className={`groceries-pagination-page ${
-                              currentPage === item ? "active" : ""
-                            }`}
-                          >
-                            {item}
-                          </button>
-                        )
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        className="groceries-pagination-nav"
-                      >
-                        &gt;
-                      </button>
-                    </div>
-                  </div>
+                <div className="px-5 py-2 border-t border-border">
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={(newRows) => {
+                      setRowsPerPage(newRows);
+                      setCurrentPage(1);
+                    }}
+                    total={filteredGroceries.length}
+                  />
                 </div>
               </>
             )}

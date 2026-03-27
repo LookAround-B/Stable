@@ -14,34 +14,7 @@ import {
   Briefcase, Folder, Wallet, Receipt, Utensils, ChefHat, Flame,
   ClipboardList, Leaf, Sparkles, Zap, Bell
 } from 'lucide-react';
-
-const ROLE_ICONS = {
-  'Ground Supervisor': LayoutDashboard,
-  'Guard': Shield,
-  'Gardener': Leaf,
-  'Housekeeping': Sparkles,
-  'Electrician': Zap,
-  'Stable Manager': Home,
-  'Groom': Feather,
-  'Riding Boy': Wind,
-  'Rider': Flag,
-  'Instructor': GraduationCap,
-  'Farrier': Hammer,
-  'Jamedar': Wrench,
-  'Executive Admin': Briefcase,
-  'Senior Executive Admin': Briefcase,
-  'Junior Admin': Folder,
-  'Executive Accounts': Wallet,
-  'Senior Executive Accounts': Wallet,
-  'Junior Accounts': Receipt,
-  'Restaurant Manager': Utensils,
-  'Chef': ChefHat,
-  'Kitchen Helper': Flame,
-  'Waiter': ClipboardList,
-  'Director': Briefcase,
-  'School Administrator': Briefcase,
-  'Super Admin': Shield,
-};
+import { toast } from 'sonner';
 
 const DEFAULT_PERMS = {
   viewDashboard: false,
@@ -65,42 +38,36 @@ const PermissionsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
 
-  // ── Active tab ──
-  const [activeTab, setActiveTab] = useState('role'); // 'role' | 'task'
-
   // ── Shared state ──
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [openRoles, setOpenRoles] = useState(new Set());
 
-  // ── Role-based permission state ──
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const [permissions, setPermissions] = useState({ ...DEFAULT_PERMS });
-  const [saving, setSaving] = useState(false);
-  const [savedFlash, setSavedFlash] = useState(false);
-  const [message, setMessage] = useState('');
+  // ── Selection State ──
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+  // ── Global Permissions State ──
+  const [globalPermissions, setGlobalPermissions] = useState({ ...DEFAULT_PERMS });
 
   // ── Task-based permission state ──
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [roleDefaults, setRoleDefaults] = useState({}); // { roleName: [perm1, perm2,...] }
-  const [taskOverrides, setTaskOverrides] = useState({}); // { permKey: true/false }
-  const [pendingOverrides, setPendingOverrides] = useState({}); // { permKey: true/false/null }
-  const [taskSaving, setTaskSaving] = useState(false);
-  const [taskSavedFlash, setTaskSavedFlash] = useState(false);
-  const [taskMessage, setTaskMessage] = useState('');
+  const [roleDefaults, setRoleDefaults] = useState({});
+  const [taskOverrides, setTaskOverrides] = useState({});
+  const [pendingOverrides, setPendingOverrides] = useState({});
+  
+  const [isSaving, setIsSaving] = useState(false);
   const [taskLoading, setTaskLoading] = useState(false);
 
-  // Define permissions dynamically using t() function
-  const getPermissionDefs = () => [
-    { key: 'viewDashboard', label: t('View Dashboard'), desc: t('Access the main dashboard overview and summary panels.'), icon: LayoutDashboard },
-    { key: 'manageEmployees', label: t('Manage Employees'), desc: t('Create, edit or remove employee records and role assignments.'), icon: Users },
-    { key: 'viewReports', label: t('View Reports'), desc: t('Access system-generated reports, analytics, and performance data.'), icon: BarChart2 },
-    { key: 'issueFines', label: t('Issue Fines'), desc: t('Raise and record fines against employee accounts.'), icon: AlertTriangle },
-    { key: 'manageInventory', label: t('Manage Inventory'), desc: t('Add, edit, and update inventory items and stock levels.'), icon: Package },
-    { key: 'manageSchedules', label: t('Manage Schedules'), desc: t('Create and modify shift schedules and duty rosters.'), icon: Calendar },
-    { key: 'viewPayroll', label: t('View Payroll'), desc: t('Access salary records, payslips, and payroll summaries.'), icon: CreditCard },
-    { key: 'viewNotifications', label: t('View Notifications'), desc: t('Receive and view in-app notifications such as alerts, reminders, and updates.'), icon: Bell },
+  // Define properties dynamically using t() function
+  const globalPermDefs = () => [
+    { key: 'viewDashboard', label: t('View Dashboard'), desc: t('Access dashboard overview.'), icon: LayoutDashboard },
+    { key: 'manageEmployees', label: t('Manage Employees'), desc: t('Create, edit or remove employee records.'), icon: Users },
+    { key: 'viewReports', label: t('View Reports'), desc: t('Access reports, analytics, and data.'), icon: BarChart2 },
+    { key: 'issueFines', label: t('Issue Fines'), desc: t('Raise fines against employee accounts.'), icon: AlertTriangle },
+    { key: 'manageInventory', label: t('Manage Inventory'), desc: t('Add, edit, and update stock levels.'), icon: Package },
+    { key: 'manageSchedules', label: t('Manage Schedules'), desc: t('Create shift schedules and duty rosters.'), icon: Calendar },
+    { key: 'viewPayroll', label: t('View Payroll'), desc: t('Access salary records and payslips.'), icon: CreditCard },
+    { key: 'viewNotifications', label: t('View Notifications'), desc: t('Receive and view in-app alerts.'), icon: Bell },
   ];
 
   useEffect(() => { fetchData(); }, []);
@@ -112,11 +79,16 @@ const PermissionsPage = () => {
         getPermissions(),
         getRoleDefaults(),
       ]);
-      setEmployees(permRes.data?.data || []);
+      const empData = permRes.data?.data || [];
+      setEmployees(empData);
       setRoleDefaults(roleRes.data?.data?.rolePermissions || {});
+      
+      if (empData.length > 0) {
+        selectEmployee(empData[0]);
+      }
     } catch (err) {
       console.error('Failed to load permissions', err);
-      setMessage('Failed to load permissions data.');
+      toast.error('Failed to load personnel data.');
     } finally {
       setLoading(false);
     }
@@ -124,7 +96,6 @@ const PermissionsPage = () => {
 
   const loadTaskPerms = useCallback(async (empId) => {
     setTaskLoading(true);
-    setTaskMessage('');
     try {
       const res = await getTaskPermissions(empId);
       const data = res.data?.data;
@@ -132,7 +103,7 @@ const PermissionsPage = () => {
       setPendingOverrides({});
     } catch (err) {
       console.error('Failed to load task permissions', err);
-      setTaskMessage('Failed to load task permissions.');
+      toast.error('Failed to sync network states.');
     } finally {
       setTaskLoading(false);
     }
@@ -162,21 +133,6 @@ const PermissionsPage = () => {
     }
   }, [searchQuery, filteredGroups]);
 
-  useEffect(() => {
-    if (selectedIds.size === 0) {
-      setPermissions({ ...DEFAULT_PERMS });
-      return;
-    }
-    if (selectedIds.size === 1) {
-      const emp = employees.find(e => selectedIds.has(e.id));
-      if (emp?.permissions) {
-        setPermissions({ ...DEFAULT_PERMS, ...emp.permissions });
-      } else {
-        setPermissions({ ...DEFAULT_PERMS });
-      }
-    }
-  }, [selectedIds, employees]);
-
   const toggleRole = useCallback((role) => {
     setOpenRoles(prev => {
       const next = new Set(prev);
@@ -185,44 +141,51 @@ const PermissionsPage = () => {
     });
   }, []);
 
-  const toggleEmployee = useCallback((id) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+  const toggleGlobalPerm = useCallback((key) => {
+    setGlobalPermissions(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const togglePerm = useCallback((key) => {
-    setPermissions(prev => ({ ...prev, [key]: !prev[key] }));
-  }, []);
-
-  const handleSave = async () => {
-    if (selectedIds.size === 0) {
-      setMessage(t('Please select at least one employee.'));
-      setTimeout(() => setMessage(''), 3000);
-      return;
-    }
-    setSaving(true);
-    setMessage('');
-    try {
-      await updatePermissions([...selectedIds], permissions);
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 2000);
-      await fetchData();
-    } catch (err) {
-      console.error('Failed to save permissions', err);
-      setMessage(t('Failed to save permissions.'));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const selectEmployeeForTask = useCallback((emp) => {
+  const selectEmployee = useCallback((emp) => {
     setSelectedEmployee(emp);
+    setGlobalPermissions({ ...DEFAULT_PERMS, ...(emp.permissions || {}) });
     setPendingOverrides({});
     loadTaskPerms(emp.id);
   }, [loadTaskPerms]);
+
+  const handleSaveAll = async () => {
+    if (!selectedEmployee) return;
+    setIsSaving(true);
+    try {
+      const reqs = [];
+      reqs.push(updatePermissions([selectedEmployee.id], globalPermissions));
+      
+      const hasPendingChanges = Object.keys(pendingOverrides).length > 0;
+      if (hasPendingChanges) {
+        reqs.push(updateTaskPermissions(selectedEmployee.id, pendingOverrides));
+      }
+
+      await Promise.all(reqs);
+      toast.success(t('Permissions securely uploaded to core servers.'));
+      
+      const res = await getPermissions();
+      const updatedEmps = res.data?.data || [];
+      setEmployees(updatedEmps);
+      const updatedEmp = updatedEmps.find(e => e.id === selectedEmployee.id);
+      if (updatedEmp) {
+        setSelectedEmployee(updatedEmp);
+        setGlobalPermissions({ ...DEFAULT_PERMS, ...(updatedEmp.permissions || {}) });
+      }
+      
+      if (hasPendingChanges) {
+        await loadTaskPerms(selectedEmployee.id);
+      }
+    } catch (err) {
+      console.error('Failed to commit permission saves', err);
+      toast.error(t('Permission synchronization failed.'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const taskPermsList = useMemo(() => {
     if (!selectedEmployee) return [];
@@ -266,8 +229,6 @@ const PermissionsPage = () => {
     return list.sort((a, b) => a.label.localeCompare(b.label));
   }, [selectedEmployee, roleDefaults, taskOverrides, pendingOverrides]);
 
-  const hasPendingChanges = Object.keys(pendingOverrides).length > 0;
-
   const toggleTaskPerm = useCallback((permKey, currentEffective, roleDefault, hasOverride) => {
     setPendingOverrides(prev => {
       const next = { ...prev };
@@ -297,23 +258,6 @@ const PermissionsPage = () => {
     });
   }, []);
 
-  const handleTaskSave = async () => {
-    if (!selectedEmployee || !hasPendingChanges) return;
-    setTaskSaving(true);
-    setTaskMessage('');
-    try {
-      await updateTaskPermissions(selectedEmployee.id, pendingOverrides);
-      setTaskSavedFlash(true);
-      setTimeout(() => setTaskSavedFlash(false), 2000);
-      await loadTaskPerms(selectedEmployee.id);
-    } catch (err) {
-      console.error('Failed to save task permissions', err);
-      setTaskMessage(t('Failed to save task permissions.'));
-    } finally {
-      setTaskSaving(false);
-    }
-  };
-
   const getInitials = (name) => {
     if (!name) return '??';
     const parts = name.split(' ');
@@ -333,48 +277,40 @@ const PermissionsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-foreground max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <p className="label-sm text-muted-foreground text-[10px] truncate uppercase">ORGANIZATION &gt; SYSTEM SETTINGS &gt; <span className="text-primary">PERMISSIONS MATRIX</span></p>
+          <p className="label-sm text-muted-foreground text-[10px] truncate uppercase tracking-widest">ORGANIZATION &gt; SYSTEM SETTINGS &gt; <span className="text-primary">PERMISSIONS MATRIX</span></p>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-2">System <span className="text-primary">Permissions</span></h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">Configure global access matrices and individual task overrides. Changes are logged in real-time.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-          <div className="flex gap-1 bg-surface-container-high p-1 rounded-lg">
-            <button
-              className={`px-4 h-9 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'role' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setActiveTab('role')}
-            >
-              <Shield size={14} /> {t('Role Defaults')}
-            </button>
-            <button
-              className={`px-4 h-9 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'task' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setActiveTab('task')}
-            >
-              <Lock size={14} /> {t('User Overrides')}
-            </button>
-          </div>
-          {activeTab === 'role' ? (
-            <button
-              onClick={handleSave}
-              disabled={saving || selectedIds.size === 0}
-              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all justify-center"
-            >
-              {savedFlash ? <Check size={14} /> : saving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save size={14} />}
-              {savedFlash ? t('SAVED') : saving ? t('SAVING...') : t('SAVE CHANGES')}
-            </button>
-          ) : (
-            <button
-              onClick={handleTaskSave}
-              disabled={taskSaving || !selectedEmployee || !hasPendingChanges}
-              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all justify-center"
-            >
-              {taskSavedFlash ? <Check size={14} /> : taskSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save size={14} />}
-              {taskSavedFlash ? t('SAVED') : taskSaving ? t('SAVING...') : t('SAVE CHANGES')}
-            </button>
-          )}
+        <div className="flex gap-2 shrink-0">
+          <button 
+            type="button"
+            className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm flex items-center gap-2 hover:bg-surface-container-high transition-colors font-bold uppercase tracking-wider"
+            onClick={() => {
+              const csv = `URL,NAME,ID\n${window.location.href},User,${user?.id || ''}`;
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `permissions_audit.csv`;
+              a.click();
+              toast.success("Metrics downloaded.");
+            }}
+          >
+            <Download className="w-4 h-4" /> <span className="hidden sm:inline">EXPORT LOG</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAll}
+            disabled={isSaving || !selectedEmployee}
+            className="h-9 px-3 sm:px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all min-w-[100px] justify-center tracking-wider"
+          >
+            {isSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? t('SAVING...') : t('SAVE CHANGES')}
+          </button>
         </div>
       </div>
 
@@ -399,45 +335,36 @@ const PermissionsPage = () => {
                 className="w-full h-9 pl-9 pr-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {filteredGroups.map(([role, emps]) => {
                 const isOpen = openRoles.has(role);
                 return (
                   <div key={role} className="mb-2">
-                    <div 
+                     {/* Role Header */}
+                     <div 
                       className="flex items-center justify-between px-2 py-1.5 hover:bg-surface-container-high rounded-lg cursor-pointer transition-colors"
                       onClick={() => toggleRole(role)}
                     >
-                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{role}</span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{role}</span>
                       <ChevronRight size={14} className={`text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`} />
                     </div>
+                    {/* Role Users */}
                     {isOpen && (
                       <div className="mt-1 space-y-1 pl-2">
                         {emps.map(emp => {
-                          const sel = activeTab === 'role'
-                            ? selectedIds.has(emp.id)
-                            : selectedEmployee?.id === emp.id;
+                          const isSel = selectedEmployee?.id === emp.id;
                           return (
                             <button
                               key={emp.id}
-                              onClick={() => {
-                                if (activeTab === 'role') toggleEmployee(emp.id);
-                                else selectEmployeeForTask(emp);
-                              }}
-                              className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors border-l-2 ${sel ? 'bg-surface-container-high border-primary' : 'border-transparent hover:bg-surface-container-high/50'}`}
+                              onClick={() => selectEmployee(emp)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors border-l-2 ${isSel ? 'bg-surface-container-high border-primary bg-primary/5' : 'border-transparent hover:bg-surface-container-high/50'}`}
                             >
-                              {activeTab === 'role' ? (
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${sel ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
-                                  {sel && <Check size={10} />}
-                                </div>
-                              ) : null}
-                              {activeTab === 'task' ? (
-                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-bold shrink-0">
-                                  {getInitials(emp.fullName)}
-                                </div>
-                              ) : null}
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-bold shrink-0 shadow-lg">
+                                {getInitials(emp.fullName)}
+                              </div>
                               <div className="min-w-0">
-                                <p className={`text-sm truncate font-medium ${sel && activeTab==='task' ? 'text-foreground' : 'text-muted-foreground'}`}>{emp.fullName}</p>
+                                <p className={`text-sm truncate font-bold ${isSel ? 'text-foreground' : 'text-muted-foreground'}`}>{emp.fullName}</p>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{emp.employmentStatus || 'ACTIVE'}</p>
                               </div>
                             </button>
                           );
@@ -454,170 +381,182 @@ const PermissionsPage = () => {
           </div>
 
           <div className="bg-surface-container-highest rounded-lg p-4 edge-glow">
-            <p className="label-sm text-muted-foreground mb-3">{t('STATUS LEGEND')}</p>
+            <p className="label-sm text-muted-foreground mb-3 tracking-widest uppercase">{t('STATUS LEGEND')}</p>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-primary" /> <span className="text-foreground">ROLE DEFAULT (INHERITED)</span></div>
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-destructive" /> <span className="text-foreground">MANUAL OVERRIDE (DENIED)</span></div>
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-success" /> <span className="text-foreground">MANUAL OVERRIDE (GRANTED)</span></div>
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-warning" /> <span className="text-foreground">UNSAVED PENDING CHANGE</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" /> <span className="text-foreground tracking-wide font-medium">ROLE DEFAULT / INHERITED</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> <span className="text-foreground tracking-wide font-medium">MANUAL OVERRIDE (DENIED)</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]" /> <span className="text-foreground tracking-wide font-medium">MANUAL OVERRIDE (GRANTED)</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse" /> <span className="text-foreground tracking-wide font-medium">UNSAVED PENDING CHANGE</span></div>
             </div>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="lg:col-span-9 space-y-6">
-          {activeTab === 'role' && (
+        {/* Permission Panels Area */}
+        {selectedEmployee ? (
+          <div className="lg:col-span-9 space-y-6">
+            
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0 shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]">
+                  {getInitials(selectedEmployee.fullName)}
+               </div>
+               <div>
+                  <h3 className="text-lg font-bold text-foreground leading-tight">{selectedEmployee.fullName}</h3>
+                  <div className="flex items-center gap-2">
+                     <p className="text-xs text-muted-foreground uppercase tracking-widest">{selectedEmployee.designation}</p>
+                     <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                  </div>
+               </div>
+            </div>
+
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
-                <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0"><Shield className="w-4 h-4 text-primary" /></div>
-                   <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">{t('Role Permissions Matrix')}</h3>
-                </div>
-                {selectedIds.size > 0 && (
-                  <span className="px-3 py-1.5 rounded bg-primary/20 text-primary text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
-                     {selectedIds.size} {selectedIds.size === 1 ? 'EMPLOYEE' : 'EMPLOYEES'} SELECTED
-                  </span>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><Shield className="w-4 h-4 text-primary" /></div>
+                <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">Global Permissions</h3>
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {getPermissionDefs().map(perm => {
-                  const isOn = permissions[perm.key];
-                  const PermIcon = perm.icon;
+              <div className="space-y-1">
+                {globalPermDefs().map((p) => {
+                  const isOn = globalPermissions[p.key];
+                  const Icon = p.icon;
                   return (
-                    <div 
-                      key={perm.key} 
-                      onClick={() => togglePerm(perm.key)}
-                      className={`rounded-lg p-4 border cursor-pointer transition-all flex flex-col h-full ${isOn ? 'border-primary bg-surface-container-high/80' : 'border-border/50 bg-surface-container/50 opacity-60'}`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`w-8 h-8 rounded-lg flex flex-shrink-0 items-center justify-center transition-colors ${isOn ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                          <PermIcon size={16} />
-                        </div>
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider ${isOn ? 'bg-success/20 text-success' : 'bg-muted text-muted-foreground'}`}>
-                          {isOn ? 'GRANTED' : 'DENIED'}
-                        </span>
+                    <div key={p.key} className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-surface-container-high/50">
+                      <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+                        <Icon className="w-5 h-5 text-muted-foreground" />
                       </div>
-                      <h4 className="font-bold text-foreground text-sm mb-1">{perm.label}</h4>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed mb-4 flex-grow">{perm.desc}</p>
-                      
-                      <div className="flex items-center justify-between border-t border-border/50 pt-3">
-                         <span className={`text-[10px] font-bold tracking-wider ${isOn ? 'text-primary' : 'text-muted-foreground'}`}>
-                           {isOn ? 'ACTIVE' : 'DISABLED'}
-                         </span>
-                         <div className={`w-10 h-5 rounded-full flex items-center px-0.5 transition-colors ${isOn ? 'bg-primary' : 'bg-surface-container-high border border-border'}`}>
-                           <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
-                         </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground">{p.label}</p>
+                        <p className="text-xs text-muted-foreground">{p.desc}</p>
+                      </div>
+                      <div 
+                        onClick={() => toggleGlobalPerm(p.key)}
+                        className={`w-11 h-6 rounded-full flex items-center px-0.5 cursor-pointer transition-colors shrink-0 ${isOn ? 'bg-primary' : 'bg-surface-container-high border border-border'}`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
                       </div>
                     </div>
                   );
                 })}
               </div>
-               {message && <div className="mt-4 p-3 bg-destructive/15 text-destructive rounded-lg text-sm border border-destructive/30">{message}</div>}
             </div>
-          )}
 
-          {activeTab === 'task' && (
-            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow min-h-[500px]">
-              {!selectedEmployee ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-20 px-4">
-                  <Lock className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                  <h3 className="text-lg font-bold text-foreground mb-2">{t('Select an Employee')}</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm">{t('Choose an employee from the directory sidebar to view and override their specific task access permissions.')}</p>
-                </div>
-              ) : taskLoading ? (
-                <div className="flex justify-center items-center h-48">
-                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                         {getInitials(selectedEmployee.fullName)}
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold text-foreground">{selectedEmployee.fullName}</h3>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest">{selectedEmployee.designation}</p>
-                      </div>
-                    </div>
-                    {hasPendingChanges && (
-                      <span className="px-3 py-1.5 rounded bg-warning/20 text-warning text-[10px] font-bold uppercase tracking-wider animate-pulse">
-                         UNSAVED OVERRIDES
-                      </span>
-                    )}
+            {/* Operational Task Overrides View */}
+            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow relative">
+               {taskLoading && (
+                  <div className="absolute inset-0 bg-surface-container-highest/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {taskPermsList.map(perm => {
-                      const isPending = perm.hasPending;
-                      const isOverride = perm.hasOverride;
+               )}
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
+                 <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><ActionIcon className="w-4 h-4 text-primary" /></div>
+                   <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">Operational Task Overrides</h3>
+                 </div>
+                 <div className="flex items-center gap-2 flex-wrap">
+                   <span className="text-[10px] text-muted-foreground bg-surface-container-high px-3 py-1.5 rounded tracking-wider uppercase">TARGET: {selectedEmployee.fullName}</span>
+                   <span className="px-2 py-1 rounded bg-primary/20 text-primary text-[10px] font-bold flex items-center gap-1">{selectedEmployee.designation} <CheckCircle className="w-3 h-3" /></span>
+                   {Object.keys(pendingOverrides).length > 0 && <span className="px-2 py-1 rounded bg-warning/20 text-warning text-[10px] font-bold flex items-center gap-1 animate-pulse"><AlertTriangle className="w-3 h-3" /> UNSAVED PROFILES</span>}
+                 </div>
+               </div>
 
-                      let borderColor = 'border-border/50';
-                      let bgColor = 'bg-surface-container/50 opacity-60';
-                      let badgeColor = 'bg-muted text-muted-foreground';
-                      let badgeText = 'DISABLED';
-                      
-                      if (isPending) {
-                          borderColor = 'border-warning shadow-[0_0_10px_rgba(234,179,8,0.2)]';
-                          bgColor = 'bg-warning/5 opacity-100';
-                          badgeColor = 'bg-warning text-warning-foreground';
-                          badgeText = 'PENDING';
-                      } else if (isOverride) {
-                          borderColor = perm.effectiveValue ? 'border-success' : 'border-destructive';
-                          bgColor = perm.effectiveValue ? 'bg-success/5 opacity-100' : 'bg-destructive/5 opacity-100';
-                          badgeColor = perm.effectiveValue ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive';
-                          badgeText = perm.effectiveValue ? 'GRANTED OVERRIDE' : 'DENIED OVERRIDE';
-                      } else {
-                          if (perm.roleDefault) {
-                              borderColor = 'border-primary';
-                              bgColor = 'bg-surface-container-high/80 opacity-100';
-                              badgeColor = 'bg-primary/20 text-primary';
-                              badgeText = 'ROLE DEFAULT';
-                          }
-                      }
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                 {taskPermsList.map(perm => {
+                       const isPending = perm.hasPending;
+                       const isOverride = perm.hasOverride;
 
-                      return (
-                        <div key={perm.key} className={`rounded-lg p-4 border transition-all flex flex-col h-full ${borderColor} ${bgColor}`}>
-                          <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-bold text-foreground text-sm flex-1 mr-2 leading-tight">{perm.label}</h4>
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider shrink-0 ${badgeColor}`}>
-                              {badgeText}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-auto">
-                            {(isOverride || isPending) ? (
-                              <button
-                                className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-                                onClick={(e) => { e.stopPropagation(); resetTaskPerm(perm.key); }}
-                              >
-                                <RotateCcw size={12} /> {t('RESET')}
-                              </button>
-                            ) : <span className="text-[10px] text-muted-foreground">INHERITED</span>}
-                            
-                            <div className="flex items-center gap-2">
-                               <span className={`text-[10px] font-bold tracking-wider ${perm.effectiveValue ? 'text-primary' : 'text-muted-foreground'}`}>{perm.effectiveValue ? 'ACTIVE' : 'OFF'}</span>
+                       let borderColor = 'border-border/50';
+                       let bgColor = 'bg-surface-container/50 opacity-60';
+                       let badgeColor = 'bg-muted text-muted-foreground';
+                       let badgeText = 'DISABLED';
+                       
+                       if (isPending) {
+                           borderColor = 'border-warning shadow-[0_0_10px_rgba(234,179,8,0.2)]';
+                           bgColor = 'bg-warning/5 opacity-100';
+                           badgeColor = 'bg-warning text-warning-foreground';
+                           badgeText = 'PENDING';
+                       } else if (isOverride) {
+                           borderColor = perm.effectiveValue ? 'border-success' : 'border-destructive';
+                           bgColor = perm.effectiveValue ? 'bg-success/5 opacity-100' : 'bg-destructive/5 opacity-100';
+                           badgeColor = perm.effectiveValue ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive';
+                           badgeText = perm.effectiveValue ? 'MANUAL OVERRIDE' : 'DENIED OVERRIDE';
+                       } else {
+                           if (perm.roleDefault) {
+                               borderColor = 'border-primary';
+                               bgColor = 'bg-surface-container-high/80 opacity-100';
+                               badgeColor = 'bg-primary/20 text-primary';
+                               badgeText = 'INHERITED';
+                           }
+                       }
+
+                       return (
+                         <div key={perm.key} className={`rounded-lg p-4 border cursor-pointer transition-all flex flex-col h-full ${borderColor} ${bgColor}`}>
+                           <div className="flex items-start justify-between mb-3">
+                             <div className={`w-8 h-8 rounded-lg ${perm.effectiveValue ? 'bg-primary/20' : 'bg-muted'} flex items-center justify-center transition-colors`}>
+                                 <Shield className={`w-4 h-4 ${perm.effectiveValue ? 'text-primary' : 'text-muted-foreground'}`} />
+                             </div>
+                             <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${badgeColor}`}>
+                               {badgeText}
+                             </span>
+                           </div>
+                           <h4 className="font-bold text-foreground text-sm mb-1">{perm.label}</h4>
+                           <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">
+                             AUTHORITY IDENTIFIER: {perm.key}
+                           </p>
+                           <div className="flex items-center justify-between mt-auto">
+                             <div className="flex items-center gap-1.5">
+                               <span className={`label-sm ${perm.effectiveValue ? 'text-success' : 'text-muted-foreground'}`}>
+                                 {perm.effectiveValue ? 'ACTIVE STATUS' : 'DISABLED'}
+                               </span>
+                               {perm.effectiveValue ? <CheckCircle className="w-4 h-4 text-success" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
+                             </div>
+                             <div className="flex items-center gap-2">
+                               {(isOverride || isPending) && (
+                                 <button
+                                   className="text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                                   onClick={(e) => { e.stopPropagation(); resetTaskPerm(perm.key); }}
+                                 >
+                                   <RotateCcw size={10} />
+                                 </button>
+                               )}
                                <div 
                                  onClick={() => toggleTaskPerm(perm.key, perm.effectiveValue, perm.roleDefault, perm.hasOverride)}
-                                 className={`w-9 h-5 rounded-full flex items-center px-0.5 cursor-pointer transition-colors ${perm.effectiveValue ? 'bg-primary' : 'bg-surface-container-high border border-border'}`}
+                                 className={`w-11 h-6 rounded-full flex items-center px-0.5 cursor-pointer transition-colors ${perm.effectiveValue ? 'bg-primary' : 'bg-surface-container-high border border-border'}`}
                                >
-                                 <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${perm.effectiveValue ? 'translate-x-4' : 'translate-x-0'}`} />
+                                 <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${perm.effectiveValue ? 'translate-x-5' : 'translate-x-0'}`} />
                                </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {taskMessage && <div className="mt-4 p-3 bg-destructive/15 text-destructive rounded-lg text-sm border border-destructive/30">{taskMessage}</div>}
-                </>
-              )}
+                             </div>
+                           </div>
+                         </div>
+                       );
+                 })}
+                 {/* Append Task Node */}
+                 <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors min-h-[160px]">
+                   <Plus className="w-6 h-6 text-muted-foreground mb-2" />
+                   <p className="label-sm text-muted-foreground">APPEND TASK NODE</p>
+                 </div>
+                 {/* Empty State */}
+                 {taskPermsList.length === 0 && !taskLoading && (
+                   <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center min-h-[160px] bg-surface-container/50">
+                     <AlertTriangle className="w-6 h-6 text-muted-foreground mb-2" />
+                     <p className="label-sm text-foreground uppercase tracking-widest font-bold">NO TASKS DEFINED</p>
+                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">This user role possesses zero default behaviors.</p>
+                   </div>
+                 )}
+               </div>
             </div>
-          )}
-        </div>
+
+          </div>
+        ) : (
+          <div className="lg:col-span-9 flex flex-col items-center justify-center text-center py-20 px-4 bg-surface-container-highest rounded-lg border border-border edge-glow min-h-[500px]">
+             <Shield className="w-16 h-16 text-muted-foreground/30 mb-5" />
+             <h3 className="text-xl font-bold text-foreground mb-2 uppercase tracking-widest">Select an Employee Target</h3>
+             <p className="text-sm text-muted-foreground max-w-sm">Choose an employee from the directory sidebar to visualize and alter global interface restrictions and specific operational task overrides.</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+// Simple helper component purely to inject into the JSX.
+const ActionIcon = ({ className }) => <Shield className={className} />;
 
 export default PermissionsPage;

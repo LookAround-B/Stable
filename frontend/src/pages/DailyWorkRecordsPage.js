@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { Download, Plus, Pencil, Trash2, ClipboardList } from 'lucide-react';
+import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History, Calendar } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -123,29 +123,44 @@ const DailyWorkRecordsPage = () => {
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}<button onClick={() => setMessage('')} className="ml-3 opacity-60 hover:opacity-100">✕</button></div>}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Cards (2x2 Grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {[
-          { label: 'Records Today', value: records.length },
-          { label: 'Total Minutes', value: totalMinutes },
-          { label: 'Horses Used', value: [...new Set(records.map(r => r.horseId))].length },
-          { label: 'Avg Duration', value: records.length ? `${Math.round(totalMinutes / records.length)}m` : '0m' },
+          { label: 'RECORDED SESSIONS', value: String(records.length).padStart(2, '0'), icon: ClipboardList, colorClass: 'text-primary', bgClass: 'bg-primary/10' },
+          { label: 'TOTAL EXPERIENCED TIME', value: `${Math.round(totalMinutes / 60)}h ${totalMinutes % 60}m`, icon: Clock, colorClass: 'text-success', bgClass: 'bg-success/10' },
+          { label: 'HORSES ENGAGED', value: String([...new Set(records.map(r => r.horseId))].length).padStart(2, '0'), icon: Activity, colorClass: 'text-primary', bgClass: 'bg-primary/10' },
+          { label: 'AVG DURATION/HORSE', value: records.length ? `${Math.round(totalMinutes / records.length)}m` : '0m', icon: History, colorClass: 'text-primary', bgClass: 'bg-primary/10' },
         ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
-            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
-            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+              <k.icon className="w-24 h-24" />
+            </div>
+            <div className="flex items-center justify-between mb-3 relative z-10">
+              <span className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</span>
+              <div className={`w-9 h-9 rounded-lg ${k.bgClass} flex items-center justify-center`}>
+                <k.icon className={`w-4 h-4 ${k.colorClass}`} />
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-foreground mt-1 mono-data relative z-10">{k.value}</p>
           </div>
         ))}
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
-        <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={inputCls} />
+      <div className="flex flex-col md:flex-row items-center gap-3">
+        <div className="relative w-full max-w-sm">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input 
+            type="date" 
+            value={selectedDate} 
+            onChange={(e) => setSelectedDate(e.target.value)} 
+            className="w-full h-10 pl-9 pr-3 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none hover:bg-surface-container-highest transition-colors"
+          />
         </div>
         {!showForm && canCreateRecords && (
-          <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"><Plus className="w-4 h-4" /> New Record</button>
+          <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm font-medium hover:bg-surface-container-highest hover:text-primary transition-all flex items-center gap-2">
+            <Plus className="w-4 h-4" /> New Record
+          </button>
         )}
       </div>
 
@@ -192,37 +207,53 @@ const DailyWorkRecordsPage = () => {
       {loading && <TableSkeleton cols={6} rows={5} />}
 
       {!loading && records.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">No records for {new Date(selectedDate).toLocaleDateString()}</div>
+        <div className="bg-surface-container-highest rounded-xl p-12 text-center border border-border/50">
+          <ClipboardList className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+          <span className="text-sm text-muted-foreground">No records for {new Date(selectedDate).toLocaleDateString('en-GB')}</span>
+        </div>
       )}
 
       {!loading && records.length > 0 && (
         <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-          <div className="px-5 py-4 border-b border-border">
-            <h3 className="text-sm font-bold text-foreground">Records for {new Date(selectedDate).toLocaleDateString()} ({records.length})</h3>
-          </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[700px]">
               <thead>
-                <tr className="border-b border-border">
-                  {['Horse', 'Rider', ...(!canCreateRecords ? ['Instructor'] : []), 'Type', 'Duration', 'Notes', ...(canCreateRecords ? ['Actions'] : [])].map(h => (
-                    <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
-                  ))}
+                <tr className="border-b border-border/50">
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Horse</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Rider</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Work Category</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Duration</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Remarks</th>
+                  {canCreateRecords && <th className="px-5 py-3 w-24"></th>}
                 </tr>
               </thead>
               <tbody>
-                {records.map((record) => (
-                  <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
-                    <td className="px-3 py-3 font-medium text-foreground">{record.horse.name}</td>
-                    <td className="px-3 py-3 text-muted-foreground">{record.rider.fullName}</td>
-                    {!canCreateRecords && <td className="px-3 py-3 text-muted-foreground text-xs">{record.instructor?.fullName || '-'}</td>}
-                    <td className="px-3 py-3">{workTypeBadge(record.workType)}</td>
-                    <td className="px-3 py-3 text-foreground mono-data font-medium">{record.duration} min</td>
-                    <td className="px-3 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{record.notes || '-'}</td>
+                {records.map(record => (
+                  <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high/30 transition-colors">
+                    <td className="px-5 py-4 font-semibold text-foreground">
+                       <span className="inline-flex items-center gap-2">
+                         <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center text-[10px] font-bold text-primary shrink-0 opacity-80">
+                           {record.horse?.name?.charAt(0) || '-'}
+                         </div>
+                         {record.horse?.name || '-'}
+                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-muted-foreground">{record.rider?.fullName || '-'}</td>
+                    <td className="px-5 py-4">{workTypeBadge(record.workType)}</td>
+                    <td className="px-5 py-4 font-mono text-sm">
+                      <span className="text-primary font-bold">{record.duration}</span>
+                      <span className="text-muted-foreground ml-1">m</span>
+                    </td>
+                    <td className="px-5 py-4 text-xs text-muted-foreground truncate max-w-[200px]" title={record.notes}>{record.notes || '-'}</td>
                     {canCreateRecords && (
-                      <td className="px-3 py-3">
-                        <div className="flex gap-1.5">
-                          <button onClick={() => handleEdit(record)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center gap-1"><Pencil className="w-3 h-3" /> Edit</button>
-                          <button onClick={() => handleDelete(record.id)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-1"><Trash2 className="w-3 h-3" /> Del</button>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button onClick={() => handleEdit(record)} title="Edit" className="p-1.5 rounded text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => handleDelete(record.id)} title="Delete" className="p-1.5 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     )}

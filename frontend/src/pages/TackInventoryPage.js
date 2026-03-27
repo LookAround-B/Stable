@@ -5,15 +5,31 @@ import tackInventoryService from "../services/tackInventoryService";
 import { getHorses } from "../services/horseService";
 import { getEmployees } from "../services/employeeService";
 import SearchableSelect from "../components/SearchableSelect";
-import Pagination from "../components/Pagination";
 import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { AlertTriangle, Download, Package, Plus, Search, Wrench, X } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react';
 
 const CATEGORIES = ["Saddle", "Bridle", "Grooming Gear", "Training Equipment"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
+
+const categoryStyle = {
+  Saddle: 'bg-primary/20 text-primary',
+  Bridle: 'bg-success/20 text-success',
+  'Grooming Gear': 'bg-warning/20 text-warning',
+  'Training Equipment': 'bg-accent/20 text-accent-foreground',
+};
+
+const conditionStyle = {
+  New: { color: 'text-success', dot: 'bg-success' },
+  Good: { color: 'text-success', dot: 'bg-success' },
+  Worn: { color: 'text-warning', dot: 'bg-warning' },
+  Fair: { color: 'text-warning', dot: 'bg-warning' },
+  Damaged: { color: 'text-destructive', dot: 'bg-destructive' },
+  Poor: { color: 'text-destructive', dot: 'bg-destructive' },
+  Replace: { color: 'text-destructive', dot: 'bg-destructive' },
+};
 
 const TackInventoryPage = () => {
   const { t } = useI18n();
@@ -27,7 +43,8 @@ const TackInventoryPage = () => {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("success");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [rowsPerPage] = useState(5);
+  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [filterCategory, setFilterCategory] = useState("");
@@ -114,7 +131,7 @@ const TackInventoryPage = () => {
     catch { showMsg("Failed to delete", "error"); }
   };
 
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-GB") : "-";
+  const formatDate = (d) => d ? new Date(d).toISOString().split('T')[0] : "-";
 
   const handleDownloadExcel = () => {
     if (items.length === 0) { alert("No data"); return; }
@@ -132,6 +149,13 @@ const TackInventoryPage = () => {
     XLSX.writeFile(wb, `TackInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
+  const hasActiveFilters = filterCategory || filterCondition;
+  const clearFilters = () => { setFilterCategory(''); setFilterCondition(''); setCurrentPage(1); };
+
+  const uniqueCategories = [...new Set(items.map(i => i.category).filter(Boolean))];
+  const maintenanceItems = items.filter(i => i.maintenanceRequired);
+  const needsAttention = items.filter(i => i.condition === 'Damaged' || i.condition === 'Poor' || i.condition === 'Replace').length;
+
   if (!p.viewTackInventory) return <Navigate to="/dashboard" replace />;
 
   return (
@@ -140,7 +164,7 @@ const TackInventoryPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Tack <span className="text-primary">Inventory</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('Manage saddles, bridles, grooming gear & training equipment')}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t('Manage tack and equipment across all stable operations.')}</p>
         </div>
         <div className="flex gap-2 shrink-0">
           <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
@@ -159,29 +183,29 @@ const TackInventoryPage = () => {
         </div>
       )}
 
-      {/* ── KPI Cards ── */}
+      {/* ── KPI Cards (EFM Style) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
           <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> TOTAL ITEMS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{items.length}</p>
-          <p className="text-xs mt-1 text-muted-foreground">Across all categories</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(items.length).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-success">↗ +8% vs last month</p>
         </div>
         <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Wrench className="w-3.5 h-3.5 text-warning" /> NEEDS MAINTENANCE</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{items.filter(i => i.maintenanceRequired).length}</p>
-          <p className="text-xs mt-1 text-warning">Requires attention</p>
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> CATEGORIES</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(uniqueCategories.length || CATEGORIES.length).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-muted-foreground">Unique equipment types</p>
         </div>
         <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /> DAMAGED</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{items.filter(i => i.condition === 'Damaged').length}</p>
-          <p className="text-xs mt-1 text-destructive">Needs replacement</p>
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Wrench className="w-3.5 h-3.5 text-destructive" /> NEEDS ATTENTION</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(needsAttention + maintenanceItems.length).padStart(2, '0')}</p>
+          <p className="text-xs mt-1 text-destructive">Items flagged for repair</p>
         </div>
       </div>
 
       {/* ── Maintenance Alert ── */}
-      {items.some(i => i.maintenanceRequired) && (
+      {maintenanceItems.length > 0 && (
         <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Maintenance Required:</strong> {items.filter(i => i.maintenanceRequired).map(i => i.itemName).join(', ')}
+          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Maintenance Required:</strong> {maintenanceItems.map(i => i.itemName).join(', ')}
         </div>
       )}
 
@@ -217,7 +241,11 @@ const TackInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Brand</label>
-                <input type="text" name="brand" value={formData.brand} onChange={handleInputChange} maxLength={100} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <input type="text" name="brand" value={formData.brand} onChange={handleInputChange} maxLength={100} placeholder="e.g. Stubben" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Storage Location</label>
+                <input type="text" name="storageLocation" value={formData.storageLocation} onChange={handleInputChange} maxLength={200} placeholder="e.g. Tack Room A" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Size</label>
@@ -236,15 +264,11 @@ const TackInventoryPage = () => {
                 <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Storage Location</label>
-                <input type="text" name="storageLocation" value={formData.storageLocation} onChange={handleInputChange} maxLength={200} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-              </div>
-              <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Cleaning Schedule</label>
                 <input type="text" name="cleaningSchedule" value={formData.cleaningSchedule} onChange={handleInputChange} maxLength={200} placeholder="e.g., Weekly" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div className="flex items-center gap-2 pt-6">
-                <input type="checkbox" name="maintenanceRequired" checked={formData.maintenanceRequired} onChange={handleInputChange} className="w-4 h-4 rounded" />
+                <input type="checkbox" name="maintenanceRequired" checked={formData.maintenanceRequired} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
                 <label className="text-sm text-foreground">Maintenance Required</label>
               </div>
             </div>
@@ -257,25 +281,65 @@ const TackInventoryPage = () => {
               <textarea name="repairHistory" value={formData.repairHistory} onChange={handleInputChange} rows="2" maxLength={1000} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none resize-none" />
             </div>
             <div className="flex gap-3">
-              <button type="submit" className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{editingId ? "Update" : "Add Item"}</button>
+              <button type="submit" className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{editingId ? "Save Changes" : "Add Item"}</button>
               <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={resetForm}>Cancel</button>
             </div>
           </form>
         </div>
       )}
 
-      {/* ── Table Container ── */}
+      {/* ── Table Container (EFM Replica) ── */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-        {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 sm:px-6 py-4 border-b border-border">
-          <div className="flex-1 flex items-center gap-2 px-4 h-11 rounded-lg border border-border bg-background">
-            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-            <input type="text" placeholder="Search by name, brand..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full" />
-            {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+        {/* Toolbar — matches EFM */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+              placeholder={t("Search items or horse...")}
+              className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+            />
+            {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
-          <SearchableSelect value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }} options={[{ value: '', label: 'All Categories' }, ...CATEGORIES.map(c => ({ value: c, label: c }))]} placeholder="All Categories" className="w-full sm:w-44" />
-          <SearchableSelect value={filterCondition} onChange={e => { setFilterCondition(e.target.value); setCurrentPage(1); }} options={[{ value: '', label: 'All Conditions' }, ...CONDITIONS.map(c => ({ value: c, label: c }))]} placeholder="All Conditions" className="w-full sm:w-44" />
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowFilters(v => !v)}
+              className={`flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors ${showFilters || hasActiveFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
+              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            </button>
+            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} of {items.length} items</span>
+          </div>
         </div>
+
+        {/* Filter Panel */}
+        {showFilters && (
+          <div className="px-3 sm:px-6 py-4 border-b border-border bg-surface-container-high/50">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="w-44">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
+                <select value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
+                  <option value="">All</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="w-40">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Condition</label>
+                <select value={filterCondition} onChange={e => { setFilterCondition(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
+                  <option value="">All</option>
+                  {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
+                  <X className="w-3 h-3" /> Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         {loading ? <div className="p-4"><TableSkeleton cols={10} rows={5} /></div> : items.length === 0 ? (
@@ -283,55 +347,83 @@ const TackInventoryPage = () => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[900px]">
+              <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Item Name</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Category</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Horse</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Rider</th>
-                    <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Qty</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Condition</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Brand</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Storage</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Maint.</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Actions</th>
+                    {['ITEM NAME', 'CATEGORY', 'HORSE / SCOPE', 'QTY', 'CONDITION', 'BRAND', 'LOCATION', 'LAST USED', ''].map(h => (
+                      <th key={h || 'actions'} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedItems.map((item, i) => (
-                    <tr key={item.id} className={`border-b border-border/30 hover:bg-surface-container-high/50 transition-colors ${item.condition === 'Damaged' ? 'bg-destructive/5' : item.maintenanceRequired ? 'bg-warning/5' : ''}`}>
-                      <td className="px-4 py-4 text-muted-foreground">{startIndex + i + 1}</td>
-                      <td className="px-4 py-4 font-semibold text-foreground">{item.itemName}</td>
-                      <td className="px-4 py-4 text-foreground">{item.category}</td>
-                      <td className="px-4 py-4 text-foreground">{item.horse?.name || "-"}</td>
-                      <td className="px-4 py-4 text-foreground">{item.rider?.fullName || "-"}</td>
-                      <td className="px-4 py-4 text-right mono-data text-foreground">{item.quantity}</td>
-                      <td className="px-4 py-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${
-                          item.condition === 'New' ? 'bg-success/20 text-success' :
-                          item.condition === 'Good' ? 'bg-primary/20 text-primary' :
-                          item.condition === 'Worn' ? 'bg-warning/20 text-warning' :
-                          'bg-destructive/20 text-destructive'
-                        }`}>{item.condition?.toUpperCase()}</span>
-                      </td>
-                      <td className="px-4 py-4 text-foreground">{item.brand || "-"}</td>
-                      <td className="px-4 py-4 text-foreground">{item.storageLocation || "-"}</td>
-                      <td className="px-4 py-4">{item.maintenanceRequired ? <span className="text-warning font-semibold text-xs">YES</span> : <span className="text-muted-foreground text-xs">—</span>}</td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <button className="text-xs text-primary hover:underline font-medium" onClick={() => handleEdit(item)}>Edit</button>
-                          <button className="text-xs text-destructive hover:underline font-medium" onClick={() => handleDelete(item.id)}>Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedItems.map(item => {
+                    const cs = conditionStyle[item.condition] || conditionStyle.Good;
+                    const catCls = categoryStyle[item.category] || 'bg-muted text-muted-foreground';
+                    return (
+                      <tr key={item.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${item.condition === 'Damaged' ? 'bg-destructive/5' : item.maintenanceRequired ? 'bg-warning/5' : ''}`}>
+                        {/* Name with avatar */}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0">{(item.itemName || '?').charAt(0).toUpperCase()}</div>
+                            <span className="font-semibold text-sm text-foreground">{item.itemName}</span>
+                          </div>
+                        </td>
+                        {/* Category badge */}
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${catCls}`}>{item.category}</span>
+                        </td>
+                        {/* Horse */}
+                        <td className="px-6 py-4 text-sm text-foreground">{item.horse?.name || '-'}</td>
+                        {/* Qty */}
+                        <td className="px-6 py-4 mono-data text-sm font-semibold text-center">{String(item.quantity).padStart(2, '0')}</td>
+                        {/* Condition with dot */}
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase ${cs.color}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${cs.dot}`} />
+                            {item.condition}
+                          </span>
+                        </td>
+                        {/* Brand */}
+                        <td className="px-6 py-4 text-sm text-foreground">{item.brand || '-'}</td>
+                        {/* Location */}
+                        <td className="px-6 py-4 text-sm text-muted-foreground">{item.storageLocation || '-'}</td>
+                        {/* Last Used */}
+                        <td className="px-6 py-4 mono-data text-xs text-foreground">{formatDate(item.lastUsedDate)}</td>
+                        {/* Action icons */}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title="Delete">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {paginatedItems.length === 0 && (
+                    <tr><td colSpan={9} className="px-6 py-8 text-center text-sm text-muted-foreground">No items match your filters.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="px-4 sm:px-6 py-3 border-t border-border">
-              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(n) => { setRowsPerPage(n); setCurrentPage(1); }} totalRows={items.length} />
+            {/* Pagination — EFM style Previous/Next + page buttons */}
+            <div className="flex items-center justify-between px-3 sm:px-6 py-3 border-t border-border">
+              <div className="flex gap-2">
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
+                  <ChevronLeft className="w-3 h-3" /> Previous
+                </button>
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage >= totalPages} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
+                  Next <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages || 1 }, (_, i) => (
+                  <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-7 h-7 rounded text-xs font-medium transition-colors ${currentPage === i + 1 ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-surface-container-high'}`}>{i + 1}</button>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -345,4 +437,3 @@ const TackInventoryPage = () => {
 };
 
 export default TackInventoryPage;
-
