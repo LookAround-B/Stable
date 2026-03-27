@@ -633,7 +633,7 @@ const TasksPage = () => {
         <div className="lovable-header-actions">
           {canCreateTasks && (
             <button
-              className="btn-add h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium"
+              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium"
               onClick={() => setShowCreateForm(true)}
               type="button"
             >

@@ -9,9 +9,10 @@ import {
 import {
   Search, ChevronRight, Check, Users, LayoutDashboard, BarChart2,
   AlertTriangle, Package, Calendar, CreditCard, Save, Info, Shield,
+  Settings2, Download, Filter, SlidersHorizontal, Lock, CheckCircle, Plus, RotateCcw, Unlock,
   Home, Feather, Wind, Flag, GraduationCap, Hammer, Wrench,
   Briefcase, Folder, Wallet, Receipt, Utensils, ChefHat, Flame,
-  ClipboardList, Leaf, Sparkles, Zap, RotateCcw, Lock, Unlock, Bell
+  ClipboardList, Leaf, Sparkles, Zap, Bell
 } from 'lucide-react';
 
 const ROLE_ICONS = {
@@ -53,27 +54,34 @@ const DEFAULT_PERMS = {
   viewNotifications: false,
 };
 
+// Helper: convert snake_case permission key to readable label
+function formatPermName(key) {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
 const PermissionsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
 
   // ── Active tab ──
   const [activeTab, setActiveTab] = useState('role'); // 'role' | 'task'
-  
+
   // ── Shared state ──
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [openRoles, setOpenRoles] = useState(new Set());
 
-  // ── Role-based permission state (existing) ──
+  // ── Role-based permission state ──
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [permissions, setPermissions] = useState({ ...DEFAULT_PERMS });
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [message, setMessage] = useState('');
 
-  // ── Task-based permission state (new) ──
+  // ── Task-based permission state ──
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [roleDefaults, setRoleDefaults] = useState({}); // { roleName: [perm1, perm2,...] }
   const [taskOverrides, setTaskOverrides] = useState({}); // { permKey: true/false }
@@ -95,7 +103,6 @@ const PermissionsPage = () => {
     { key: 'viewNotifications', label: t('View Notifications'), desc: t('Receive and view in-app notifications such as alerts, reminders, and updates.'), icon: Bell },
   ];
 
-  // ── Data fetching ──
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
@@ -115,7 +122,6 @@ const PermissionsPage = () => {
     }
   };
 
-  // When an employee is selected on the Task tab, load their overrides
   const loadTaskPerms = useCallback(async (empId) => {
     setTaskLoading(true);
     setTaskMessage('');
@@ -179,7 +185,6 @@ const PermissionsPage = () => {
     });
   }, []);
 
-  // ── Role tab: multi-select employee ──
   const toggleEmployee = useCallback((id) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -213,32 +218,27 @@ const PermissionsPage = () => {
     }
   };
 
-  // ── Task tab: single-select employee ──
   const selectEmployeeForTask = useCallback((emp) => {
     setSelectedEmployee(emp);
     setPendingOverrides({});
     loadTaskPerms(emp.id);
   }, [loadTaskPerms]);
 
-  // Get the computed permission list for the selected employee
   const taskPermsList = useMemo(() => {
     if (!selectedEmployee) return [];
     const role = selectedEmployee.designation;
     const defaults = roleDefaults[role] || [];
-    // Collect all unique permissions (defaults + any overrides that exist)
     const allPerms = new Set([...defaults, ...Object.keys(taskOverrides), ...Object.keys(pendingOverrides)]);
     const list = [];
     for (const perm of allPerms) {
       const roleDefault = defaults.includes(perm);
-      // Check if there's a pending change, otherwise use saved override
       const hasPending = perm in pendingOverrides;
       const hasSavedOverride = perm in taskOverrides;
       let effectiveValue;
-      let overrideState; // 'none' | 'granted' | 'denied' | 'pending-grant' | 'pending-deny' | 'pending-reset'
+      let overrideState;
       
       if (hasPending) {
         if (pendingOverrides[perm] === null) {
-          // Resetting to default
           effectiveValue = roleDefault;
           overrideState = 'pending-reset';
         } else {
@@ -272,22 +272,16 @@ const PermissionsPage = () => {
     setPendingOverrides(prev => {
       const next = { ...prev };
       if (permKey in next) {
-        // Already has a pending change — toggle again or cycle
         const pendingVal = next[permKey];
         if (pendingVal === null) {
-          // Was resetting, now explicitly grant if default is deny, or deny if default is grant
           next[permKey] = !roleDefault;
         } else {
-          // Was overriding, reset to role default
           delete next[permKey];
         }
       } else {
-        // No pending change yet
         if (hasOverride) {
-          // Has saved override → set pending to reset (null)
           next[permKey] = null;
         } else {
-          // No override → flip from role default
           next[permKey] = !roleDefault;
         }
       }
@@ -298,7 +292,6 @@ const PermissionsPage = () => {
   const resetTaskPerm = useCallback((permKey) => {
     setPendingOverrides(prev => {
       const next = { ...prev };
-      // Mark as "reset to default" → send null to API
       next[permKey] = null;
       return next;
     });
@@ -312,7 +305,6 @@ const PermissionsPage = () => {
       await updateTaskPermissions(selectedEmployee.id, pendingOverrides);
       setTaskSavedFlash(true);
       setTimeout(() => setTaskSavedFlash(false), 2000);
-      // Reload
       await loadTaskPerms(selectedEmployee.id);
     } catch (err) {
       console.error('Failed to save task permissions', err);
@@ -334,318 +326,298 @@ const PermissionsPage = () => {
 
   if (loading) {
     return (
-      <div className="perm-loading">
-        <p>{t('Loading permissions…')}</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // ── Sidebar renderer (shared by both tabs) ──
-  const renderSidebar = () => (
-    <div className="perm-sidebar">
-      <div className="perm-sidebar-header">
-        <div className="label-overline">{t('Staff Directory')}</div>
-        <div className="perm-search-wrap">
-          <Search size={14} className="perm-search-icon" />
-          <input
-            type="text"
-            className="perm-search-input"
-            placeholder={t('Search employees…')}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="perm-employee-list">
-        {filteredGroups.map(([role, emps]) => {
-          const isOpen = openRoles.has(role);
-          const RoleIcon = ROLE_ICONS[role] || Users;
-          return (
-            <div key={role} className="perm-role-group">
-              <div className="perm-role-header" onClick={() => toggleRole(role)}>
-                <span className="perm-role-icon-wrap">
-                  <RoleIcon size={14} />
-                </span>
-                <span className="perm-role-name">{role}</span>
-                <span className="perm-role-count">{emps.length}</span>
-                <ChevronRight
-                  size={14}
-                  className={`perm-role-chevron ${isOpen ? 'open' : ''}`}
-                />
-              </div>
-              {isOpen && (
-                <div className="perm-role-employees">
-                  {emps.map(emp => {
-                    const sel = activeTab === 'role'
-                      ? selectedIds.has(emp.id)
-                      : selectedEmployee?.id === emp.id;
-                    return (
-                      <div
-                        key={emp.id}
-                        className={`perm-emp-item ${sel ? 'selected' : ''}`}
-                        onClick={() => {
-                          if (activeTab === 'role') {
-                            toggleEmployee(emp.id);
-                          } else {
-                            selectEmployeeForTask(emp);
-                          }
-                        }}
-                      >
-                        {activeTab === 'role' ? (
-                          <div className={`perm-emp-check ${sel ? 'checked' : ''}`}>
-                            {sel && <Check size={10} />}
-                          </div>
-                        ) : (
-                          <div className={`perm-emp-radio ${sel ? 'active' : ''}`} />
-                        )}
-                        <div className={`perm-emp-avatar ${sel ? 'active' : ''}`}>
-                          {getInitials(emp.fullName)}
-                        </div>
-                        <span className="perm-emp-name">{emp.fullName}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-        {filteredGroups.length === 0 && (
-          <div className="perm-empty">{t('No employees found')}.</div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="perm-wrapper">
-      {renderSidebar()}
-
-      {/* ── MAIN ── */}
-      <div className="perm-main">
-        <div className="perm-main-header">
-          <div>
-            <h1>{t('Permissions')}</h1>
-            <p className="perm-subtitle">
-              {activeTab === 'role'
-                ? t('Select employees and configure their access rights by role')
-                : t('Select an employee and override specific task permissions')}
-            </p>
-          </div>
-          <div className="perm-tabs">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <p className="label-sm text-muted-foreground text-[10px] truncate uppercase">ORGANIZATION &gt; SYSTEM SETTINGS &gt; <span className="text-primary">PERMISSIONS MATRIX</span></p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-2">System <span className="text-primary">Permissions</span></h1>
+          <p className="text-sm text-muted-foreground mt-1 max-w-lg">Configure global access matrices and individual task overrides. Changes are logged in real-time.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+          <div className="flex gap-1 bg-surface-container-high p-1 rounded-lg">
             <button
-              className={`perm-tab ${activeTab === 'role' ? 'active' : ''}`}
+              className={`px-4 h-9 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'role' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
               onClick={() => setActiveTab('role')}
             >
-              <Shield size={14} />
-              {t('Role Permissions')}
+              <Shield size={14} /> {t('Role Defaults')}
             </button>
             <button
-              className={`perm-tab ${activeTab === 'task' ? 'active' : ''}`}
+              className={`px-4 h-9 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === 'task' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
               onClick={() => setActiveTab('task')}
             >
-              <Lock size={14} />
-              {t('Task Permissions')}
+              <Lock size={14} /> {t('User Overrides')}
             </button>
           </div>
+          {activeTab === 'role' ? (
+            <button
+              onClick={handleSave}
+              disabled={saving || selectedIds.size === 0}
+              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all justify-center"
+            >
+              {savedFlash ? <Check size={14} /> : saving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save size={14} />}
+              {savedFlash ? t('SAVED') : saving ? t('SAVING...') : t('SAVE CHANGES')}
+            </button>
+          ) : (
+            <button
+              onClick={handleTaskSave}
+              disabled={taskSaving || !selectedEmployee || !hasPendingChanges}
+              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all justify-center"
+            >
+              {taskSavedFlash ? <Check size={14} /> : taskSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save size={14} />}
+              {taskSavedFlash ? t('SAVED') : taskSaving ? t('SAVING...') : t('SAVE CHANGES')}
+            </button>
+          )}
         </div>
+      </div>
 
-        {/* ══ ROLE TAB (existing) ══ */}
-        {activeTab === 'role' && (
-          <>
-            <div className="perm-cards-area">
-              {selectedIds.size > 0 && (
-                <div className="perm-selection-badge" style={{ marginBottom: 16 }}>
-                  <Users size={13} />
-                  <span>{selectedIds.size} {selectedIds.size === 1 ? t('employee') : t('employees')} {t('selected')}</span>
-                </div>
-              )}
-              <div className="label-overline">{t('Access Control')}</div>
-
-              {getPermissionDefs().map(perm => {
-                const isOn = permissions[perm.key];
-                const PermIcon = perm.icon;
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Personnel Directory Sidebar */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="bg-surface-container-highest rounded-lg p-4 edge-glow">
+            <div className="flex items-center justify-between mb-3">
+              <p className="label-sm text-primary tracking-widest">{t('PERSONNEL DIRECTORY')}</p>
+              <div className="flex gap-1">
+                <button className="p-1 text-muted-foreground hover:text-foreground"><SlidersHorizontal className="w-3.5 h-3.5" /></button>
+                <button className="p-1 text-muted-foreground hover:text-foreground"><Filter className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder={t('Search staff...')}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              {filteredGroups.map(([role, emps]) => {
+                const isOpen = openRoles.has(role);
                 return (
-                  <div key={perm.key} className={`perm-card ${isOn ? 'on' : ''}`}>
-                    <div className={`perm-card-icon ${isOn ? 'on' : ''}`}>
-                      <PermIcon size={18} />
+                  <div key={role} className="mb-2">
+                    <div 
+                      className="flex items-center justify-between px-2 py-1.5 hover:bg-surface-container-high rounded-lg cursor-pointer transition-colors"
+                      onClick={() => toggleRole(role)}
+                    >
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{role}</span>
+                      <ChevronRight size={14} className={`text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`} />
                     </div>
-                    <div className="perm-card-info">
-                      <div className="perm-card-name">{perm.label}</div>
-                      <div className="perm-card-desc">{perm.desc}</div>
-                    </div>
-                    <div className="perm-toggle-wrap">
-                      <span className={`perm-toggle-label ${isOn ? 'on' : ''}`}>
-                        {isOn ? 'ON' : 'OFF'}
-                      </span>
-                      <label className="perm-toggle">
-                        <input
-                          type="checkbox"
-                          checked={isOn}
-                          onChange={() => togglePerm(perm.key)}
-                        />
-                        <span className={`perm-toggle-slider ${isOn ? 'on' : ''}`}>
-                          <span className={`perm-toggle-dot ${isOn ? 'on' : ''}`} />
-                        </span>
-                      </label>
-                    </div>
+                    {isOpen && (
+                      <div className="mt-1 space-y-1 pl-2">
+                        {emps.map(emp => {
+                          const sel = activeTab === 'role'
+                            ? selectedIds.has(emp.id)
+                            : selectedEmployee?.id === emp.id;
+                          return (
+                            <button
+                              key={emp.id}
+                              onClick={() => {
+                                if (activeTab === 'role') toggleEmployee(emp.id);
+                                else selectEmployeeForTask(emp);
+                              }}
+                              className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors border-l-2 ${sel ? 'bg-surface-container-high border-primary' : 'border-transparent hover:bg-surface-container-high/50'}`}
+                            >
+                              {activeTab === 'role' ? (
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${sel ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+                                  {sel && <Check size={10} />}
+                                </div>
+                              ) : null}
+                              {activeTab === 'task' ? (
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-bold shrink-0">
+                                  {getInitials(emp.fullName)}
+                                </div>
+                              ) : null}
+                              <div className="min-w-0">
+                                <p className={`text-sm truncate font-medium ${sel && activeTab==='task' ? 'text-foreground' : 'text-muted-foreground'}`}>{emp.fullName}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
+              {filteredGroups.length === 0 && (
+                <div className="py-4 text-center text-sm text-muted-foreground">{t('No employees found')}.</div>
+              )}
             </div>
+          </div>
 
-            <div className="perm-footer">
-              <div className="perm-footer-hint">
-                <Info size={13} />
-                <span>{t('Changes will apply to all')} {selectedIds.size > 0 ? `${selectedIds.size} ${selectedIds.size === 1 ? t('selected') : t('selected')} ${selectedIds.size === 1 ? t('employee') : t('employees')}` : t('selected employees')}</span>
+          <div className="bg-surface-container-highest rounded-lg p-4 edge-glow">
+            <p className="label-sm text-muted-foreground mb-3">{t('STATUS LEGEND')}</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-primary" /> <span className="text-foreground">ROLE DEFAULT (INHERITED)</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-destructive" /> <span className="text-foreground">MANUAL OVERRIDE (DENIED)</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-success" /> <span className="text-foreground">MANUAL OVERRIDE (GRANTED)</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-warning" /> <span className="text-foreground">UNSAVED PENDING CHANGE</span></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="lg:col-span-9 space-y-6">
+          {activeTab === 'role' && (
+            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0"><Shield className="w-4 h-4 text-primary" /></div>
+                   <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">{t('Role Permissions Matrix')}</h3>
+                </div>
+                {selectedIds.size > 0 && (
+                  <span className="px-3 py-1.5 rounded bg-primary/20 text-primary text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
+                     {selectedIds.size} {selectedIds.size === 1 ? 'EMPLOYEE' : 'EMPLOYEES'} SELECTED
+                  </span>
+                )}
               </div>
-              {message && <span className="perm-footer-msg">{message}</span>}
-              <button
-                className={`btn-save ${savedFlash ? 'perm-saved-flash' : ''}`}
-                onClick={handleSave}
-                disabled={saving || selectedIds.size === 0}
-              >
-                {savedFlash ? <Check size={14} /> : <Save size={14} />}
-                {savedFlash ? t('Permissions Saved!') : saving ? t('Saving…') : t('Save Permissions')}
-              </button>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {getPermissionDefs().map(perm => {
+                  const isOn = permissions[perm.key];
+                  const PermIcon = perm.icon;
+                  return (
+                    <div 
+                      key={perm.key} 
+                      onClick={() => togglePerm(perm.key)}
+                      className={`rounded-lg p-4 border cursor-pointer transition-all flex flex-col h-full ${isOn ? 'border-primary bg-surface-container-high/80' : 'border-border/50 bg-surface-container/50 opacity-60'}`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-8 h-8 rounded-lg flex flex-shrink-0 items-center justify-center transition-colors ${isOn ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                          <PermIcon size={16} />
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider ${isOn ? 'bg-success/20 text-success' : 'bg-muted text-muted-foreground'}`}>
+                          {isOn ? 'GRANTED' : 'DENIED'}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-foreground text-sm mb-1">{perm.label}</h4>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed mb-4 flex-grow">{perm.desc}</p>
+                      
+                      <div className="flex items-center justify-between border-t border-border/50 pt-3">
+                         <span className={`text-[10px] font-bold tracking-wider ${isOn ? 'text-primary' : 'text-muted-foreground'}`}>
+                           {isOn ? 'ACTIVE' : 'DISABLED'}
+                         </span>
+                         <div className={`w-10 h-5 rounded-full flex items-center px-0.5 transition-colors ${isOn ? 'bg-primary' : 'bg-surface-container-high border border-border'}`}>
+                           <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
+                         </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+               {message && <div className="mt-4 p-3 bg-destructive/15 text-destructive rounded-lg text-sm border border-destructive/30">{message}</div>}
             </div>
-          </>
-        )}
+          )}
 
-        {/* ══ TASK TAB (new — per-employee overrides) ══ */}
-        {activeTab === 'task' && (
-          <>
-            <div className="perm-cards-area">
+          {activeTab === 'task' && (
+            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow min-h-[500px]">
               {!selectedEmployee ? (
-                <div className="perm-task-empty">
-                  <Users size={40} strokeWidth={1} />
-                  <h3>{t('Select an Employee')}</h3>
-                  <p>{t('Choose an employee from the sidebar to view and override their task permissions.')}</p>
+                <div className="flex flex-col items-center justify-center h-full text-center py-20 px-4">
+                  <Lock className="w-12 h-12 text-muted-foreground/30 mb-4" />
+                  <h3 className="text-lg font-bold text-foreground mb-2">{t('Select an Employee')}</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm">{t('Choose an employee from the directory sidebar to view and override their specific task access permissions.')}</p>
                 </div>
               ) : taskLoading ? (
-                <div className="perm-loading" style={{ height: 'auto', padding: '40px 0' }}>
-                  <p>{t('Loading task permissions…')}</p>
+                <div className="flex justify-center items-center h-48">
+                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : (
                 <>
-                  <div className="perm-task-header-info">
-                    <div className={`perm-emp-avatar active`} style={{ width: 36, height: 36, fontSize: 13 }}>
-                      {getInitials(selectedEmployee.fullName)}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                         {getInitials(selectedEmployee.fullName)}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-foreground">{selectedEmployee.fullName}</h3>
+                        <p className="text-xs text-muted-foreground uppercase tracking-widest">{selectedEmployee.designation}</p>
+                      </div>
                     </div>
-                    <div>
-                      <div className="perm-task-emp-name">{selectedEmployee.fullName}</div>
-                      <div className="perm-task-emp-role">{selectedEmployee.designation} &middot; {selectedEmployee.department}</div>
-                    </div>
+                    {hasPendingChanges && (
+                      <span className="px-3 py-1.5 rounded bg-warning/20 text-warning text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                         UNSAVED OVERRIDES
+                      </span>
+                    )}
                   </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {taskPermsList.map(perm => {
+                      const isPending = perm.hasPending;
+                      const isOverride = perm.hasOverride;
 
-                  <div className="perm-task-legend">
-                    <span className="perm-legend-item"><span className="perm-dot perm-dot-default" /> {t('Role Default')}</span>
-                    <span className="perm-legend-item"><span className="perm-dot perm-dot-granted" /> {t('Override: Granted')}</span>
-                    <span className="perm-legend-item"><span className="perm-dot perm-dot-denied" /> {t('Override: Denied')}</span>
-                    <span className="perm-legend-item"><span className="perm-dot perm-dot-pending" /> {t('Unsaved Change')}</span>
-                  </div>
+                      let borderColor = 'border-border/50';
+                      let bgColor = 'bg-surface-container/50 opacity-60';
+                      let badgeColor = 'bg-muted text-muted-foreground';
+                      let badgeText = 'DISABLED';
+                      
+                      if (isPending) {
+                          borderColor = 'border-warning shadow-[0_0_10px_rgba(234,179,8,0.2)]';
+                          bgColor = 'bg-warning/5 opacity-100';
+                          badgeColor = 'bg-warning text-warning-foreground';
+                          badgeText = 'PENDING';
+                      } else if (isOverride) {
+                          borderColor = perm.effectiveValue ? 'border-success' : 'border-destructive';
+                          bgColor = perm.effectiveValue ? 'bg-success/5 opacity-100' : 'bg-destructive/5 opacity-100';
+                          badgeColor = perm.effectiveValue ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive';
+                          badgeText = perm.effectiveValue ? 'GRANTED OVERRIDE' : 'DENIED OVERRIDE';
+                      } else {
+                          if (perm.roleDefault) {
+                              borderColor = 'border-primary';
+                              bgColor = 'bg-surface-container-high/80 opacity-100';
+                              badgeColor = 'bg-primary/20 text-primary';
+                              badgeText = 'ROLE DEFAULT';
+                          }
+                      }
 
-                  <div className="label-overline" style={{ marginBottom: 12 }}>
-                    {t('Task Permissions')} ({taskPermsList.length})
-                  </div>
-
-                  {taskPermsList.map(perm => {
-                    const isPending = perm.hasPending;
-                    const isOverride = perm.hasOverride;
-
-                    let statusClass = '';
-                    let statusLabel = '';
-                    if (isPending) {
-                      statusClass = 'pending';
-                      statusLabel = perm.overrideState === 'pending-reset' ? t('Resetting') : (perm.effectiveValue ? t('Granting') : t('Denying'));
-                    } else if (isOverride) {
-                      statusClass = perm.effectiveValue ? 'granted' : 'denied-override';
-                      statusLabel = perm.effectiveValue ? t('Override: Granted') : t('Override: Denied');
-                    } else {
-                      statusClass = perm.roleDefault ? 'default-on' : 'default-off';
-                      statusLabel = perm.roleDefault ? t('Role Default: On') : t('Role Default: Off');
-                    }
-
-                    return (
-                      <div key={perm.key} className={`perm-task-card ${statusClass}`}>
-                        <div className="perm-task-card-main">
-                          <div className={`perm-task-indicator ${statusClass}`} />
-                          <div className="perm-card-info">
-                            <div className="perm-card-name">{perm.label}</div>
-                            <div className="perm-card-desc perm-task-status">{statusLabel}</div>
+                      return (
+                        <div key={perm.key} className={`rounded-lg p-4 border transition-all flex flex-col h-full ${borderColor} ${bgColor}`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-bold text-foreground text-sm flex-1 mr-2 leading-tight">{perm.label}</h4>
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider shrink-0 ${badgeColor}`}>
+                              {badgeText}
+                            </span>
                           </div>
-                          <div className="perm-task-actions">
-                            {(isOverride || isPending) && (
+                          <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-auto">
+                            {(isOverride || isPending) ? (
                               <button
-                                className="perm-task-reset-btn"
-                                title={t('Reset to role default')}
+                                className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                                 onClick={(e) => { e.stopPropagation(); resetTaskPerm(perm.key); }}
                               >
-                                <RotateCcw size={13} />
+                                <RotateCcw size={12} /> {t('RESET')}
                               </button>
-                            )}
-                            <div className="perm-toggle-wrap">
-                              <span className={`perm-toggle-label ${perm.effectiveValue ? 'on' : ''}`}>
-                                {perm.effectiveValue ? <Unlock size={13} /> : <Lock size={13} />}
-                              </span>
-                              <label className="perm-toggle">
-                                <input
-                                  type="checkbox"
-                                  checked={perm.effectiveValue}
-                                  onChange={() => toggleTaskPerm(perm.key, perm.effectiveValue, perm.roleDefault, perm.hasOverride)}
-                                />
-                                <span className={`perm-toggle-slider ${perm.effectiveValue ? 'on' : ''}`}>
-                                  <span className={`perm-toggle-dot ${perm.effectiveValue ? 'on' : ''}`} />
-                                </span>
-                              </label>
+                            ) : <span className="text-[10px] text-muted-foreground">INHERITED</span>}
+                            
+                            <div className="flex items-center gap-2">
+                               <span className={`text-[10px] font-bold tracking-wider ${perm.effectiveValue ? 'text-primary' : 'text-muted-foreground'}`}>{perm.effectiveValue ? 'ACTIVE' : 'OFF'}</span>
+                               <div 
+                                 onClick={() => toggleTaskPerm(perm.key, perm.effectiveValue, perm.roleDefault, perm.hasOverride)}
+                                 className={`w-9 h-5 rounded-full flex items-center px-0.5 cursor-pointer transition-colors ${perm.effectiveValue ? 'bg-primary' : 'bg-surface-container-high border border-border'}`}
+                               >
+                                 <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${perm.effectiveValue ? 'translate-x-4' : 'translate-x-0'}`} />
+                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-
-                  {taskPermsList.length === 0 && (
-                    <div className="perm-empty">{t('No task permissions defined for this role.')}</div>
-                  )}
+                      );
+                    })}
+                  </div>
+                  {taskMessage && <div className="mt-4 p-3 bg-destructive/15 text-destructive rounded-lg text-sm border border-destructive/30">{taskMessage}</div>}
                 </>
               )}
             </div>
-
-            <div className="perm-footer">
-              <div className="perm-footer-hint">
-                <Info size={13} />
-                <span>
-                  {selectedEmployee
-                    ? hasPendingChanges
-                      ? `${Object.keys(pendingOverrides).length} ${t('unsaved changes for')} ${selectedEmployee.fullName}`
-                      : `${t('Viewing permissions for')} ${selectedEmployee.fullName}`
-                    : t('Select an employee to manage task permissions')}
-                </span>
-              </div>
-              {taskMessage && <span className="perm-footer-msg">{taskMessage}</span>}
-              <button
-                className={`btn-save ${taskSavedFlash ? 'perm-saved-flash' : ''}`}
-                onClick={handleTaskSave}
-                disabled={taskSaving || !selectedEmployee || !hasPendingChanges}
-              >
-                {taskSavedFlash ? <Check size={14} /> : <Save size={14} />}
-                {taskSavedFlash ? t('Saved!') : taskSaving ? t('Saving…') : t('Save Overrides')}
-              </button>
-            </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 };
-
-// Helper: convert snake_case permission key to readable label
-function formatPermName(key) {
-  return key
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
-}
 
 export default PermissionsPage;

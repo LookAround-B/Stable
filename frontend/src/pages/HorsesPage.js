@@ -33,13 +33,13 @@ const PerformanceBar = ({ value }) => {
   const filled = Math.max(1, Math.min(bars, Math.round((value / 100) * bars)));
 
   return (
-    <div className="horse-performance">
-      <span className="horse-performance-value">{value}%</span>
-      <div className="horse-performance-bars">
+    <div className="flex items-center gap-1.5">
+      <span className="text-sm font-semibold text-foreground">{value}%</span>
+      <div className="flex gap-0.5">
         {Array.from({ length: bars }, (_, index) => (
           <div
             key={index}
-            className={`horse-performance-bar ${index < filled ? 'active' : ''}`}
+            className={`w-4 h-1.5 rounded-sm ${index < filled ? 'bg-primary' : 'bg-muted'}`}
           />
         ))}
       </div>
@@ -390,490 +390,240 @@ const HorsesPage = () => {
   if (!p.viewHorses) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="horses-page lovable-page-shell">
-      <div className="horses-page-header">
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="lovable-header-kicker">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Stable Command')}</span>
-          </div>
-          <h1>{t('Horses')}</h1>
-          <p className="info-text">
+          <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Horses</h1>
+          <p className="text-muted-foreground mt-2 text-sm">
             {canAddHorse 
               ? t('You can add new horses to the system') 
               : t('Only Admin and Instructor can add horses')}
           </p>
         </div>
-        <div className="lovable-header-actions">
-          {canAddHorse && (
-            <button 
-              className="btn-add horse-header-action horse-header-add-btn"
-              onClick={() => setShowModal(true)}
-            >
-              <Plus size={16} style={{marginRight:'4px'}} /> {t('Add New Horse')}
-            </button>
-          )}
-        </div>
+        {canAddHorse && (
+          <button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
+            <Plus className="w-4 h-4" /> Add New Horse
+          </button>
+        )}
       </div>
 
-      <div className="directory-kpi-grid">
-        <DirectoryMetricCard
-          title={t('Total Horses')}
-          value={totalHorses}
-          subtitle={t('Registered Assets')}
-          icon={Link2}
-          iconTone="primary"
-          subtitleTone="destructive"
-          watermark="horse"
-          sparkData={horseSpark}
-          hideTitle
-        />
-        <DirectoryMetricCard
-          title={t('Active')}
-          value={activeHorses}
-          subtitle={t('Operational')}
-          icon={ShieldCheck}
-          iconTone="success"
-          subtitleTone="success"
-          variant="success"
-          watermark="horse"
-          sparkData={activeSpark}
-          hideTitle
-        />
-        <DirectoryMetricCard
-          title={t('Assigned')}
-          value={assignedHorses}
-          subtitle={t('Managed')}
-          icon={Users}
-          iconTone="primary"
-          subtitleTone="primary"
-          watermark="horse"
-          sparkData={assignedSpark}
-          hideTitle
-        />
-        <DirectoryMetricCard
-          title={t('Passport Ready')}
-          value={passportedHorses}
-          subtitle={t('Documentation')}
-          icon={FileText}
-          iconTone="destructive"
-          subtitleTone="destructive"
-          variant="alert"
-          watermark="horse"
-          sparkData={passportSpark}
-          hideTitle
-        />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'TOTAL HORSES', value: totalHorses, color: 'text-primary', icon: Link2 },
+          { label: 'ACTIVE', value: activeHorses, color: 'text-success', icon: ShieldCheck },
+          { label: 'ASSIGNED', value: assignedHorses, color: 'text-primary', icon: Users },
+          { label: 'PASSPORT READY', value: passportedHorses, color: 'text-destructive', icon: FileText },
+        ].map(card => {
+          const Icon = card.icon;
+          return (
+            <div key={card.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                <Icon className="w-24 h-24" />
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1 relative z-10">{card.label}</p>
+              <p className={`text-2xl sm:text-3xl font-bold mono-data relative z-10 ${card.color}`}>{String(card.value).padStart(2, '0')}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Modal */}
-      {showModal && ReactDOM.createPortal(
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2><Plus size={18} style={{marginRight:'6px',verticalAlign:'middle'}} /> {t('Add New Horse')}</h2>
-              <button className="close-btn" onClick={closeModal} aria-label={t('Close')}><X size={18} /></button>
-            </div>
-
-            <form onSubmit={handleAddHorse} className="modal-form">
-              {/* Photo picker */}
-              <div className="add-photo-picker">
-                <div className="add-photo-avatar" onClick={() => horseImgRef.current?.click()}>
-                  {newHorseImage
-                    ? <img src={newHorseImage} alt="preview" className="add-photo-preview" />
-                    : <Camera size={32} className="add-photo-placeholder" />
-                  }
-                  <div className="add-photo-overlay"><Camera size={16} /></div>
-                </div>
-                <input type="file" ref={horseImgRef} accept="image/*" style={{display:'none'}} onChange={handleHorseImagePick} disabled={loading} />
-                <span className="add-photo-label">{newHorseImage ? t('Tap to change photo') : t('Add Photo (optional)')}</span>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="name">{t('Horse Name *')}</label>
-                <input
-                  id="name"
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  pattern="[A-Za-z\s]*"
-                  placeholder="Shadow (letters and spaces only)"
-                  required
-                  disabled={loading}
-                  title="Horse name should only contain letters and spaces"
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="gender">{t('Gender *')}</label>
-                  <SearchableSelect
-                    id="gender"
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    options={[
-                      { value: 'Stallion', label: 'Stallion' },
-                      { value: 'Mare', label: 'Mare' },
-                      { value: 'Gelding', label: 'Gelding' },
-                      { value: 'Colt', label: 'Colt' },
-                      { value: 'Filly', label: 'Filly' },
-                      { value: 'Foal', label: 'Foal' },
-                      { value: 'Stud', label: 'Stud' },
-                    ]}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="dateOfBirth">{t('Date of Birth')}</label>
-                  <input
-                    id="dateOfBirth"
-                    type="date"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="breed">{t('Breed')}</label>
-                  <input
-                    id="breed"
-                    type="text"
-                    name="breed"
-                    value={formData.breed}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="Thoroughbred"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="color">{t('Color')}</label>
-                  <input
-                    id="color"
-                    type="text"
-                    name="color"
-                    value={formData.color}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="Black"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="height">{t('Height (hands)')}</label>
-                  <input
-                    id="height"
-                    type="number"
-                    name="height"
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="16.2"
-                    step="0.1"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="stableNumber">{t('Unique Stable Number (Optional)')}</label>
-                  <input
-                    id="stableNumber"
-                    type="text"
-                    name="stableNumber"
-                    value={formData.stableNumber}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="(ST-09)"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="passportNumber">{t('Horse Passport Number')} <span style={{fontSize:'0.75rem',opacity:0.6}}>({t('Optional')})</span></label>
-                <input
-                  id="passportNumber"
-                  type="text"
-                  name="passportNumber"
-                  value={formData.passportNumber}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                  placeholder="e.g. GB-2021-001234 (alphanumeric, hyphens, slashes)"
-                  maxLength={50}
-                  pattern="[A-Za-z0-9][A-Za-z0-9 \-\/]{1,49}"
-                  title="Alphanumeric characters, spaces, hyphens and forward slashes only (3–50 characters)"
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="supervisorId">{t('Assign to Manager')}</label>
-                  <SearchableSelect
-                    id="supervisorId"
-                    name="supervisorId"
-                    value={formData.supervisorId}
-                    onChange={handleInputChange}
-                    placeholder="-- No Assignment --"
-                    disabled={loading}
-                    options={[
-                      { value: '', label: '-- No Assignment --' },
-                      ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))
-                    ]}
-                  />
-                </div>
-              </div>
-
-              {message && (
-                <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                  {message}
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn-cancel" 
-                  onClick={closeModal}
-                  disabled={loading}
-                >
-                  {t('Cancel')}
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-submit" 
-                  disabled={loading}
-                >
-                  {loading ? t('Adding...') : t('Add Horse')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      , document.body)}
-
-      {/* My Horses Section - Only for staff roles, not admin/supervisory */}
-      {!SUPERVISORY_ROLES.includes(user?.designation) && (
-        <div className="team-section">
-          <h2>{t('Horses Under My Care')}</h2>
-          <div className="horse-directory-toolbar horse-directory-toolbar--subsection">
-            <div className="horse-directory-search">
-              <Search size={16} className="horse-directory-search-icon" />
-              <input
-                type="text"
-                placeholder={t("Search by name, stable number, breed, color, gender...")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="horse-directory-search-input"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  className="horse-directory-clear"
-                  onClick={() => setSearchTerm('')}
-                  aria-label={t('Clear search')}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-          </div>
-          {filteredMyHorses.length === 0 ? (
-            <p className="info-text">
-              {searchTerm ? t('No horses match your search') : t('No horses assigned to you')}
-            </p>
-          ) : (
-            <div className="table-scroll-wrap">
-            <table className="horses-table">
-              <thead>
-                <tr>
-                  <th>{t('Name')}</th>
-                  <th>{t('Passport No')}</th>
-                  <th>{t('Stable Number')}</th>
-                  <th>{t('Gender')}</th>
-                  <th>{t('Breed')}</th>
-                  <th>{t('Color')}</th>
-                  <th>{t('Status')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMyHorses.map((horse) => (
-                  <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
-                    <td>
-                      <div className="emp-name-cell">
-                        <div
-                          className="emp-avatar"
-                          onClick={() => horse.profileImage && setLightboxSrc(horse.profileImage)}
-                          style={horse.profileImage ? {cursor:'pointer'} : {}}
-                        >
-                          {horse.profileImage
-                            ? <img src={horse.profileImage} alt={horse.name} className="emp-avatar-img" />
-                            : <span className="emp-avatar-initials">{(horse.name||'?').charAt(0).toUpperCase()}</span>
-                          }
-                        </div>
-                        <div>
-                          <span>{horse.name}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{fontFamily:'monospace',fontSize:'0.85rem'}}>{horse.passportNumber || '-'}</td>
-                    <td>{horse.stableNumber}</td>
-                    <td><span className={`gender-badge gender-${(horse.gender||'').toLowerCase()}`}>{t(horse.gender)}</span></td>
-                    <td>{horse.breed ? t(horse.breed) : ''}</td>
-                    <td>{horse.color ? t(horse.color) : ''}</td>
-                    <td>
-                      <span
-                        className="horse-status-pill"
-                        style={{
-                          backgroundColor: getStatusStyle(horse.status).bg,
-                          color: getStatusStyle(horse.status).text,
-                        }}
-                      >
-                        <span
-                          className="horse-status-dot"
-                          style={{ backgroundColor: getStatusStyle(horse.status).dot }}
-                        />
-                        {t(horse.status)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="horses-list">
-        <div className="horse-directory-toolbar">
-          <div className="horse-directory-search">
-            <Search size={16} className="horse-directory-search-icon" />
+      {/* Table Section */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
+          <div className="flex-1 max-w-sm flex items-center gap-2 px-4 h-10 rounded-lg bg-surface-container-high border border-border">
+            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
             <input
               type="text"
-              placeholder={t("Search horses by name...")}
+              placeholder={t("Search horses by name, status, breed...")}
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="horse-directory-search-input"
+              onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full"
             />
             {searchTerm && (
-              <button
-                type="button"
-                className="horse-directory-clear"
-                onClick={() => {
-                  setSearchTerm('');
-                  setCurrentPage(1);
-                }}
-                aria-label={t('Clear search')}
-              >
-                <X size={14} />
+              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground">
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           <button
-            type="button"
-            className="horse-directory-action"
             onClick={handleDownloadExcel}
-            aria-label={t('Download horses')}
+            className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
             title={t('Download horses')}
           >
-            <Download size={16} />
+            <Download className="w-4 h-4" />
           </button>
         </div>
+
         {filteredHorses.length === 0 ? (
-          <p className="info-text">
-            {searchTerm ? t('No horses match your search') : t('No horses found')}
-          </p>
+          <p className="text-center py-12 text-muted-foreground">{searchTerm ? t('No horses match your search') : t('No horses found')}</p>
         ) : (
           <>
-          <div className="table-scroll-wrap">
-          <table className="horses-table">
-            <thead>
-              <tr>
-                <th>{t('Horse Details')}</th>
-                <th>{t('Breed')}</th>
-                <th>{t('Status')}</th>
-                <th className="horse-manager-col">{t('Manager')}</th>
-                <th className="horse-performance-col">{t('Performance')}</th>
-              </tr>
-            </thead>
-            <tbody>
-                {paginatedHorses.map((horse) => (
-                  <tr key={horse.id} id={`horse-row-${horse.id}`} className={highlightId === horse.id ? 'row-highlight' : ''}>
-                  <td>
-                    <div className="emp-name-cell">
-                      <div
-                        className="emp-avatar"
-                        onClick={() => horse.profileImage && setLightboxSrc(horse.profileImage)}
-                        style={horse.profileImage ? {cursor:'pointer'} : {}}
-                      >
-                        {horse.profileImage
-                          ? <img src={horse.profileImage} alt={horse.name} className="emp-avatar-img" />
-                          : <span className="emp-avatar-initials">{(horse.name||'?').charAt(0).toUpperCase()}</span>
-                        }
-                      </div>
-                      <div className="horse-directory-copy">
-                        <span>{horse.name}</span>
-                        <small>{`ID: #${getHorseReferenceId(horse)}`}</small>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{horse.breed ? t(horse.breed) : ''}</td>
-                  <td>
-                    <span
-                      className="horse-status-pill"
-                      style={{
-                        backgroundColor: getStatusStyle(horse.status).bg,
-                        color: getStatusStyle(horse.status).text,
-                      }}
-                    >
-                      <span
-                        className="horse-status-dot"
-                        style={{ backgroundColor: getStatusStyle(horse.status).dot }}
-                      />
-                      {t(horse.status)}
-                    </span>
-                  </td>
-                  <td className="horse-manager-col">
-                    {horse.supervisor
-                      ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})`
-                      : '-'
-                    }
-                  </td>
-                  <td className="horse-performance-col"><PerformanceBar value={getHorsePerformance(horse)} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(newRows) => {
-              setRowsPerPage(newRows);
-              setCurrentPage(1);
-            }}
-            total={filteredHorses.length}
-          />
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Horse Details</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Breed</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Manager</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedHorses.map(horse => {
+                    const initials = (horse.name || '?').charAt(0).toUpperCase();
+                    const statusStyle = getStatusStyle(horse.status);
+                    return (
+                      <tr key={horse.id} id={`horse-row-${horse.id}`} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${highlightId === horse.id ? 'bg-primary/5' : ''}`}>
+                        <td className="px-4 sm:px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              onClick={() => horse.profileImage && setLightboxSrc(horse.profileImage)}
+                              className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${horse.profileImage ? 'cursor-pointer' : 'bg-primary/15'}`}
+                            >
+                              {horse.profileImage ? (
+                                <img src={horse.profileImage} alt={horse.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-xs font-bold text-primary">{initials}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground">{horse.name}</p>
+                              <p className="text-xs text-muted-foreground font-mono">{`ID: #${getHorseReferenceId(horse)}`}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-muted-foreground">{horse.breed ? t(horse.breed) : '-'}</td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusStyle.dot }} />
+                            {t(horse.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-muted-foreground hidden lg:table-cell">
+                          {horse.supervisor ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})` : '-'}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
+                          <PerformanceBar value={getHorsePerformance(horse)} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 py-3 border-t border-border">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+                total={filteredHorses.length}
+              />
+            </div>
           </>
         )}
       </div>
 
+      {/* Modal */}
+      {showModal && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+              <h2 className="text-lg font-bold text-foreground inline-flex items-center gap-2"><Plus className="w-5 h-5" /> {t('Add New Horse')}</h2>
+              <button onClick={closeModal} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground"><X size={18} /></button>
+            </div>
+            <div className="p-4 sm:p-6 overflow-y-auto">
+              <form onSubmit={handleAddHorse} className="space-y-4">
+                <div className="flex flex-col items-center gap-3 mb-6">
+                  <div
+                    onClick={() => horseImgRef.current?.click()}
+                    className="w-20 h-20 rounded-full border-2 border-dashed border-border bg-surface-container-high flex items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group relative"
+                  >
+                    {newHorseImage ? (
+                      <img src={newHorseImage} alt="preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-muted-foreground" />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <input type="file" ref={horseImgRef} accept="image/*" className="hidden" onChange={handleHorseImagePick} disabled={loading} />
+                  <span className="text-xs text-muted-foreground">{newHorseImage ? t('Tap to change') : t('Add Photo (optional)')}</span>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Horse Name *')}</label>
+                  <input id="name" type="text" name="name" value={formData.name} onChange={handleInputChange} pattern="[A-Za-z\s]*" placeholder="Shadow (letters and spaces only)" required disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Gender *')}</label>
+                    <SearchableSelect id="gender" name="gender" value={formData.gender} onChange={handleInputChange} disabled={loading} options={[{ value: 'Stallion', label: 'Stallion' }, { value: 'Mare', label: 'Mare' }, { value: 'Gelding', label: 'Gelding' }, { value: 'Colt', label: 'Colt' }, { value: 'Filly', label: 'Filly' }, { value: 'Foal', label: 'Foal' }, { value: 'Stud', label: 'Stud' }]} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date of Birth')}</label>
+                    <input id="dateOfBirth" type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none [color-scheme:dark]" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Breed')}</label>
+                    <input id="breed" type="text" name="breed" value={formData.breed} onChange={handleInputChange} disabled={loading} placeholder="Thoroughbred" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Color')}</label>
+                    <input id="color" type="text" name="color" value={formData.color} onChange={handleInputChange} disabled={loading} placeholder="Black" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Height (hands)')}</label>
+                    <input id="height" type="number" name="height" value={formData.height} onChange={handleInputChange} disabled={loading} placeholder="16.2" step="0.1" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Unique Stable Number')}</label>
+                    <input id="stableNumber" type="text" name="stableNumber" value={formData.stableNumber} onChange={handleInputChange} disabled={loading} placeholder="(Optional, e.g. ST-09)" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Horse Passport Number')} <span className="opacity-60">({t('Optional')})</span></label>
+                  <input id="passportNumber" type="text" name="passportNumber" value={formData.passportNumber} onChange={handleInputChange} disabled={loading} placeholder="e.g. GB-2021-001234" maxLength={50} pattern="[A-Za-z0-9][A-Za-z0-9 \-\/]{1,49}" title="Alphanumeric, spaces, hyphens and slashes only (3–50 chars)" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Assign to Manager')}</label>
+                  <SearchableSelect id="supervisorId" name="supervisorId" value={formData.supervisorId} onChange={handleInputChange} placeholder="-- No Assignment --" disabled={loading} options={[{ value: '', label: '-- No Assignment --' }, ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))]} />
+                </div>
+
+                {message && (
+                  <div className={`mt-4 px-3 py-2 rounded-lg text-sm font-medium ${message.includes('Error') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
+                    {message}
+                  </div>
+                )}
+              </form>
+            </div>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={closeModal} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t('Cancel')}</button>
+              <button onClick={handleAddHorse} disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? t('Adding...') : t('Add Horse')}</button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
       {lightboxSrc && ReactDOM.createPortal(
-        <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
-          <button className="lightbox-close" onClick={() => setLightboxSrc(null)} aria-label={t('Close')}><X size={18} /></button>
-          <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 p-4" onClick={() => setLightboxSrc(null)}>
+          <button className="absolute top-4 right-4 p-2 bg-surface-container-high rounded-full hover:bg-border transition-colors text-foreground"><X size={20} /></button>
+          <img src={lightboxSrc} className="max-w-full max-h-full rounded-lg object-contain" alt="Full view" onClick={e => e.stopPropagation()} />
         </div>
       , document.body)}
     </div>

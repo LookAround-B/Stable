@@ -9,7 +9,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, Search, User, Users, X } from 'lucide-react';
+import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, Search, User, Users, X, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
@@ -504,354 +504,250 @@ const EmployeesPage = () => {
   if (!p.manageEmployees) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="employees-page lovable-page-shell">
-      <div className="employees-page-header">
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <div className="lovable-header-kicker">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Personnel Command')}</span>
-          </div>
-          <h1>{t('Team Members')}</h1>
-          <p className="info-text">
-            {canAddEmployee 
-              ? t('You can add new employees to the system') 
-              : t('Only Super Admin, Director, or School Administrator can add new employees')}
-          </p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Team Directory</h1>
+          <p className="text-muted-foreground mt-2 text-sm">Manage staff roles, supervisors, and contact details.</p>
         </div>
-        <div className="lovable-header-actions">
-          {canAddEmployee && (
-            <button 
-              className="btn-add employee-header-action employee-header-add-btn"
-              onClick={() => setShowModal(true)}
-            >
-              <Plus size={16} />
-              {t('Add New Employee')}
-            </button>
-          )}
-        </div>
+        {canAddEmployee && (
+          <button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
+            <Plus className="w-4 h-4" /> Add New Employee
+          </button>
+        )}
       </div>
 
-      <div className="directory-kpi-grid">
-        <DirectoryMetricCard
-          title={t('Total Staff')}
-          value={totalEmployees}
-          subtitle={t('Directory')}
-          icon={Users}
-          iconTone="primary"
-          subtitleTone="primary"
-          watermark="employee"
-          sparkData={employeeSpark}
-          hideTitle
-        />
-        <DirectoryMetricCard
-          title={t('Approved')}
-          value={approvedEmployees}
-          subtitle={t('Cleared')}
-          icon={CheckCircle2}
-          iconTone="success"
-          subtitleTone="success"
-          variant="success"
-          watermark="employee"
-          sparkData={approvedSpark}
-          hideTitle
-        />
-        <DirectoryMetricCard
-          title={t('Pending Approval')}
-          value={pendingEmployees}
-          subtitle={t('Awaiting Review')}
-          icon={Clock3}
-          iconTone="destructive"
-          subtitleTone="destructive"
-          variant="alert"
-          watermark="employee"
-          sparkData={pendingSpark}
-          hideTitle
-        />
-        <DirectoryMetricCard
-          title={t('Supervisory Roles')}
-          value={supervisoryEmployees}
-          subtitle={t('Managers')}
-          icon={BriefcaseBusiness}
-          iconTone="primary"
-          subtitleTone="primary"
-          watermark="employee"
-          sparkData={supervisorySpark}
-          hideTitle
-        />
-      </div>
+      {message && (
+        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Error') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
+          {message}
+        </div>
+      )}
 
-      {/* Modal */}
-      {showModal && ReactDOM.createPortal(
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>{t('Add New Employee')}</h2>
-              <button className="close-btn" onClick={closeModal} aria-label={t('Close')}><X size={18} /></button>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'TOTAL STAFF', value: totalEmployees, color: 'text-primary' },
+          { label: 'APPROVED', value: approvedEmployees, color: 'text-success' },
+          { label: 'PENDING APPROVAL', value: pendingEmployees, color: 'text-warning' },
+          { label: 'SUPERVISORY ROLES', value: supervisoryEmployees, color: 'text-primary' },
+        ].map(card => (
+          <div key={card.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+              <Users className="w-24 h-24" />
             </div>
-
-            <form onSubmit={handleAddEmployee} className="modal-form">
-              {/* Photo picker */}
-              <div className="add-photo-picker">
-                <div className="add-photo-avatar" onClick={() => empImgRef.current?.click()}>
-                  {newEmpImage
-                    ? <img src={newEmpImage} alt="preview" className="add-photo-preview" />
-                    : <span className="add-photo-placeholder"><User size={28} /></span>
-                  }
-                  <div className="add-photo-overlay"><Camera size={16} /></div>
-                </div>
-                <input type="file" ref={empImgRef} accept="image/*" style={{display:'none'}} onChange={handleEmpImagePick} disabled={loading} />
-                <span className="add-photo-label">{newEmpImage ? t('Tap to change photo') : t('Add Photo (optional)')}</span>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="fullName">{t('Full Name *')}</label>
-                <input
-                  id="fullName"
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  pattern="[A-Za-z\s]*"
-                  placeholder="John Doe (letters and spaces only)"
-                  required
-                  disabled={loading}
-                  title="Name should only contain letters and spaces"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">{t('Email Address *')}</label>
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="designation">{t('Designation/Role *')}</label>
-                <SearchableSelect
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleInputChange}
-                  options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))}
-                  placeholder="Select designation..."
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="supervisorId">{t('Supervisor (Optional)')}</label>
-                <SearchableSelect
-                  id="supervisorId"
-                  name="supervisorId"
-                  value={formData.supervisorId}
-                  onChange={handleInputChange}
-                  placeholder="-- Select Supervisor --"
-                  disabled={loading}
-                  options={[
-                    { value: '', label: '-- Select Supervisor --' },
-                    ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))
-                  ]}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="phoneNumber">{t('Phone Number')}</label>
-                <input
-                  id="phoneNumber"
-                  type="tel"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  inputMode="numeric"
-                  maxLength="10"
-                  pattern="[0-9]*"
-                  placeholder="10-digit phone number"
-                  disabled={loading}
-                  title="Phone number should contain only 10 digits"
-                />
-              </div>
-
-              {message && (
-                <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                  {message}
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn-cancel" 
-                  onClick={closeModal}
-                  disabled={loading}
-                >
-                  {t('Cancel')}
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-submit" 
-                  disabled={loading}
-                >
-                  {loading ? t('Adding...') : t('Add Employee')}
-                </button>
-              </div>
-            </form>
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1 relative z-10">{card.label}</p>
+            <p className={`text-2xl sm:text-3xl font-bold mono-data relative z-10 ${card.color}`}>{String(card.value).padStart(2, '0')}</p>
           </div>
-        </div>
-      , document.body)}
+        ))}
+      </div>
 
-      <div className="employees-list">
-        <div className="employee-directory-toolbar">
-          <div className="employee-directory-search">
-            <Search size={16} className="employee-directory-search-icon" />
+      {/* Table Section */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
+          <div className="flex-1 max-w-sm flex items-center gap-2 px-4 h-10 rounded-lg bg-surface-container-high border border-border">
+            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
             <input
               type="text"
               placeholder={t("Search by name, email, or role...")}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="employee-directory-search-input"
+              onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full"
             />
             {searchTerm && (
-              <button
-                type="button"
-                className="employee-directory-clear"
-                onClick={() => setSearchTerm('')}
-                aria-label={t('Clear search')}
-              >
-                <X size={14} />
+              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground">
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-          <SearchableSelect
-            name="employeeRoleFilter"
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            options={availableRoles.map((role) => ({ value: role, label: t(role) }))}
-            placeholder={t('All Roles')}
-            className="employee-directory-role-filter"
-          />
-          <button
-            type="button"
-            className="employee-directory-action"
-            onClick={handleDownloadExcel}
-            aria-label={t('Download employees')}
-            title={t('Download employees')}
-          >
-            <Download size={16} />
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-48">
+              <SearchableSelect
+                name="employeeRoleFilter"
+                value={roleFilter}
+                onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+                options={availableRoles.map((role) => ({ value: role, label: t(role) }))}
+                placeholder={t('All Roles')}
+              />
+            </div>
+            <button
+              onClick={handleDownloadExcel}
+              className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
+              title={t('Download employees')}
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
         </div>
+
         {filteredEmployees.length === 0 ? (
-          <p className="info-text">{searchTerm ? t('No employees match your search') : t('No employees found')}</p>
+          <p className="text-center py-12 text-muted-foreground">{searchTerm ? t('No employees match your search') : t('No employees found')}</p>
         ) : (
           <>
-            <div className="table-scroll-wrap">
-              <table className="employees-table">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[700px]">
                 <thead>
-                  <tr>
-                    <th>{t('Name')}</th>
-                    <th>{t('Role')}</th>
-                    <th className="employee-supervisor-col">{t('Supervisor')}</th>
-                    <th>{t('Status')}</th>
-                    <th className="employee-contact-col">{t('Contact')}</th>
-                    {(canAddEmployee || canDeleteEmployee) && <th>{t('Actions')}</th>}
+                  <tr className="border-b border-border/50">
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Role</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Supervisor</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Contact</th>
+                    {(canAddEmployee || canDeleteEmployee) && <th className="px-4 sm:px-6 py-3 w-32"></th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedEmployees.map((employee) => (
-                    <tr key={employee.id} id={`emp-row-${employee.id}`} className={highlightId === employee.id ? 'row-highlight' : ''}>
-                      <td>
-                        <div className="emp-name-cell">
-                          <div
-                            className="emp-avatar"
-                            onClick={() => employee.profileImage && setLightboxSrc(employee.profileImage)}
-                            style={employee.profileImage ? { cursor: 'pointer' } : {}}
-                          >
-                            {employee.profileImage
-                              ? <img src={employee.profileImage} alt={employee.fullName} className="emp-avatar-img" />
-                              : <span className="emp-avatar-initials">{(employee.fullName || '?').charAt(0).toUpperCase()}</span>
-                            }
-                          </div>
-                          <div className="employee-name-copy">
-                            <span>{employee.fullName}</span>
-                            <small>{employee.email}</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="role-badge employee-role-pill" style={getRoleBadgeStyle(employee.designation)}>
-                          <span className="employee-role-dot" style={{ backgroundColor: getRoleBadgeStyle(employee.designation).color }} />
-                          {t(employee.designation)}
-                        </span>
-                      </td>
-                      <td className="employee-supervisor-col">
-                        {employee.supervisor
-                          ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})`
-                          : '-'
-                        }
-                      </td>
-                      <td>
-                        <span className={`employee-status-pill ${employee.isApproved ? 'approved' : 'pending'}`}>
-                          <span className="employee-status-dot" />
-                          {employee.isApproved ? t('Approved') : t('Pending')}
-                        </span>
-                      </td>
-                      <td className="employee-contact-col">{employee.phoneNumber || t('N/A')}</td>
-                      {(canAddEmployee || canDeleteEmployee) && (
-                        <td className="employee-action-col">
-                          {canAddEmployee && !employee.isApproved && (
-                            <button
-                              className="btn-approve"
-                              onClick={() => handleApproveEmployee(employee.id)}
+                  {paginatedEmployees.map(employee => {
+                    const initials = (employee.fullName || '?').charAt(0).toUpperCase();
+                    const rColor = ROLE_COLORS[employee.designation] || hashStringToColor(employee.designation);
+                    const isAppr = employee.isApproved;
+                    return (
+                      <tr key={employee.id} id={`emp-row-${employee.id}`} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${highlightId === employee.id ? 'bg-primary/5' : ''}`}>
+                        <td className="px-4 sm:px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              onClick={() => employee.profileImage && setLightboxSrc(employee.profileImage)}
+                              className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${employee.profileImage ? 'cursor-pointer' : 'bg-primary/15'}`}
                             >
-                              {t('Approve')}
-                            </button>
-                          )}
-                          {canDeleteEmployee && employee.id !== user?.id && (
-                            <button
-                              className="btn-delete"
-                              onClick={() => handleDeleteEmployee(employee.id, employee.fullName)}
-                              style={{ marginLeft: '8px' }}
-                            >
-                              {t('Delete')}
-                            </button>
-                          )}
+                              {employee.profileImage ? (
+                                <img src={employee.profileImage} alt={employee.fullName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-xs font-bold text-primary">{initials}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground">{employee.fullName}</p>
+                              <p className="text-xs text-muted-foreground">{employee.email}</p>
+                            </div>
+                          </div>
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td className="px-4 sm:px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: rColor + '20', color: rColor }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: rColor }} />
+                            {employee.designation}
+                          </span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-muted-foreground hidden lg:table-cell">
+                          {employee.supervisor ? `${employee.supervisor.fullName} (${t(employee.supervisor.designation)})` : '-'}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${isAppr ? 'text-success' : 'text-warning'}`}>
+                            <span className={`w-2 h-2 rounded-full ${isAppr ? 'bg-success' : 'bg-warning'}`} />
+                            {isAppr ? t('Approved') : t('Pending')}
+                          </span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 font-mono text-muted-foreground hidden lg:table-cell">{employee.phoneNumber || '-'}</td>
+                        {(canAddEmployee || canDeleteEmployee) && (
+                          <td className="px-4 sm:px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {canAddEmployee && !isAppr && (
+                                <button onClick={() => handleApproveEmployee(employee.id)} className="h-8 px-3 rounded bg-success/15 text-success text-xs font-medium hover:bg-success/25 transition-colors">
+                                  {t('Approve')}
+                                </button>
+                              )}
+                              {canDeleteEmployee && employee.id !== user?.id && (
+                                <button onClick={() => handleDeleteEmployee(employee.id, employee.fullName)} className="h-8 px-3 rounded bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors flex items-center gap-1">
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={(newRows) => {
-                setRowsPerPage(newRows);
-                setCurrentPage(1);
-              }}
-              total={filteredEmployees.length}
-            />
+            <div className="px-4 py-3 border-t border-border">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+                total={filteredEmployees.length}
+              />
+            </div>
           </>
         )}
       </div>
 
+      {/* Modal */}
+      {showModal && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+              <h2 className="text-lg font-bold text-foreground">{t('Add New Employee')}</h2>
+              <button onClick={closeModal} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground"><X size={18} /></button>
+            </div>
+            <div className="p-4 sm:p-6 overflow-y-auto">
+              <form onSubmit={handleAddEmployee} className="space-y-4">
+                <div className="flex flex-col items-center gap-3 mb-6">
+                  <div
+                    onClick={() => empImgRef.current?.click()}
+                    className="w-20 h-20 rounded-full border-2 border-dashed border-border bg-surface-container-high flex items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group relative"
+                  >
+                    {newEmpImage ? (
+                      <img src={newEmpImage} alt="preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-8 h-8 text-muted-foreground" />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <input type="file" ref={empImgRef} accept="image/*" className="hidden" onChange={handleEmpImagePick} disabled={loading} />
+                  <span className="text-xs text-muted-foreground">{newEmpImage ? t('Tap to change') : t('Add Photo (optional)')}</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Full Name *')}</label>
+                    <input id="fullName" type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} pattern="[A-Za-z\s]*" placeholder="John Doe" required disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Email Address *')}</label>
+                    <input id="email" type="email" name="email" value={formData.email} onChange={handleInputChange} required disabled={loading} placeholder="john@example.com" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Designation/Role *')}</label>
+                    <SearchableSelect name="designation" value={formData.designation} onChange={handleInputChange} options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))} placeholder="Select designation..." disabled={loading} required />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Phone Number')}</label>
+                    <input id="phoneNumber" type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} inputMode="numeric" maxLength="10" placeholder="10-digit number" disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Supervisor (Optional)')}</label>
+                  <SearchableSelect id="supervisorId" name="supervisorId" value={formData.supervisorId} onChange={handleInputChange} placeholder="-- Select Supervisor --" disabled={loading} options={[{ value: '', label: '-- None --' }, ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))]} />
+                </div>
+
+                {message && (
+                  <div className={`mt-4 px-3 py-2 rounded-lg text-sm font-medium ${message.includes('Error') ? 'bg-destructive/15 text-destructive' : 'bg-success/15 text-success'}`}>
+                    {message}
+                  </div>
+                )}
+              </form>
+            </div>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={closeModal} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t('Cancel')}</button>
+              <button onClick={handleAddEmployee} disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? t('Adding...') : t('Save Employee')}</button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
       {lightboxSrc && ReactDOM.createPortal(
-        <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
-          <button className="lightbox-close" onClick={() => setLightboxSrc(null)} aria-label={t('Close')}><X size={18} /></button>
-          <img src={lightboxSrc} className="lightbox-img" alt="Full view" onClick={e => e.stopPropagation()} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 p-4" onClick={() => setLightboxSrc(null)}>
+          <button className="absolute top-4 right-4 p-2 bg-surface-container-high rounded-full hover:bg-border transition-colors text-foreground"><X size={20} /></button>
+          <img src={lightboxSrc} className="max-w-full max-h-full rounded-lg object-contain" alt="Full view" onClick={e => e.stopPropagation()} />
         </div>
       , document.body)}
 

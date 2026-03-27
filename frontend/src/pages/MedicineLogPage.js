@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { Download, Plus, X, Pill, Activity, CheckCircle, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react';
 import * as XLSX from 'xlsx';
+
+const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
+const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
 
 const MedicineLogPage = () => {
   const { user } = useAuth();
@@ -16,132 +20,86 @@ const MedicineLogPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
   const [horses, setHorses] = useState([]);
-  const [filter, setFilter] = useState('all'); // 'all', 'my', 'pending'
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const [formData, setFormData] = useState({
-    horseId: '',
-    medicineName: '',
-    quantity: '',
-    unit: 'ml', // ml, g, tablets, etc.
+    horseId: '', medicineName: '', quantity: '', unit: 'ml',
     timeAdministered: new Date().toISOString().slice(0, 16),
-    notes: '',
-    photoUrl: '',
+    notes: '', photoUrl: '',
   });
 
   const UNITS = ['ml', 'g', 'tablets', 'drops', 'injections', 'ointment (g)'];
 
-  useEffect(() => {
-    loadMedicineLogs();
-    loadHorses();
-  }, []);
+  useEffect(() => { loadMedicineLogs(); loadHorses(); }, []);
 
   const loadMedicineLogs = async () => {
-    try {
-      const response = await apiClient.get('/medicine-logs');
-      setLogs(response.data);
-    } catch (error) {
-      console.error('Error loading medicine logs:', error);
-    }
+    try { const response = await apiClient.get('/medicine-logs'); setLogs(response.data); }
+    catch (error) { console.error('Error loading medicine logs:', error); }
   };
 
   const loadHorses = async () => {
-    try {
-      const response = await apiClient.get('/horses');
-      setHorses(response.data);
-    } catch (error) {
-      console.error('Error loading horses:', error);
-    }
+    try { const response = await apiClient.get('/horses'); setHorses(response.data.data || response.data || []); }
+    catch (error) { console.error('Error loading horses:', error); }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
-
+    e.preventDefault(); setLoading(true); setMessage('');
     try {
       if (!formData.horseId || !formData.medicineName || !formData.quantity) {
         throw new Error('Please fill in all required fields');
       }
-
       const payload = {
-        horseId: formData.horseId,
-        medicineName: formData.medicineName,
-        quantity: parseFloat(formData.quantity),
-        unit: formData.unit,
+        horseId: formData.horseId, medicineName: formData.medicineName,
+        quantity: parseFloat(formData.quantity), unit: formData.unit,
         timeAdministered: new Date(formData.timeAdministered),
-        notes: formData.notes || null,
-        photoUrl: formData.photoUrl || null,
+        notes: formData.notes || null, photoUrl: formData.photoUrl || null,
       };
-
       const response = await apiClient.post('/medicine-logs', payload);
-      
       setMessage('✓ Medicine log created successfully!');
-      setLogs([response.data, ...logs]);
-      setShowForm(false);
-
-      setFormData({
-        horseId: '',
-        medicineName: '',
-        quantity: '',
-        unit: 'ml',
-        timeAdministered: new Date().toISOString().slice(0, 16),
-        notes: '',
-        photoUrl: '',
-      });
-
+      setLogs([response.data, ...logs]); setShowForm(false);
+      setFormData({ horseId: '', medicineName: '', quantity: '', unit: 'ml', timeAdministered: new Date().toISOString().slice(0, 16), notes: '', photoUrl: '' });
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
       setMessage(`✗ Error: ${errorMsg}`);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const formatTime = (dateStr) => {
-    return new Date(dateStr).toLocaleString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-  const getFilteredLogs = () => {
-    switch (filter) {
-      case 'my':
-        return logs.filter((log) => log.jamedarId === user?.id);
-      case 'pending':
-        return logs.filter((log) => !log.isApproved);
-      default:
-        return logs;
+  const filteredLogs = useMemo(() => {
+    let result = logs;
+    if (filter === 'my') result = result.filter((log) => log.jamedarId === user?.id);
+    else if (filter === 'pending') result = result.filter((log) => !log.isApproved);
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter(log =>
+        (log.horse?.name || '').toLowerCase().includes(s) ||
+        (log.medicineName || '').toLowerCase().includes(s)
+      );
     }
-  };
-
-  const filteredLogs = getFilteredLogs();
+    return result;
+  }, [logs, filter, search, user?.id]);
 
   const handleDownloadExcel = () => {
     if (!logs.length) { alert('No data to download'); return; }
     const data = logs.map(l => ({
       'Date': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '',
-      'Horse': l.horse?.name || '',
-      'Medicine': l.medicineName,
-      'Quantity': l.quantity,
-      'Unit': l.unit,
+      'Horse': l.horse?.name || '', 'Medicine': l.medicineName,
+      'Quantity': l.quantity, 'Unit': l.unit,
       'Time Administered': l.timeAdministered || '',
       'Jamedar': l.jamedar?.fullName || l.administeredBy?.fullName || '',
-      'Notes': l.notes || '',
-      'Status': l.status || '',
+      'Notes': l.notes || '', 'Status': l.isApproved ? 'Approved' : 'Pending',
     }));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
@@ -149,237 +107,179 @@ const MedicineLogPage = () => {
     XLSX.writeFile(wb, `MedicineLog_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
+  const uniqueMedicines = [...new Set(logs.map(m => m.medicineName).filter(Boolean))].length;
+  const uniqueHorsesTreated = [...new Set(logs.map(m => m.horse?.name).filter(Boolean))].length;
+  const pendingCount = logs.filter(l => !l.isApproved).length;
+
   if (!p.viewMedicineLogs) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="medicine-page">
-      <h1>{t('Medicine Administration Log')}</h1>
-      <p className="subtitle">
-        Track all medicine administered to horses
-      </p>
-      <button className="btn-download" onClick={handleDownloadExcel} style={{ marginBottom: '12px' }}><Download size={14} />Excel</button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Medicine')} <span className="text-primary">{t('Logs')}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('Track medicine administration records and treatment history')}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
+          </button>
+          <button onClick={() => setShowForm(!showForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
+            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span className="hidden sm:inline">{showForm ? t('Cancel') : t('+ Add Log')}</span><span className="sm:hidden">{t('Add')}</span>
+          </button>
+        </div>
+      </div>
 
-      <button
-        className="btn-add"
-        onClick={() => setShowForm(!showForm)}
-      >
-        {showForm ? '✕ Cancel' : '+ Log Medicine'}
-      </button>
+      {message && (
+        <div className={`p-4 rounded-lg text-sm font-medium border ${message.includes('✗') ? 'bg-destructive/15 text-destructive border-destructive/30' : 'bg-success/15 text-success border-success/30'}`}>
+          {message}
+        </div>
+      )}
 
-      {/* Medicine Form */}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'TOTAL ADMINISTRATIONS', value: logs.length, icon: Pill, color: 'text-primary' },
+          { label: 'UNIQUE MEDICINES', value: uniqueMedicines, icon: Activity, color: 'text-foreground' },
+          { label: 'HORSES TREATED', value: uniqueHorsesTreated, icon: CheckCircle, color: 'text-success' },
+          { label: 'PENDING FOLLOW-UPS', value: pendingCount, icon: AlertTriangle, color: 'text-warning' },
+        ].map(k => (
+          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{k.label}</span>
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><k.icon className="w-4 h-4 text-primary" /></div>
+            </div>
+            <p className={`text-3xl font-bold ${k.color}`}>{String(k.value).padStart(2, '0')}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Form */}
       {showForm && (
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="medicine-form">
-            <div className="form-group">
-              <label htmlFor="horseId">Horse *</label>
-              <SearchableSelect
-                id="horseId"
-                name="horseId"
-                value={formData.horseId}
-                onChange={handleInputChange}
-                placeholder="-- Select Horse --"
-                required
-                disabled={loading}
-                options={[
-                  { value: '', label: '-- Select Horse --' },
-                  ...horses.map(h => ({ value: h.id, label: `${h.name} (ID: ${h.registrationNumber})` }))
-                ]}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="medicineName">Medicine Name *</label>
-              <input
-                id="medicineName"
-                type="text"
-                name="medicineName"
-                value={formData.medicineName}
-                onChange={handleInputChange}
-                required
-                disabled={loading}
-                placeholder="e.g., Penicillin, Vitamin B12, Aspirin"
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="quantity">Quantity *</label>
-                <input
-                  id="quantity"
-                  type="number"
-                  name="quantity"
-                  step="0.01"
-                  value={formData.quantity}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                  placeholder="Amount given"
+        <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg edge-glow">
+          <h3 className="text-lg font-bold text-foreground mb-5 pb-3 border-b border-border/50">{t('Log Medicine Administration')}</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="z-10">
+                <label className={lbl}>{t('Horse')} *</label>
+                <SearchableSelect
+                  name="horseId" value={formData.horseId} onChange={handleInputChange}
+                  placeholder="-- Select Horse --" required disabled={loading}
+                  options={[
+                    { value: '', label: '-- Select Horse --' },
+                    ...horses.map(h => ({ value: h.id, label: `${h.name}${h.registrationNumber ? ` (${h.registrationNumber})` : ''}` }))
+                  ]}
                 />
               </div>
-
-              <div className="form-group">
-                <label htmlFor="unit">Unit *</label>
-                <select
-                  id="unit"
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                >
-                  {UNITS.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
+              <div>
+                <label className={lbl}>{t('Medicine Name')} *</label>
+                <input type="text" name="medicineName" value={formData.medicineName} onChange={handleInputChange} required disabled={loading} placeholder="e.g., Penicillin, Vitamin B12" className={inp} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={lbl}>{t('Quantity')} *</label>
+                  <input type="number" name="quantity" step="0.01" value={formData.quantity} onChange={handleInputChange} required disabled={loading} placeholder="Amount" className={inp} />
+                </div>
+                <div>
+                  <label className={lbl}>{t('Unit')} *</label>
+                  <select name="unit" value={formData.unit} onChange={handleInputChange} required disabled={loading} className={inp}>
+                    {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className={lbl}>{t('Time Administered')} *</label>
+                <input type="datetime-local" name="timeAdministered" value={formData.timeAdministered} onChange={handleInputChange} required disabled={loading} className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>{t('Photo URL (Evidence)')}</label>
+                <input type="url" name="photoUrl" value={formData.photoUrl} onChange={handleInputChange} disabled={loading} placeholder="https://..." className={inp} />
+              </div>
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className={lbl}>{t('Clinical Notes')}</label>
+                <textarea name="notes" value={formData.notes} onChange={handleInputChange} disabled={loading} placeholder="Describe condition, reason, effects..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="timeAdministered">Time Administered *</label>
-              <input
-                id="timeAdministered"
-                type="datetime-local"
-                name="timeAdministered"
-                value={formData.timeAdministered}
-                onChange={handleInputChange}
-                required
-                disabled={loading}
-              />
+            <div className="pt-2">
+              <button type="submit" disabled={loading} className="w-full sm:w-auto h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50">
+                {loading ? t('Logging...') : t('Log Medicine')}
+              </button>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="notes">Clinical Notes & Observations</label>
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                disabled={loading}
-                placeholder="Describe the horse's condition, reason for medicine, observed effects, etc."
-                rows={4}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="photoUrl">Photo URL (Evidence)</label>
-              <input
-                id="photoUrl"
-                type="url"
-                name="photoUrl"
-                value={formData.photoUrl}
-                onChange={handleInputChange}
-                disabled={loading}
-                placeholder="https://example.com/photo.jpg"
-              />
-              <small>Upload a photo of medicine bottle or administration</small>
-            </div>
-
-            {message && (
-              <div className={`message ${message.includes('✗') ? 'error' : 'success'}`}>
-                {message}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="btn-submit"
-              disabled={loading}
-            >
-              {loading ? 'Logging...' : 'Log Medicine'}
-            </button>
           </form>
         </div>
       )}
 
-      {/* Filter Tabs */}
-      <div className="filter-tabs">
-        <button
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All Logs ({logs.length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'my' ? 'active' : ''}`}
-          onClick={() => setFilter('my')}
-        >
-          My Logs
-        </button>
-        <button
-          className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
-          onClick={() => setFilter('pending')}
-        >
-          Pending Approval ({logs.filter((l) => !l.isApproved).length})
-        </button>
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
+        <div className="relative flex-1 sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search horse or medicine...")} className="w-full h-10 pl-10 pr-8 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+          {search && <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+        </div>
+        <div className="flex flex-wrap gap-1 bg-surface-container-high rounded-lg p-1 w-fit">
+          {[
+            { key: 'all', label: `All (${logs.length})` },
+            { key: 'my', label: 'My Logs' },
+            { key: 'pending', label: `Pending (${pendingCount})` },
+          ].map(f => (
+            <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filter === f.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{f.label}</button>
+          ))}
+        </div>
       </div>
 
-      {/* Medicine Logs Table */}
-      <div className="logs-container">
-        <h2>{t('Medicine Administration Records')}</h2>
-        {filteredLogs.length === 0 ? (
-          <p className="no-data">No medicine logs found</p>
-        ) : (
-          <table className="medicine-table">
+      {/* Table */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
-              <tr>
-                <th>Horse</th>
-                <th>Medicine</th>
-                <th>Quantity</th>
-                <th>Time Administered</th>
-                <th>Jamedar</th>
-                <th>Notes</th>
-                <th>Status</th>
+              <tr className="bg-surface-container-high border-b border-border">
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Horse')}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Medicine')}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Dosage')}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Administered')}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('By')}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Notes')}</th>
+                <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Status')}</th>
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className={log.isApproved ? 'approved' : 'pending'}>
-                  <td>
-                    <strong>{log.horse.name}</strong>
-                    <br />
-                    <small>{log.horse.registrationNumber}</small>
-                  </td>
-                  <td>
-                    <strong>{log.medicineName}</strong>
-                    <br />
-                    <small>{log.quantity} {log.unit}</small>
-                  </td>
-                  <td>
-                    {log.quantity} {log.unit}
-                  </td>
-                  <td>{formatTime(log.timeAdministered)}</td>
-                  <td>{log.jamedar.fullName}</td>
-                  <td>
-                    {log.notes ? (
-                      <span title={log.notes}>{log.notes.substring(0, 30)}...</span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${log.isApproved ? 'approved' : 'pending'}`}
-                    >
-                      {log.isApproved ? '✔ Approved' : '⏳ Pending'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {filteredLogs.length === 0 ? (
+                <tr><td colSpan="7" className="px-4 py-12 text-center text-muted-foreground text-sm">{t('No medicine logs found')}</td></tr>
+              ) : (
+                filteredLogs.map((log) => (
+                  <tr key={log.id} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                    <td className="px-4 py-3">
+                      <span className="font-semibold text-foreground block">{log.horse?.name || '-'}</span>
+                      <span className="text-[10px] text-muted-foreground">{log.horse?.registrationNumber || ''}</span>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-foreground">{log.medicineName}</td>
+                    <td className="px-4 py-3 text-foreground font-mono text-xs">{log.quantity} {log.unit}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{formatTime(log.timeAdministered)}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{log.jamedar?.fullName || log.administeredBy?.fullName || '-'}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs max-w-[180px] truncate" title={log.notes}>{log.notes || '—'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${log.isApproved ? 'bg-success/20 text-success border-success/30' : 'bg-warning/20 text-warning border-warning/30'}`}>
+                        {log.isApproved ? 'Approved' : 'Pending'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
-      {/* Stock Alert Section */}
-      <div className="alerts-container">
-        <h2>{t('Stock Alerts')}</h2>
-        <div className="alert-info">
-          <p>
-            Medicine logs with stock levels below 20 units will show alerts here.
-            Check with Stable Manager for replenishment.
-          </p>
+      {/* Stock Alert */}
+      <div className="bg-surface-container-highest rounded-xl p-5 edge-glow border-l-4 border-l-warning">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-foreground mb-1">{t('Stock Alerts')}</h3>
+            <p className="text-xs text-muted-foreground">{t('Medicine logs with stock levels below 20 units will show alerts here. Check with Stable Manager for replenishment.')}</p>
+          </div>
         </div>
       </div>
     </div>

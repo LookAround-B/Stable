@@ -3,10 +3,23 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
-import { Download } from 'lucide-react';
+import { Download, Plus, X, Users, UserCheck, CalendarCheck, Clock } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+
+const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
+const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
+
+const StatusBadge = ({ status }) => {
+  if (!status) return <span>-</span>;
+  let cls = 'bg-surface-container-high text-muted-foreground border-border';
+  if (status === 'Present') cls = 'bg-success/20 text-success border-success/30';
+  else if (status === 'Absent') cls = 'bg-destructive/20 text-destructive border-destructive/30';
+  else if (status === 'Leave' || status === 'Half Day') cls = 'bg-warning/20 text-warning border-warning/30';
+  else if (status === 'WOFF') cls = 'bg-primary/20 text-primary border-primary/30';
+  return <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${cls}`}>{status}</span>;
+};
 
 const TeamAttendancePage = () => {
   const { t } = useI18n();
@@ -15,11 +28,7 @@ const TeamAttendancePage = () => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    employeeId: '',
-    status: 'Present',
-    remarks: ''
-  });
+  const [formData, setFormData] = useState({ employeeId: '', status: 'Present', remarks: '' });
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
@@ -28,97 +37,46 @@ const TeamAttendancePage = () => {
 
   useEffect(() => {
     loadData();
-    setCurrentPage(1); // Reset pagination when date changes
-    // Check if selected date is Monday and auto-set status to WOFF
+    setCurrentPage(1);
     const dateObj = new Date(selectedDate);
-    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 1 = Monday
-    if (dayOfWeek === 1) {
-      setFormData(prev => ({
-        ...prev,
-        status: 'WOFF'
-      }));
+    if (dateObj.getDay() === 1) {
+      setFormData(prev => ({ ...prev, status: 'WOFF' }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const loadData = async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
-      // Load team members (excluding those already marked for this date)
-      const teamResponse = await apiClient.get('/attendance/team-members', {
-        params: { date: selectedDate }
-      });
+      const teamResponse = await apiClient.get('/attendance/team-members', { params: { date: selectedDate } });
       setTeamMembers(teamResponse.data.teamMembers || []);
-
-      // Load attendance records for selected date
-      const recordsResponse = await apiClient.get('/attendance/team', {
-        params: { date: selectedDate }
-      });
+      const recordsResponse = await apiClient.get('/attendance/team', { params: { date: selectedDate } });
       setAttendanceRecords(recordsResponse.data.attendance || []);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load data');
-      console.error('Error loading data:', err);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMessage('');
-
-    if (!formData.employeeId || !formData.status) {
-      setError('Please select employee and status');
-      return;
-    }
-
+    e.preventDefault(); setError(''); setSuccessMessage('');
+    if (!formData.employeeId || !formData.status) { setError('Please select employee and status'); return; }
     try {
       await apiClient.post('/attendance/mark-team', {
-        employeeId: formData.employeeId,
-        date: selectedDate,
-        status: formData.status,
-        remarks: formData.remarks
+        employeeId: formData.employeeId, date: selectedDate,
+        status: formData.status, remarks: formData.remarks
       });
-
       const selectedMember = teamMembers.find(m => m.id === formData.employeeId);
       setSuccessMessage(`Attendance marked for ${selectedMember?.fullName} - ${formData.status}`);
-      
-      setFormData({
-        employeeId: '',
-        status: 'Present',
-        remarks: ''
-      });
+      setFormData({ employeeId: '', status: 'Present', remarks: '' });
       setShowForm(false);
-
-      // Reload records
-      setTimeout(() => {
-        loadData();
-        setSuccessMessage('');
-      }, 2000);
+      setTimeout(() => { loadData(); setSuccessMessage(''); }, 2000);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to mark attendance');
-      console.error('Error marking attendance:', err);
-    }
-  };
-
-  const getStatusBadgeClass = (status) => {
-    switch(status) {
-      case 'Present': return 'status-present';
-      case 'Absent': return 'status-absent';
-      case 'Leave': return 'status-leave';
-      case 'WOFF': return 'status-woff';
-      case 'Half Day': return 'status-halfday';
-      default: return '';
     }
   };
 
@@ -127,305 +85,205 @@ const TeamAttendancePage = () => {
     return member ? member.designation : 'Unknown';
   };
 
-  const isMonday = () => {
-    const dateObj = new Date(selectedDate);
-    return dateObj.getDay() === 1; // 1 = Monday
-  };
+  const isMonday = () => new Date(selectedDate).getDay() === 1;
 
   const handleDownloadExcel = () => {
-    if (attendanceRecords.length === 0) {
-      alert('No attendance records to download');
-      return;
-    }
-
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB');
-    };
-
-    // Prepare data for Excel
+    if (attendanceRecords.length === 0) { alert('No attendance records to download'); return; }
     const excelData = attendanceRecords.map((record) => ({
-      'Date': formatDate(record.date),
+      'Date': record.date ? new Date(record.date).toLocaleDateString('en-GB') : '',
       'Employee Name': record.employee?.fullName || '-',
       'Designation': record.employee?.designation || '-',
       'Status': record.status,
       'Remarks': record.remarks || '',
       'Marked At': record.markedAt ? new Date(record.markedAt).toLocaleString('en-GB') : '',
     }));
-
-    // Create workbook and worksheet
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 12 }, // Date
-      { wch: 20 }, // Employee Name
-      { wch: 18 }, // Designation
-      { wch: 12 }, // Status
-      { wch: 25 }, // Remarks
-      { wch: 18 }, // Marked At
-    ];
-
+    worksheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 18 }];
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
-
-    // Generate filename with date
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10);
-    const filename = `Attendance_${selectedDate}_${dateStr}.xlsx`;
-
-    // Download file
-    XLSX.writeFile(workbook, filename);
-    console.log('📥 Downloaded attendance to:', filename);
+    XLSX.writeFile(workbook, `Attendance_${selectedDate}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleDownloadCSV = () => {
-    if (attendanceRecords.length === 0) {
-      alert('No attendance records to download');
-      return;
-    }
-
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB');
-    };
-
-    const csvData = attendanceRecords.map((record) => ({
-      'Date': formatDate(record.date),
-      'Employee Name': record.employee?.fullName || '-',
-      'Designation': record.employee?.designation || '-',
-      'Status': record.status,
-      'Remarks': record.remarks || '',
-      'Marked At': record.markedAt ? new Date(record.markedAt).toLocaleString('en-GB') : '',
-    }));
-
-    const headers = Object.keys(csvData[0]);
-    const escape = (val) => {
-      const s = String(val ?? '');
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const rows = [headers.map(escape).join(','), ...csvData.map(row => headers.map(h => escape(row[h])).join(','))];
-    const csvContent = '\uFEFF' + rows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Attendance_${selectedDate}_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  // Pagination logic
   const totalPages = Math.ceil(attendanceRecords.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedRecords = attendanceRecords.slice(startIndex, endIndex);
+  const paginatedRecords = attendanceRecords.slice(startIndex, startIndex + rowsPerPage);
+  const presentCount = attendanceRecords.filter(r => r.status === 'Present').length;
+  const absentCount = attendanceRecords.filter(r => r.status === 'Absent').length;
 
   if (!p.viewTeamAttendance) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="team-attendance-container">
-      <div className="attendance-header">
-        <h2>{t('Mark Team Attendance')}</h2>
-        <p className="subtitle">Mark attendance for team members</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Mark Team')} <span className="text-primary">{t('Attendance')}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('Mark attendance for team members')}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
+          </button>
+          <button onClick={() => setShowForm(!showForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
+            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span><span className="sm:hidden">{t('Mark')}</span>
+          </button>
+        </div>
       </div>
 
-      {successMessage && (
-        <div className="alert alert-success">
-          ✓ {successMessage}
-        </div>
-      )}
+      {successMessage && <div className="p-4 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30">✓ {successMessage}</div>}
+      {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
 
-      {error && (
-        <div className="alert alert-error">
-          ✕ {error}
-        </div>
-      )}
-
-      <div className="attendance-content">
-        {/* Mark Attendance Section */}
-        <div className="mark-section">
-          <div className="section-header">
-            <h3>Quick Mark Attendance</h3>
-            <div className="header-buttons">
-              <button 
-                className="btn-download"
-                onClick={handleDownloadExcel}
-              >
-                <Download size={14} />Excel
-              </button>
-
-              <button 
-                className="btn btn-primary"
-                onClick={() => setShowForm(!showForm)}
-              >
-                {showForm ? 'Cancel' : '+ Mark Attendance'}
-              </button>
-            </div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Team Members')}</span>
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-4 h-4 text-primary" /></div>
           </div>
+          <p className="text-3xl font-bold text-foreground">{String(teamMembers.length).padStart(2, '0')}</p>
+        </div>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Total Marked')}</span>
+            <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center"><CalendarCheck className="w-4 h-4 text-success" /></div>
+          </div>
+          <p className="text-3xl font-bold text-foreground">{String(attendanceRecords.length).padStart(2, '0')}</p>
+        </div>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Present')}</span>
+            <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center"><UserCheck className="w-4 h-4 text-success" /></div>
+          </div>
+          <p className="text-3xl font-bold text-success">{String(presentCount).padStart(2, '0')}</p>
+        </div>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Absent / Leave')}</span>
+            <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center"><Clock className="w-4 h-4 text-destructive" /></div>
+          </div>
+          <p className="text-3xl font-bold text-destructive">{String(absentCount).padStart(2, '0')}</p>
+        </div>
+      </div>
 
-          {showForm && (
-            <form className="attendance-form" onSubmit={handleSubmit}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Team Member *</label>
-                  <SearchableSelect
-                    name="employeeId"
-                    value={formData.employeeId}
-                    onChange={handleFormChange}
-                    placeholder="-- Select Team Member --"
-                    required
-                    className="form-input"
-                    options={[
-                      { value: '', label: '-- Select Team Member --' },
-                      ...teamMembers.map(m => ({ value: m.id, label: `${m.fullName} (${m.designation})` }))
-                    ]}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Date *</label>
-                  <input 
-                    type="date" 
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="form-input"
-                    required
-                  />
-                  {isMonday() && (
-                    <span className="form-hint">📅 Monday is weekly off (WOFF)</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Role</label>
-                  <input 
-                    type="text" 
-                    value={formData.employeeId ? getTeamMemberRole(formData.employeeId) : ''}
-                    disabled
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Attendance Status *</label>
-                  <SearchableSelect
-                    name="status"
-                    value={formData.status}
-                    onChange={handleFormChange}
-                    options={[
-                      { value: 'Present', label: 'Present' },
-                      { value: 'Absent', label: 'Absent' },
-                      { value: 'Leave', label: 'Leave' },
-                      { value: 'WOFF', label: 'Weekly Off' },
-                      { value: 'Half Day', label: 'Half Day' },
-                    ]}
-                    placeholder="Select status..."
-                    searchable={false}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Remarks (Optional)</label>
-                <input 
-                  type="text" 
-                  name="remarks"
-                  value={formData.remarks}
+      {/* Form */}
+      {showForm && (
+        <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg edge-glow">
+          <h3 className="text-lg font-bold text-foreground mb-5 pb-3 border-b border-border/50">{t('Quick Mark Attendance')}</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="z-10">
+                <label className={lbl}>{t('Team Member')} *</label>
+                <SearchableSelect
+                  name="employeeId"
+                  value={formData.employeeId}
                   onChange={handleFormChange}
-                  placeholder="Add any notes..."
-                  className="form-input"
+                  placeholder="-- Select Team Member --"
+                  required
+                  options={[
+                    { value: '', label: '-- Select Team Member --' },
+                    ...teamMembers.map(m => ({ value: m.id, label: `${m.fullName} (${m.designation})` }))
+                  ]}
                 />
               </div>
-
-              <button type="submit" className="btn btn-success">
-                Mark Attendance
-              </button>
-            </form>
-          )}
-        </div>
-
-        {/* Records Section */}
-        <div className="records-section">
-          <div className="section-header" style={{ justifyContent: 'flex-start', gap: '20px' }}>
-            <h3>Team Attendance Records</h3>
-            <div className="search-group">
-              <label>Date:</label>
-              <input 
-                type="date" 
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="form-input"
-                style={{ paddingLeft: '12px' }}
-              />
+              <div>
+                <label className={lbl}>{t('Date')} *</label>
+                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required className={inp} />
+                {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider mt-1.5 block">⚠ Monday is weekly off (WOFF)</span>}
+              </div>
+              <div>
+                <label className={lbl}>{t('Role')}</label>
+                <input type="text" value={formData.employeeId ? t(getTeamMemberRole(formData.employeeId)) : ''} disabled className={`${inp} opacity-50`} />
+              </div>
+              <div className="z-10">
+                <label className={lbl}>{t('Attendance Status')} *</label>
+                <SearchableSelect
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  options={[
+                    { value: 'Present', label: t('Present') },
+                    { value: 'Absent', label: t('Absent') },
+                    { value: 'Leave', label: t('Leave') },
+                    { value: 'WOFF', label: t('Weekly Off') },
+                    { value: 'Half Day', label: t('Half Day') },
+                  ]}
+                  placeholder="Select status..."
+                  searchable={false}
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className={lbl}>{t('Remarks (Optional)')}</label>
+                <input type="text" name="remarks" value={formData.remarks} onChange={handleFormChange} placeholder={t("Add any notes...")} className={inp} />
+              </div>
             </div>
-          </div>
+            <div className="pt-2">
+              <button type="submit" className="w-full md:w-auto h-10 px-8 rounded-lg bg-gradient-to-r from-success to-success/80 text-white text-sm font-semibold tracking-wider uppercase hover:opacity-90 transition-opacity">
+                {t('Mark Attendance')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
-          {loading ? (
-            <div className="loading">Loading attendance records...</div>
-          ) : attendanceRecords.length > 0 ? (
-            <>
-            <div className="records-table-wrapper">
-              <table className="records-table">
+      {/* Toolbar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">{t('Records for:')}</label>
+        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={`${inp} max-w-[200px]`} />
+      </div>
+
+      {/* Table */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+        ) : attendanceRecords.length > 0 ? (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[600px]">
                 <thead>
-                  <tr>
-                    <th>Employee Name</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Remarks</th>
-                    <th>Marked At</th>
+                  <tr className="bg-surface-container-high border-b border-border">
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Employee')}</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Role')}</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Status')}</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Remarks')}</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Marked At')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedRecords.map((record) => (
-                    <tr key={record.id}>
-                      <td className="employee-name">{record.employee?.fullName || 'Unknown'}</td>
-                      <td>{record.employee?.designation ? t(record.employee.designation) : 'Unknown'}</td>
-                      <td>
-                        <span className={`status-badge ${getStatusBadgeClass(record.status)}`}>
-                          {t(record.status)}
-                        </span>
-                      </td>
-                      <td>{record.remarks || '-'}</td>
-                      <td>
+                    <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-foreground">{record.employee?.fullName || 'Unknown'}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{record.employee?.designation ? t(record.employee.designation) : 'Unknown'}</td>
+                      <td className="px-4 py-3"><StatusBadge status={record.status} /></td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{record.remarks || '-'}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                         {record.markedAt ? (() => {
                           const date = new Date(record.markedAt);
-                          const dateStr = date.toLocaleDateString('en-GB');
-                          const timeStr = date.toLocaleTimeString('en-GB');
-                          return `${dateStr} [${timeStr}]`;
+                          return `${date.toLocaleDateString('en-GB')} ${date.toLocaleTimeString('en-GB')}`;
                         })() : 'Not marked'}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <Pagination 
-                currentPage={currentPage} 
+            </div>
+            <div className="px-4 py-3 border-t border-border">
+              <Pagination
+                currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
                 rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(newRows) => {
-                  setRowsPerPage(newRows);
-                  setCurrentPage(1);
-                }}
+                onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
                 total={attendanceRecords.length}
               />
             </div>
-            </>
-          ) : (
-            <div className="no-records">
-              No attendance records found for {new Date(selectedDate).toLocaleDateString()}
-            </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            {t('No attendance records found for')} {new Date(selectedDate).toLocaleDateString('en-GB')}
+          </div>
+        )}
       </div>
     </div>
   );
