@@ -70,6 +70,8 @@ function MainLayout() {
   useEffect(() => {
     window.localStorage.setItem('efm.ui.theme', theme);
     document.documentElement.setAttribute('data-efm-theme', theme);
+    document.documentElement.classList.toggle('light', theme === 'light');
+    document.body.classList.toggle('light', theme === 'light');
     document.body.classList.toggle('efm-theme-light', theme === 'light');
     const themeColor = theme === 'light' ? '#f6f7fb' : '#09090b';
     const themeMeta = document.querySelector('meta[name="theme-color"]');

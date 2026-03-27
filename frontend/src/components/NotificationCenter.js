@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Bell, Check, CheckCheck, ClipboardList, FileText, Package } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Bell, Check, CheckCheck, ClipboardList, FileText, Package } from 'lucide-react';
 import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from '../services/notificationService';
 import usePermissions from '../hooks/usePermissions';
 
@@ -67,6 +67,18 @@ const NotificationCenter = () => {
   }, [open, fetchNotifications]);
 
   useEffect(() => {
+    if (!open || typeof window === 'undefined') return undefined;
+    if (window.innerWidth > 768) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
     const handleOutsideClick = (event) => {
       if (ref.current && !ref.current.contains(event.target)) {
         setOpen(false);
@@ -115,7 +127,17 @@ const NotificationCenter = () => {
       {open && (
         <div className="notification-dropdown">
           <div className="notification-header">
-            <span className="notification-heading">Notifications</span>
+            <div className="notification-header-main">
+              <button
+                className="notification-mobile-back"
+                onClick={() => setOpen(false)}
+                type="button"
+                aria-label="Back"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <span className="notification-heading">Notifications</span>
+            </div>
             {unreadCount > 0 && (
               <button className="notification-mark-all" onClick={handleMarkAllRead} type="button">
                 <CheckCheck size={13} />

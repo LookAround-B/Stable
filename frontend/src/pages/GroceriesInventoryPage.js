@@ -11,7 +11,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
-import { Download } from 'lucide-react';
+import { AlertTriangle, Download, IndianRupee, Package, Plus, Search, ShoppingCart, X } from 'lucide-react';
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const UNIT_OPTIONS = ["g","kg","ml","l","ltr","pcs","units","packets","packs","boxes","bottles","cans","jars","sachets","strips"];
@@ -209,61 +209,71 @@ const GroceriesInventoryPage = () => {
   if (!p.viewGroceriesInventory) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="page-container" style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <div className="page-header">
+    <div className="space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '8px', marginBottom: '2px' }}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>{t('Groceries Inventory')}</h1>
-          <p>{t('Track grocery items and purchases')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2"><ShoppingCart className="w-6 h-6 text-primary" /> Groceries <span className="text-primary">Inventory</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('Track grocery items and purchases')}</p>
         </div>
-      </div>
-
-      {message && (
-        <div className={`alert alert-${messageType === "error" ? "error" : "success"}`} style={{ marginBottom: "16px" }}>
-          {message}
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="groceries-filters">
-        <div className="filter-group">
-          <label>Month</label>
-          <SearchableSelect
-            value={selectedMonth.toString()}
-            onChange={e => { setSelectedMonth(parseInt(e.target.value)); setCurrentPage(1); }}
-            options={MONTH_NAMES.map((m, i) => ({ value: (i+1).toString(), label: m }))}
-            placeholder="Select month..."
-          />
-        </div>
-        <div className="filter-group">
-          <label>Year</label>
-          <SearchableSelect
-            value={selectedYear.toString()}
-            onChange={e => { setSelectedYear(parseInt(e.target.value)); setCurrentPage(1); }}
-            options={years.map(y => ({ value: y.toString(), label: y.toString() }))}
-            placeholder="Select year..."
-          />
-        </div>
-        <div className="filter-group groceries-search-group">
-          <label>Search</label>
-          <input type="text" placeholder="Search by item name..." value={search}
-            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
-        </div>
-        <div className="groceries-filter-actions">
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-          <button className="btn-primary" onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }}>
-            {showForm && !editingId ? "✕ Cancel" : "+ Add Item"}
+        <div className="flex gap-2 shrink-0">
+          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+            {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
           </button>
         </div>
       </div>
 
+      {/* ── Message ── */}
+      {message && (
+        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === "error" ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
+          {messageType === 'success' ? '✓' : '✕'} {message}
+        </div>
+      )}
+
+      {/* ── KPI Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> TOTAL ITEMS</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{filteredGroceries.length}</p>
+          <p className="text-xs mt-1 text-muted-foreground">{MONTH_NAMES[selectedMonth-1]} {selectedYear}</p>
+        </div>
+        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><IndianRupee className="w-3.5 h-3.5 text-success" /> TOTAL VALUE</p>
+          <p className="text-4xl font-bold text-foreground mt-2 mono-data">₹{totalValue.toFixed(2)}</p>
+          <p className="text-xs mt-1 text-muted-foreground">Combined purchase value</p>
+        </div>
+      </div>
+
+      {/* ── Month/Year Filter Pills ── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <SearchableSelect
+          value={selectedMonth.toString()}
+          onChange={e => { setSelectedMonth(parseInt(e.target.value)); setCurrentPage(1); }}
+          options={MONTH_NAMES.map((m, i) => ({ value: (i+1).toString(), label: m }))}
+          placeholder="Month"
+          className="w-36"
+        />
+        <SearchableSelect
+          value={selectedYear.toString()}
+          onChange={e => { setSelectedYear(parseInt(e.target.value)); setCurrentPage(1); }}
+          options={years.map(y => ({ value: y.toString(), label: y.toString() }))}
+          placeholder="Year"
+          className="w-28"
+        />
+      </div>
+
       <InventoryCharts type="groceries" records={filteredGroceries} />
 
+      {/* ── Low Stock Alert ── */}
       {groceries.some(g => g.threshold !== null && g.threshold !== undefined && g.notifyAdmin && g.quantity < g.threshold) && (
-        <div style={{ background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', color: '#374151', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-          <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>!</span>
+        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <div>
             <strong>Low stock alert</strong>
-            <ul style={{ margin: '4px 0 0', paddingLeft: '16px', fontSize: '0.85rem' }}>
+            <ul className="mt-1 pl-4 list-disc text-xs">
               {groceries.filter(g => g.threshold !== null && g.threshold !== undefined && g.notifyAdmin && g.quantity < g.threshold).map(g => (
                 <li key={g.id}>{g.name}: {g.quantity} {g.unit} remaining (threshold: {g.threshold} {g.unit})</li>
               ))}
@@ -272,313 +282,208 @@ const GroceriesInventoryPage = () => {
         </div>
       )}
 
-      {/* Summary cards */}
-      <div className="groceries-summary">
-        <div className="groceries-summary-card">
-          <div className="groceries-summary-label">Total Items</div>
-          <div className="groceries-summary-value">{filteredGroceries.length}</div>
-        </div>
-        <div className="groceries-summary-card">
-          <div className="groceries-summary-label">Total Value</div>
-          <div className="groceries-summary-value">₹{totalValue.toFixed(2)}</div>
-        </div>
-      </div>
-
-      {/* Add/Edit Form */}
+      {/* ── Form ── */}
       {showForm && (
-        <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "12px", padding: "20px", marginBottom: "20px" }}>
-          <h3 style={{ margin: "0 0 16px", fontSize: "1rem" }}>{editingId ? "Edit Grocery Item" : "Add Grocery Item"}</h3>
-          
+        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+          <h3 className="text-lg font-bold text-foreground mb-4">{editingId ? "Edit Grocery Item" : "Add Grocery Item"}</h3>
+
           {!editingId && (
-            <div style={{ marginBottom: "20px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-              <div style={{ fontSize: "0.8rem", display: "block", marginBottom: "8px", fontWeight: 500 }}>Item Entry Method</div>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  type="button"
-                  className={`mode-btn ${formMode === 'select' ? 'active' : ''}`}
-                  onClick={() => { setFormMode('select'); setFormData(prev => ({ ...prev, name: '', quantity: '', unit: 'g' })); }}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    border: `1px solid ${formMode === 'select' ? 'rgba(209,153,255,0.3)' : 'var(--lovable-line)'}`,
-                    background: formMode === 'select' ? 'rgba(209,153,255,0.14)' : 'rgba(255,255,255,0.03)',
-                    color: formMode === 'select' ? 'var(--lovable-primary)' : 'var(--lovable-text-muted)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: formMode === 'select' ? 700 : 500,
-                    transition: 'all 0.2s'
-                  }}
-                >
+            <div className="mb-5 pb-4 border-b border-border">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Item Entry Method</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => { setFormMode('select'); setFormData(prev => ({ ...prev, name: '', quantity: '', unit: 'g' })); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${formMode === 'select' ? 'border-primary/30 bg-primary/15 text-primary font-bold' : 'border-border bg-surface-container-high text-muted-foreground'}`}>
                   Select Existing Item
                 </button>
-                <button
-                  type="button"
-                  className={`mode-btn ${formMode === 'new' ? 'active' : ''}`}
-                  onClick={() => { setFormMode('new'); }}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "8px",
-                    border: `1px solid ${formMode === 'new' ? 'rgba(209,153,255,0.3)' : 'var(--lovable-line)'}`,
-                    background: formMode === 'new' ? 'rgba(209,153,255,0.14)' : 'rgba(255,255,255,0.03)',
-                    color: formMode === 'new' ? 'var(--lovable-primary)' : 'var(--lovable-text-muted)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: formMode === 'new' ? 700 : 500,
-                    transition: 'all 0.2s'
-                  }}
-                >
+                <button type="button" onClick={() => { setFormMode('new'); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${formMode === 'new' ? 'border-primary/30 bg-primary/15 text-primary font-bold' : 'border-border bg-surface-container-high text-muted-foreground'}`}>
                   Add New Item
                 </button>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            {/* SELECT MODE */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             {formMode === 'select' && itemSuggestions.length > 0 && (
-              <div style={{ marginBottom: "20px", padding: "16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px", border: "1px solid var(--lovable-line)" }}>
-                <label style={{ fontSize: "0.85rem", display: "block", marginBottom: "8px", fontWeight: 600, color: "var(--lovable-text)" }}>Select an Item from History</label>
+              <div className="p-4 rounded-lg bg-surface-container-high border border-border">
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Select an Item from History</label>
                 <SearchableSelect
                   value={formData.name}
                   onChange={(e) => {
                     const match = itemSuggestions.find(s => s.name === e.target.value);
                     if (match) {
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        name: match.name, 
-                        unit: match.unit,
-                        quantity: '',
-                        price: ''
-                      }));
+                      setFormData(prev => ({ ...prev, name: match.name, unit: match.unit, quantity: '', price: '' }));
                     }
                   }}
                   options={[{ value: '', label: '-- Choose an item --' }, ...itemSuggestions.map(s => ({ value: s.name, label: `${s.name} (${s.unit})` }))]}
                   placeholder="Search and select item..."
-                  style={{ width: '100%' }}
                 />
-                <p style={{ fontSize: '0.75rem', color: 'var(--lovable-text-soft)', margin: '8px 0 0' }}>Unit will be pre-filled from previous entries</p>
+                <p className="text-[10px] text-muted-foreground mt-2">Unit will be pre-filled from previous entries</p>
               </div>
             )}
 
-            {/* FORM FIELDS */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {formMode === 'new' && (
                 <div>
-                  <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Item Name *</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange}
-                    placeholder="e.g., Rice, Flour" required maxLength={100}
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Item Name *</label>
+                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., Rice, Flour" required maxLength={100} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
               )}
-
               {formMode === 'select' && (
                 <div>
-                  <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Selected Item</label>
-                  <input type="text" value={formData.name} disabled
-                    placeholder="No item selected"
-                    style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid var(--lovable-line)", fontSize: "0.875rem", boxSizing: "border-box", background: 'rgba(255,255,255,0.03)', color: 'var(--lovable-text-muted)', opacity: 1 }} />
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Selected Item</label>
+                  <input type="text" value={formData.name} disabled placeholder="No item selected" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-muted-foreground text-sm outline-none opacity-80" />
                 </div>
               )}
-
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Quantity *</label>
-                <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange}
-                  placeholder="e.g., 500" step="0.01" min="0" required
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Quantity *</label>
+                <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} placeholder="e.g., 500" step="0.01" min="0" required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
-              
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Unit</label>
-                <SearchableSelect
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleInputChange}
-                  options={UNIT_OPTIONS.map(u => ({ value: u, label: u }))}
-                  placeholder="Select unit..."
-                />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
+                <SearchableSelect name="unit" value={formData.unit} onChange={handleInputChange} options={UNIT_OPTIONS.map(u => ({ value: u, label: u }))} placeholder="Select unit..." />
               </div>
-
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Price per Unit (₹)</label>
-                <input type="number" name="price" value={formData.price} onChange={handleInputChange}
-                  placeholder="Optional" step="0.01" min="0"
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Price per Unit (₹)</label>
+                <input type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="Optional" step="0.01" min="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
-
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Purchase Date</label>
-                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
+                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
-
-              <div style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", border: "1px solid var(--lovable-line)" }}>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px", fontWeight: 600, color: "var(--lovable-text)" }}>Expiry Date (Optional)</label>
-                <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange}
-                  style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", boxSizing: "border-box" }} />
-              </div>
-
               <div>
-                <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Assigned To</label>
-                <SearchableSelect
-                  name="employeeId"
-                  value={formData.employeeId}
-                  onChange={handleInputChange}
-                  options={[{ value: '', label: '-- None --' }, ...employees.map((e) => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]}
-                  placeholder="Select employee..."
-                />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Expiry Date (Optional)</label>
+                <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assigned To</label>
+                <SearchableSelect name="employeeId" value={formData.employeeId} onChange={handleInputChange} options={[{ value: '', label: '-- None --' }, ...employees.map((e) => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]} placeholder="Select employee..." />
               </div>
             </div>
-
-            <div style={{ marginTop: "12px" }}>
-              <label style={{ fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>Description / Notes</label>
-              <textarea name="description" value={formData.description} onChange={handleInputChange}
-                placeholder="Optional notes" rows="2" maxLength={500}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(0,0,0,0.2)", fontSize: "0.875rem", resize: "vertical", boxSizing: "border-box" }} />
+            <div>
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Description / Notes</label>
+              <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Optional notes" rows="2" maxLength={500} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none resize-none" />
             </div>
-
-            <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
-              <button type="submit" className="btn btn-primary">{editingId ? "Update" : "Add Item"}</button>
-              <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>
+            <div className="flex gap-3">
+              <button type="submit" className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{editingId ? "Update" : "Add Item"}</button>
+              <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={resetForm}>Cancel</button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Table */}
-      {loading ? (
-        <TableSkeleton cols={8} rows={5} />
-      ) : filteredGroceries.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px", opacity: 0.6 }}>
-          {search ? `No items matching "${search}"` : `No grocery entries for ${MONTH_NAMES[selectedMonth-1]} ${selectedYear}.`}
-        </div>
-      ) : (
-        <>
-          <div className="table-wrapper">
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-              <thead>
-                <tr style={{ borderBottom: "2px solid rgba(0,0,0,0.15)" }}>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>#</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Date</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Item Name</th>
-                  <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 600, opacity: 0.8 }}>Quantity</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Unit</th>
-                  <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 600, opacity: 0.8 }}>Price/Unit</th>
-                  <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 600, opacity: 0.8 }}>Total</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Expiry</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Description</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Added By</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Threshold</th>
-                  <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, opacity: 0.8 }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedItems.map((g, i) => {
-                  const isBelowThreshold = g.threshold !== null && g.threshold !== undefined && g.quantity < g.threshold;
-                  const isExpired = g.expiryDate && new Date(g.expiryDate) < new Date();
-                  const daysUntilExpiry = g.expiryDate ? Math.ceil((new Date(g.expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
-                  return (
-                  <tr key={g.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", ...(isBelowThreshold ? { background: 'rgba(239,68,68,0.08)' } : isExpired ? { background: 'rgba(220,38,38,0.12)' } : {}) }}>
-                    <td style={{ padding: "10px 12px", opacity: 0.5 }}>{startIndex + i + 1}</td>
-                    <td style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>{formatDate(g.purchaseDate || g.createdAt)}</td>
-                    <td style={{ padding: "10px 12px", fontWeight: 500 }}>{g.name}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.quantity}</td>
-                    <td style={{ padding: "10px 12px" }}>{g.unit}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.price > 0 ? `₹${g.price.toFixed(2)}` : "-"}</td>
-                    <td style={{ padding: "10px 12px", textAlign: "right" }}>{g.totalPrice > 0 ? `₹${g.totalPrice.toFixed(2)}` : "-"}</td>
-                    <td style={{ padding: "10px 12px", whiteSpace: "nowrap", fontWeight: g.expiryDate ? 600 : 400 }}>
-                      {g.expiryDate ? (
-                        <span style={{
-                          color: isExpired ? '#dc2626' : daysUntilExpiry <= 7 ? '#666' : '#333',
-                          background: isExpired ? 'rgba(220,38,38,0.1)' : daysUntilExpiry <= 7 ? 'rgba(0,0,0,0.05)' : 'transparent',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          display: 'inline-block',
-                          fontSize: '0.8rem'
-                        }}>
-                          {formatDate(g.expiryDate)}
-                          {isExpired && ' [EXPIRED]'}
-                          {!isExpired && daysUntilExpiry <= 7 && ` [${daysUntilExpiry}d]`}
-                        </span>
-                      ) : (
-                        <span style={{ opacity: 0.5 }}>-</span>
-                      )}
-                    </td>
-                    <td style={{ padding: "10px 12px", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.description || "-"}</td>
-                    <td style={{ padding: "10px 12px", fontSize: "0.8rem", opacity: 0.8 }}>{g.createdBy?.fullName || "-"}</td>
-                    <td style={{ padding: "10px 12px", whiteSpace: 'nowrap' }}>
-                      {g.threshold !== null && g.threshold !== undefined
-                        ? <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{g.threshold} {g.unit}</span>
-                        : <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>—</span>
-                      }
-                      {isBelowThreshold && <span style={{ marginLeft: 4, color: '#dc2626', fontWeight: 700 }} title="Below threshold">!</span>}
-                    </td>
-                    <td style={{ padding: "10px 12px" }}>
-                      <div style={{ display: "flex", gap: "6px", flexWrap: 'wrap' }}>
-                        <button className="btn btn-sm btn-edit" onClick={() => handleEdit(g)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Edit</button>
-                        <button className="btn btn-sm btn-delete" onClick={() => handleDelete(g.id)} style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Delete</button>
-                        {isAdmin && (
-                          <button
-                            style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'rgba(255,255,255,0.03)', color: 'var(--lovable-text-muted)', border: '1px solid var(--lovable-line)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
-                            onClick={() => setThresholdModal({ record: g, value: g.threshold ?? '', notifyAdmin: g.notifyAdmin ?? false })}
-                            title="Configure threshold alert"
-                          >
-                            Alert
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )})}
-              </tbody>
-            </table>
+      {/* ── Table Container ── */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 sm:px-6 py-4 border-b border-border">
+          <div className="flex-1 flex items-center gap-2 px-4 h-11 rounded-lg border border-border bg-background">
+            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+            <input type="text" placeholder="Search by item name..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-full" />
+            {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(n) => { setRowsPerPage(n); setCurrentPage(1); }}
-            totalRows={filteredGroceries.length}
-          />
-        </>
-      )}
+        </div>
 
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        onConfirm={confirmDelete}
+        {/* Table */}
+        {loading ? <div className="p-4"><TableSkeleton cols={8} rows={5} /></div> : filteredGroceries.length === 0 ? (
+          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : `No grocery entries for ${MONTH_NAMES[selectedMonth-1]} ${selectedYear}.`}</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[1100px]">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Date</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Item Name</th>
+                    <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Quantity</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Unit</th>
+                    <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Price/Unit</th>
+                    <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Expiry</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Added By</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Threshold</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedItems.map((g, i) => {
+                    const isBelowThreshold = g.threshold !== null && g.threshold !== undefined && g.quantity < g.threshold;
+                    const isExpired = g.expiryDate && new Date(g.expiryDate) < new Date();
+                    const daysUntilExpiry = g.expiryDate ? Math.ceil((new Date(g.expiryDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+                    return (
+                    <tr key={g.id} className={`border-b border-border/30 hover:bg-surface-container-high/50 transition-colors ${isBelowThreshold ? 'bg-destructive/5' : isExpired ? 'bg-destructive/8' : ''}`}>
+                      <td className="px-4 py-4 text-muted-foreground">{startIndex + i + 1}</td>
+                      <td className="px-4 py-4 text-foreground whitespace-nowrap">{formatDate(g.purchaseDate || g.createdAt)}</td>
+                      <td className="px-4 py-4 font-semibold text-foreground">{g.name}</td>
+                      <td className="px-4 py-4 text-right mono-data text-foreground">{g.quantity}</td>
+                      <td className="px-4 py-4 text-foreground">{g.unit}</td>
+                      <td className="px-4 py-4 text-right mono-data text-foreground">{g.price > 0 ? `₹${g.price.toFixed(2)}` : "-"}</td>
+                      <td className="px-4 py-4 text-right mono-data text-foreground font-semibold">{g.totalPrice > 0 ? `₹${g.totalPrice.toFixed(2)}` : "-"}</td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        {g.expiryDate ? (
+                          <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${isExpired ? 'bg-destructive/20 text-destructive' : daysUntilExpiry <= 7 ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}`}>
+                            {formatDate(g.expiryDate)}
+                            {isExpired && ' [EXPIRED]'}
+                            {!isExpired && daysUntilExpiry <= 7 && ` [${daysUntilExpiry}d]`}
+                          </span>
+                        ) : <span className="text-muted-foreground">-</span>}
+                      </td>
+                      <td className="px-4 py-4 text-foreground max-w-[200px] truncate">{g.description || "-"}</td>
+                      <td className="px-4 py-4 text-xs text-muted-foreground">{g.createdBy?.fullName || "-"}</td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        {g.threshold !== null && g.threshold !== undefined
+                          ? <span className="mono-data text-xs">{g.threshold} {g.unit}</span>
+                          : <span className="text-muted-foreground text-xs">—</span>
+                        }
+                        {isBelowThreshold && <span className="ml-1 text-destructive font-bold" title="Below threshold">!</span>}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button className="text-xs text-primary hover:underline font-medium" onClick={() => handleEdit(g)}>Edit</button>
+                          <button className="text-xs text-destructive hover:underline font-medium" onClick={() => handleDelete(g.id)}>Delete</button>
+                          {isAdmin && (
+                            <button className="text-[10px] px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-surface-container-high transition-colors font-semibold"
+                              onClick={() => setThresholdModal({ record: g, value: g.threshold ?? '', notifyAdmin: g.notifyAdmin ?? false })}
+                              title="Configure threshold alert">
+                              Alert
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )})}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 sm:px-6 py-3 border-t border-border">
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(n) => { setRowsPerPage(n); setCurrentPage(1); }} totalRows={filteredGroceries.length} />
+            </div>
+          </>
+        )}
+      </div>
+
+      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
-        title="Delete Entry"
-        message="Delete this grocery entry?"
-        confirmText="Delete"
-        confirmVariant="danger"
-      />
+        title="Delete Entry" message="Delete this grocery entry?" confirmText="Delete" confirmVariant="danger" />
 
+      {/* ── Threshold Modal ── */}
       {thresholdModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-card, #fff)', borderRadius: '12px', padding: '24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}>Set Threshold Alert</h3>
-            <p style={{ margin: '0 0 16px', opacity: 0.6, fontSize: '0.8rem' }}>{thresholdModal.record.name}</p>
-            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>Threshold quantity ({thresholdModal.record.unit})</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Leave empty to disable"
-              value={thresholdModal.value}
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-surface-container-highest rounded-xl p-6 w-[340px] edge-glow border border-border">
+            <h3 className="text-lg font-bold text-foreground mb-1">Set Threshold Alert</h3>
+            <p className="text-xs text-muted-foreground mb-4">{thresholdModal.record.name}</p>
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Threshold quantity ({thresholdModal.record.unit})</label>
+            <input type="number" min="0" step="0.01" placeholder="Leave empty to disable" value={thresholdModal.value}
               onChange={e => setThresholdModal(prev => ({ ...prev, value: e.target.value }))}
-              style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.9rem', marginBottom: '12px', boxSizing: 'border-box', background: 'var(--bg-input, #fff)', color: 'var(--text)' }}
-            />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', marginBottom: '20px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={thresholdModal.notifyAdmin}
-                onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))}
-              />
+              className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none mb-3" />
+            <label className="flex items-center gap-2 text-sm text-foreground mb-5 cursor-pointer">
+              <input type="checkbox" checked={thresholdModal.notifyAdmin} onChange={e => setThresholdModal(prev => ({ ...prev, notifyAdmin: e.target.checked }))} className="w-4 h-4 rounded" />
               Notify admin when below threshold
             </label>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button className="btn-secondary" onClick={() => setThresholdModal(null)}>Cancel</button>
-              <button className="btn-primary" onClick={handleSaveThreshold}>Save</button>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setThresholdModal(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+              <button onClick={handleSaveThreshold} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">Save</button>
             </div>
           </div>
         </div>

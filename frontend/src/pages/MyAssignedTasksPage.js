@@ -165,7 +165,7 @@ const MyAssignedTasksPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="my-assigned-page space-y-6">
       {/* ── Header ── */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
@@ -290,7 +290,7 @@ const MyAssignedTasksPage = () => {
                       </button>
                     )}
                     {task.status === 'In Progress' && (
-                      <button onClick={() => setSelectedTaskId(task.id)} disabled={loading} className="flex items-center gap-2 px-5 py-2 rounded-lg bg-success/15 text-success text-sm font-semibold hover:bg-success/25 transition-all">
+                      <button onClick={() => setSelectedTaskId(task.id)} disabled={loading} className="my-assigned-submit-btn flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all">
                         Submit Completion <Check className="w-3.5 h-3.5" />
                       </button>
                     )}

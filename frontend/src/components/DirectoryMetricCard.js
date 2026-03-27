@@ -58,6 +58,7 @@ export default function DirectoryMetricCard({
   iconTone = 'primary',
   subtitleTone = 'primary',
   variant = 'default',
+  hideTitle = false,
 }) {
   const animatedValue = useCounterAnimation(typeof value === 'number' ? value : 0, 1000);
   const displayValue = typeof value === 'number' ? animatedValue : value;
@@ -66,13 +67,13 @@ export default function DirectoryMetricCard({
   const WatermarkIcon = WATERMARK_ICON[watermark] || HorseIcon;
 
   return (
-    <div className={`directory-kpi-card directory-kpi-card--${variant}`}>
+    <div className={`directory-kpi-card directory-kpi-card--${variant} ${hideTitle ? 'directory-kpi-card--hide-title' : ''}`}>
       <div className={`directory-kpi-card-watermark directory-kpi-card-watermark--${watermark}`}>
         <WatermarkIcon />
       </div>
 
       <div className="directory-kpi-card-head">
-        <span className="directory-kpi-card-title">{title}</span>
+        {!hideTitle && <span className="directory-kpi-card-title">{title}</span>}
         <div className={`directory-kpi-card-icon directory-kpi-card-icon--${iconTone}`}>
           <Icon size={18} strokeWidth={2} />
         </div>

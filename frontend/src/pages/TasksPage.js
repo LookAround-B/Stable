@@ -6,8 +6,7 @@ import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import * as XLSX from 'xlsx';
-import { BarChart3, Camera, Check, Clock3, Download, Package, Play, SlidersHorizontal, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import { BarChart3, Camera, Check, Clock3, Package, Play, SlidersHorizontal, Thermometer, TrendingDown, Users, X } from 'lucide-react';
 
 const TASK_TYPES = [
   'Feed',
@@ -41,13 +40,6 @@ const CAN_REVIEW_TASKS = [
   'Jamedar'
 ];
 
-const getRoleTaskDescription = (role, t) => {
-  if (CAN_CREATE_TASKS.includes(role)) {
-    return t('Create and manage tasks - You can assign tasks to team members');
-  }
-  return t('View and complete your assigned tasks');
-};
-
 const TASK_CATEGORY_MAP = {
   'Health Check': 'PRIORITY ALPHA',
   Training: 'CONDITIONING',
@@ -58,6 +50,7 @@ const TASK_CATEGORY_MAP = {
   Cleaning: 'DAILY CHECK',
   Other: 'SPECIAL TASK',
 };
+const TASK_FILTERS = ['All Tasks', 'High Priority', 'Medication', 'Training'];
 
 const TasksPageSkeleton = () => (
   <div className="tasks-page lovable-page-shell task-page-skeleton">
@@ -165,7 +158,7 @@ const TasksPage = () => {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('All Tasks');
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState('');
   const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -519,21 +512,6 @@ const TasksPage = () => {
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'Urgent':
-        return '#d32f2f';
-      case 'High':
-        return '#f57c00';
-      case 'Medium':
-        return '#fbc02d';
-      case 'Low':
-        return '#388e3c';
-      default:
-        return '#666';
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
@@ -548,30 +526,30 @@ const TasksPage = () => {
   };
 
   const filteredTasks = tasks.filter(task => {
-    const statusMatch = filterStatus === 'All' || task.status === filterStatus;
-    const searchMatch = 
+    const filterMatch =
+      activeFilter === 'All Tasks' ||
+      (activeFilter === 'High Priority' && ['High', 'Urgent'].includes(task.priority)) ||
+      (activeFilter === 'Medication' && ['Health Check', 'Medical'].includes(task.type)) ||
+      (activeFilter === 'Training' && ['Training', 'Exercise'].includes(task.type));
+    const searchMatch =
       task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getHorseName(task.horseId).toLowerCase().includes(searchTerm.toLowerCase()) ||
       getEmployeeName(task.assignedEmployeeId).toLowerCase().includes(searchTerm.toLowerCase());
-    return statusMatch && searchMatch;
+    return filterMatch && searchMatch;
   });
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.status === 'Completed').length;
-  const inProgressTasks = tasks.filter(task => task.status === 'In Progress').length;
-  const pendingTasks = tasks.filter(task => task.status === 'Pending').length;
   const highPriorityTasks = tasks.filter(task => ['High', 'Urgent'].includes(task.priority)).length;
   const reviewReadyTasks = completedTasks;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  const statusPills = [
-    { key: 'All', label: t('All Tasks'), count: totalTasks },
-    { key: 'Pending', label: t('Pending'), count: pendingTasks },
-    { key: 'In Progress', label: t('In Progress'), count: inProgressTasks },
-    { key: 'Completed', label: t('Completed'), count: completedTasks },
-  ];
+  const filterPills = TASK_FILTERS.map((filterKey) => ({
+    key: filterKey,
+    label: t(filterKey),
+  }));
 
   const observedStamp = new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
@@ -634,24 +612,6 @@ const TasksPage = () => {
 
   const getTaskEvidenceImage = (task) => task.proofImage || task.photoUrl || '';
 
-  const handleDownloadExcel = () => {
-    if (!filteredTasks.length) { alert('No data to download'); return; }
-    const data = filteredTasks.map(task => ({
-      'Task Name': task.name,
-      'Type': task.type,
-      'Priority': task.priority,
-      'Status': task.status,
-      'Assigned To': getEmployeeName(task.assignedEmployeeId),
-      'Horse': getHorseName(task.horseId),
-      'Scheduled Time': task.scheduledTime || '',
-      'Description': task.description || '',
-    }));
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Tasks');
-    XLSX.writeFile(wb, `Tasks_${new Date().toISOString().slice(0,10)}.xlsx`);
-  };
-
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) || null;
   const reviewingTask = tasks.find((task) => task.id === viewingTaskId) || null;
 
@@ -659,169 +619,197 @@ const TasksPage = () => {
   if (pageLoading) return <TasksPageSkeleton />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <div className="tasks-page lovable-page-shell space-y-6">
+      <div className="tasks-page-header">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Task')} <span className="text-primary">{t('Management')}</span></h1>
-          <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-            {`OBSERVED: ${observedStamp}`} &nbsp;·&nbsp; {`SHIFT: ${getShiftLabel()}`}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">{getRoleTaskDescription(user?.designation, t)}</p>
+          <div className="lovable-header-kicker">
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+            <span>{t('Task Operations')}</span>
+          </div>
+          <h1>{t('Tasks Management')}</h1>
+          <p className="tasks-observed-line">{`OBSERVED: ${observedStamp} \u00B7 SHIFT: ${getShiftLabel()}`}</p>
         </div>
-        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+        <div className="lovable-header-actions">
           {canCreateTasks && (
-            <button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all" onClick={() => setShowCreateForm(!showCreateForm)}>
-              {showCreateForm ? '✕ Close' : '+ Create Task'}
+            <button
+              className="btn-add h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium"
+              onClick={() => setShowCreateForm(true)}
+              type="button"
+            >
+              + {t('Create New Task')}
             </button>
           )}
-          <button className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2" onClick={handleDownloadExcel}><Download size={14} /> Excel</button>
-          <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
-              <span className="text-lg font-bold text-primary">{completionRate}%</span>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('Operational Efficiency')}</p>
-              <p className="text-lg font-bold text-foreground">{t('Progress Matrix')}</p>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: t('Total Tasks'), value: totalTasks, sub: t('Current task load across the system') },
-          { label: t('High Priority'), value: highPriorityTasks, sub: t('Tasks requiring close attention') },
-          { label: t('In Motion'), value: inProgressTasks, sub: t('Tasks actively being worked right now') },
-          { label: t('Review Queue'), value: reviewReadyTasks, sub: t('Completions waiting for verification') },
-        ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
-            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
-            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-            <p className="text-xs mt-1 text-muted-foreground">{k.sub}</p>
-          </div>
-        ))}
       </div>
 
       {message && (
-        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.startsWith('Error:') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
+        <div
+          className={`px-4 py-3 rounded-lg text-sm font-medium ${
+            message.startsWith('Error:')
+              ? 'bg-destructive/15 text-destructive border border-destructive/30'
+              : 'bg-success/15 text-success border border-success/30'
+          }`}
+        >
           {message}
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-          {statusPills.map((pill) => (
+      <div className="tasks-page-filters">
+        <div className="lovable-pill-row">
+          {filterPills.map((pill) => (
             <button
               key={pill.key}
               type="button"
-              onClick={() => setFilterStatus(pill.key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0 flex items-center gap-2 ${
-                filterStatus === pill.key
-                  ? 'bg-primary/20 text-primary border border-primary/40'
-                  : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'
+              onClick={() => setActiveFilter(pill.key)}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeFilter === pill.key
+                  ? 'bg-primary/15 text-primary border border-primary/30'
+                  : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent'
               }`}
             >
               {pill.label}
-              <span className="text-[10px] font-bold mono-data">{pill.count}</span>
             </button>
           ))}
         </div>
-        <div className="relative w-full md:w-72">
+        <div className="task-filter-search relative w-full sm:w-72">
           <input
             type="text"
             placeholder={t('Filter task ID or horse name...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
+            className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
           <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-        <div className="space-y-4">
+      <div className="lovable-grid-main">
+        <div className="tasks-list">
           {filteredTasks.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">{t('No tasks found')}</div>
           ) : (
-            filteredTasks.map((task) => (
-              <div key={task.id} className="bg-surface-container-high rounded-xl overflow-hidden edge-glow border border-primary/10 hover:border-primary/30 transition-all duration-300 group">
-                <div className="flex flex-col sm:flex-row">
-                  <div className="relative w-full sm:w-44 h-48 sm:h-44 shrink-0 overflow-hidden">
-                    {getHorseProfileImage(task.horseId) ? (
-                      <img src={getHorseProfileImage(task.horseId)} alt={getHorseName(task.horseId)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+            filteredTasks.map((task) => {
+              const horseImage = getHorseProfileImage(task.horseId);
+
+              return (
+                <div key={task.id} className="task-card task-card-lovable group bg-surface-container-high rounded-xl overflow-hidden edge-glow border border-primary/10 hover:border-primary/30 transition-colors">
+                  <div className="task-card-media">
+                    {horseImage ? (
+                      <img
+                        src={horseImage}
+                        alt={getHorseName(task.horseId)}
+                        className="task-card-image transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                      />
                     ) : (
-                      <div className="w-full h-full bg-surface-container-highest flex flex-col items-center justify-center">
-                        <span className="text-3xl font-bold text-muted-foreground/30">{getHorseName(task.horseId).charAt(0).toUpperCase()}</span>
-                        <small className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">{t(task.type)}</small>
+                      <div className="task-card-placeholder">
+                        <span>{getHorseName(task.horseId).charAt(0).toUpperCase()}</span>
+                        <small>{t(task.type)}</small>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent sm:hidden" />
                   </div>
 
-                  <div className="flex-1 p-5 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-primary/30 text-primary bg-primary/10">{getTaskCategory(task.type)}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono opacity-60">ID: {String(task.id).slice(0, 8).toUpperCase()}</span>
+                  <div className="task-card-main">
+                    <div className="task-card-content">
+                      <div className="task-card-topline">
+                        <span className="task-card-category">{getTaskCategory(task.type)}</span>
+                        <span className="task-card-id">ID: {String(task.id).slice(0, 8).toUpperCase()}</span>
                       </div>
-                      <h3 className="text-lg font-bold text-foreground leading-tight">{task.name}</h3>
-                      <p className="text-sm text-primary/90 mt-1 font-medium">{getHorseName(task.horseId)}</p>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1.5"><Clock3 className="w-3.5 h-3.5 text-primary/60" /> {getTaskTime(task.scheduledTime)}</span>
-                        <span className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-primary/60" /> {getTaskSupportInfo(task)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getStatusColor(task.status) + '22', color: getStatusColor(task.status), borderColor: getStatusColor(task.status) + '44' }}>{t(task.status)}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getPriorityColor(task.priority) + '22', color: getPriorityColor(task.priority), borderColor: getPriorityColor(task.priority) + '44' }}>{task.priority}</span>
+
+                      <h3 className="task-card-title">{task.name}</h3>
+                      <p className="task-card-horse">{getHorseName(task.horseId)}</p>
+
+                      <div className="task-card-meta">
+                        <span>
+                          <Clock3 className="w-3.5 h-3.5 text-primary/60" />
+                          {getTaskTime(task.scheduledTime)}
+                        </span>
+                        <span>
+                          <Package className="w-3.5 h-3.5 text-primary/60" />
+                          {getTaskSupportInfo(task)}
+                        </span>
                       </div>
                     </div>
-                    {task.description && <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{task.description}</p>}
-                    <div className="flex items-center justify-between mt-4">
-                      <span className="text-xs text-muted-foreground">{t('Assigned')}: <strong className="text-foreground">{getEmployeeName(task.assignedEmployeeId)}</strong></span>
-                      <div className="flex gap-2">
+
+                    <div className="task-card-footer">
+                      <span className="task-card-assigned">
+                        {t('Assigned')}: <strong className="text-foreground">{getEmployeeName(task.assignedEmployeeId)}</strong>
+                      </span>
+                      <div className="task-card-action-cluster flex gap-2 flex-wrap">
                         {!canCreateTasks && task.status === 'Pending' && (
-                          <button onClick={() => handleStartTask(task.id)} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 bg-primary/5 text-sm font-semibold text-foreground hover:bg-primary/20 hover:border-primary/40 hover:text-primary transition-all active:scale-95">
-                            Start Task <Play className="w-3.5 h-3.5 fill-current" />
+                          <button
+                            onClick={() => handleStartTask(task.id)}
+                            disabled={loading}
+                            className="btn-start flex items-center gap-2"
+                            type="button"
+                          >
+                            {t('Start Task')} <Play className="w-3.5 h-3.5 fill-current" />
                           </button>
                         )}
                         {!canCreateTasks && task.status === 'In Progress' && (
                           <>
-                            <button onClick={() => setSelectedTaskId(task.id)} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success/15 text-success text-sm font-semibold hover:bg-success/25 transition-all">
-                              Complete <Check className="w-3.5 h-3.5" />
+                            <button
+                              onClick={() => setSelectedTaskId(task.id)}
+                              disabled={loading}
+                              className="btn-complete flex items-center gap-2"
+                              type="button"
+                            >
+                              {t('Complete')} <Check className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => handleCancelTask(task.id)} disabled={loading} className="px-3 py-2 rounded-lg bg-destructive/15 text-destructive text-xs font-medium hover:bg-destructive/25 transition-all">Cancel</button>
+                            <button
+                              onClick={() => handleCancelTask(task.id)}
+                              disabled={loading}
+                              className="btn-cancel"
+                              type="button"
+                            >
+                              {t('Cancel')}
+                            </button>
                           </>
                         )}
                         {CAN_REVIEW_TASKS.includes(user?.designation) && task.status === 'Completed' && (
-                          <button onClick={() => setViewingTaskId(task.id)} disabled={loading} className="px-4 py-2 rounded-lg bg-primary/15 text-primary text-sm font-semibold hover:bg-primary/25 transition-all">Review Evidence</button>
+                          <button
+                            onClick={() => setViewingTaskId(task.id)}
+                            disabled={loading}
+                            className="btn-review"
+                            type="button"
+                          >
+                            {t('Review Evidence')}
+                          </button>
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
-        {/* Sidebar Widgets */}
-        <div className="space-y-4">
-          {/* Shift Focus */}
-          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-            <div className="flex items-center gap-2 mb-4">
+        <div className="lovable-side-stack">
+          <div className="lovable-panel task-side-widget task-side-widget--focus">
+            <div className="task-side-widget-head">
               <BarChart3 className="w-5 h-5 text-primary" />
-              <h3 className="font-bold text-foreground">{t('Shift Focus')}</h3>
+              <h3>{t('Shift Focus')}</h3>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 mt-4">
               {[
-                { label: t('Completion'), value: completionRate, pct: completionRate },
-                { label: t('High Priority'), value: highPriorityTasks, pct: totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0 },
-                { label: t('Review Queue'), value: reviewReadyTasks, pct: totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0 },
-              ].map(row => (
+                { label: t('Completion'), value: `${completionRate}%`, pct: completionRate },
+                {
+                  label: t('High Priority'),
+                  value: highPriorityTasks,
+                  pct: totalTasks ? Math.max(8, Math.round((highPriorityTasks / totalTasks) * 100)) : 0,
+                },
+                {
+                  label: t('Review Queue'),
+                  value: reviewReadyTasks,
+                  pct: totalTasks ? Math.max(8, Math.round((reviewReadyTasks / totalTasks) * 100)) : 0,
+                },
+              ].map((row) => (
                 <div key={row.label}>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{row.label}</span>
-                    <span className="text-sm font-bold text-foreground">{typeof row.value === 'number' && row.label.includes('Completion') ? `${row.value}%` : row.value}</span>
+                    <span className="text-sm font-bold text-foreground">{row.value}</span>
                   </div>
                   <div className="w-full h-1 rounded-full bg-surface-container-high mt-1">
                     <div className="h-1 rounded-full bg-primary" style={{ width: `${row.pct}%` }} />
@@ -829,45 +817,50 @@ const TasksPage = () => {
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-xs text-muted-foreground"><span className="text-primary font-semibold">{t('Note')}:</span> {t('Heavy traffic in Arena B scheduled for 11:00.')}</p>
+            <p className="mt-4 text-xs text-muted-foreground">
+              <span className="text-primary font-semibold">{t('Note')}:</span> {t('Heavy traffic in Arena B scheduled for 11:00.')}
+            </p>
           </div>
 
-          {/* Ground Support */}
-          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="lovable-panel task-side-widget task-side-widget--support">
+            <div className="task-side-widget-head">
               <Users className="w-5 h-5 text-primary" />
-              <h3 className="font-bold text-foreground">{t('Ground Support')}</h3>
+              <h3>{t('Ground Support')}</h3>
             </div>
-            <div className="space-y-3">
-              {supportMembers.length > 0 ? supportMembers.map(s => (
-                <div key={s.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-sm font-bold text-muted-foreground">{s.initials}</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">{s.name}</p>
-                    <p className="text-[10px] uppercase tracking-wider text-primary">{s.role}</p>
+            <div className="space-y-3 mt-4">
+              {supportMembers.length > 0 ? (
+                supportMembers.map((member) => (
+                  <div key={member.id} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-sm font-bold text-muted-foreground">
+                      {member.initials}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">{member.name}</p>
+                      <p className="text-[10px] uppercase tracking-wider text-primary">{member.role}</p>
+                    </div>
+                    <span className={`w-2.5 h-2.5 rounded-full ${member.online ? 'bg-success' : 'bg-muted-foreground/40'}`} />
                   </div>
-                  <span className={`w-2.5 h-2.5 rounded-full ${s.online ? 'bg-success' : 'bg-muted-foreground/40'}`} />
-                </div>
-              )) : (
+                ))
+              ) : (
                 <p className="text-sm text-muted-foreground">{t('No support roster available yet')}</p>
               )}
             </div>
           </div>
 
-          {/* Environmental Sync */}
-          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+          <div className="lovable-panel task-side-widget task-side-widget--climate">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t('Environmental Sync')}</p>
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-4xl font-bold text-foreground tracking-tight">18.4°C</p>
-                <p className="text-xs text-primary mt-1 flex items-center gap-1"><TrendingDown className="w-3 h-3" /> {t('STABLE STASIS OPTIMAL')}</p>
+                <p className="text-4xl font-bold text-foreground tracking-tight">{`18.4\u00B0C`}</p>
+                <p className="text-xs text-primary mt-1 flex items-center gap-1">
+                  <TrendingDown className="w-3 h-3" /> {t('STABLE STASIS OPTIMAL')}
+                </p>
               </div>
               <Thermometer className="w-8 h-8 text-muted-foreground/30" />
             </div>
           </div>
         </div>
       </div>
-
       {canCreateTasks && showCreateForm && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowCreateForm(false)}>
           <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>

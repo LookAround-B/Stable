@@ -391,7 +391,7 @@ const HorsesPage = () => {
 
   return (
     <div className="horses-page lovable-page-shell">
-      <div className="page-header">
+      <div className="horses-page-header">
         <div>
           <div className="lovable-header-kicker">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
@@ -427,6 +427,7 @@ const HorsesPage = () => {
           subtitleTone="destructive"
           watermark="horse"
           sparkData={horseSpark}
+          hideTitle
         />
         <DirectoryMetricCard
           title={t('Active')}
@@ -438,6 +439,7 @@ const HorsesPage = () => {
           variant="success"
           watermark="horse"
           sparkData={activeSpark}
+          hideTitle
         />
         <DirectoryMetricCard
           title={t('Assigned')}
@@ -448,6 +450,7 @@ const HorsesPage = () => {
           subtitleTone="primary"
           watermark="horse"
           sparkData={assignedSpark}
+          hideTitle
         />
         <DirectoryMetricCard
           title={t('Passport Ready')}
@@ -459,6 +462,7 @@ const HorsesPage = () => {
           variant="alert"
           watermark="horse"
           sparkData={passportSpark}
+          hideTitle
         />
       </div>
 

@@ -287,7 +287,7 @@ const MeetingPage = () => {
         {/* Calendar + Meeting Cards */}
         <div className="space-y-4">
           {/* Calendar */}
-          <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+          <div className="bg-surface-container-highest rounded-xl p-4 edge-glow max-w-3xl">
             <div className="flex items-center justify-between mb-4">
               <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))} className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronLeft className="w-4 h-4" />
@@ -299,7 +299,7 @@ const MeetingPage = () => {
             </div>
             <div className="grid grid-cols-7 gap-px">
               {WEEKDAYS.map(d => (
-                <div key={d} className="text-center text-[10px] uppercase tracking-widest text-muted-foreground font-semibold py-2">{d}</div>
+                <div key={d} className="text-center text-[10px] uppercase tracking-widest text-muted-foreground font-semibold py-1.5">{d}</div>
               ))}
               {calendarDays.map((date, idx) => {
                 if (!date) return <div key={idx} className="aspect-square" />
@@ -311,7 +311,7 @@ const MeetingPage = () => {
                   <div
                     key={idx}
                     onClick={() => handleDateClick(date)}
-                    className={`aspect-square flex flex-col items-center justify-center relative rounded-lg text-sm transition-all cursor-pointer group ${
+                    className={`aspect-square flex flex-col items-center justify-center relative rounded-lg text-xs transition-all cursor-pointer group ${
                       isToday ? 'bg-primary text-primary-foreground font-bold' :
                       isSelected ? 'bg-primary/15 text-primary border border-primary/30' :
                       hasMeeting ? 'bg-primary/10 text-primary hover:bg-primary/20' :

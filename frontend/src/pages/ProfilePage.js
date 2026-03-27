@@ -137,244 +137,221 @@ const ProfilePage = () => {
 
   if (!user) {
     return (
-      <div className="profile-page">
-        <div className="no-user"><p>Please log in to view your profile</p></div>
+      <div className="space-y-6">
+        <p className="text-sm text-muted-foreground text-center py-12">Please log in to view your profile</p>
       </div>
     );
   }
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
+    <div className="space-y-6">
 
-        {/* Hero Card */}
-        <div className="profile-hero-card">
-          <div className="profile-hero-bg" />
-          <div className="profile-hero-content">
-            <div className="profile-avatar-wrap" onClick={() => fileInputRef.current?.click()} title="Click to change photo">
+      {/* Hero Card */}
+      <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden relative">
+        <div className="h-28 bg-gradient-to-r from-primary/30 via-primary/10 to-transparent" />
+        <div className="px-6 pb-6 -mt-12 flex flex-col sm:flex-row sm:items-end gap-4">
+          <div className="relative shrink-0 cursor-pointer group" onClick={() => fileInputRef.current?.click()} title="Click to change photo">
+            <div className="w-24 h-24 rounded-full border-4 border-surface-container-highest overflow-hidden bg-surface-container-high flex items-center justify-center">
               {user.profileImage ? (
-                <img src={user.profileImage} alt="Profile" className="profile-avatar-img" />
+                <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <div className="profile-avatar-initials">{(user.fullName || 'U').charAt(0).toUpperCase()}</div>
-              )}
-              <span className={`profile-status-dot ${user.isApproved ? 'online' : 'pending'}`} />
-              {/* camera overlay */}
-              <div className="profile-avatar-overlay">
-                <span className="profile-avatar-camera"><Camera size={15} strokeWidth={2} /></span>
-              </div>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={onFileChange}
-            />
-            <div className="profile-hero-info">
-              <h1 className="profile-hero-name">{user.fullName || 'User'}</h1>
-              <p className="profile-hero-designation">{t(user.designation || 'Staff')}</p>
-              <div className="profile-hero-meta">
-                <span className={`profile-status-badge ${user.isApproved ? 'approved' : 'pending'}`}>
-                  {user.isApproved ? '✔ Approved' : '⧖ Pending Approval'}
-                </span>
-              </div>
-              {uploadMsg && (
-                <p style={{ marginTop: 8, fontSize: '.8125rem', color: uploadMsg.startsWith('✓') ? '#10b981' : '#ef4444' }}>
-                  {uploadMsg}
-                </p>
+                <span className="text-3xl font-bold text-primary">{(user.fullName || 'U').charAt(0).toUpperCase()}</span>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Info Grid */}
-        <div className="profile-cards-grid">
-          <div className="profile-info-card">
-            <div className="profile-card-header">
-              <span className="profile-card-icon"><User size={15} strokeWidth={2} /></span>
-              <h3>Personal Information</h3>
-            </div>
-            <div className="profile-fields">
-              <div className="profile-field">
-                <span className="profile-field-label">Full Name</span>
-                <span className="profile-field-value">{user.fullName || '—'}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-field-label">Employee ID</span>
-                <span className="profile-field-value profile-field-mono">{user.employeeId || user.id?.slice(0, 8) || '—'}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-field-label">{t('Designation')}</span>
-                <span className="profile-field-value">{user.designation ? t(user.designation) : '—'}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-field-label">{t('Employment Status')}</span>
-                <span className="profile-field-value">{t(user.employmentStatus || 'Active')}</span>
-              </div>
+            <span className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-surface-container-highest ${user.isApproved ? 'bg-success' : 'bg-warning'}`} />
+            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera size={18} className="text-white" />
             </div>
           </div>
-
-          <div className="profile-info-card">
-            <div className="profile-card-header">
-              <span className="profile-card-icon"><Mail size={15} strokeWidth={2} /></span>
-              <h3>Contact Information</h3>
+          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFileChange} />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-foreground">{user.fullName || 'User'}</h1>
+            <p className="text-sm text-muted-foreground">{t(user.designation || 'Staff')}</p>
+            <div className="mt-2">
+              <span className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider ${user.isApproved ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}>
+                {user.isApproved ? '✔ APPROVED' : '⧖ PENDING APPROVAL'}
+              </span>
             </div>
-            <div className="profile-fields">
-              <div className="profile-field">
-                <span className="profile-field-label">Email Address</span>
-                <a href={`mailto:${user.email}`} className="profile-field-value profile-field-link">{user.email || '—'}</a>
-              </div>
-              <div className="profile-field">
-                <span className="profile-field-label">Phone Number</span>
-                {user.phoneNumber || user.mobile ? (
-                  <a href={`tel:${user.phoneNumber || user.mobile}`} className="profile-field-value profile-field-link">
-                    {user.phoneNumber || user.mobile}
-                  </a>
-                ) : (
-                  <span className="profile-field-value">—</span>
-                )}
-              </div>
-              <div className="profile-field">
-                <span className="profile-field-label">Account Type</span>
-                <span className="profile-field-value">{user.googleId ? <><Link2 size={12} style={{display:'inline',verticalAlign:'middle',marginRight:'4px'}} />Google Account</> : <><Lock size={12} style={{display:'inline',verticalAlign:'middle',marginRight:'4px'}} />Email &amp; Password</>}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Assigned Horses */}
-        {ROLES_WITH_HORSES.includes(user.designation) && (
-          <div className="profile-horses-section">
-            <div className="profile-card-header">
-              <h3>Assigned Horses</h3>
-              <span className="profile-horse-count">{assignedHorses.length}</span>
-            </div>
-            {loading ? (
-              <p className="loading">Loading assigned horses...</p>
-            ) : assignedHorses.length > 0 ? (
-              <div className="profile-horses-grid">
-                {assignedHorses.map(horse => (
-                  <div key={horse.id} className="profile-horse-card">
-                    <div className="profile-horse-details">
-                      <div className="profile-horse-name">{horse.name}</div>
-                      <div className="profile-horse-meta">
-                        <span>Stable #{horse.stableNumber}</span>
-                        <span>·</span>
-                        <span>{horse.breed ? t(horse.breed) : ''}</span>
-                      </div>
-                      <span className="profile-horse-role">{horse.role}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="no-horses">No horses assigned yet</p>
+            {uploadMsg && (
+              <p className={`mt-2 text-xs font-medium ${uploadMsg.startsWith('✓') ? 'text-success' : 'text-destructive'}`}>{uploadMsg}</p>
             )}
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Settings — Text Size */}
-        <div className="profile-info-card profile-settings-card">
-          <div className="profile-card-header">
-            <span className="profile-card-icon"><Settings size={15} strokeWidth={2} /></span>
-            <h3>{t('Settings')}</h3>
+      {/* Info Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><User size={15} className="text-primary" /></span>
+            <h3 className="text-sm font-bold text-foreground">Personal Information</h3>
           </div>
-          <div className="text-size-setting">
-            <div className="text-size-label">
-              <Type size={14} strokeWidth={2} />
-              <span>{t('Text Size')}</span>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2 border-b border-border/30">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Full Name</span>
+              <span className="text-sm text-foreground font-medium">{user.fullName || '—'}</span>
             </div>
-            <div className="text-size-cards">
-              {[
-                { key: 'small',  label: 'A',  desc: t('Small') },
-                { key: 'medium', label: 'A',  desc: t('Medium') },
-                { key: 'large',  label: 'A',  desc: t('Large') },
-              ].map(opt => (
-                <button
-                  key={opt.key}
-                  className={`text-size-card text-size-card--${opt.key}${textSize === opt.key ? ' text-size-card--active' : ''}`}
-                  onClick={() => setTextSize(opt.key)}
-                  type="button"
-                >
-                  <span className="text-size-card-preview">{opt.label}</span>
-                  <span className="text-size-card-label">{opt.desc}</span>
-                </button>
-              ))}
+            <div className="flex justify-between items-center py-2 border-b border-border/30">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Employee ID</span>
+              <span className="text-sm text-foreground mono-data">{user.employeeId || user.id?.slice(0, 8) || '—'}</span>
             </div>
-          </div>
-
-          {/* Language Switcher */}
-          <div className="language-setting" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(0,0,0,.08)' }}>
-            <div className="text-size-label">
-              <Globe size={14} strokeWidth={2} />
-              <span>{t('Language')}</span>
+            <div className="flex justify-between items-center py-2 border-b border-border/30">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('Designation')}</span>
+              <span className="text-sm text-foreground font-medium">{user.designation ? t(user.designation) : '—'}</span>
             </div>
-            <div className="language-cards" style={{ marginTop: '8px' }}>
-              {Object.entries(LANGUAGES).map(([code, name]) => (
-                <button
-                  key={code}
-                  className={`text-size-card${code === lang ? ' text-size-card--active' : ''}`}
-                  onClick={() => setLang(code)}
-                  type="button"
-                >
-                  <span className="text-size-card-preview" style={{ fontSize: '0.9rem', fontWeight: 500 }}>{code.toUpperCase()}</span>
-                  <span className="text-size-card-label" style={{ fontSize: '0.7rem' }}>{name}</span>
-                </button>
-              ))}
+            <div className="flex justify-between items-center py-2">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('Employment Status')}</span>
+              <span className="text-sm text-foreground font-medium">{t(user.employmentStatus || 'Active')}</span>
             </div>
           </div>
         </div>
 
-        {/* Install App */}
-        <div className="profile-info-card profile-settings-card">
-          <div className="profile-card-header">
-            <span className="profile-card-icon"><Download size={15} strokeWidth={2} /></span>
-            <h3>{t('Install App')}</h3>
+        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><Mail size={15} className="text-primary" /></span>
+            <h3 className="text-sm font-bold text-foreground">Contact Information</h3>
           </div>
-          {isInstalled ? (
-            <div className="pwa-installed-msg">
-              <span className="pwa-check">✓</span>
-              <span>App is installed on your device</span>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2 border-b border-border/30">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Email Address</span>
+              <a href={`mailto:${user.email}`} className="text-sm text-primary hover:underline">{user.email || '—'}</a>
             </div>
-          ) : canInstall ? (
-            <div className="pwa-install-section">
-              <p className="pwa-install-desc">Install EFM Stable for quick access, offline support, and a native app experience.</p>
-              <button className="pwa-install-btn" onClick={install} type="button">
-                <Download size={16} strokeWidth={2} />
-                Install App
-              </button>
+            <div className="flex justify-between items-center py-2 border-b border-border/30">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Phone Number</span>
+              {user.phoneNumber || user.mobile ? (
+                <a href={`tel:${user.phoneNumber || user.mobile}`} className="text-sm text-primary hover:underline">{user.phoneNumber || user.mobile}</a>
+              ) : <span className="text-sm text-foreground">—</span>}
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Account Type</span>
+              <span className="text-sm text-foreground font-medium flex items-center gap-1">{user.googleId ? <><Link2 size={12} />Google Account</> : <><Lock size={12} />Email &amp; Password</>}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Assigned Horses */}
+      {ROLES_WITH_HORSES.includes(user.designation) && (
+        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-foreground">Assigned Horses</h3>
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider bg-primary/15 text-primary">{assignedHorses.length}</span>
+          </div>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Loading assigned horses...</p>
+          ) : assignedHorses.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {assignedHorses.map(horse => (
+                <div key={horse.id} className="p-4 rounded-lg bg-surface-container-high border border-border/30 hover:border-primary/20 transition-colors">
+                  <p className="text-sm font-semibold text-foreground">{horse.name}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Stable #{horse.stableNumber} · {horse.breed ? t(horse.breed) : ''}</p>
+                  <span className="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-primary/15 text-primary">{horse.role}</span>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="pwa-installed-msg">
-              <span>App install is not available on this browser</span>
-            </div>
+            <p className="text-sm text-muted-foreground">No horses assigned yet</p>
           )}
         </div>
+      )}
+
+      {/* Settings */}
+      <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><Settings size={15} className="text-primary" /></span>
+          <h3 className="text-sm font-bold text-foreground">{t('Settings')}</h3>
+        </div>
+        <div className="text-size-setting">
+          <div className="text-size-label">
+            <Type size={14} strokeWidth={2} />
+            <span>{t('Text Size')}</span>
+          </div>
+          <div className="text-size-cards">
+            {[
+              { key: 'small',  label: 'A',  desc: t('Small') },
+              { key: 'medium', label: 'A',  desc: t('Medium') },
+              { key: 'large',  label: 'A',  desc: t('Large') },
+            ].map(opt => (
+              <button
+                key={opt.key}
+                className={`text-size-card text-size-card--${opt.key}${textSize === opt.key ? ' text-size-card--active' : ''}`}
+                onClick={() => setTextSize(opt.key)}
+                type="button"
+              >
+                <span className="text-size-card-preview">{opt.label}</span>
+                <span className="text-size-card-label">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Language Switcher */}
+        <div className="mt-5 pt-5 border-t border-border">
+          <div className="text-size-label">
+            <Globe size={14} strokeWidth={2} />
+            <span>{t('Language')}</span>
+          </div>
+          <div className="language-cards mt-2">
+            {Object.entries(LANGUAGES).map(([code, name]) => (
+              <button
+                key={code}
+                className={`text-size-card${code === lang ? ' text-size-card--active' : ''}`}
+                onClick={() => setLang(code)}
+                type="button"
+              >
+                <span className="text-size-card-preview" style={{ fontSize: '0.9rem', fontWeight: 500 }}>{code.toUpperCase()}</span>
+                <span className="text-size-card-label" style={{ fontSize: '0.7rem' }}>{name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Install App */}
+      <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><Download size={15} className="text-primary" /></span>
+          <h3 className="text-sm font-bold text-foreground">{t('Install App')}</h3>
+        </div>
+        {isInstalled ? (
+          <div className="flex items-center gap-2 text-sm text-success font-medium">
+            <span>✓</span> <span>App is installed on your device</span>
+          </div>
+        ) : canInstall ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">Install EFM Stable for quick access, offline support, and a native app experience.</p>
+            <button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2" onClick={install} type="button">
+              <Download size={16} /> Install App
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">App install is not available on this browser</p>
+        )}
       </div>
 
       {/* iOS Install Modal */}
       {showIosModal && ReactDOM.createPortal(
-        <div className="pwa-ios-overlay" onClick={dismiss}>
-          <div className="pwa-ios-modal" onClick={e => e.stopPropagation()}>
-            <button className="pwa-ios-close" onClick={dismiss}><X size={18} /></button>
-            <div className="pwa-ios-icon">
-              <img src="/fav.png" alt="EFM" className="pwa-ios-app-icon" />
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={dismiss}>
+          <div className="bg-surface-container-highest rounded-xl p-6 w-[340px] edge-glow border border-border" onClick={e => e.stopPropagation()}>
+            <button className="absolute top-3 right-3 text-muted-foreground hover:text-foreground" onClick={dismiss}><X size={18} /></button>
+            <div className="flex justify-center mb-3">
+              <img src="/fav.png" alt="EFM" className="w-12 h-12 rounded-xl" />
             </div>
-            <h3 className="pwa-ios-title">Install EFM Stable</h3>
-            <p className="pwa-ios-subtitle">Add to your home screen for the best experience</p>
-            <div className="pwa-ios-steps">
-              <div className="pwa-ios-step">
-                <span className="pwa-ios-step-num">1</span>
-                <span>Tap the <strong>Share</strong> button</span>
-                <Share size={16} className="pwa-ios-step-icon" />
+            <h3 className="text-lg font-bold text-foreground text-center">Install EFM Stable</h3>
+            <p className="text-xs text-muted-foreground text-center mt-1 mb-4">Add to your home screen for the best experience</p>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-high">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary text-[10px] font-bold flex items-center justify-center">1</span>
+                <span className="text-sm text-foreground">Tap the <strong>Share</strong> button</span>
+                <Share size={16} className="ml-auto text-muted-foreground" />
               </div>
-              <div className="pwa-ios-step">
-                <span className="pwa-ios-step-num">2</span>
-                <span>Scroll down and tap <strong>Add to Home Screen</strong></span>
-                <Plus size={16} className="pwa-ios-step-icon" />
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-high">
+                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary text-[10px] font-bold flex items-center justify-center">2</span>
+                <span className="text-sm text-foreground">Scroll down and tap <strong>Add to Home Screen</strong></span>
+                <Plus size={16} className="ml-auto text-muted-foreground" />
               </div>
             </div>
-            <button className="pwa-ios-done" onClick={dismiss}>Got it</button>
+            <button className="w-full mt-4 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all" onClick={dismiss}>Got it</button>
           </div>
         </div>
       , document.body)}
@@ -402,19 +379,11 @@ const ProfilePage = () => {
             </div>
             <div className="crop-zoom-row">
               <span className="crop-zoom-label">Zoom</span>
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={0.01}
-                value={zoom}
-                onChange={e => setZoom(Number(e.target.value))}
-                className="crop-zoom-slider"
-              />
+              <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={e => setZoom(Number(e.target.value))} className="crop-zoom-slider" />
             </div>
             <div className="crop-modal-actions">
-              <button className="btn-secondary" onClick={handleCancelCrop} disabled={uploading}>Cancel</button>
-              <button className="btn-primary" onClick={handleSaveCrop} disabled={uploading}>
+              <button className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={handleCancelCrop} disabled={uploading}>Cancel</button>
+              <button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all" onClick={handleSaveCrop} disabled={uploading}>
                 {uploading ? 'Saving...' : 'Apply Photo'}
               </button>
             </div>

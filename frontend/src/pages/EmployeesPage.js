@@ -454,7 +454,6 @@ const EmployeesPage = () => {
   const approvedEmployees = employees.filter((emp) => emp.isApproved).length;
   const pendingEmployees = totalEmployees - approvedEmployees;
   const supervisoryEmployees = employees.filter((emp) => SUPERVISORY_ROLES.includes(emp.designation)).length;
-  const approvalRate = totalEmployees > 0 ? Math.round((approvedEmployees / totalEmployees) * 100) : 0;
   const employeeSpark = buildMetricSpark(
     employees,
     (employee) => getDateValue(employee.createdAt, employee.updatedAt),
@@ -506,7 +505,7 @@ const EmployeesPage = () => {
 
   return (
     <div className="employees-page lovable-page-shell">
-      <div className="page-header">
+      <div className="employees-page-header">
         <div>
           <div className="lovable-header-kicker">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
@@ -530,13 +529,6 @@ const EmployeesPage = () => {
               {t('Add New Employee')}
             </button>
           )}
-          <div className="lovable-command-chip employee-header-action employee-header-chip">
-            <div className="lovable-command-ring">{approvalRate}%</div>
-            <div className="lovable-command-copy">
-              <strong>{t('Approval Coverage')}</strong>
-              <span>{t('Directory Integrity')}</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -550,6 +542,7 @@ const EmployeesPage = () => {
           subtitleTone="primary"
           watermark="employee"
           sparkData={employeeSpark}
+          hideTitle
         />
         <DirectoryMetricCard
           title={t('Approved')}
@@ -561,6 +554,7 @@ const EmployeesPage = () => {
           variant="success"
           watermark="employee"
           sparkData={approvedSpark}
+          hideTitle
         />
         <DirectoryMetricCard
           title={t('Pending Approval')}
@@ -572,6 +566,7 @@ const EmployeesPage = () => {
           variant="alert"
           watermark="employee"
           sparkData={pendingSpark}
+          hideTitle
         />
         <DirectoryMetricCard
           title={t('Supervisory Roles')}
@@ -582,6 +577,7 @@ const EmployeesPage = () => {
           subtitleTone="primary"
           watermark="employee"
           sparkData={supervisorySpark}
+          hideTitle
         />
       </div>
 

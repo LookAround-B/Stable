@@ -168,78 +168,31 @@ const ReportsPage = () => {
         ? expenseStats.total
         : healthStats.totalInspections + healthStats.totalMedicineLogs;
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'Present': '#22c55e', 'Absent': '#ef4444', 'Leave': '#f59e0b', 'WOFF': '#8b5cf6', 'Half Day': '#d19bff',
-      'Completed': '#22c55e', 'Approved': '#22c55e', 'Pending': '#f59e0b', 'In Progress': '#d19bff',
-      'Rejected': '#ef4444', 'Pending Review': '#8b5cf6',
-      'Open': '#f59e0b', 'Resolved': '#22c55e', 'Dismissed': '#6b7280',
-      'pending': '#f59e0b', 'approved': '#22c55e', 'rejected': '#ef4444',
-      'Low': '#22c55e', 'Medium': '#f59e0b', 'High': '#f97316', 'Critical': '#ef4444',
+  const StatusBadge = ({ status }) => {
+    const colorMap = {
+      'Present': 'bg-success/20 text-success', 'Absent': 'bg-destructive/20 text-destructive', 'Leave': 'bg-warning/20 text-warning', 'WOFF': 'bg-primary/20 text-primary', 'Half Day': 'bg-primary/20 text-primary',
+      'Completed': 'bg-success/20 text-success', 'Approved': 'bg-success/20 text-success', 'Pending': 'bg-warning/20 text-warning', 'In Progress': 'bg-primary/20 text-primary',
+      'Rejected': 'bg-destructive/20 text-destructive', 'Pending Review': 'bg-primary/20 text-primary',
+      'Open': 'bg-warning/20 text-warning', 'Resolved': 'bg-success/20 text-success', 'Dismissed': 'bg-muted-foreground/20 text-muted-foreground',
+      'pending': 'bg-warning/20 text-warning', 'approved': 'bg-success/20 text-success', 'rejected': 'bg-destructive/20 text-destructive',
+      'Low': 'bg-success/20 text-success', 'Medium': 'bg-warning/20 text-warning', 'High': 'bg-warning/20 text-warning', 'Critical': 'bg-destructive/20 text-destructive',
     };
-    return colors[status] || '#6b7280';
+    return (
+      <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${colorMap[status] || 'bg-muted-foreground/20 text-muted-foreground'}`}>
+        {t(status)}
+      </span>
+    );
   };
 
-  const thStyle = {
-    padding: '10px 12px',
-    textAlign: 'left',
-    borderBottom: '1px solid var(--lovable-line)',
-    fontWeight: 600,
-    background: 'var(--lovable-panel-alt)',
-    color: 'var(--lovable-text-muted)'
-  };
-  const tdStyle = {
-    padding: '8px 12px',
-    color: 'var(--lovable-text)',
-    background: 'transparent'
-  };
-  const tableShellStyle = {
-    borderRadius: '18px',
-    overflow: 'hidden',
-    border: '1px solid var(--lovable-line)',
-    background: 'var(--lovable-panel)',
-    boxShadow: 'inset 0 0 0 1px rgba(209, 153, 255, 0.03)',
-  };
-  const tableStyle = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.85rem',
-    background: 'transparent',
-    color: 'var(--lovable-text)',
-  };
-  const tableRowStyle = { borderBottom: '1px solid var(--lovable-line)' };
-  const emptyStateStyle = { padding: '20px', textAlign: 'center', color: 'var(--lovable-text-muted)' };
-
-  const StatusBadge = ({ status }) => (
-    <span style={{
-      padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
-      backgroundColor: `${getStatusColor(status)}22`, color: getStatusColor(status),
-    }}>
-      {t(status)}
-    </span>
-  );
-
-  // Stats shown as a compact horizontal table
+  // Stats shown as KPI cards row
   const StatsTable = ({ stats }) => (
-    <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--lovable-line)', marginBottom: '20px', background: 'var(--lovable-panel)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-        <thead>
-          <tr style={{ background: 'var(--lovable-panel-alt)' }}>
-            {stats.map((s, i) => (
-              <th key={i} style={{ padding: '8px 14px', fontWeight: 600, color: 'var(--lovable-text-muted)', textAlign: 'center', borderRight: i < stats.length - 1 ? '1px solid var(--lovable-line)' : 'none', whiteSpace: 'nowrap' }}>{s.label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr style={{ background: 'transparent' }}>
-            {stats.map((s, i) => (
-              <td key={i} style={{ padding: '10px 14px', textAlign: 'center', borderRight: i < stats.length - 1 ? '1px solid var(--lovable-line)' : 'none' }}>
-                <span style={{ fontSize: '1.3rem', fontWeight: 700, color: s.color }}>{s.value}</span>
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+    <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)` }}>
+      {stats.map((s, i) => (
+        <div key={i} className="bg-surface-container-highest rounded-xl p-4 edge-glow text-center">
+          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{s.label}</p>
+          <p className="text-2xl font-bold mt-1 mono-data" style={{ color: s.color }}>{s.value}</p>
+        </div>
+      ))}
     </div>
   );
 
@@ -324,76 +277,72 @@ const ReportsPage = () => {
   };
 
   return (
-    <div className="page-container lovable-page-shell reports-page" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
-      <div className="page-header">
-        <div>
-          <div className="lovable-header-kicker">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Analytics Module')}</span>
-          </div>
-          <h1>{t('Reports')}</h1>
-          <p>{t('View and generate system reports')}</p>
+    <div className="space-y-6 max-w-[1400px] mx-auto">
+      {/* Header */}
+      <div>
+        <div className="lovable-header-kicker">
+          <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+          <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+          <span>{t('Analytics Module')}</span>
         </div>
-        <div className="lovable-header-actions">
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
-          <div className="lovable-command-chip">
-            <div className="lovable-command-ring">{activeRecordCount}</div>
-            <div className="lovable-command-copy">
-              <strong>{tabs.find(tab => tab.id === activeTab)?.label}</strong>
-              <span>{t('Active Report View')}</span>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t('Reports')}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{t('View and generate system reports')}</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 flex items-center gap-2" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+            <div className="lovable-command-chip">
+              <div className="lovable-command-ring">{activeRecordCount}</div>
+              <div className="lovable-command-copy">
+                <strong>{tabs.find(tab => tab.id === activeTab)?.label}</strong>
+                <span>{t('Active Report View')}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="lovable-metric-strip">
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Attendance')}</div>
-          <div className="lovable-metric-card-value">{attendanceStats.total}</div>
-          <div className="lovable-metric-card-sub">{t('Records in the selected date range')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Tasks')}</div>
-          <div className="lovable-metric-card-value">{taskStats.total}</div>
-          <div className="lovable-metric-card-sub">{t('Task records available for reporting')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Expenses')}</div>
-          <div className="lovable-metric-card-value">{expenseStats.total}</div>
-          <div className="lovable-metric-card-sub">{t('Expense entries in the selected range')}</div>
-        </div>
-        <div className="lovable-metric-card">
-          <div className="lovable-metric-card-label">{t('Health Logs')}</div>
-          <div className="lovable-metric-card-value">{healthStats.totalMedicineLogs}</div>
-          <div className="lovable-metric-card-sub">{t('Medicine logs currently loaded')}</div>
-        </div>
+      {/* Metric Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: t('Attendance'), value: attendanceStats.total, sub: t('Records in the selected date range') },
+          { label: t('Tasks'), value: taskStats.total, sub: t('Task records available for reporting') },
+          { label: t('Expenses'), value: expenseStats.total, sub: t('Expense entries in the selected range') },
+          { label: t('Health Logs'), value: healthStats.totalMedicineLogs, sub: t('Medicine logs currently loaded') },
+        ].map((m, i) => (
+          <div key={i} className="bg-surface-container-highest rounded-xl p-5 edge-glow">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{m.label}</p>
+            <p className="text-2xl font-bold mt-1 mono-data text-foreground">{m.value}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
+          </div>
+        ))}
       </div>
 
       {/* Date Range Filter */}
-      <div className="lovable-panel" style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--lovable-text-muted)' }}>{t('From')}:</label>
+      <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-muted-foreground">{t('From')}:</label>
           <input
             type="date"
             value={dateRange.startDate}
             onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--lovable-line)', fontSize: '0.875rem', background: 'var(--bg-input)', color: 'var(--lovable-text)' }}
+            className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--lovable-text-muted)' }}>{t('To')}:</label>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-muted-foreground">{t('To')}:</label>
           <input
             type="date"
             value={dateRange.endDate}
             onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--lovable-line)', fontSize: '0.875rem', background: 'var(--bg-input)', color: 'var(--lovable-text)' }}
+            className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
           />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="lovable-pill-row" style={{ marginBottom: '20px' }}>
+      <div className="lovable-pill-row">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -420,32 +369,34 @@ const ReportsPage = () => {
                 { label: t('Weekly Off'), value: attendanceStats.woff, color: '#8b5cf6' },
                 { label: t('Half Day'), value: attendanceStats.halfDay, color: '#d19bff' },
               ]} />
-              <div className="table-wrapper" style={tableShellStyle}>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>{t('Date')}</th>
-                      <th style={thStyle}>{t('Employee')}</th>
-                      <th style={thStyle}>{t('Designation')}</th>
-                      <th style={thStyle}>{t('Status')}</th>
-                      <th style={thStyle}>{t('Remarks')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginate(attendanceData).map((r, i) => (
-                      <tr key={r.id || i} style={tableRowStyle}>
-                        <td style={tdStyle}>{formatDate(r.date)}</td>
-                        <td style={tdStyle}>{r.employee?.fullName || '-'}</td>
-                        <td style={tdStyle}>{r.employee?.designation || '-'}</td>
-                        <td style={tdStyle}><StatusBadge status={r.status} /></td>
-                        <td style={{ ...tdStyle, color: 'var(--lovable-text-muted)' }}>{r.remarks || '-'}</td>
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Date')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Employee')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Designation')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Status')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Remarks')}</th>
                       </tr>
-                    ))}
-                    {attendanceData.length === 0 && (
-                      <tr><td colSpan={5} style={emptyStateStyle}>{t('No attendance records found')}</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {paginate(attendanceData).map((r, i) => (
+                        <tr key={r.id || i} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground">{formatDate(r.date)}</td>
+                          <td className="px-4 py-3 text-foreground">{r.employee?.fullName || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{r.employee?.designation || '-'}</td>
+                          <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
+                          <td className="px-4 py-3 text-muted-foreground">{r.remarks || '-'}</td>
+                        </tr>
+                      ))}
+                      {attendanceData.length === 0 && (
+                        <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{t('No attendance records found')}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               {renderPagination(attendanceData)}
             </div>
@@ -461,34 +412,36 @@ const ReportsPage = () => {
                 { label: t('In Progress'), value: taskStats.inProgress, color: '#d19bff' },
                 { label: t('Rejected'), value: taskStats.rejected, color: '#ef4444' },
               ]} />
-              <div className="table-wrapper" style={tableShellStyle}>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>{t('Date')}</th>
-                      <th style={thStyle}>{t('Task')}</th>
-                      <th style={thStyle}>{t('Assigned To')}</th>
-                      <th style={thStyle}>{t('Created By')}</th>
-                      <th style={thStyle}>{t('Priority')}</th>
-                      <th style={thStyle}>{t('Status')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginate(tasksData).map((task, i) => (
-                      <tr key={task.id || i} style={tableRowStyle}>
-                        <td style={tdStyle}>{formatDate(task.scheduledTime || task.createdAt)}</td>
-                        <td style={{ ...tdStyle, fontWeight: 500 }}>{task.name}</td>
-                        <td style={tdStyle}>{task.assignedEmployee?.fullName || '-'}</td>
-                        <td style={tdStyle}>{task.createdBy?.fullName || '-'}</td>
-                        <td style={tdStyle}><StatusBadge status={task.priority} /></td>
-                        <td style={tdStyle}><StatusBadge status={task.status} /></td>
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Date')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Task')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Assigned To')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Created By')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Priority')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Status')}</th>
                       </tr>
-                    ))}
-                    {tasksData.length === 0 && (
-                      <tr><td colSpan={6} style={emptyStateStyle}>{t('No tasks found')}</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {paginate(tasksData).map((task, i) => (
+                        <tr key={task.id || i} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground">{formatDate(task.scheduledTime || task.createdAt)}</td>
+                          <td className="px-4 py-3 text-foreground font-medium">{task.name}</td>
+                          <td className="px-4 py-3 text-foreground">{task.assignedEmployee?.fullName || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{task.createdBy?.fullName || '-'}</td>
+                          <td className="px-4 py-3"><StatusBadge status={task.priority} /></td>
+                          <td className="px-4 py-3"><StatusBadge status={task.status} /></td>
+                        </tr>
+                      ))}
+                      {tasksData.length === 0 && (
+                        <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('No tasks found')}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               {renderPagination(tasksData)}
             </div>
@@ -504,34 +457,36 @@ const ReportsPage = () => {
                   label: t(type), value: `INR ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, color: '#f59e0b',
                 })),
               ]} />
-              <div className="table-wrapper" style={tableShellStyle}>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>{t('Date')}</th>
-                      <th style={thStyle}>{t('Type')}</th>
-                      <th style={thStyle}>{t('Description')}</th>
-                      <th style={{ ...thStyle, textAlign: 'right' }}>{t('Amount')}</th>
-                      <th style={thStyle}>{t('Created By')}</th>
-                      <th style={thStyle}>{t('Horse/Employee')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginate(expensesData).map((exp, i) => (
-                      <tr key={exp.id || i} style={tableRowStyle}>
-                        <td style={tdStyle}>{formatDate(exp.date)}</td>
-                        <td style={tdStyle}><StatusBadge status={exp.type} /></td>
-                        <td style={{ ...tdStyle, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</td>
-                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>INR {parseFloat(exp.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                        <td style={tdStyle}>{exp.createdBy?.fullName || '-'}</td>
-                        <td style={tdStyle}>{exp.horse?.name || exp.employee?.fullName || '-'}</td>
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Date')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Type')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Description')}</th>
+                        <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Amount')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Created By')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Horse/Employee')}</th>
                       </tr>
-                    ))}
-                    {expensesData.length === 0 && (
-                      <tr><td colSpan={6} style={emptyStateStyle}>{t('No expenses found')}</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {paginate(expensesData).map((exp, i) => (
+                        <tr key={exp.id || i} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground">{formatDate(exp.date)}</td>
+                          <td className="px-4 py-3"><StatusBadge status={exp.type} /></td>
+                          <td className="px-4 py-3 text-foreground max-w-[200px] truncate">{exp.description}</td>
+                          <td className="px-4 py-3 text-right font-semibold text-foreground mono-data">INR {parseFloat(exp.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td className="px-4 py-3 text-foreground">{exp.createdBy?.fullName || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{exp.horse?.name || exp.employee?.fullName || '-'}</td>
+                        </tr>
+                      ))}
+                      {expensesData.length === 0 && (
+                        <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('No expenses found')}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               {renderPagination(expensesData)}
             </div>
@@ -548,68 +503,72 @@ const ReportsPage = () => {
                 { label: t('Pending Approvals'), value: healthStats.pendingApprovals, color: '#8b5cf6' },
               ]} />
 
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--lovable-text)' }}>{t('Inspection Rounds')}</h3>
-              <div className="table-wrapper" style={{ ...tableShellStyle, marginBottom: '30px' }}>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>{t('Date')}</th>
-                      <th style={thStyle}>{t('Round')}</th>
-                      <th style={thStyle}>{t('Jamedar')}</th>
-                      <th style={thStyle}>{t('Location')}</th>
-                      <th style={thStyle}>{t('Severity')}</th>
-                      <th style={thStyle}>{t('Status')}</th>
-                      <th style={thStyle}>{t('Description')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inspectionsData.slice(0, 30).map((insp, i) => (
-                      <tr key={insp.id || i} style={tableRowStyle}>
-                        <td style={tdStyle}>{formatDate(insp.createdAt)}</td>
-                        <td style={tdStyle}>{t(insp.round)}</td>
-                        <td style={tdStyle}>{insp.jamedar?.fullName || '-'}</td>
-                        <td style={tdStyle}>{insp.location || '-'}</td>
-                        <td style={tdStyle}><StatusBadge status={insp.severityLevel} /></td>
-                        <td style={tdStyle}><StatusBadge status={insp.status} /></td>
-                        <td style={{ ...tdStyle, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{insp.description}</td>
+              <h3 className="text-base font-semibold text-foreground mb-3">{t('Inspection Rounds')}</h3>
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Date')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Round')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Jamedar')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Location')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Severity')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Status')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Description')}</th>
                       </tr>
-                    ))}
-                    {inspectionsData.length === 0 && (
-                      <tr><td colSpan={7} style={emptyStateStyle}>{t('No inspections found')}</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {inspectionsData.slice(0, 30).map((insp, i) => (
+                        <tr key={insp.id || i} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground">{formatDate(insp.createdAt)}</td>
+                          <td className="px-4 py-3 text-foreground">{t(insp.round)}</td>
+                          <td className="px-4 py-3 text-foreground">{insp.jamedar?.fullName || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{insp.location || '-'}</td>
+                          <td className="px-4 py-3"><StatusBadge status={insp.severityLevel} /></td>
+                          <td className="px-4 py-3"><StatusBadge status={insp.status} /></td>
+                          <td className="px-4 py-3 text-foreground max-w-[200px] truncate">{insp.description}</td>
+                        </tr>
+                      ))}
+                      {inspectionsData.length === 0 && (
+                        <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('No inspections found')}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: 'var(--lovable-text)' }}>{t('Medicine Logs')}</h3>
-              <div className="table-wrapper" style={tableShellStyle}>
-                <table style={tableStyle}>
-                  <thead>
-                    <tr>
-                      <th style={thStyle}>{t('Date')}</th>
-                      <th style={thStyle}>{t('Horse')}</th>
-                      <th style={thStyle}>{t('Medicine')}</th>
-                      <th style={thStyle}>{t('Quantity')}</th>
-                      <th style={thStyle}>{t('Administered By')}</th>
-                      <th style={thStyle}>{t('Approval')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {medicineLogsData.slice(0, 30).map((log, i) => (
-                      <tr key={log.id || i} style={tableRowStyle}>
-                        <td style={tdStyle}>{formatDateTime(log.timeAdministered || log.createdAt)}</td>
-                        <td style={tdStyle}>{log.horse?.name || '-'}</td>
-                        <td style={{ ...tdStyle, fontWeight: 500 }}>{log.medicineName}</td>
-                        <td style={tdStyle}>{log.quantity} {log.unit}</td>
-                        <td style={tdStyle}>{log.jamedar?.fullName || '-'}</td>
-                        <td style={tdStyle}><StatusBadge status={log.approvalStatus} /></td>
+              <h3 className="text-base font-semibold text-foreground mb-3">{t('Medicine Logs')}</h3>
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Date')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Horse')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Medicine')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Quantity')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Administered By')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Approval')}</th>
                       </tr>
-                    ))}
-                    {medicineLogsData.length === 0 && (
-                      <tr><td colSpan={6} style={emptyStateStyle}>{t('No medicine logs found')}</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {medicineLogsData.slice(0, 30).map((log, i) => (
+                        <tr key={log.id || i} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground">{formatDateTime(log.timeAdministered || log.createdAt)}</td>
+                          <td className="px-4 py-3 text-foreground">{log.horse?.name || '-'}</td>
+                          <td className="px-4 py-3 text-foreground font-medium">{log.medicineName}</td>
+                          <td className="px-4 py-3 text-foreground">{log.quantity} {log.unit}</td>
+                          <td className="px-4 py-3 text-foreground">{log.jamedar?.fullName || '-'}</td>
+                          <td className="px-4 py-3"><StatusBadge status={log.approvalStatus} /></td>
+                        </tr>
+                      ))}
+                      {medicineLogsData.length === 0 && (
+                        <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('No medicine logs found')}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

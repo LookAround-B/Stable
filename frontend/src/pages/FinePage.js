@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
-import { Check, Download, X } from 'lucide-react';
+import { Check, DollarSign, Download, Plus, Upload, X, Zap } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
@@ -22,7 +22,6 @@ const FinePage = () => {
   const p = usePermissions();
   const [fines, setFines] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [viewingFine, setViewingFine] = useState(null);
   const [fullScreenImage, setFullScreenImage] = useState(null);
   const [resolvingFine, setResolvingFine] = useState(null);
@@ -357,19 +356,6 @@ const FinePage = () => {
     return date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Open':
-        return '#f39c12';
-      case 'Resolved':
-        return '#2ecc71';
-      case 'Dismissed':
-        return '#95a5a6';
-      default:
-        return '#95a5a6';
-    }
-  };
-
   // Pagination logic
   const totalPages = Math.ceil(fines.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -396,297 +382,313 @@ const FinePage = () => {
   if (!p.viewFines) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="fine-page">
-      <div className="fine-header">
-        <h1>{t('Fine System')}</h1>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {canIssueFines && (
-            <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-              {showForm ? 'Cancel' : '+ Issue Fine'}
-            </button>
-          )}
-          <button className="btn-download" onClick={handleDownloadExcel}><Download size={14} />Excel</button>
+    <div className="space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center mt-1 shrink-0">
+            <DollarSign className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">FINANCE / <span className="text-primary">FINE SYSTEM</span></p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-1">{t('Internal Compliance')} <span className="text-primary">&amp;</span> {t('Fines')}</h1>
+            <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t('Manage facility-wide disciplinary actions and financial deductions.')}</p>
+          </div>
+        </div>
+        <div className="flex gap-3 shrink-0">
+          <div className="bg-surface-container-highest rounded-lg p-4 edge-glow text-center min-w-[120px]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">MONTHLY VOLUME</p>
+            <p className="text-xl sm:text-2xl font-bold text-foreground mono-data mt-1">₹{fines.reduce((s, f) => s + parseFloat(f.amount || 0), 0).toLocaleString()}</p>
+            <span className="text-xs text-primary">{fines.length} {t('records')}</span>
+          </div>
+          <div className="bg-surface-container-highest rounded-lg p-4 edge-glow text-center min-w-[100px]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">PENDING</p>
+            <p className="text-xl sm:text-2xl font-bold text-foreground mono-data mt-1">{fines.filter(f => f.status === 'Open').length}</p>
+            <span className="text-xs text-primary">ACTIONS</span>
+          </div>
         </div>
       </div>
 
-      {message && <div className={`message ${/success|issued|resolved|updated/i.test(message) ? 'success' : 'error'}`}>{message}</div>}
-
-      {/* Issue Fine Form */}
-      {canIssueFines && showForm && (
-        <div className="fine-form-section">
-          <h2>{t('Issue New Fine')}</h2>
-          <form onSubmit={handleSubmitForm}>
-            <div className="form-group">
-              <label>Employee</label>
-              <SearchableSelect
-                name="issuedToId"
-                value={formData.issuedToId}
-                onChange={handleFormChange}
-                placeholder="Select Employee"
-                required
-                options={[
-                  { value: '', label: 'Select Employee' },
-                  ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
-                ]}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Reason for Fine (max 500 characters)</label>
-              <textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleFormChange}
-                placeholder="Describe the reason for issuing this fine..."
-                maxLength="500"
-                rows="4"
-                required
-              />
-              <small>{formData.reason.length}/500</small>
-            </div>
-
-            <div className="form-group">
-              <label>Fine Amount (INR)</label>
-              <input
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleFormChange}
-                placeholder="Enter fine amount in rupees"
-                min="0"
-                step="0.01"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Evidence Image (Required)</label>
-              <input
-                type="file"
-                name="evidenceImage"
-                onChange={handleFormChange}
-                accept="image/*"
-                required
-              />
-            </div>
-
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Processing...' : 'Issue Fine'}
-            </button>
-          </form>
+      {/* ── Message ── */}
+      {message && (
+        <div className={`px-4 py-3 rounded-lg text-sm font-medium ${/success|issued|resolved|updated/i.test(message) ? 'bg-success/15 text-success border border-success/30' : 'bg-destructive/15 text-destructive border border-destructive/30'}`}>
+          {message}
         </div>
       )}
 
-      {/* Filters */}
-      <div className="filters-section">
-        <div className="filter-group">
-          <label>Status</label>
-          <SearchableSelect
-            name="status"
-            value={filters.status}
-            onChange={handleFilterChange}
-            placeholder="All Status"
-            options={[
-              { value: '', label: 'All Status' },
-              ...STATUS_OPTIONS.map((status) => ({ value: status, label: status }))
-            ]}
-          />
-        </div>
+      {/* ── Two-Column Layout ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Issue Enforcement Form */}
+        {canIssueFines && (
+          <div className="lg:col-span-4 order-2 lg:order-1">
+            <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
+              <div className="flex items-center gap-2 mb-5">
+                <Plus className="w-5 h-5 text-success" />
+                <h2 className="text-base font-bold text-foreground uppercase tracking-wider">{t('Issue Fine')}</h2>
+              </div>
+              <form onSubmit={handleSubmitForm} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">{t('Employee')}</label>
+                  <SearchableSelect
+                    name="issuedToId"
+                    value={formData.issuedToId}
+                    onChange={handleFormChange}
+                    placeholder="Select Employee"
+                    required
+                    options={[
+                      { value: '', label: 'Select Employee' },
+                      ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))
+                    ]}
+                  />
+                </div>
 
-        <div className="filter-group">
-          <label>Start Date</label>
-          <input
-            type="date"
-            name="startDate"
-            value={filters.startDate}
-            onChange={handleFilterChange}
-          />
-        </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">{t('Reason')} (max 500)</label>
+                  <textarea
+                    name="reason"
+                    value={formData.reason}
+                    onChange={handleFormChange}
+                    placeholder="Describe the reason for issuing this fine..."
+                    maxLength="500"
+                    rows="3"
+                    required
+                    className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
+                  />
+                  <span className="text-[10px] text-muted-foreground">{formData.reason.length}/500</span>
+                </div>
 
-        <div className="filter-group">
-          <label>End Date</label>
-          <input
-            type="date"
-            name="endDate"
-            value={filters.endDate}
-            onChange={handleFilterChange}
-          />
-        </div>
-      </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">{t('Fine Amount')} (INR)</label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleFormChange}
+                    placeholder="₹0.00"
+                    min="0"
+                    step="0.01"
+                    required
+                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm mono-data placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
+                  />
+                </div>
 
-      {/* Fines List */}
-      <div className="fines-list-section">
-        <h2>Fines ({fines.length})</h2>
-        {loading && <TableSkeleton cols={5} rows={5} />}
-        {!loading && fines.length === 0 && <p>No fines found</p>}
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">{t('Evidence Image')} *</label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                    <Upload className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+                    <p className="text-xs text-muted-foreground">{t('Drop or click to upload')}</p>
+                    <input
+                      type="file"
+                      name="evidenceImage"
+                      onChange={handleFormChange}
+                      accept="image/*"
+                      required
+                      className="w-full mt-2 text-xs text-muted-foreground file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary/15 file:text-primary"
+                    />
+                  </div>
+                </div>
 
-        <div className="fines-table-container">
-          <>
-          <table className="fines-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Issued To</th>
-                <th>Amount</th>
-                <th>Reason</th>
-                <th>Status</th>
-                <th>Evidence</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedFines.map((fine) => (
-                <tr key={fine.id}>
-                  <td>{formatDate(fine.createdAt)}</td>
-                  <td>{fine.issuedTo?.fullName}</td>
-                  <td>INR {parseFloat(fine.amount || 0).toFixed(2)}</td>
-                  <td>{fine.reason.substring(0, 50)}...</td>
-                  <td>
-                    <span
-                      className="status-badge"
-                      style={{ backgroundColor: getStatusColor(fine.status) }}
-                    >
-                      {t(fine.status)}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-link"
-                      onClick={() => setFullScreenImage(fine.evidenceImage)}
-                    >
-                      View
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-link"
-                      onClick={() => setViewingFine(fine)}
-                    >
-                      Details
-                    </button>
-                    {canIssueFines && fine.status === 'Open' && (
-                      <>
-                        {' | '}
-                        <button
-                          className="btn-link"
-                          onClick={() => {
-                            setResolvingFine(fine);
-                            setResolveData({
-                              status: 'Resolved',
-                              resolutionNotes: '',
-                            });
-                          }}
-                        >
-                          Resolve
-                        </button>
-                      </>
-                    )}
-                    {canIssueFines && (fine.issuedById === user?.id || user?.designation === 'Director' || user?.designation === 'School Administrator') && (
-                      <>
-                        {' | '}
-                        <button
-                          className="btn-link btn-danger"
-                          onClick={() => handleDeleteFine(fine.id)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </>
-          <Pagination 
-            currentPage={currentPage} 
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(newRows) => {
-              setRowsPerPage(newRows);
-              setCurrentPage(1);
-            }}
-            total={fines.length}
-          />
+                <button type="submit" disabled={loading} className="w-full h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider flex items-center justify-center gap-2 transition-opacity active:opacity-80 hover:opacity-90 disabled:opacity-50">
+                  {loading ? t('Processing...') : <>{t('Execute Fine Action')} <Zap className="w-4 h-4" /></>}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Audit History Table */}
+        <div className={canIssueFines ? 'lg:col-span-8 order-1 lg:order-2' : 'lg:col-span-12'}>
+          <div className="bg-surface-container-highest rounded-lg edge-glow overflow-hidden">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border gap-3">
+              <h2 className="text-base font-bold text-foreground uppercase tracking-wider">{t('Audit History')}</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <SearchableSelect
+                  name="status"
+                  value={filters.status}
+                  onChange={handleFilterChange}
+                  placeholder="All Status"
+                  options={[
+                    { value: '', label: 'All Status' },
+                    ...STATUS_OPTIONS.map((status) => ({ value: status, label: status }))
+                  ]}
+                  className="w-full sm:w-36"
+                />
+                <input
+                  type="date"
+                  name="startDate"
+                  value={filters.startDate}
+                  onChange={handleFilterChange}
+                  className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                />
+                <input
+                  type="date"
+                  name="endDate"
+                  value={filters.endDate}
+                  onChange={handleFilterChange}
+                  className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                />
+                <button
+                  onClick={handleDownloadExcel}
+                  className="h-10 px-3 rounded-lg border border-border text-xs text-muted-foreground flex items-center gap-1.5 hover:bg-surface-container-high transition-colors"
+                >
+                  <Download className="w-3 h-3" /> Export
+                </button>
+              </div>
+            </div>
+
+            {/* Table */}
+            {loading && <div className="p-4"><TableSkeleton cols={5} rows={5} /></div>}
+            {!loading && fines.length === 0 && <p className="text-center py-8 text-sm text-muted-foreground">{t('No fines found')}</p>}
+
+            {!loading && fines.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Date')}</th>
+                      <th className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Issued To')}</th>
+                      <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Amount')}</th>
+                      <th className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Reason')}</th>
+                      <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Status')}</th>
+                      <th className="px-3 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedFines.map((fine) => (
+                      <tr key={fine.id} className="border-b border-border/30 hover:bg-surface-container-high/50 transition-colors">
+                        <td className="px-5 py-4 mono-data text-xs text-muted-foreground whitespace-nowrap">{formatDate(fine.createdAt)}</td>
+                        <td className="px-3 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {(fine.issuedTo?.fullName || '?').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            </span>
+                            <span className="font-semibold text-foreground text-sm">{fine.issuedTo?.fullName}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 text-right mono-data font-bold text-foreground">₹{parseFloat(fine.amount || 0).toFixed(2)}</td>
+                        <td className="px-3 py-4 text-foreground max-w-[180px] truncate">{fine.reason?.substring(0, 50)}...</td>
+                        <td className="px-3 py-4 text-center">
+                          <span className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider ${
+                            fine.status === 'Open' ? 'bg-warning/20 text-warning border border-warning/30' :
+                            fine.status === 'Resolved' ? 'bg-success/20 text-success border border-success/30' :
+                            'bg-muted text-muted-foreground border border-border'
+                          }`}>
+                            {t(fine.status === 'Open' ? 'PENDING' : fine.status?.toUpperCase())}
+                          </span>
+                        </td>
+                        <td className="px-3 py-4">
+                          <div className="flex items-center gap-2">
+                            <button className="text-xs text-primary hover:underline font-medium" onClick={() => fine.evidenceImage && setFullScreenImage(fine.evidenceImage)}>
+                              {t('Evidence')}
+                            </button>
+                            <button className="text-xs text-primary hover:underline font-medium" onClick={() => setViewingFine(fine)}>
+                              {t('Details')}
+                            </button>
+                            {canIssueFines && fine.status === 'Open' && (
+                              <button className="text-xs text-success hover:underline font-medium" onClick={() => { setResolvingFine(fine); setResolveData({ status: 'Resolved', resolutionNotes: '' }); }}>
+                                {t('Resolve')}
+                              </button>
+                            )}
+                            {canIssueFines && (fine.issuedById === user?.id || user?.designation === 'Director' || user?.designation === 'School Administrator') && (
+                              <button className="text-xs text-destructive hover:underline font-medium" onClick={() => handleDeleteFine(fine.id)}>
+                                {t('Delete')}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Pagination */}
+            <div className="px-4 sm:px-5 py-3 border-t border-border">
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => {
+                  setRowsPerPage(newRows);
+                  setCurrentPage(1);
+                }}
+                total={fines.length}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Full Screen Image Viewer */}
       {fullScreenImage && ReactDOM.createPortal(
-        <div className="full-screen-image-viewer" onClick={() => setFullScreenImage(null)}>
-          <div className="close-button" onClick={() => setFullScreenImage(null)}>
-            ?
-          </div>
-          <img src={fullScreenImage} alt="Evidence" />
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onClick={() => setFullScreenImage(null)}>
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-foreground hover:bg-surface-container-high" onClick={() => setFullScreenImage(null)}>
+            <X size={18} />
+          </button>
+          <img src={fullScreenImage} alt="Evidence" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" />
         </div>,
         document.body
       )}
 
       {/* Fine Details Modal */}
       {viewingFine && ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={() => setViewingFine(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{t('Fine Details')}</h2>
-              <button className="btn-close" onClick={() => setViewingFine(null)}>
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setViewingFine(null)}>
+          <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-foreground">{t('Fine Details')}</h2>
+              <button className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" onClick={() => setViewingFine(null)}>
                 <X size={18} />
               </button>
             </div>
-            <div className="modal-body">
-              <div className="detail-group">
-                <label>Date Issued:</label>
-                <p>{formatDate(viewingFine.createdAt)}</p>
-              </div>
-              <div className="detail-group">
-                <label>Issued By:</label>
-                <p>{viewingFine.issuedBy?.fullName}</p>
-              </div>
-              <div className="detail-group">
-                <label>Issued To:</label>
-                <p>{viewingFine.issuedTo?.fullName}</p>
-              </div>
-              <div className="detail-group">
-                <label>Amount:</label>
-                <p>INR {parseFloat(viewingFine.amount || 0).toFixed(2)}</p>
-              </div>
-              <div className="detail-group">
-                <label>Reason:</label>
-                <p>{viewingFine.reason}</p>
-              </div>
-              <div className="detail-group">
-                <label>Status:</label>
-                <p>
-                  <span
-                    className="status-badge"
-                    style={{ backgroundColor: getStatusColor(viewingFine.status) }}
-                  >
-                    {t(viewingFine.status)}
-                  </span>
-                </p>
+            <div className="space-y-3">
+              {[
+                ['Date Issued', formatDate(viewingFine.createdAt)],
+                ['Issued By', viewingFine.issuedBy?.fullName],
+                ['Issued To', viewingFine.issuedTo?.fullName],
+                ['Amount', `₹${parseFloat(viewingFine.amount || 0).toFixed(2)}`],
+                ['Reason', viewingFine.reason],
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between py-2 border-b border-white/5 last:border-0">
+                  <span className="text-sm text-muted-foreground">{label}</span>
+                  <span className="text-sm text-foreground font-medium text-right max-w-[60%]">{value}</span>
+                </div>
+              ))}
+              <div className="flex justify-between py-2 border-b border-white/5">
+                <span className="text-sm text-muted-foreground">{t('Status')}</span>
+                <span className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider ${
+                  viewingFine.status === 'Open' ? 'bg-warning/20 text-warning border border-warning/30' :
+                  viewingFine.status === 'Resolved' ? 'bg-success/20 text-success border border-success/30' :
+                  'bg-muted text-muted-foreground border border-border'
+                }`}>
+                  {t(viewingFine.status === 'Open' ? 'PENDING' : viewingFine.status?.toUpperCase())}
+                </span>
               </div>
               {viewingFine.resolvedBy && (
                 <>
-                  <div className="detail-group">
-                    <label>Resolved By:</label>
-                    <p>{viewingFine.resolvedBy?.fullName}</p>
+                  <div className="flex justify-between py-2 border-b border-white/5">
+                    <span className="text-sm text-muted-foreground">{t('Resolved By')}</span>
+                    <span className="text-sm text-foreground font-medium">{viewingFine.resolvedBy?.fullName}</span>
                   </div>
-                  <div className="detail-group">
-                    <label>Resolution Notes:</label>
-                    <p>{viewingFine.resolutionNotes}</p>
+                  <div className="flex justify-between py-2">
+                    <span className="text-sm text-muted-foreground">{t('Resolution Notes')}</span>
+                    <span className="text-sm text-foreground font-medium text-right max-w-[60%]">{viewingFine.resolutionNotes}</span>
                   </div>
                 </>
               )}
-              <div className="detail-group">
-                <label>Evidence Image:</label>
-                <img
-                  src={viewingFine.evidenceImage}
-                  alt="Evidence"
-                  className="detail-image"
-                  onClick={() => setFullScreenImage(viewingFine.evidenceImage)}
-                  style={{ cursor: 'pointer' }}
-                />
-              </div>
+              {viewingFine.evidenceImage && (
+                <div className="pt-2">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">{t('Evidence')}</p>
+                  <img
+                    src={viewingFine.evidenceImage}
+                    alt="Evidence"
+                    className="max-w-full max-h-[200px] rounded-lg border border-border cursor-pointer object-cover"
+                    onClick={() => setFullScreenImage(viewingFine.evidenceImage)}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>,
@@ -695,49 +697,48 @@ const FinePage = () => {
 
       {/* Resolve Fine Modal */}
       {resolvingFine && ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={() => setResolvingFine(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{t('Resolve Fine')}</h2>
-              <button className="btn-close" onClick={() => setResolvingFine(null)}>
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setResolvingFine(null)}>
+          <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-foreground">{t('Resolve Fine')}</h2>
+              <button className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground" onClick={() => setResolvingFine(null)}>
                 <X size={18} />
               </button>
             </div>
-            <form onSubmit={handleResolveFine}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label>Status</label>
-                  <SearchableSelect
-                    name="status"
-                    value={resolveData.status}
-                    onChange={handleResolveDataChange}
-                    options={[
-                      { value: 'Resolved', label: 'Resolved' },
-                      { value: 'Dismissed', label: 'Dismissed' },
-                    ]}
-                    placeholder="Select status..."
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Resolution Notes (optional)</label>
-                  <textarea
-                    name="resolutionNotes"
-                    value={resolveData.resolutionNotes}
-                    onChange={handleResolveDataChange}
-                    placeholder="Add any notes about the resolution..."
-                    maxLength="500"
-                    rows="3"
-                  />
-                  <small>{resolveData.resolutionNotes.length}/500</small>
-                </div>
+            <form onSubmit={handleResolveFine} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">{t('Status')}</label>
+                <SearchableSelect
+                  name="status"
+                  value={resolveData.status}
+                  onChange={handleResolveDataChange}
+                  options={[
+                    { value: 'Resolved', label: 'Resolved' },
+                    { value: 'Dismissed', label: 'Dismissed' },
+                  ]}
+                  placeholder="Select status..."
+                  required
+                />
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setResolvingFine(null)}>
-                  Cancel
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1.5">{t('Resolution Notes')} ({t('optional')})</label>
+                <textarea
+                  name="resolutionNotes"
+                  value={resolveData.resolutionNotes}
+                  onChange={handleResolveDataChange}
+                  placeholder="Add any notes about the resolution..."
+                  maxLength="500"
+                  rows="3"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
+                />
+                <span className="text-[10px] text-muted-foreground">{resolveData.resolutionNotes.length}/500</span>
+              </div>
+              <div className="flex gap-3">
+                <button type="button" className="flex-1 h-10 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={() => setResolvingFine(null)}>
+                  {t('Cancel')}
                 </button>
-                <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? 'Processing...' : <><Check size={16} /> Update Status</>}
+                <button type="submit" className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 transition-all disabled:opacity-50" disabled={loading}>
+                  {loading ? t('Processing...') : <><Check size={16} /> {t('Update Status')}</>}
                 </button>
               </div>
             </form>

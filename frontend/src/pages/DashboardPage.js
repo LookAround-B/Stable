@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import apiClient from '../services/apiClient';
+import EmployeeFaceIcon from '../components/EmployeeFaceIcon';
 import HorseIcon from '../components/HorseIcon';
-import { Package, Users, ClipboardList, ShieldAlert } from 'lucide-react';
+import { CheckSquare, NotebookPen, Package } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -222,6 +223,7 @@ const MetricCard = ({
   value,
   subtitle,
   icon: Icon,
+  watermarkIcon: WatermarkIcon = HorseIcon,
   iconTone = 'primary',
   subtitleTone = 'primary',
   variant = 'default',
@@ -234,12 +236,12 @@ const MetricCard = ({
   return (
     <div className={`dashboard-lovable-card dashboard-lovable-card--${variant}`}>
       <div className="dashboard-lovable-card-watermark">
-        <HorseIcon />
+        <WatermarkIcon />
       </div>
       <div className="dashboard-lovable-card-head">
         <span className="dashboard-lovable-card-title">{title}</span>
         <div className={`dashboard-lovable-card-icon dashboard-lovable-card-icon--${iconTone}`}>
-          <Icon size={18} strokeWidth={2} />
+          {Icon === HorseIcon || Icon === EmployeeFaceIcon ? <Icon className="dashboard-lovable-card-icon-svg" /> : <Icon size={18} strokeWidth={2} />}
         </div>
       </div>
       <div className="dashboard-lovable-card-body">
@@ -508,10 +510,10 @@ const DashboardPage = () => {
       </div>
 
       <div className="dashboard-lovable-card-grid">
-        <MetricCard icon={Package} title="Total Horses" value={metrics.totalHorses} subtitle="Registered Assets" iconTone="primary" subtitleTone="destructive" sparkData={metricSparks.horses} />
-        <MetricCard icon={Users} title="Total Staff / Users" value={metrics.totalStaff} subtitle="Active Sessions" iconTone="primary" subtitleTone="primary" sparkData={metricSparks.staff} />
-        <MetricCard icon={ClipboardList} title="Pending Tasks" value={metrics.pendingTasks} subtitle="Queue Clear" iconTone="success" subtitleTone="destructive" variant="success" sparkData={metricSparks.tasks} />
-        <MetricCard icon={ShieldAlert} title="Audit Logs / Issues" value={metrics.auditLogs} subtitle="No Critical Vulnerabilities" iconTone="destructive" subtitleTone="destructive" variant="alert" sparkData={metricSparks.audit} />
+        <MetricCard icon={Package} watermarkIcon={HorseIcon} title="Total Horses" value={metrics.totalHorses} subtitle="Registered Assets" iconTone="primary" subtitleTone="destructive" sparkData={metricSparks.horses} />
+        <MetricCard icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} title="Total Staff / Users" value={metrics.totalStaff} subtitle="Active Sessions" iconTone="primary" subtitleTone="primary" sparkData={metricSparks.staff} />
+        <MetricCard icon={CheckSquare} title="Pending Tasks" value={metrics.pendingTasks} subtitle="Queue Clear" iconTone="success" subtitleTone="destructive" variant="success" sparkData={metricSparks.tasks} />
+        <MetricCard icon={NotebookPen} title="Audit Logs / Issues" value={metrics.auditLogs} subtitle="No Critical Vulnerabilities" iconTone="destructive" subtitleTone="destructive" variant="alert" sparkData={metricSparks.audit} />
       </div>
 
       <div className="dashboard-lovable-chart-grid">

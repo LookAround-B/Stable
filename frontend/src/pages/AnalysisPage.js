@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
-  CheckCircle2,
+  CheckSquare,
+  Cog,
   Download,
-  TrendingUp,
-  Users,
 } from 'lucide-react';
 import {
   Area,
@@ -24,6 +23,7 @@ import {
   YAxis,
 } from 'recharts';
 import apiClient from '../services/apiClient';
+import EmployeeFaceIcon from '../components/EmployeeFaceIcon';
 import HorseIcon from '../components/HorseIcon';
 import usePermissions from '../hooks/usePermissions';
 import Skeleton from '../components/Skeleton';
@@ -236,43 +236,6 @@ const useCounter = (target, duration = 1000) => {
   return value;
 };
 
-const RandomLetterReveal = ({ text }) => {
-  const [displayText, setDisplayText] = useState('');
-
-  useEffect(() => {
-    if (!text) return undefined;
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const letters = text.split('');
-    let iteration = 0;
-
-    const interval = window.setInterval(() => {
-      setDisplayText(
-        letters
-          .map((char, index) => {
-            if (char === ' ') return ' ';
-            if (index < iteration) return char;
-            if (index === Math.floor(iteration)) {
-              return characters[Math.floor(Math.random() * characters.length)];
-            }
-            return ' ';
-          })
-          .join('')
-      );
-
-      if (iteration >= letters.length) {
-        window.clearInterval(interval);
-        setDisplayText(text);
-      }
-
-      iteration += 1;
-    }, 18);
-
-    return () => window.clearInterval(interval);
-  }, [text]);
-
-  return <span>{displayText || text}</span>;
-};
-
 const AnalysisPageSkeleton = () => (
   <div className="analysis-page lovable-page-shell analysis-page-skeleton">
     <div className="analysis-toolbar">
@@ -319,7 +282,7 @@ const AnalysisPageSkeleton = () => (
   </div>
 );
 
-const KpiTile = ({ icon: Icon, label, value, subtitle, colorClass, sparkData = [] }) => {
+const KpiTile = ({ icon: Icon, watermarkIcon: WatermarkIcon = HorseIcon, label, value, subtitle, colorClass, sparkData = [] }) => {
   const animatedValue = useCounter(typeof value === 'number' ? value : 0);
   const displayValue = typeof value === 'number' ? animatedValue : value;
   const normalizedSpark = normalizeSparkData(sparkData);
@@ -328,7 +291,7 @@ const KpiTile = ({ icon: Icon, label, value, subtitle, colorClass, sparkData = [
   return (
     <div className="analysis-kpi-card">
       <div className={`analysis-kpi-icon ${colorClass}`}>
-        {Icon === HorseIcon ? <HorseIcon className="analysis-kpi-icon-svg" /> : <Icon size={18} />}
+        {Icon === HorseIcon || Icon === EmployeeFaceIcon ? <Icon className="analysis-kpi-icon-svg" /> : <Icon size={18} />}
       </div>
       <div className="analysis-kpi-label">{label}</div>
       <div className="analysis-kpi-value">{displayValue}</div>
@@ -343,7 +306,7 @@ const KpiTile = ({ icon: Icon, label, value, subtitle, colorClass, sparkData = [
         )}
       </div>
       <div className="analysis-kpi-watermark">
-        <HorseIcon />
+        <WatermarkIcon />
       </div>
     </div>
   );
@@ -595,18 +558,17 @@ function AnalysisPage() {
 
   return (
     <div className="analysis-page lovable-page-shell">
-      <div className="analysis-toolbar">
-        <div className="analysis-toolbar-copy">
-          <div className="analysis-kicker">
+      <div className="analysis-page-header">
+        <div>
+          <div className="lovable-header-kicker">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
             <span>Intelligence Center</span>
           </div>
-          <h1 className="analysis-title">
-            <RandomLetterReveal text="Analysis" />
-          </h1>
+          <h1 className="analysis-title">Analysis</h1>
+          <p className="info-text">Operational intelligence across horses, staff, tasks, and expenses.</p>
         </div>
-        <div className="analysis-toolbar-actions">
+        <div className="lovable-header-actions">
           <button className="analysis-toolbar-btn" type="button" onClick={exportAnalysis}>
             <Download size={14} /> Export
           </button>
@@ -614,10 +576,10 @@ function AnalysisPage() {
       </div>
 
       <div className="analysis-kpi-grid">
-        <KpiTile icon={HorseIcon} label="Total Horses" value={data.metrics.totalHorses} subtitle="+ live facility count" colorClass="primary" sparkData={data.kpiSparks.horses} />
-        <KpiTile icon={Users} label="Active Staff" value={data.metrics.activeStaff} subtitle="Current approved workforce" colorClass="success" sparkData={data.kpiSparks.staff} />
-        <KpiTile icon={CheckCircle2} label="Task Completion" value={`${data.metrics.taskCompletion}%`} subtitle="Completed vs total tasks" colorClass="primary" sparkData={data.kpiSparks.taskCompletion} />
-        <KpiTile icon={TrendingUp} label="Operational Score" value={data.metrics.operationalScore} subtitle="Derived from live backend data" colorClass="success" sparkData={data.kpiSparks.operationalScore} />
+        <KpiTile icon={HorseIcon} watermarkIcon={HorseIcon} label="Total Horses" value={data.metrics.totalHorses} subtitle="+ live facility count" colorClass="primary" sparkData={data.kpiSparks.horses} />
+        <KpiTile icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} label="Active Staff" value={data.metrics.activeStaff} subtitle="Current approved workforce" colorClass="success" sparkData={data.kpiSparks.staff} />
+        <KpiTile icon={CheckSquare} label="Task Completion" value={`${data.metrics.taskCompletion}%`} subtitle="Completed vs total tasks" colorClass="primary" sparkData={data.kpiSparks.taskCompletion} />
+        <KpiTile icon={Cog} label="Operational Score" value={data.metrics.operationalScore} subtitle="Derived from live backend data" colorClass="success" sparkData={data.kpiSparks.operationalScore} />
       </div>
 
       <div className="analysis-chart-grid">
