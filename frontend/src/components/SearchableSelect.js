@@ -78,7 +78,7 @@ const SearchableSelect = ({
     if (!disabled) setOpen((prev) => !prev);
   };
 
-  const heightClass = size === 'sm' ? 'h-9' : 'h-10';
+  const heightClass = size === 'sm' ? 'h-10' : 'h-11';
 
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
@@ -100,7 +100,7 @@ const SearchableSelect = ({
         type="button"
         onClick={handleToggle}
         disabled={disabled}
-        className={`w-full ${heightClass} px-3 rounded-lg bg-surface-container-high border border-border text-sm flex items-center justify-between gap-2 outline-none focus:ring-1 focus:ring-primary transition-colors hover:border-primary/40 disabled:opacity-50 disabled:cursor-not-allowed`}
+        className={`w-full ${heightClass} px-4 rounded-lg bg-surface-container-high border border-border text-sm flex items-center justify-between gap-2 outline-none focus:ring-1 focus:ring-primary transition-colors hover:border-primary/40 disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <span className={`truncate ${selectedLabel ? 'text-foreground' : 'text-muted-foreground/60'}`}>
           {selectedLabel || placeholder}
@@ -112,11 +112,11 @@ const SearchableSelect = ({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 top-full mt-1 w-full min-w-[160px] rounded-lg bg-surface-container-highest border border-border shadow-xl overflow-hidden">
+        <div className="absolute z-50 top-full mt-1.5 w-full min-w-[200px] rounded-xl bg-surface-container-highest border border-border shadow-2xl overflow-hidden">
           {showSearch && (
-            <div className="p-2 border-b border-border">
+            <div className="p-2.5 border-b border-border/50">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
                 <input
                   ref={searchRef}
                   autoFocus
@@ -124,36 +124,36 @@ const SearchableSelect = ({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search..."
-                  className="w-full h-8 pl-8 pr-3 rounded-md bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full h-10 pl-9 pr-3 rounded-lg bg-surface-container-high/50 border border-border/50 text-foreground text-sm placeholder:text-muted-foreground/40 focus:border-primary/40 outline-none"
                 />
               </div>
             </div>
           )}
 
-          <div className="max-h-52 overflow-y-auto py-1">
+          <div className="max-h-80 overflow-y-auto py-1.5">
             {showCreateOption && (
               <button
                 type="button"
                 onClick={() => handleSelect(search.trim())}
-                className="w-full text-left px-3 py-2 text-sm text-primary flex items-center gap-2 transition-colors hover:bg-primary/10"
+                className="w-full text-left px-4 py-3 text-sm text-primary flex items-center gap-2 transition-colors hover:bg-primary/10"
               >
                 + Add "{search.trim()}"
               </button>
             )}
             {filtered.length === 0 && !showCreateOption ? (
-              <p className="px-3 py-2 text-sm text-muted-foreground text-center">No results</p>
+              <p className="px-4 py-3 text-sm text-muted-foreground text-center">No results</p>
             ) : (
               filtered.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => handleSelect(option.value)}
-                  className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between gap-2 transition-colors hover:bg-primary/10 ${
+                  className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between gap-2 transition-colors hover:bg-primary/10 ${
                     String(option.value) === String(value) ? 'text-primary bg-primary/5' : 'text-foreground'
                   }`}
                 >
                   <span className="truncate">{option.label}</span>
-                  {String(option.value) === String(value) && <Check className="w-3.5 h-3.5 shrink-0" />}
+                  {String(option.value) === String(value) && <Check className="w-4 h-4 shrink-0" />}
                 </button>
               ))
             )}
