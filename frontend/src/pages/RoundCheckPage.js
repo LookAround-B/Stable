@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import roundCheckService from '../services/roundCheckService';
 import { useI18n } from '../context/I18nContext';
 import { ClipboardCheck, Sunrise, Sun, Moon, Info } from 'lucide-react';
+import DatePicker from '../components/shared/DatePicker';
 
 const RoundCheckPage = () => {
   const { t } = useI18n();
@@ -95,7 +96,7 @@ const RoundCheckPage = () => {
             <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Selected Date')}</span>
           </div>
           <div className="flex items-center gap-4">
-            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} disabled={loading} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} disabled={loading} />
             <p className="text-sm text-muted-foreground">{formatDate(selectedDate)}</p>
           </div>
         </div>

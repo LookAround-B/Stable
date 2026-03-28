@@ -7,6 +7,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, ClipboardCheck } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
@@ -104,7 +105,7 @@ const GroomWorkSheetPage = () => {
       <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={inputCls} />
+          <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
         <div className="min-w-[200px]">
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Groom Filter</label>

@@ -10,6 +10,7 @@ import { Navigate } from 'react-router-dom';
 import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, Search, AlertOctagon, ClipboardList, CheckCircle2, Activity } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import DatePicker from '../components/shared/DatePicker';
 
 const InspectionPage = () => {
   const { user } = useAuth();
@@ -197,11 +198,11 @@ const InspectionPage = () => {
         </div>
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">From</label>
-          <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className={inputCls} />
+          <DatePicker value={filters.startDate} onChange={(val) => handleFilterChange({ target: { name: 'startDate', value: val } })} size="sm" />
         </div>
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">To</label>
-          <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className={inputCls} />
+          <DatePicker value={filters.endDate} onChange={(val) => handleFilterChange({ target: { name: 'endDate', value: val } })} size="sm" />
         </div>
       </div>
 

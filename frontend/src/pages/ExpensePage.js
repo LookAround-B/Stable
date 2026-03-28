@@ -9,6 +9,7 @@ import { CheckCircle, FileText, Filter, Plus, TrendingUp, Upload } from 'lucide-
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import usePermissions from '../hooks/usePermissions';
+import DatePicker from '../components/shared/DatePicker';
 
 const ExpensePage = () => {
   const { user } = useAuth();
@@ -703,19 +704,15 @@ const ExpensePage = () => {
           />
         </div>
         <div className="flex items-center gap-2 flex-nowrap xl:shrink-0">
-          <input
-            type="date"
-            name="startDate"
+          <DatePicker
             value={filters.startDate}
-            onChange={handleFilterChange}
-            className="h-8 w-[148px] px-3 rounded-lg border border-border bg-surface-container-high text-foreground text-xs focus:ring-1 focus:ring-primary outline-none"
+            onChange={(val) => handleFilterChange({ target: { name: 'startDate', value: val } })}
+            size="sm"
           />
-          <input
-            type="date"
-            name="endDate"
+          <DatePicker
             value={filters.endDate}
-            onChange={handleFilterChange}
-            className="h-8 w-[148px] px-3 rounded-lg border border-border bg-surface-container-high text-foreground text-xs focus:ring-1 focus:ring-primary outline-none"
+            onChange={(val) => handleFilterChange({ target: { name: 'endDate', value: val } })}
+            size="sm"
           />
         </div>
         {Object.values(filters).some(Boolean) && (
@@ -919,13 +916,10 @@ const ExpensePage = () => {
                   </div>
                   <div>
                     <label className="label-sm text-primary block mb-1.5">ENTRY DATE</label>
-                    <input
-                      type="date"
-                      name="date"
+                    <DatePicker
                       value={formData.date}
-                      onChange={handleFormChange}
+                      onChange={(val) => handleFormChange({ target: { name: 'date', value: val } })}
                       required
-                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                 </div>

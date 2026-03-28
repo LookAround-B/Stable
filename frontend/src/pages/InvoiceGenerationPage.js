@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import DatePicker from '../components/shared/DatePicker';
 import * as XLSX from 'xlsx';
 import usePermissions from '../hooks/usePermissions';
 import { Download, FileText, Printer, SlidersHorizontal, TrendingUp } from 'lucide-react';
@@ -331,28 +332,26 @@ const InvoiceGenerationPage = () => {
               <div>
                 <label className="label-sm text-muted-foreground block mb-2">DATE RANGE</label>
                 <div className="grid grid-cols-2 gap-3">
-                  <input
-                    type="date"
-                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                  <DatePicker
                     value={filters.startDate}
-                    onChange={(e) =>
+                    onChange={(val) =>
                       setFilters((prev) => ({
                         ...prev,
-                        startDate: e.target.value,
+                        startDate: val,
                       }))
                     }
+                    placeholder="Start date"
                     required
                   />
-                  <input
-                    type="date"
-                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                  <DatePicker
                     value={filters.endDate}
-                    onChange={(e) =>
+                    onChange={(val) =>
                       setFilters((prev) => ({
                         ...prev,
-                        endDate: e.target.value,
+                        endDate: val,
                       }))
                     }
+                    placeholder="End date"
                     required
                   />
                 </div>

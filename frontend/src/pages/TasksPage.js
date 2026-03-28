@@ -7,6 +7,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { BarChart3, Camera, Check, Clock3, Package, Play, SlidersHorizontal, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import DateTimePicker from '../components/shared/DateTimePicker';
 
 const TASK_TYPES = [
   'Feed',
@@ -978,7 +979,7 @@ const TasksPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Scheduled Date & Time *</label>
-                <input type="datetime-local" name="scheduledTime" value={formData.scheduledTime} onChange={handleInputChange} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DateTimePicker value={formData.scheduledTime} onChange={(val) => handleInputChange({ target: { name: 'scheduledTime', value: val } })} required />
               </div>
               <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                 <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />

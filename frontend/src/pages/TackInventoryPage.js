@@ -10,6 +10,8 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react';
+import DatePicker from '../components/shared/DatePicker';
+import SelectField from '../components/shared/SelectField';
 
 const CATEGORIES = ["Saddle", "Bridle", "Grooming Gear", "Training Equipment"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -257,11 +259,11 @@ const TackInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
-                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.purchaseDate} onChange={(val) => handleInputChange({ target: { name: 'purchaseDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Used Date</label>
-                <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.lastUsedDate} onChange={(val) => handleInputChange({ target: { name: 'lastUsedDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Cleaning Schedule</label>
@@ -320,17 +322,11 @@ const TackInventoryPage = () => {
             <div className="flex flex-wrap gap-3 items-end">
               <div className="w-44">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
-                <select value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                  <option value="">All</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <SelectField value={filterCategory} onChange={(val) => { setFilterCategory(val); setCurrentPage(1); }} options={['', ...CATEGORIES]} placeholder="All" size="sm" />
               </div>
               <div className="w-40">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Condition</label>
-                <select value={filterCondition} onChange={e => { setFilterCondition(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                  <option value="">All</option>
-                  {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <SelectField value={filterCondition} onChange={(val) => { setFilterCondition(val); setCurrentPage(1); }} options={['', ...CONDITIONS]} placeholder="All" size="sm" />
               </div>
               {hasActiveFilters && (
                 <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">

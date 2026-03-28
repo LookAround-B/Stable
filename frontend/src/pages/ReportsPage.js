@@ -9,6 +9,7 @@ import medicineLogService from '../services/medicineLogService';
 import * as XLSX from 'xlsx';
 import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, Calendar, MoreHorizontal } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Bar, BarChart } from 'recharts';
+import DatePicker from '../components/shared/DatePicker';
 
 const trendData = [
   { month: 'JAN_24', optimal: 60, actual: 55 },
@@ -310,9 +311,9 @@ const ReportsPage = () => {
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex bg-surface-container-highest rounded-lg border border-border px-3 h-9 items-center gap-2">
             <Calendar className="w-4 h-4 text-primary" />
-            <input type="date" value={dateRange.startDate} onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))} className="bg-transparent text-xs text-foreground outline-none border-none w-24" />
+            <DatePicker value={dateRange.startDate} onChange={(val) => setDateRange(prev => ({ ...prev, startDate: val }))} className="w-32" />
             <span className="text-muted-foreground text-xs">-</span>
-            <input type="date" value={dateRange.endDate} onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))} className="bg-transparent text-xs text-foreground outline-none border-none w-24" />
+            <DatePicker value={dateRange.endDate} onChange={(val) => setDateRange(prev => ({ ...prev, endDate: val }))} className="w-32" />
           </div>
           <div className="flex border border-border rounded-lg overflow-hidden h-9">
             <button onClick={handleDownloadExcel} className="px-3 sm:px-4 text-foreground text-xs font-bold hover:bg-surface-container-high transition-colors flex items-center gap-2 uppercase tracking-wider">

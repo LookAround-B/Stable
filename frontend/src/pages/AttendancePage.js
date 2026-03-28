@@ -5,6 +5,8 @@ import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import { Download, Plus, Users, UserCheck, Clock, X, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DateTimePicker from '../components/shared/DateTimePicker';
+import SelectField from '../components/shared/SelectField';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
@@ -237,45 +239,32 @@ const AttendancePage = () => {
                
                <div>
                   <label className={lbl}>{t('Time In')} *</label>
-                  <input
-                    type="datetime-local"
-                    name="timeIn"
+                  <DateTimePicker
                     value={formData.timeIn}
-                    onChange={handleInputChange}
+                    onChange={(val) => handleInputChange({ target: { name: 'timeIn', value: val } })}
                     required
                     disabled={loading}
-                    className={inp}
                   />
                </div>
 
                <div>
                  <label className={lbl}>{t('Time Out')}</label>
-                 <input
-                   type="datetime-local"
-                   name="timeOut"
+                 <DateTimePicker
                    value={formData.timeOut}
-                   onChange={handleInputChange}
+                   onChange={(val) => handleInputChange({ target: { name: 'timeOut', value: val } })}
                    disabled={loading}
-                   className={inp}
                  />
                </div>
 
                {requiresShift && (
                  <div>
                    <label className={lbl}>{t('Shift')} *</label>
-                   <select
-                     name="shift"
+                   <SelectField
                      value={formData.shift}
-                     onChange={handleInputChange}
-                     required
+                     onChange={(val) => handleInputChange({ target: { name: 'shift', value: val } })}
+                     options={['-- Select Shift --', ...SHIFTS]}
                      disabled={loading}
-                     className={inp}
-                   >
-                     <option value="">-- Select Shift --</option>
-                     {SHIFTS.map((s) => (
-                       <option key={s} value={s}>{s}</option>
-                     ))}
-                   </select>
+                   />
                  </div>
                )}
 

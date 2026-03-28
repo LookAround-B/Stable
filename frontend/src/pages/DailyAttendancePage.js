@@ -7,6 +7,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Users, UserCheck, UserX, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const DailyAttendancePage = () => {
   const { user } = useAuth();
@@ -124,7 +125,7 @@ const DailyAttendancePage = () => {
       <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+          <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
         <div className="relative flex-1 max-w-sm">
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Search</label>

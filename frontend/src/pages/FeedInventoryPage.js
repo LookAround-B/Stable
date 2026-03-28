@@ -8,6 +8,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
+import DatePicker from '../components/shared/DatePicker';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
@@ -311,11 +312,11 @@ const FeedInventoryPage = () => {
             <div className="flex flex-wrap sm:flex-nowrap items-end gap-3 w-full sm:w-auto">
               <div className="w-full sm:w-auto">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
-                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className="w-full sm:w-auto h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={reportStartDate} onChange={(val) => setReportStartDate(val)} />
               </div>
               <div className="w-full sm:w-auto">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
-                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className="w-full sm:w-auto h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={reportEndDate} onChange={(val) => setReportEndDate(val)} />
               </div>
             </div>
             <div className="flex gap-2 md:ml-auto w-full sm:w-auto">

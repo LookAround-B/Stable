@@ -6,6 +6,8 @@ import { useI18n } from '../context/I18nContext'
 import usePermissions from '../hooks/usePermissions'
 import { Navigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Calendar, Users, Clock, MapPin, Plus, X } from 'lucide-react'
+import DatePicker from '../components/shared/DatePicker';
+import TimePicker from '../components/shared/TimePicker';
 
 const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
@@ -559,11 +561,11 @@ const MeetingPage = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
-                  <input type="date" required value={formData.meetingDate} onChange={e => setFormData(prev => ({ ...prev, meetingDate: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  <DatePicker value={formData.meetingDate} onChange={(val) => setFormData(prev => ({ ...prev, meetingDate: val }))} required />
                 </div>
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Time</label>
-                  <input type="time" value={formData.meetingTime} onChange={e => setFormData(prev => ({ ...prev, meetingTime: e.target.value }))} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  <TimePicker value={formData.meetingTime} onChange={(val) => setFormData(prev => ({ ...prev, meetingTime: val }))} />
                 </div>
               </div>
               <div>

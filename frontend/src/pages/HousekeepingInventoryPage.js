@@ -9,6 +9,8 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react';
+import DatePicker from '../components/shared/DatePicker';
+import SelectField from '../components/shared/SelectField';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
 const UNIT_TYPES = ["Liters", "Pieces", "Kg"];
@@ -247,15 +249,15 @@ const HousekeepingInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
-                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.purchaseDate} onChange={(val) => handleInputChange({ target: { name: 'purchaseDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Expiry Date</label>
-                <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.expiryDate} onChange={(val) => handleInputChange({ target: { name: 'expiryDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Restocked</label>
-                <input type="date" name="lastRestockedDate" value={formData.lastRestockedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.lastRestockedDate} onChange={(val) => handleInputChange({ target: { name: 'lastRestockedDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assigned Staff</label>
@@ -310,17 +312,11 @@ const HousekeepingInventoryPage = () => {
             <div className="flex flex-wrap gap-3 items-end">
               <div className="w-44">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
-                <select value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                  <option value="">All Areas</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <SelectField value={filterCategory} onChange={(val) => { setFilterCategory(val); setCurrentPage(1); }} options={['', ...CATEGORIES]} placeholder="All Areas" size="sm" />
               </div>
               <div className="w-40">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Usage Area</label>
-                <select value={filterArea} onChange={e => { setFilterArea(e.target.value); setCurrentPage(1); }} className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                  <option value="">All</option>
-                  {USAGE_AREAS.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <SelectField value={filterArea} onChange={(val) => { setFilterArea(val); setCurrentPage(1); }} options={['', ...USAGE_AREAS]} placeholder="All" size="sm" />
               </div>
               {hasActiveFilters && (
                 <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">

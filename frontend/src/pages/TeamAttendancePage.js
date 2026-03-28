@@ -7,6 +7,7 @@ import { Download, Plus, X, Users, UserCheck, CalendarCheck, Clock, CheckCircle2
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import DatePicker from '../components/shared/DatePicker';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -196,7 +197,7 @@ const TeamAttendancePage = () => {
               </div>
               <div>
                 <label className={lbl}>{t('Date')} *</label>
-                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required className={inp} />
+                <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} required />
               </div>
               <div>
                 <label className={lbl}>{t('Role')}</label>
@@ -224,7 +225,7 @@ const TeamAttendancePage = () => {
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
             <span className="text-sm font-medium text-foreground whitespace-nowrap">{t('Records for:')}</span>
-            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} className="w-40" />
           </div>
           <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
         </div>

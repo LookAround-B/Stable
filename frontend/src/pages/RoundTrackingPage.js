@@ -3,6 +3,7 @@ import roundCheckService from '../services/roundCheckService';
 import { useI18n } from '../context/I18nContext';
 import { Download, Users, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const RoundTrackingPage = () => {
   const { t } = useI18n();
@@ -94,7 +95,7 @@ const RoundTrackingPage = () => {
       <div className="flex items-end gap-4">
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Select Date</label>
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} disabled={loading} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+          <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} disabled={loading} />
         </div>
         <p className="text-sm text-muted-foreground pb-2">{formatDate(selectedDate)}</p>
       </div>

@@ -7,6 +7,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const HorseFeedsPage = () => {
   const { t } = useI18n();
@@ -177,12 +178,12 @@ const HorseFeedsPage = () => {
           <div>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">From</label>
             <div className="relative">
-              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              <DatePicker value={fromDate} onChange={(val) => setFromDate(val)} />
             </div>
           </div>
           <div>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">To</label>
-            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+            <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
           </div>
         </div>
         <div className="relative flex-1 max-w-xs">
@@ -208,7 +209,7 @@ const HorseFeedsPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
-                <input type="date" id="date" name="date" value={formData.date} onChange={handleFormChange} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.date} onChange={(val) => handleFormChange({ target: { name: 'date', value: val } })} required />
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">

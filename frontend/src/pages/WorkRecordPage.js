@@ -7,6 +7,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Search, SlidersHorizontal, X, Plus, Wrench, Clock, ListChecks, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px]';
@@ -224,15 +225,11 @@ const WorkRecordPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={lbl}>{t('Staff Category')}</label>
-                <select 
-                  className={inp} 
+                <SearchableSelect 
                   value={selectedCategory} 
                   onChange={(e) => { setSelectedCategory(e.target.value); setFilterStaffId('all'); setNewWorkRecord({...newWorkRecord, staffId: ''}); }}
-                >
-                  {Object.entries(STAFF_CATEGORIES).map(([key, cat]) => (
-                    <option key={key} value={key}>{t(cat.label)}</option>
-                  ))}
-                </select>
+                  options={Object.entries(STAFF_CATEGORIES).map(([key, cat]) => ({ value: key, label: t(cat.label) }))}
+                />
               </div>
               <div className="z-10">
                  <label className={lbl}>{t('Staff Member')} *</label>
@@ -349,11 +346,10 @@ const WorkRecordPage = () => {
            <button onClick={() => setShowFilters(v => !v)} className={`shrink-0 h-10 px-4 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors ${showFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-border/50'}`}>
               <SlidersHorizontal className="w-4 h-4" /> {t('Filters')}
            </button>
-           <input 
-              type="date" 
-              className={`shrink-0 h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center`} 
-              value={selectedDate} 
-              onChange={e => setSelectedDate(e.target.value)} 
+           <DatePicker
+              value={selectedDate}
+              onChange={(val) => setSelectedDate(val)}
+              size="sm"
            />
         </div>
       </div>

@@ -27,6 +27,7 @@ import {
   BellRing
 } from "lucide-react";
 import Pagination from "../components/Pagination";
+import DatePicker from '../components/shared/DatePicker';
 
 const MONTH_NAMES = [
   "January",
@@ -700,22 +701,16 @@ const GroceriesInventoryPage = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label-sm text-muted-foreground block mb-1.5">PURCHASE DATE</label>
-                  <input
-                    type="date"
-                    name="purchaseDate"
+                  <DatePicker
                     value={formData.purchaseDate}
-                    onChange={handleInputChange}
-                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    onChange={(val) => handleInputChange({ target: { name: 'purchaseDate', value: val } })}
                   />
                 </div>
                 <div>
                   <label className="label-sm text-muted-foreground block mb-1.5">EXPIRY DATE</label>
-                  <input
-                    type="date"
-                    name="expiryDate"
+                  <DatePicker
                     value={formData.expiryDate}
-                    onChange={handleInputChange}
-                    className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    onChange={(val) => handleInputChange({ target: { name: 'expiryDate', value: val } })}
                   />
                 </div>
               </div>

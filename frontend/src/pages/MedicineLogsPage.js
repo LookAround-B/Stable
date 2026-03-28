@@ -11,6 +11,8 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Pill, Activity, CheckCircle, AlertTriangle, SlidersHorizontal, Search, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DateTimePicker from '../components/shared/DateTimePicker';
+import SelectField from '../components/shared/SelectField';
 
 const MedicineLogsPage = () => {
   const { user } = useAuth();
@@ -475,13 +477,15 @@ const MedicineLogsPage = () => {
                 </div>
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
-                  <select name="unit" value={formData.unit} onChange={handleFormChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none">
-                    {UNITS.map(unit => <option key={unit} value={unit}>{unit}</option>)}
-                  </select>
+                  <SelectField
+                    value={formData.unit}
+                    onChange={(val) => handleFormChange({ target: { name: 'unit', value: val } })}
+                    options={UNITS}
+                  />
                 </div>
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Time Administered *</label>
-                  <input type="datetime-local" name="timeAdministered" value={formData.timeAdministered} onChange={handleFormChange} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  <DateTimePicker value={formData.timeAdministered} onChange={(val) => handleFormChange({ target: { name: 'timeAdministered', value: val } })} required />
                 </div>
               </div>
               <div>

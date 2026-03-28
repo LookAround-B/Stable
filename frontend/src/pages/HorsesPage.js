@@ -10,6 +10,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',
@@ -563,7 +564,7 @@ const HorsesPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date of Birth')}</label>
-                    <input id="dateOfBirth" type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none [color-scheme:dark]" />
+                    <DatePicker value={formData.dateOfBirth} onChange={(val) => handleInputChange({ target: { name: 'dateOfBirth', value: val } })} disabled={loading} />
                   </div>
                 </div>
 

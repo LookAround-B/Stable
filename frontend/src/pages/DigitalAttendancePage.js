@@ -4,6 +4,8 @@ import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
 import { Download, Plus, X, CalendarCheck, Clock, CheckCircle2, History, Calendar, LayoutDashboard } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
+import SelectField from '../components/shared/SelectField';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none disabled:opacity-50';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -159,17 +161,11 @@ const DigitalAttendancePage = () => {
               </div>
               <div>
                 <label className={lbl}>{t('Date')} *</label>
-                <input type="date" name="date" value={formData.date} onChange={handleFormChange} required className={inp} />
+                <DatePicker value={formData.date} onChange={(val) => handleFormChange({ target: { name: 'date', value: val } })} required />
               </div>
               <div>
                 <label className={lbl}>{t('Attendance Status')} *</label>
-                <select name="status" value={formData.status} onChange={handleFormChange} required className={inp}>
-                  <option value="Present">{t('Present')}</option>
-                  <option value="Absent">{t('Absent')}</option>
-                  <option value="Leave">{t('Leave')}</option>
-                  <option value="WOFF">{t('Weekly Off')}</option>
-                  <option value="Half Day">{t('Half Day')}</option>
-                </select>
+                <SelectField value={formData.status} onChange={(val) => handleFormChange({ target: { name: 'status', value: val } })} options={['Present', 'Absent', 'Leave', 'WOFF', 'Half Day']} />
               </div>
               <div>
                 <label className={lbl}>{t('Remarks (Optional)')}</label>
@@ -193,7 +189,7 @@ const DigitalAttendancePage = () => {
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
             <span className="text-sm font-medium text-foreground whitespace-nowrap">{t('Records for Date:')}</span>
-            <input type="date" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} className="h-9 px-3 rounded-lg bg-surface-container border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+            <DatePicker value={searchDate} onChange={(val) => setSearchDate(val)} className="w-40" />
           </div>
           <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
         </div>

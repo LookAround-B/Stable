@@ -8,6 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Bell, BellOff, Send, Plus, X, Trash2, Hammer, Clock, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DateTimePicker from '../components/shared/DateTimePicker';
 
 const SHOEING_INTERVAL_DAYS = 21;
 
@@ -151,7 +152,7 @@ const FarrierShoeingPage = () => {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Farrier <span className="text-primary">Shoeing</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule — every {SHOEING_INTERVAL_DAYS} days</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule ï¿½ every {SHOEING_INTERVAL_DAYS} days</p>
         </div>
         <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
       </div>
@@ -217,7 +218,7 @@ const FarrierShoeingPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shoeing Date & Time *</label>
-                <input type="datetime-local" value={formData.shoeingDate} onChange={(e) => setFormData((prev) => ({ ...prev, shoeingDate: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DateTimePicker value={formData.shoeingDate} onChange={(val) => setFormData((prev) => ({ ...prev, shoeingDate: val }))} required />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Due (auto)</label>
@@ -255,12 +256,12 @@ const FarrierShoeingPage = () => {
                     {records.map((record) => (
                       <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{record.horse?.name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{record.horse?.stableNumber || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{record.horse?.stableNumber || 'ï¿½'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{record.farrier?.fullName || 'Unknown'}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.shoeingDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.nextDueDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3">{getStatusBadge(record)}</td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || 'ï¿½'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleDelete(record.id)} disabled={loading} className="h-8 px-3 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition-colors flex items-center gap-1.5"><Trash2 className="w-3 h-3" /> Delete</button>
                         </td>
@@ -295,15 +296,15 @@ const FarrierShoeingPage = () => {
                     {pendingHorses.map((item, idx) => (
                       <tr key={idx} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{item.horse?.name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || 'ï¿½'}</td>
                         <td className="px-4 py-3">{item.neverShoed ? <span className="text-destructive font-semibold text-xs">Never Shoed</span> : <span className="text-muted-foreground mono-data">{new Date(item.lastShoeingDate).toLocaleDateString('en-GB')}</span>}</td>
-                        <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : 'ï¿½'}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-destructive/30 text-destructive bg-destructive/10">
                             {item.neverShoed ? 'Never Shoed' : `${item.daysOverdue} day${item.daysOverdue !== 1 ? 's' : ''} overdue`}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || 'ï¿½'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleQuickShoe(item.horse?.id)} className="h-8 px-4 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1.5"><Hammer className="w-3 h-3" /> Shoe Now</button>
                         </td>

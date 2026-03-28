@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../services/authService';
 import apiClient from '../services/apiClient';
+import SelectField from '../components/shared/SelectField';
 
 const PendingApprovalPage = () => {
   const { user } = useAuth();
@@ -98,28 +99,11 @@ const PendingApprovalPage = () => {
 
                   <div className="lp-field">
                     <label className="lp-label">Your Role</label>
-                    <select
-                      className="lp-input"
-                      name="designation"
+                    <SelectField
                       value={formData.designation}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Select a role</option>
-                      <option value="Guard">Guard</option>
-                      <option value="Groom">Groom</option>
-                      <option value="Gardener">Gardener</option>
-                      <option value="Housekeeping">Housekeeping</option>
-                      <option value="Electrician">Electrician</option>
-                      <option value="Ground Supervisor">Ground Supervisor</option>
-                      <option value="Riding Boy">Riding Boy</option>
-                      <option value="Rider">Rider</option>
-                      <option value="Instructor">Instructor</option>
-                      <option value="Farrier">Farrier</option>
-                      <option value="Jamedar">Jamedar</option>
-                      <option value="Stable Manager">Stable Manager</option>
-                      <option value="Executive Admin">Executive Admin</option>
-                    </select>
+                      onChange={(val) => handleInputChange({ target: { name: 'designation', value: val } })}
+                      options={['Select a role', 'Guard', 'Groom', 'Gardener', 'Housekeeping', 'Electrician', 'Ground Supervisor', 'Riding Boy', 'Rider', 'Instructor', 'Farrier', 'Jamedar', 'Stable Manager', 'Executive Admin']}
+                    />
                   </div>
 
                   {error && <div className="lp-error">{error}</div>}

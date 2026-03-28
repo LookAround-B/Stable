@@ -7,6 +7,7 @@ import { Download, Plus, X, Users, UserCheck, Clock, DoorOpen } from 'lucide-rea
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import DateTimePicker from '../components/shared/DateTimePicker';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
@@ -280,11 +281,11 @@ const GateAttendancePage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Entry Time *</label>
-                    <input type="datetime-local" value={staffForm.entryTime} onChange={(e) => setStaffForm({ ...staffForm, entryTime: e.target.value })} required disabled={loading} className={inputCls} />
+                    <DateTimePicker value={staffForm.entryTime} onChange={(val) => setStaffForm({ ...staffForm, entryTime: val })} required disabled={loading} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Exit Time</label>
-                    <input type="datetime-local" value={staffForm.exitTime} onChange={(e) => setStaffForm({ ...staffForm, exitTime: e.target.value })} disabled={loading} className={inputCls} />
+                    <DateTimePicker value={staffForm.exitTime} onChange={(val) => setStaffForm({ ...staffForm, exitTime: val })} disabled={loading} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shift *</label>
@@ -336,11 +337,11 @@ const GateAttendancePage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Entry Time *</label>
-                    <input type="datetime-local" value={visitorForm.entryTime} onChange={(e) => setVisitorForm({ ...visitorForm, entryTime: e.target.value })} required disabled={loading} className={inputCls} />
+                    <DateTimePicker value={visitorForm.entryTime} onChange={(val) => setVisitorForm({ ...visitorForm, entryTime: val })} required disabled={loading} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Exit Time</label>
-                    <input type="datetime-local" value={visitorForm.exitTime} onChange={(e) => setVisitorForm({ ...visitorForm, exitTime: e.target.value })} disabled={loading} className={inputCls} />
+                    <DateTimePicker value={visitorForm.exitTime} onChange={(val) => setVisitorForm({ ...visitorForm, exitTime: val })} disabled={loading} />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>

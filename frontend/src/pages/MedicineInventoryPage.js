@@ -10,6 +10,7 @@ import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus, Pencil, Trash2, BellRing } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -609,11 +610,11 @@ const MedicineInventoryPage = () => {
             <div className="flex flex-wrap items-end gap-4">
               <div className="flex-1 min-w-[180px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
-                <input type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} className={reportControlClass} />
+                <DatePicker value={reportStartDate} onChange={(val) => setReportStartDate(val)} />
               </div>
               <div className="flex-1 min-w-[180px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
-                <input type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} className={reportControlClass} />
+                <DatePicker value={reportEndDate} onChange={(val) => setReportEndDate(val)} />
               </div>
               <button onClick={handleLoadReport} disabled={loading} className={`${reportButtonClass} bg-primary text-primary-foreground hover:brightness-110`}>
                 {loading ? 'Loading...' : 'Generate Report'}

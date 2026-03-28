@@ -8,6 +8,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import DatePicker from '../components/shared/DatePicker';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -133,7 +134,7 @@ const GateEntryRegisterPage = () => {
         <div className="flex items-end gap-3 md:ml-auto">
           <div>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
-            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={inputCls} />
+            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
           </div>
           <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
         </div>

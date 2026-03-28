@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createProfile, setToken } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { User, Camera } from 'lucide-react';
+import SelectField from '../components/shared/SelectField';
 
 const DESIGNATIONS = ['Groomer', 'Zamindar', 'Instructor', 'Admin', 'Health Advisor', 'Super Admin'];
 
@@ -81,11 +82,12 @@ const ProfileSetupPage = () => {
 
             <div>
               <label htmlFor="designation" className={lbl}>Role/Designation *</label>
-              <select id="designation" name="designation" value={formData.designation} onChange={handleInputChange} disabled={loading} className={inp}>
-                {DESIGNATIONS.map((role) => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
+              <SelectField
+                value={formData.designation}
+                onChange={(val) => handleInputChange({ target: { name: 'designation', value: val } })}
+                options={DESIGNATIONS}
+                disabled={loading}
+              />
             </div>
 
             <div>
