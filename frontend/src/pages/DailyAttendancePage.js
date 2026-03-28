@@ -3,9 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Users, UserCheck, UserX, Search } from 'lucide-react';
+import { Download, Users, UserCheck, UserX } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 
@@ -99,39 +100,32 @@ const DailyAttendancePage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Daily Attendance')} <span className="text-primary">Register</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Groomers check in/out with the toggle. Track daily attendance.</p>
         </div>
-        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Failed') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Total Grooms', value: employees.length, icon: Users },
-          { label: 'Checked In', value: checkedInCount, icon: UserCheck },
-          { label: 'Checked Out', value: employees.length - checkedInCount, icon: UserX },
+          { label: 'TOTAL GROOMS', value: String(employees.length).padStart(2, '0'), icon: Users, sub: 'Assigned groom roster' },
+          { label: 'CHECKED IN', value: String(checkedInCount).padStart(2, '0'), icon: UserCheck, sub: 'Currently on duty', subColor: 'text-success', colorClass: 'text-success', bgClass: 'bg-success/10' },
+          { label: 'CHECKED OUT', value: String(employees.length - checkedInCount).padStart(2, '0'), icon: UserX, sub: 'Out of shift', subColor: 'text-warning', colorClass: 'text-warning', bgClass: 'bg-warning/10' },
         ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
-              <k.icon className="w-4 h-4 text-primary/60" />
-            </div>
-            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-          </div>
+          <OperationalMetricCard key={k.label} label={k.label} value={k.value} icon={k.icon} colorClass={k.colorClass || 'text-primary'} bgClass={k.bgClass || 'bg-primary/10'} sub={k.sub} subColor={k.subColor || 'text-muted-foreground'} />
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+      <div className="flex items-end gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Search</label>
+          <input type="text" placeholder="Search by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 w-full px-3 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+        </div>
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
-        <div className="relative flex-1 max-w-sm">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Search</label>
-          <input type="text" placeholder="Search by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
-          <Search className="absolute right-3 bottom-2.5 w-4 h-4 text-muted-foreground" />
-        </div>
+        <button onClick={handleDownloadExcel} className="ml-auto h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
       </div>
 
       {/* Table */}

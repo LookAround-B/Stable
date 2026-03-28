@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import { TableSkeleton } from '../components/Skeleton';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import farrierInventoryService from "../services/farrierInventoryService";
 import { getHorses } from "../services/horseService";
 import { getEmployees } from "../services/employeeService";
@@ -9,9 +10,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Plus, X, SlidersHorizontal, AlertTriangle, Pencil, Trash2, Hammer, ChevronLeft, ChevronRight, Package, Wrench, Search } from 'lucide-react';
-import DatePicker from '../components/shared/DatePicker';
-import SelectField from '../components/shared/SelectField';
+import { Download, Plus, X, AlertTriangle, Pencil, Trash2, ChevronLeft, ChevronRight, Package, Wrench, Search } from 'lucide-react';
 
 const CATEGORIES = ["Tools", "Consumables"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -41,10 +40,7 @@ const FarrierInventoryPage = () => {
   const [messageType, setMessageType] = useState("success");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(5);
-  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterCondition, setFilterCondition] = useState("");
   const [search, setSearch] = useState("");
 
   const emptyForm = { itemName: "", category: "Tools", horseId: "", quantity: "1", sizeType: "", material: "", condition: "Good", lastUsedDate: "", farrierId: "", serviceDate: "", nextServiceDue: "", notes: "", replacementCycle: "", costTracking: "", supplier: "" };
@@ -53,10 +49,10 @@ const FarrierInventoryPage = () => {
   const showMsg = (msg, type = "success") => { setMessage(msg); setMessageType(type); setTimeout(() => setMessage(""), 5000); };
 
   const fetchItems = useCallback(async () => {
-    try { setLoading(true); setCurrentPage(1); const data = await farrierInventoryService.getItems({ category: filterCategory, search }); setItems(Array.isArray(data) ? data : []); }
+    try { setLoading(true); setCurrentPage(1); const data = await farrierInventoryService.getItems({ search }); setItems(Array.isArray(data) ? data : []); }
     catch { showMsg("Failed to load farrier inventory", "error"); }
     finally { setLoading(false); }
-  }, [filterCategory, search]);
+  }, [search]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
   useEffect(() => {
@@ -67,11 +63,7 @@ const FarrierInventoryPage = () => {
     load();
   }, []);
 
-  // Filter items in frontend if filterCondition is used (backend might not support it directly)
-  const filteredItems = items.filter(item => {
-    if (filterCondition && item.condition !== filterCondition) return false;
-    return true;
-  });
+  const filteredItems = items;
 
   const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -124,26 +116,20 @@ const FarrierInventoryPage = () => {
   const overdueSvc = filteredItems.filter(i => i.nextServiceDue && new Date(i.nextServiceDue) < new Date());
   const damagedItems = filteredItems.filter(i => i.condition === 'Damaged');
 
-  const hasActiveFilters = filterCategory || filterCondition;
-  const clearFilters = () => { setFilterCategory(''); setFilterCondition(''); setCurrentPage(1); };
-
   if (!p.viewFarrierInventory) return <Navigate to="/dashboard" replace />;
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
 
   return (
-    <div className="space-y-6">
+    <div className="farrier-inventory-page space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="farrier-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Farrier <span className="text-primary">Inventory</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Track farrier tools, horseshoes & service records')}</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> Export
-          </button>
-          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="farrier-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
           </button>
         </div>
@@ -152,26 +138,14 @@ const FarrierInventoryPage = () => {
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === "error" ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{messageType === 'success' ? '✓' : '✕'} {message}</div>}
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> TOTAL ITEMS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(items.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-success">Across all categories</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Wrench className="w-3.5 h-3.5 text-warning" /> SERVICE OVERDUE</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(overdueSvc.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-warning">Tools needing service</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /> DAMAGED</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(damagedItems.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-destructive">Items flagged for repair</p>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Across all categories" subColor="text-success" />
+        <OperationalMetricCard label="SERVICE OVERDUE" value={String(overdueSvc.length).padStart(2, '0')} icon={Wrench} colorClass="text-warning" bgClass="bg-warning/10" sub="Tools needing service" subColor="text-warning" />
+        <OperationalMetricCard label="DAMAGED" value={String(damagedItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
       </div>
 
       {overdueSvc.length > 0 && (
-        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-center gap-2">
+        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Service Overdue:</strong> {overdueSvc.map(i => i.itemName).join(', ')}
         </div>
       )}
@@ -228,15 +202,15 @@ const FarrierInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Used Date</label>
-                <DatePicker value={formData.lastUsedDate} onChange={(val) => handleInputChange({ target: { name: 'lastUsedDate', value: val } })} />
+                <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className={inputCls} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Service Date</label>
-                <DatePicker value={formData.serviceDate} onChange={(val) => handleInputChange({ target: { name: 'serviceDate', value: val } })} />
+                <input type="date" name="serviceDate" value={formData.serviceDate} onChange={handleInputChange} className={inputCls} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Service Due</label>
-                <DatePicker value={formData.nextServiceDue} onChange={(val) => handleInputChange({ target: { name: 'nextServiceDue', value: val } })} />
+                <input type="date" name="nextServiceDue" value={formData.nextServiceDue} onChange={handleInputChange} className={inputCls} />
               </div>
             </div>
             <div>
@@ -254,7 +228,7 @@ const FarrierInventoryPage = () => {
       {/* ── Table Container (EFM Replica) ── */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+        <div className="farrier-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
@@ -267,36 +241,16 @@ const FarrierInventoryPage = () => {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => setShowFilters(v => !v)}
-              className={`flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors ${showFilters || hasActiveFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
+              onClick={handleDownloadExcel}
+              className="btn-download farrier-inventory-export flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors bg-surface-container-high text-muted-foreground hover:text-foreground"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
-              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+              <Download className="w-3.5 h-3.5" /> Export
             </button>
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{filteredItems.length} of {items.length} items</span>
           </div>
         </div>
 
-        {/* Filter Panel */}
-        {showFilters && (
-          <div className="px-3 sm:px-6 py-4 border-b border-border bg-surface-container-high/50">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="w-44">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
-                <SelectField value={filterCategory} onChange={(val) => { setFilterCategory(val); setCurrentPage(1); }} options={['', ...CATEGORIES]} placeholder="All" size="sm" />
-              </div>
-              <div className="w-40">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Condition</label>
-                <SelectField value={filterCondition} onChange={(val) => { setFilterCondition(val); setCurrentPage(1); }} options={['', ...CONDITIONS]} placeholder="All" size="sm" />
-              </div>
-              {hasActiveFilters && (
-                <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
-                  <X className="w-3 h-3" /> Clear Filters
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+
 
         {/* Table */}
         {loading ? <div className="p-4"><TableSkeleton cols={10} rows={5} /></div> : filteredItems.length === 0 ? (
@@ -389,3 +343,9 @@ const FarrierInventoryPage = () => {
 };
 
 export default FarrierInventoryPage;
+
+
+
+
+
+

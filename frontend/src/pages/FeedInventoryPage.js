@@ -358,8 +358,8 @@ const FeedInventoryPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.entries(reportData.horseConsumption).map(([horseId, hc]) => (
-                        <tr key={horseId} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                      {Object.entries(reportData.horseConsumption).map(([horseId, hc], index, arr) => (
+                        <tr key={horseId} className={`hover:bg-surface-container-high/50 transition-colors ${index === arr.length - 1 ? '' : 'border-b border-border/50'}`}>
                           <td className="px-5 py-3 font-medium text-foreground">{hc.horseName}</td>
                           <td className="px-5 py-3 text-muted-foreground">{hc.stableNumber || '-'}</td>
                           <td className="px-5 py-3 text-muted-foreground mono-data">{hc.daysRecorded}</td>
@@ -368,7 +368,7 @@ const FeedInventoryPage = () => {
                           ))}
                         </tr>
                       ))}
-                      <tr className="border-t-2 border-primary/20 bg-primary/5">
+                      <tr className="border-t border-primary/20 bg-primary/5">
                         <td className="px-5 py-4 font-bold text-foreground">TOTAL</td>
                         <td></td><td></td>
                         {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (

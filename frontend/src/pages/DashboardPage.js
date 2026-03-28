@@ -6,7 +6,7 @@ import EmployeeFaceIcon from '../components/EmployeeFaceIcon';
 import HorseIcon from '../components/HorseIcon';
 import { CheckSquare, NotebookPen, Package } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 
@@ -36,34 +36,6 @@ const DEPARTMENT_MAP = {
   'School Administrator': 'Leadership',
   Director: 'Leadership',
   'Super Admin': 'Leadership',
-};
-const ROLE_ABBREV = {
-  Guard: 'Guard',
-  Groom: 'Groom',
-  Gardener: 'Garden.',
-  Housekeeping: 'H/K',
-  Electrician: 'Electr.',
-  'Ground Supervisor': 'Grd.Sup',
-  'Riding Boy': 'Riding',
-  Rider: 'Rider',
-  Instructor: 'Instr.',
-  Farrier: 'Farrier',
-  Jamedar: 'Jamedar',
-  'Stable Manager': 'St.Mgr',
-  'Executive Accounts': 'Ex.Acc',
-  'Executive Admin': 'Ex.Adm',
-  'Restaurant Manager': 'Rest.Mgr',
-  'Kitchen Helper': 'Kit.Hlp',
-  Waiter: 'Waiter',
-  Director: 'Director',
-  'Super Admin': 'S.Admin',
-  Veterinarian: 'Vet',
-  Chef: 'Chef',
-  Accountant: 'Acct.',
-  Maintenance: 'Maint.',
-  'Kitchen Staff': 'Kit.Stf',
-  Driver: 'Driver',
-  'Senior Executive Admin': 'Sr.Adm',
 };
 const CHART_COLORS = ['#d199ff', '#a855f7', '#00e6c7', '#fb7185', '#f59e0b', '#60a5fa', '#22c55e', '#f97316'];
 const GENDER_COLORS = {
@@ -242,11 +214,9 @@ const RandomLetterReveal = ({ text }) => {
 const MetricCard = ({
   title,
   value,
-  subtitle,
   icon: Icon,
   watermarkIcon: WatermarkIcon = HorseIcon,
   iconTone = 'primary',
-  subtitleTone = 'primary',
   variant = 'default',
   sparkData = []
 }) => {
@@ -266,9 +236,8 @@ const MetricCard = ({
       </div>
       <div className="dashboard-lovable-card-body">
         <div className="dashboard-lovable-card-value">{displayValue}</div>
-        {(subtitle || normalizedSpark.some((entry) => entry > 0)) && (
+        {normalizedSpark.some((entry) => entry > 0) && (
           <div className="dashboard-lovable-card-footer">
-            {subtitle && <div className={`dashboard-lovable-card-sub dashboard-lovable-card-sub--${subtitleTone}`}>{subtitle}</div>}
             {normalizedSpark.some((entry) => entry > 0) && (
               <div className="dashboard-lovable-card-spark" aria-hidden="true">
                 {normalizedSpark.map((entry, index) => (
@@ -294,22 +263,6 @@ const EmptyState = ({ label }) => (
   <div className="dashboard-lovable-empty">{label}</div>
 );
 
-const CustomBarLabel = ({ x, y, width, value }) => {
-  if (!value || value === 0) return null;
-  return (
-    <text
-      x={(x || 0) + (width || 0) / 2}
-      y={(y || 0) - 6}
-      textAnchor="middle"
-      fontSize={9}
-      fill="var(--lovable-text-soft)"
-      fontWeight={700}
-    >
-      {value}
-    </text>
-  );
-};
-
 const DashboardPage = () => {
   const { user } = useAuth();
   const { lang } = useI18n();
@@ -325,7 +278,6 @@ const DashboardPage = () => {
     tasks: [],
     audit: [],
   });
-  const [employeesByRole, setEmployeesByRole] = useState([]);
   const [teamByDepartment, setTeamByDepartment] = useState([]);
   const [horsesByGender, setHorsesByGender] = useState([]);
   const [transactionsByDepartment, setTransactionsByDepartment] = useState([]);
@@ -427,17 +379,6 @@ const DashboardPage = () => {
             departmentCount[department] = (departmentCount[department] || 0) + 1;
           });
 
-          setEmployeesByRole(
-            Object.entries(roleCount)
-              .sort((a, b) => b[1] - a[1])
-              .map(([role, count], index) => ({
-                role,
-                shortRole: ROLE_ABBREV[role] || role.slice(0, 7),
-                count,
-                fill: CHART_COLORS[index % CHART_COLORS.length],
-              }))
-          );
-
           const departmentEntries = Object.entries(departmentCount).sort((a, b) => b[1] - a[1]);
           const departmentTotal = departmentEntries.reduce((sum, [, value]) => sum + value, 0);
           setTeamByDepartment(
@@ -448,6 +389,7 @@ const DashboardPage = () => {
               percent: departmentTotal ? Math.round((value / departmentTotal) * 100) : 0,
             }))
           );
+
           setMetricSparks((prev) => ({
             ...prev,
             staff: buildMetricSpark(
@@ -522,59 +464,26 @@ const DashboardPage = () => {
             <RandomLetterReveal text={user?.fullName || 'User'} />
           </span>
         </h1>
-        <p className="dashboard-lovable-hero-meta">
-          {dateStr} <span className="dashboard-lovable-meta-sep">-</span> <span className="dashboard-lovable-meta-strong">{clock || '--:--:--'}</span>
-          <span className="dashboard-lovable-meta-sep">-</span>
-          <span className="dashboard-lovable-meta-strong">SYSTEM STATUS: OPTIMAL</span>
-        </p>
-      </div>
+          <p className="dashboard-lovable-hero-meta">
+            {dateStr} <span className="dashboard-lovable-meta-sep">-</span> <span className="dashboard-lovable-meta-strong">{clock || '--:--:--'}</span>
+            <span className="dashboard-lovable-meta-status">
+              <span className="dashboard-lovable-meta-strong">SYSTEM STATUS: OPTIMAL</span>
+            </span>
+          </p>
+        </div>
 
-      <div className="dashboard-lovable-card-grid">
-        <MetricCard icon={Package} watermarkIcon={HorseIcon} title="Total Horses" value={metrics.totalHorses} subtitle="Registered Assets" iconTone="primary" subtitleTone="destructive" sparkData={metricSparks.horses} />
-        <MetricCard icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} title="Total Staff / Users" value={metrics.totalStaff} subtitle="Active Sessions" iconTone="primary" subtitleTone="primary" sparkData={metricSparks.staff} />
-        <MetricCard icon={CheckSquare} title="Pending Tasks" value={metrics.pendingTasks} subtitle="Queue Clear" iconTone="success" subtitleTone="destructive" variant="success" sparkData={metricSparks.tasks} />
-        <MetricCard icon={NotebookPen} title="Audit Logs / Issues" value={metrics.auditLogs} subtitle="No Critical Vulnerabilities" iconTone="destructive" subtitleTone="destructive" variant="alert" sparkData={metricSparks.audit} />
-      </div>
+        <div className="dashboard-lovable-card-grid">
+          <MetricCard icon={Package} watermarkIcon={HorseIcon} title="Total Horses" value={metrics.totalHorses} iconTone="primary" sparkData={metricSparks.horses} />
+          <MetricCard icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} title="Total Staff / Users" value={metrics.totalStaff} iconTone="primary" sparkData={metricSparks.staff} />
+          <MetricCard icon={CheckSquare} watermarkIcon={CheckSquare} title="Pending Tasks" value={metrics.pendingTasks} iconTone="success" variant="success" sparkData={metricSparks.tasks} />
+          <MetricCard icon={NotebookPen} watermarkIcon={NotebookPen} title="Audit Logs / Issues" value={metrics.auditLogs} iconTone="destructive" variant="alert" sparkData={metricSparks.audit} />
+        </div>
 
-      <div className="dashboard-lovable-chart-grid">
-        <ChartPanel title="Staff by Role">
-          {employeesByRole.length === 0 ? <EmptyState label="No role data available" /> : (
-            <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={280}>
-              <BarChart data={employeesByRole} margin={{ top: 16, right: 8, left: 0, bottom: 60 }} barCategoryGap="30%">
-                <XAxis
-                  dataKey="shortRole"
-                  tick={{ fontSize: 9, fill: 'var(--lovable-text-soft)', fontWeight: 500 }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={0}
-                  angle={-40}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: 'var(--lovable-text-soft)' }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={22}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  formatter={(value, _name, props) => [value, props?.payload?.role || 'Count']}
-                  cursor={{ fill: 'var(--dashboard-chart-cursor)' }}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]} label={<CustomBarLabel />}>
-                  {employeesByRole.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </ChartPanel>
-
-        <ChartPanel title="Staff by Department">
-          {teamByDepartment.length === 0 ? <EmptyState label="No department data available" /> : (
-            <div className="dashboard-lovable-split">
-              <div className="dashboard-lovable-donut-wrap">
+        <div className="dashboard-lovable-chart-grid">
+          <ChartPanel title="Staff by Department">
+            {teamByDepartment.length === 0 ? <EmptyState label="No department data available" /> : (
+              <div className="dashboard-lovable-split">
+                <div className="dashboard-lovable-donut-wrap">
                 <ResponsiveContainer width="100%" height={180} minWidth={0} minHeight={180}>
                   <PieChart>
                     <Pie
@@ -614,9 +523,10 @@ const DashboardPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </ChartPanel>
+              </div>
+            )}
+          </ChartPanel>
+
       </div>
 
       <div className="dashboard-lovable-chart-grid">

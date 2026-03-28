@@ -3,9 +3,10 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Plus, X } from 'lucide-react';
+import { Download, Plus, X, Package, Scale, CalendarDays, Activity } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 
@@ -136,32 +137,29 @@ const HorseFeedsPage = () => {
   if (!p.viewHorseFeeds) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="horse-feeds-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="horse-feeds-header-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">Feeds</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Record daily feed consumption for horses')}</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => setShowForm(!showForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="horse-feeds-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add Feed Record</>}
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         {[
-          { label: t('Total Horses'), value: totalHorses },
-          { label: t('Total Feed (kg)'), value: totalFeedKg.toFixed(1) },
-          { label: t('Date Range'), value: `${new Date(fromDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} - ${new Date(toDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}` },
-          { label: t('Avg per Horse (kg)'), value: totalHorses > 0 ? (totalFeedKg / totalHorses).toFixed(1) : '0' },
+          { label: t('Total Horses').toUpperCase(), value: String(totalHorses).padStart(2, '0'), icon: Package, sub: 'Horses in feed report' },
+          { label: t('Total Feed (kg)').toUpperCase(), value: totalFeedKg.toFixed(1), icon: Scale, sub: 'Combined feed volume' },
+          { label: t('Date Range').toUpperCase(), value: `${new Date(fromDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} - ${new Date(toDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`, icon: CalendarDays, sub: 'Selected reporting period', valueClass: 'text-2xl font-bold text-foreground mt-1 mono-data relative z-10' },
+          { label: t('Avg per Horse (kg)').toUpperCase(), value: totalHorses > 0 ? (totalFeedKg / totalHorses).toFixed(1) : '0', icon: Activity, sub: 'Average feed allocation' },
         ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
-            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
-            <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-          </div>
+          <OperationalMetricCard key={k.label} label={k.label} value={k.value} icon={k.icon} colorClass="text-primary" bgClass="bg-primary/10" sub={k.sub} valueClass={k.valueClass || 'text-3xl font-bold text-foreground mt-1 mono-data relative z-10'} hideSub />
         ))}
       </div>
 
@@ -173,7 +171,7 @@ const HorseFeedsPage = () => {
       )}
 
       {/* Date Filters + Search */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
+      <div className="horse-feeds-toolbar flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
         <div className="flex items-center gap-3">
           <div>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">From</label>
@@ -192,7 +190,7 @@ const HorseFeedsPage = () => {
         </div>
         {summaryDataArray.length > 0 && (
           <div className="flex lg:justify-end lg:ml-auto">
-            <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+            <button onClick={handleDownloadExcel} className="btn-download horse-feeds-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
           </div>
         )}
       </div>
@@ -280,3 +278,8 @@ const HorseFeedsPage = () => {
 };
 
 export default HorseFeedsPage;
+
+
+
+
+

@@ -72,12 +72,10 @@ const WATERMARK_ICON = {
 export default function DirectoryMetricCard({
   title,
   value,
-  subtitle,
   icon: Icon,
   sparkData = [],
   watermark = 'horse',
   iconTone = 'primary',
-  subtitleTone = 'primary',
   variant = 'default',
   hideTitle = false,
 }) {
@@ -108,7 +106,6 @@ export default function DirectoryMetricCard({
       <div className="dashboard-lovable-card-body">
         <div className="dashboard-lovable-card-value">{displayValue}</div>
         <div className="dashboard-lovable-card-footer">
-          <div className={`dashboard-lovable-card-sub dashboard-lovable-card-sub--${subtitleTone}`}>{subtitle}</div>
           {normalizedSpark.some((entry) => entry > 0) && (
             <div className="dashboard-lovable-card-spark" aria-hidden="true">
               {normalizedSpark.map((entry, index) => (

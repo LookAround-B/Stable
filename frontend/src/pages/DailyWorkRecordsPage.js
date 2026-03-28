@@ -5,11 +5,10 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History, Calendar } from 'lucide-react';
+import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import DatePicker from '../components/shared/DatePicker';
 
 const getTodayString = () => {
   const today = new Date();
@@ -119,13 +118,12 @@ const DailyWorkRecordsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><ClipboardList className="w-7 h-7 inline-block mr-2 text-primary" />{t('Daily Work')} <span className="text-primary">Records (EIRS)</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Equine Individual Record Sheets</p>
         </div>
-        <button onClick={handleDownloadExcel} disabled={loading} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}<button onClick={() => setMessage('')} className="ml-3 opacity-60 hover:opacity-100">✕</button></div>}
 
       {/* KPI Cards (2x2 Grid) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         {[
           { label: 'RECORDED SESSIONS', value: String(records.length).padStart(2, '0'), icon: ClipboardList, colorClass: 'text-primary', bgClass: 'bg-primary/10' },
           { label: 'TOTAL EXPERIENCED TIME', value: `${Math.round(totalMinutes / 60)}h ${totalMinutes % 60}m`, icon: Clock, colorClass: 'text-success', bgClass: 'bg-success/10' },
@@ -149,10 +147,12 @@ const DailyWorkRecordsPage = () => {
 
       {/* Controls */}
       <div className="flex flex-col md:flex-row items-center gap-3">
-        <div className="w-full max-w-sm">
-          <DatePicker
-            value={selectedDate}
-            onChange={(val) => setSelectedDate(val)}
+        <div className="relative w-44">
+          <input 
+            type="date" 
+            value={selectedDate} 
+            onChange={(e) => setSelectedDate(e.target.value)} 
+            className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none hover:bg-surface-container-highest transition-colors"
           />
         </div>
         {!showForm && canCreateRecords && (
@@ -160,6 +160,7 @@ const DailyWorkRecordsPage = () => {
             <Plus className="w-4 h-4" /> New Record
           </button>
         )}
+        <button onClick={handleDownloadExcel} disabled={loading} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 ml-auto"><Download className="w-4 h-4" />Excel</button>
       </div>
 
       {/* Form */}
@@ -170,7 +171,7 @@ const DailyWorkRecordsPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
-                <DatePicker value={formData.date} onChange={(val) => handleDateChange({ target: { name: 'date', value: val } })} required />
+                <input type="date" name="date" value={formData.date} onChange={handleDateChange} required className={inputCls} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>

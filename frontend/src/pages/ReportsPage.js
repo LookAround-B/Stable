@@ -7,8 +7,8 @@ import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
 import * as XLSX from 'xlsx';
-import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, Calendar, MoreHorizontal } from 'lucide-react';
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Bar, BarChart } from 'recharts';
+import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, Calendar } from 'lucide-react';
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import DatePicker from '../components/shared/DatePicker';
 
 const trendData = [
@@ -21,13 +21,7 @@ const trendData = [
   { month: 'JUL_24', optimal: 74, actual: 72 },
 ];
 
-const barData = [
-  { name: 'STAFFING', value: 45 },
-  { name: 'MAINTENANCE', value: 30 },
-  { name: 'FEED', value: 55 },
-  { name: 'MEDICAL', value: 25 },
-  { name: 'LOGISTICS', value: 35 },
-];
+
 
 
 const ReportsPage = () => {

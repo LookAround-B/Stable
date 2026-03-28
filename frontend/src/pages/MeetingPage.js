@@ -294,7 +294,7 @@ const MeetingPage = () => {
               <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))} className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <h2 className="text-lg font-bold text-foreground">{monthName}</h2>
+              <h2 className="orbit-heading-ignore text-lg font-bold text-foreground">{monthName}</h2>
               <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))} className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </button>

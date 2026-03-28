@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import { TableSkeleton } from '../components/Skeleton';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import tackInventoryService from "../services/tackInventoryService";
 import { getHorses } from "../services/horseService";
 import { getEmployees } from "../services/employeeService";
@@ -9,9 +10,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, Wrench, X } from 'lucide-react';
-import DatePicker from '../components/shared/DatePicker';
-import SelectField from '../components/shared/SelectField';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, Trash2, Wrench, X } from 'lucide-react';
 
 const CATEGORIES = ["Saddle", "Bridle", "Grooming Gear", "Training Equipment"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -46,11 +45,8 @@ const TackInventoryPage = () => {
   const [messageType, setMessageType] = useState("success");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(5);
-  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterCondition, setFilterCondition] = useState("");
   const [search, setSearch] = useState("");
 
   const emptyForm = {
@@ -69,11 +65,11 @@ const TackInventoryPage = () => {
   const fetchItems = useCallback(async () => {
     try {
       setLoading(true); setCurrentPage(1);
-      const data = await tackInventoryService.getItems({ category: filterCategory, condition: filterCondition, search });
+      const data = await tackInventoryService.getItems({ search });
       setItems(Array.isArray(data) ? data : []);
     } catch { showMsg("Failed to load tack inventory", "error"); }
     finally { setLoading(false); }
-  }, [filterCategory, filterCondition, search]);
+  }, [search]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
   useEffect(() => {
@@ -151,9 +147,6 @@ const TackInventoryPage = () => {
     XLSX.writeFile(wb, `TackInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  const hasActiveFilters = filterCategory || filterCondition;
-  const clearFilters = () => { setFilterCategory(''); setFilterCondition(''); setCurrentPage(1); };
-
   const uniqueCategories = [...new Set(items.map(i => i.category).filter(Boolean))];
   const maintenanceItems = items.filter(i => i.maintenanceRequired);
   const needsAttention = items.filter(i => i.condition === 'Damaged' || i.condition === 'Poor' || i.condition === 'Replace').length;
@@ -161,21 +154,16 @@ const TackInventoryPage = () => {
   if (!p.viewTackInventory) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="tack-inventory-page space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="tack-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Tack <span className="text-primary">Inventory</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage tack and equipment across all stable operations.')}</p>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> Export
-          </button>
-          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
-          </button>
-        </div>
+        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
+          {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+        </button>
       </div>
 
       {/* ── Message ── */}
@@ -186,27 +174,15 @@ const TackInventoryPage = () => {
       )}
 
       {/* ── KPI Cards (EFM Style) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> TOTAL ITEMS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(items.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-success">↗ +8% vs last month</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> CATEGORIES</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(uniqueCategories.length || CATEGORIES.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-muted-foreground">Unique equipment types</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Wrench className="w-3.5 h-3.5 text-destructive" /> NEEDS ATTENTION</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(needsAttention + maintenanceItems.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-destructive">Items flagged for repair</p>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Inventory count" subColor="text-success" />
+        <OperationalMetricCard label="CATEGORIES" value={String(uniqueCategories.length || CATEGORIES.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Unique equipment types" />
+        <OperationalMetricCard label="NEEDS ATTENTION" value={String(needsAttention + maintenanceItems.length).padStart(2, '0')} icon={Wrench} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
       </div>
 
       {/* ── Maintenance Alert ── */}
       {maintenanceItems.length > 0 && (
-        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-center gap-2">
+        <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Maintenance Required:</strong> {maintenanceItems.map(i => i.itemName).join(', ')}
         </div>
       )}
@@ -259,11 +235,11 @@ const TackInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
-                <DatePicker value={formData.purchaseDate} onChange={(val) => handleInputChange({ target: { name: 'purchaseDate', value: val } })} />
+                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Used Date</label>
-                <DatePicker value={formData.lastUsedDate} onChange={(val) => handleInputChange({ target: { name: 'lastUsedDate', value: val } })} />
+                <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Cleaning Schedule</label>
@@ -293,7 +269,7 @@ const TackInventoryPage = () => {
       {/* ── Table Container (EFM Replica) ── */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar — matches EFM */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+        <div className="tack-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
@@ -305,37 +281,12 @@ const TackInventoryPage = () => {
             {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setShowFilters(v => !v)}
-              className={`flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors ${showFilters || hasActiveFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
-              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            <button onClick={handleDownloadExcel} className="btn-download tack-inventory-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4" /> Export
             </button>
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} of {items.length} items</span>
           </div>
         </div>
-
-        {/* Filter Panel */}
-        {showFilters && (
-          <div className="px-3 sm:px-6 py-4 border-b border-border bg-surface-container-high/50">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="w-44">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
-                <SelectField value={filterCategory} onChange={(val) => { setFilterCategory(val); setCurrentPage(1); }} options={['', ...CATEGORIES]} placeholder="All" size="sm" />
-              </div>
-              <div className="w-40">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Condition</label>
-                <SelectField value={filterCondition} onChange={(val) => { setFilterCondition(val); setCurrentPage(1); }} options={['', ...CONDITIONS]} placeholder="All" size="sm" />
-              </div>
-              {hasActiveFilters && (
-                <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
-                  <X className="w-3 h-3" /> Clear Filters
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Table */}
         {loading ? <div className="p-4"><TableSkeleton cols={10} rows={5} /></div> : items.length === 0 ? (
@@ -360,7 +311,7 @@ const TackInventoryPage = () => {
                         {/* Name with avatar */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-xs font-bold text-primary shrink-0">{(item.itemName || '?').charAt(0).toUpperCase()}</div>
+                            <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center text-xs font-bold text-accent-foreground shrink-0">{(item.itemName || '?').charAt(0).toUpperCase()}</div>
                             <span className="font-semibold text-sm text-foreground">{item.itemName}</span>
                           </div>
                         </td>
@@ -433,3 +384,9 @@ const TackInventoryPage = () => {
 };
 
 export default TackInventoryPage;
+
+
+
+
+
+

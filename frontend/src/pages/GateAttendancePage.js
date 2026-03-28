@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import Pagination from '../components/Pagination';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { Navigate } from 'react-router-dom';
 import { Download, Plus, X, Users, UserCheck, Clock, DoorOpen } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -20,6 +22,10 @@ const GateAttendancePage = () => {
   const [message, setMessage] = useState('');
   const [employees, setEmployees] = useState([]);
   const [activeTab, setActiveTab] = useState('staff');
+  const [filterFromDate, setFilterFromDate] = useState('');
+  const [filterToDate, setFilterToDate] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const [staffForm, setStaffForm] = useState({
     employeeId: '',
@@ -175,7 +181,22 @@ const GateAttendancePage = () => {
 
   const staffLogs = logs.filter((log) => log.personType === 'Staff');
   const visitorLogs = logs.filter((log) => log.personType === 'Visitor');
-  const displayLogs = activeTab === 'staff' ? staffLogs : visitorLogs;
+  const tabLogs = activeTab === 'staff' ? staffLogs : visitorLogs;
+  
+  const displayLogs = tabLogs.filter((log) => {
+    if (!filterFromDate && !filterToDate) return true;
+    const logDate = new Date(log.entryTime).toISOString().split('T')[0];
+    if (filterFromDate && logDate < filterFromDate) return false;
+    if (filterToDate && logDate > filterToDate) return false;
+    return true;
+  });
+  const totalPages = Math.ceil(displayLogs.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedLogs = displayLogs.slice(startIndex, startIndex + rowsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, filterFromDate, filterToDate, logs.length]);
 
   const handleDownloadExcel = () => {
     if (displayLogs.length === 0) { alert(`No ${activeTab} logs to download`); return; }
@@ -192,27 +213,6 @@ const GateAttendancePage = () => {
     worksheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 25 }];
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
     XLSX.writeFile(workbook, fileName);
-  };
-
-  const handleDownloadCSV = () => {
-    if (displayLogs.length === 0) { alert(`No ${activeTab} logs to download`); return; }
-    let csvData, fileName;
-    if (activeTab === 'staff') {
-      csvData = displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Employee Name': log.personName || '-', 'Designation': log.designation || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Shift': log.shift || '-', 'Notes': log.notes || '' }));
-      fileName = `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.csv`;
-    } else {
-      csvData = displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Visitor Name': log.personName || '-', 'Purpose': log.purpose || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Contact': log.contact || '-', 'Notes': log.notes || '' }));
-      fileName = `VisitorLog_${new Date().toISOString().slice(0, 10)}.csv`;
-    }
-    const headers = Object.keys(csvData[0]);
-    const escape = (val) => { const s = String(val ?? ''); return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s; };
-    const rows = [headers.map(escape).join(','), ...csvData.map(row => headers.map(h => escape(row[h])).join(','))];
-    const csvContent = '\uFEFF' + rows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url; link.download = fileName;
-    document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
   };
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
@@ -232,43 +232,38 @@ const GateAttendancePage = () => {
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('✗') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         {[
-          { label: 'Total Logs', value: logs.length, icon: Clock },
-          { label: 'Staff Entries', value: staffLogs.length, icon: UserCheck },
-          { label: 'Visitors', value: visitorLogs.length, icon: Users },
-          { label: 'Currently In', value: logs.filter(l => !l.exitTime).length, icon: DoorOpen },
+          { label: 'TOTAL LOGS', value: logs.length, icon: Clock, sub: 'Recorded gate events' },
+          { label: 'STAFF ENTRIES', value: staffLogs.length, icon: UserCheck, sub: 'Staff movement logs' },
+          { label: 'VISITORS', value: visitorLogs.length, icon: Users, sub: 'Visitor access records' },
+          { label: 'CURRENTLY IN', value: logs.filter(l => !l.exitTime).length, icon: DoorOpen, sub: 'Open gate sessions' },
         ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
-              <k.icon className="w-4 h-4 text-primary/60" />
-            </div>
-            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-          </div>
+          <OperationalMetricCard key={k.label} label={k.label} value={String(k.value).padStart(2, '0')} icon={k.icon} colorClass="text-primary" bgClass="bg-primary/10" sub={k.sub} hideSub />
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-3">
-        <button onClick={() => setActiveTab('staff')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'staff' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
-          <UserCheck className="w-4 h-4" /> Staff Entry/Exit
-        </button>
-        <button onClick={() => setActiveTab('visitor')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'visitor' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
-          <Users className="w-4 h-4" /> Visitor Log
-        </button>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setActiveTab('staff')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'staff' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+            <UserCheck className="w-4 h-4" /> Staff Entry/Exit
+          </button>
+          <button onClick={() => setActiveTab('visitor')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'visitor' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+            <Users className="w-4 h-4" /> Visitor Log
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`h-10 px-5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
+            {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
+          </button>
+          <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
+        </div>
       </div>
 
       {/* ═══ STAFF TAB ═══ */}
       {activeTab === 'staff' && (
         <div className="space-y-5">
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setShowStaffForm(!showStaffForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-              {showStaffForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Log Staff Entry/Exit</>}
-            </button>
-            <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
-            <button onClick={handleDownloadCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />CSV</button>
-          </div>
 
           {showStaffForm && (
             <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
@@ -306,13 +301,6 @@ const GateAttendancePage = () => {
       {/* ═══ VISITOR TAB ═══ */}
       {activeTab === 'visitor' && (
         <div className="space-y-5">
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setShowVisitorForm(!showVisitorForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-              {showVisitorForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Log Visitor</>}
-            </button>
-            <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
-            <button onClick={handleDownloadCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />CSV</button>
-          </div>
 
           {showVisitorForm && (
             <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
@@ -357,58 +345,73 @@ const GateAttendancePage = () => {
 
       {/* Logs Table */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-        <div className="px-5 py-4 border-b border-border">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">{activeTab === 'staff' ? 'Staff Entry/Exit Logs' : 'Visitor Logs'} ({displayLogs.length})</h3>
+          <div className="flex items-center gap-2">
+            <input type="date" value={filterFromDate} onChange={(e) => setFilterFromDate(e.target.value)} className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="From" />
+            <span className="text-xs text-muted-foreground">to</span>
+            <input type="date" value={filterToDate} onChange={(e) => setFilterToDate(e.target.value)} className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="To" />
+          </div>
         </div>
         {displayLogs.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">No logs found</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  {activeTab === 'staff' ? (
-                    <>
-                      {['Employee', 'Entry Time', 'Exit Time', 'Shift', 'Duration', 'Notes'].map(h => (
-                        <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
-                      ))}
-                    </>
-                  ) : (
-                    <>
-                      {['Visitor', 'Purpose', 'Entry Time', 'Exit Time', 'Contact', 'Notes'].map(h => (
-                        <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
-                      ))}
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {displayLogs.map((log) => (
-                  <tr key={log.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
                     {activeTab === 'staff' ? (
                       <>
-                        <td className="px-3 py-3 font-medium text-foreground">{log.personName}</td>
-                        <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(log.entryTime)}</td>
-                        <td className="px-3 py-3 mono-data whitespace-nowrap">{log.exitTime ? <span className="text-muted-foreground">{formatTime(log.exitTime)}</span> : <span className="text-success text-xs font-semibold">IN</span>}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{log.notes ? (log.notes.includes('Shift:') ? log.notes.split('\n')[0].replace('Shift: ', '') : '—') : '—'}</td>
-                        <td className="px-3 py-3 text-muted-foreground mono-data">{log.exitTime ? `${Math.round((new Date(log.exitTime) - new Date(log.entryTime)) / 60000)} min` : '—'}</td>
-                        <td className="px-3 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{log.notes ? log.notes.split('\n').slice(1).join(' ').trim() || '—' : '—'}</td>
+                        {['Employee', 'Entry Time', 'Exit Time', 'Shift', 'Duration', 'Notes'].map(h => (
+                          <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                        ))}
                       </>
                     ) : (
                       <>
-                        <td className="px-3 py-3 font-medium text-foreground">{log.personName}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{log.notes ? (log.notes.split('\n').find((line) => line.includes('Purpose:'))?.replace('Purpose: ', '') || '—') : '—'}</td>
-                        <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(log.entryTime)}</td>
-                        <td className="px-3 py-3 mono-data whitespace-nowrap">{log.exitTime ? <span className="text-muted-foreground">{formatTime(log.exitTime)}</span> : <span className="text-success text-xs font-semibold">IN</span>}</td>
-                        <td className="px-3 py-3 text-muted-foreground mono-data">{log.notes ? (log.notes.split('\n').find((line) => line.includes('Contact:'))?.replace('Contact: ', '') || '—') : '—'}</td>
-                        <td className="px-3 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{log.notes ? log.notes.split('\n').slice(2).join(' ').trim() || '—' : '—'}</td>
+                        {['Visitor', 'Purpose', 'Entry Time', 'Exit Time', 'Contact', 'Notes'].map(h => (
+                          <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                        ))}
                       </>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedLogs.map((log) => (
+                    <tr key={log.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+                      {activeTab === 'staff' ? (
+                        <>
+                          <td className="px-3 py-3 font-medium text-foreground">{log.personName}</td>
+                          <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(log.entryTime)}</td>
+                          <td className="px-3 py-3 mono-data whitespace-nowrap">{log.exitTime ? <span className="text-muted-foreground">{formatTime(log.exitTime)}</span> : <span className="text-success text-xs font-semibold">IN</span>}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{log.notes ? (log.notes.includes('Shift:') ? log.notes.split('\n')[0].replace('Shift: ', '') : '—') : '—'}</td>
+                          <td className="px-3 py-3 text-muted-foreground mono-data">{log.exitTime ? `${Math.round((new Date(log.exitTime) - new Date(log.entryTime)) / 60000)} min` : '—'}</td>
+                          <td className="px-3 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{log.notes ? log.notes.split('\n').slice(1).join(' ').trim() || '—' : '—'}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-3 py-3 font-medium text-foreground">{log.personName}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{log.notes ? (log.notes.split('\n').find((line) => line.includes('Purpose:'))?.replace('Purpose: ', '') || '—') : '—'}</td>
+                          <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(log.entryTime)}</td>
+                          <td className="px-3 py-3 mono-data whitespace-nowrap">{log.exitTime ? <span className="text-muted-foreground">{formatTime(log.exitTime)}</span> : <span className="text-success text-xs font-semibold">IN</span>}</td>
+                          <td className="px-3 py-3 text-muted-foreground mono-data">{log.notes ? (log.notes.split('\n').find((line) => line.includes('Contact:'))?.replace('Contact: ', '') || '—') : '—'}</td>
+                          <td className="px-3 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{log.notes ? log.notes.split('\n').slice(2).join(' ').trim() || '—' : '—'}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+              total={displayLogs.length}
+            />
+          </>
         )}
       </div>
     </div>

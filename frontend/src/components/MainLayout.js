@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Moon, Quote, Search, Sun, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -22,8 +22,115 @@ const QUOTES = [
   'A pony is a childhood dream, a horse is an adulthood treasure.',
 ];
 
+const ORBIT_HEADING_SELECTOR = 'h1, h2';
+
+const createOrbitDot = () => {
+  const dot = document.createElement('span');
+  dot.className = 'orbit-heading-dot';
+  dot.setAttribute('aria-hidden', 'true');
+
+  const particle = document.createElement('span');
+  particle.className = 'orbit-heading-particle';
+  dot.appendChild(particle);
+
+  return dot;
+};
+
+const accentLastWord = (heading) => {
+  if (heading.querySelector('.orbit-heading-accent')) {
+    return;
+  }
+
+  const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) {
+        return NodeFilter.FILTER_REJECT;
+      }
+
+      if (node.parentElement?.closest('.orbit-heading-dot')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  const textNodes = [];
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode);
+  }
+
+  const allWords = textNodes
+    .map((node) => node.nodeValue.trim())
+    .join(' ')
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (allWords.length <= 1) {
+    return;
+  }
+
+  const targetNode = textNodes[textNodes.length - 1];
+  const match = targetNode.nodeValue.match(/^(.*?)([^\s]+)(\s*)$/);
+  if (!match) {
+    return;
+  }
+
+  const [, before, lastWord, trailing] = match;
+  const fragment = document.createDocumentFragment();
+
+  if (before) {
+    fragment.appendChild(document.createTextNode(before));
+  }
+
+  const accent = document.createElement('span');
+  accent.className = 'orbit-heading-accent';
+  accent.textContent = lastWord;
+  fragment.appendChild(accent);
+
+  if (trailing) {
+    fragment.appendChild(document.createTextNode(trailing));
+  }
+
+  targetNode.parentNode?.replaceChild(fragment, targetNode);
+};
+
+const enhanceHeading = (heading) => {
+  if (!(heading instanceof HTMLElement) || heading.dataset.orbitHeadingReady === '1') {
+    return;
+  }
+
+  if (heading.classList.contains('orbit-heading-ignore') || heading.closest('.dashboard-page, .dashboard-lovable, .dashboard-lovable-hero')) {
+    return;
+  }
+
+  heading.classList.add('orbit-heading');
+
+  const dot = createOrbitDot();
+  const firstElement = heading.firstElementChild;
+  const leadingIcon = firstElement && firstElement.tagName.toLowerCase() === 'svg';
+
+  if (leadingIcon && firstElement.nextSibling) {
+    heading.insertBefore(dot, firstElement.nextSibling);
+  } else {
+    heading.insertBefore(dot, heading.firstChild);
+  }
+
+  accentLastWord(heading);
+  heading.dataset.orbitHeadingReady = '1';
+};
+
+const enhanceHeadings = (root) => {
+  if (!root) {
+    return;
+  }
+
+  root.querySelectorAll(ORBIT_HEADING_SELECTOR).forEach(enhanceHeading);
+};
+
 function MainLayout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(() => window.sessionStorage.getItem('efm.sidebar.mobileOpen') === '1');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [routeSkeleton, setRouteSkeleton] = useState(true);
@@ -42,6 +149,7 @@ function MainLayout() {
   const { t } = useI18n();
   const location = useLocation();
   const innerContentRef = useRef(null);
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -51,8 +159,36 @@ function MainLayout() {
   }, []);
 
   useEffect(() => {
-    setMobileOpen(false);
-    setMobileSearchOpen(false);
+    const protectedPath = location.pathname + location.search + location.hash;
+    const nonPersistent = ['/', '/login', '/profile-setup'];
+
+    if (!nonPersistent.includes(location.pathname)) {
+      window.sessionStorage.setItem('efm.lastProtectedPath', protectedPath);
+    }
+  }, [location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    const navEntry = window.performance.getEntriesByType?.('navigation')?.[0];
+    const isReload = navEntry?.type === 'reload';
+    const lastProtectedPath = window.sessionStorage.getItem('efm.lastProtectedPath');
+
+    if (isReload && location.pathname === '/dashboard' && lastProtectedPath && lastProtectedPath !== '/dashboard') {
+      navigate(lastProtectedPath, { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
+  useEffect(() => {
+    window.sessionStorage.setItem('efm.sidebar.mobileOpen', mobileOpen ? '1' : '0');
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (hasMountedRef.current) {
+      setMobileOpen(false);
+      setMobileSearchOpen(false);
+    } else {
+      hasMountedRef.current = true;
+    }
+
     if (innerContentRef.current) {
       innerContentRef.current.scrollTop = 0;
     }
@@ -79,6 +215,26 @@ function MainLayout() {
       themeMeta.setAttribute('content', themeColor);
     }
   }, [theme]);
+
+  useEffect(() => {
+    if (routeSkeleton || !innerContentRef.current) {
+      return undefined;
+    }
+
+    const root = innerContentRef.current;
+    enhanceHeadings(root);
+
+    const observer = new MutationObserver(() => {
+      enhanceHeadings(root);
+    });
+
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
+  }, [routeSkeleton, location.pathname]);
 
   const quote = useMemo(() => QUOTES[quoteIndex], [quoteIndex]);
 

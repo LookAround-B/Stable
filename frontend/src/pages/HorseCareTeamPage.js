@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Users, Star, AlertTriangle, Shield, CheckCircle, Plus, X } from 'lucide-react';
@@ -230,19 +231,26 @@ const HorseCareTeamPage = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="horse-care-team-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="horse-care-team-header-row flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Horse <span className="text-primary">Care Team</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('Assign care team members to horses for grooming, riding, and medical care')}</p>
         </div>
         <div className="flex shrink-0">
           <button 
             onClick={() => setShowForm(!showForm)} 
-            className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
+            className="horse-care-team-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
           >
-            {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Assign Member</>}
+            {showForm ? (
+              <><X className="w-4 h-4" /> Cancel</>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                <span className="sm:hidden">Member</span>
+                <span className="hidden sm:inline">Assign Member</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -254,24 +262,11 @@ const HorseCareTeamPage = () => {
       )}
 
       {/* KPI Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Star className="w-3.5 h-3.5 text-primary" /> ALL HORSES</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{totalHorses}</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Shield className="w-3.5 h-3.5 text-success" /> WITH TEAM</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{horsesWithTeams}</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Users className="w-3.5 h-3.5 text-primary" /> TEAM MEMBERS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{careTeams.length}</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5 text-warning" /> UNASSIGNED</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{unassignedHorses}</p>
-          {unassignedHorses > 0 && <p className="text-xs mt-1 text-warning">Requires team assignment</p>}
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+        <OperationalMetricCard label="ALL HORSES" value={String(totalHorses).padStart(2, '0')} icon={Star} colorClass="text-primary" bgClass="bg-primary/10" sub="Tracked care roster" hideSub />
+        <OperationalMetricCard label="WITH TEAM" value={String(horsesWithTeams).padStart(2, '0')} icon={Shield} colorClass="text-success" bgClass="bg-success/10" sub="Assigned care teams" subColor="text-success" hideSub />
+        <OperationalMetricCard label="TEAM MEMBERS" value={String(careTeams.length).padStart(2, '0')} icon={Users} colorClass="text-primary" bgClass="bg-primary/10" sub="Total linked staff" hideSub />
+        <OperationalMetricCard label="UNASSIGNED" value={String(unassignedHorses).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub={unassignedHorses > 0 ? 'Requires team assignment' : 'All horses covered'} subColor={unassignedHorses > 0 ? 'text-warning' : 'text-success'} hideSub />
       </div>
 
       {/* Assignment Form */}
@@ -337,9 +332,8 @@ const HorseCareTeamPage = () => {
       )}
 
       {/* Horses Grid */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pt-2">
-        <h2 className="text-xl font-bold text-foreground">Horse Care Teams</h2>
-        <div className="relative w-full sm:w-[320px]">
+      <div className="horse-care-team-toolbar flex flex-col gap-3 pt-2">
+        <div className="horse-care-team-search relative w-full">
           <input
             type="text"
             value={searchTerm}
@@ -397,3 +391,8 @@ const HorseCareTeamPage = () => {
 };
 
 export default HorseCareTeamPage;
+
+
+
+
+

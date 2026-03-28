@@ -4,11 +4,32 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import Pagination from '../components/Pagination';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import DatePicker from '../components/shared/DatePicker';
+
+const dateInputStyles = `
+  input[type="date"] {
+    color-scheme: light;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+  }
+  input[type="date"]::-webkit-outer-spin-button,
+  input[type="date"]::-webkit-inner-spin-button {
+    display: none;
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  /* Calendar styling adjustments */
+  input[type="date"]::selection {
+    background-color: hsl(var(--primary, 210 100% 50%));
+  }
+`;
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -25,6 +46,8 @@ const GateEntryRegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const loadData = useCallback(async () => {
     setLoading(true); setError('');
@@ -39,7 +62,7 @@ const GateEntryRegisterPage = () => {
     finally { setLoading(false); }
   }, [selectedDate]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { loadData(); setCurrentPage(1); }, [loadData]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -89,14 +112,19 @@ const GateEntryRegisterPage = () => {
     const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Gate Register'); XLSX.writeFile(wb, `GateRegister_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const inputCls = "w-full h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const dateInputCls = "h-4 px-2.5 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none";
   const activeIn = entries.filter(e => !e.exitTime).length;
   const totalExited = entries.filter(e => e.exitTime).length;
+  const totalPages = Math.ceil(entries.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedEntries = entries.slice(startIndex, startIndex + rowsPerPage);
 
   if (!p.viewGateEntry) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="gate-entry-page space-y-6">
+      <style>{dateInputStyles}</style>
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
@@ -109,34 +137,24 @@ const GateEntryRegisterPage = () => {
       {error && <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         {[
-          { label: 'Total Entries', value: entries.length, icon: Users },
-          { label: 'Currently Inside', value: activeIn, icon: LogIn },
-          { label: 'Exited', value: totalExited, icon: LogOut },
-          { label: 'Vehicles', value: entries.filter(e => e.vehicleNo).length, icon: Car },
+          { label: 'TOTAL ENTRIES', value: entries.length, icon: Users, sub: 'All register movements' },
+          { label: 'CURRENTLY INSIDE', value: activeIn, icon: LogIn, sub: 'Open entry sessions' },
+          { label: 'EXITED', value: totalExited, icon: LogOut, sub: 'Completed movements' },
+          { label: 'VEHICLES', value: entries.filter(e => e.vehicleNo).length, icon: Car, sub: 'Vehicle-linked entries' },
         ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</p>
-              <k.icon className="w-4 h-4 text-primary/60" />
-            </div>
-            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-          </div>
+          <OperationalMetricCard key={k.label} label={k.label} value={String(k.value).padStart(2, '0')} icon={k.icon} colorClass="text-primary" bgClass="bg-primary/10" sub={k.sub} hideSub />
         ))}
       </div>
 
       {/* Entry/Exit Section */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+      <div className="gate-entry-header-row flex flex-col md:flex-row items-stretch md:items-end gap-4">
         <button onClick={() => setShowForm(!showForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
           {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Record Entry/Exit</>}
         </button>
         <div className="flex items-end gap-3 md:ml-auto">
-          <div>
-            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
-            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
-          </div>
-          <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={dateInputCls} />
         </div>
       </div>
 
@@ -208,45 +226,56 @@ const GateEntryRegisterPage = () => {
 
       {/* Register Table */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-        <div className="px-5 py-4 border-b border-border">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">Gate Register — {new Date(selectedDate).toLocaleDateString('en-GB')}</h3>
+          <button onClick={handleDownloadExcel} className="h-9 px-3 rounded-lg border border-border text-foreground text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-3.5 h-3.5" />Excel</button>
         </div>
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Loading gate entries...</div>
         ) : entries.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  {['Name', 'Type', 'Vehicle', 'Entry', 'Exit', 'Duration', 'Purpose/Notes', 'Action'].map(h => (
-                    <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((entry) => (
-                  <tr key={entry.id} className={`border-b border-border/50 hover:bg-surface-container-high transition-colors ${!entry.exitTime ? 'bg-success/5' : ''}`}>
-                    <td className="px-3 py-3 font-medium text-foreground">{entry.personType === 'Staff' ? getStaffName(entry.employeeId) : entry.visitor?.name || 'Visitor'}</td>
-                    <td className="px-3 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${entry.personType === 'Staff' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' : 'border-purple-500/30 text-purple-400 bg-purple-500/10'}`}>{entry.personType}</span>
-                    </td>
-                    <td className="px-3 py-3 text-muted-foreground mono-data">{entry.vehicleNo || '-'}</td>
-                    <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(entry.entryTime)}</td>
-                    <td className="px-3 py-3 mono-data whitespace-nowrap">{entry.exitTime ? <span className="text-muted-foreground">{formatTime(entry.exitTime)}</span> : <span className="text-success text-xs font-semibold">Inside</span>}</td>
-                    <td className="px-3 py-3 text-muted-foreground mono-data">{getTotalDuration(entry.entryTime, entry.exitTime)}</td>
-                    <td className="px-3 py-3 text-muted-foreground text-xs max-w-[180px] truncate">{entry.personType === 'Visitor' && entry.visitor ? entry.visitor.purpose : entry.notes || '-'}</td>
-                    <td className="px-3 py-3">
-                      {!entry.exitTime ? (
-                        <button onClick={() => handleExit(entry.id)} className="h-7 px-3 rounded text-[10px] font-semibold bg-warning/15 border border-warning/30 text-warning hover:bg-warning/25 transition-colors">Mark Exit</button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground/50">Exited</span>
-                      )}
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    {['Name', 'Type', 'Vehicle', 'Entry', 'Exit', 'Duration', 'Purpose/Notes', 'Action'].map(h => (
+                      <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedEntries.map((entry) => (
+                    <tr key={entry.id} className={`border-b border-border/50 hover:bg-surface-container-high transition-colors ${!entry.exitTime ? 'bg-success/5' : ''}`}>
+                      <td className="px-3 py-3 font-medium text-foreground">{entry.personType === 'Staff' ? getStaffName(entry.employeeId) : entry.visitor?.name || 'Visitor'}</td>
+                      <td className="px-3 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${entry.personType === 'Staff' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' : 'border-purple-500/30 text-purple-400 bg-purple-500/10'}`}>{entry.personType}</span>
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground mono-data">{entry.vehicleNo || '-'}</td>
+                      <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(entry.entryTime)}</td>
+                      <td className="px-3 py-3 mono-data whitespace-nowrap">{entry.exitTime ? <span className="text-muted-foreground">{formatTime(entry.exitTime)}</span> : <span className="text-success text-xs font-semibold">Inside</span>}</td>
+                      <td className="px-3 py-3 text-muted-foreground mono-data">{getTotalDuration(entry.entryTime, entry.exitTime)}</td>
+                      <td className="px-3 py-3 text-muted-foreground text-xs max-w-[180px] truncate">{entry.personType === 'Visitor' && entry.visitor ? entry.visitor.purpose : entry.notes || '-'}</td>
+                      <td className="px-3 py-3">
+                        {!entry.exitTime ? (
+                          <button onClick={() => handleExit(entry.id)} className="h-7 px-3 rounded text-[10px] font-semibold bg-warning/15 border border-warning/30 text-warning hover:bg-warning/25 transition-colors">Mark Exit</button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">Exited</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+              total={entries.length}
+            />
+          </>
         ) : (
           <div className="text-center py-12 text-muted-foreground">No gate entries for {new Date(selectedDate).toLocaleDateString()}</div>
         )}
@@ -258,3 +287,5 @@ const GateEntryRegisterPage = () => {
 };
 
 export default GateEntryRegisterPage;
+
+

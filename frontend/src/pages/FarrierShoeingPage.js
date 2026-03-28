@@ -3,12 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import Pagination from '../components/Pagination';
 import { TableSkeleton } from '../components/Skeleton';
 import ConfirmModal from '../components/ConfirmModal';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Bell, BellOff, Send, Plus, X, Trash2, Hammer, Clock, CheckCircle } from 'lucide-react';
+import { Download, Bell, BellOff, Send, Plus, X, Trash2, Hammer, Clock, CheckCircle, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import DateTimePicker from '../components/shared/DateTimePicker';
 
 const SHOEING_INTERVAL_DAYS = 21;
 
@@ -34,6 +34,8 @@ const FarrierShoeingPage = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
   const [reminder, setReminder] = useState({ pendingCount: 0, isSnoozed: false, snoozedUntil: null, lastSent: null });
   const [reminderSending, setReminderSending] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const [formData, setFormData] = useState({
     horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), notes: '',
@@ -68,7 +70,7 @@ const FarrierShoeingPage = () => {
   }, []);
 
   useEffect(() => { loadHorses(); loadFarriers(); loadReminderStatus(); }, [loadHorses, loadFarriers]);
-  useEffect(() => { if (activeTab === 'completed') { loadRecords(); } else { loadPendingHorses(); } }, [activeTab, loadRecords, loadPendingHorses]);
+  useEffect(() => { if (activeTab === 'completed') { loadRecords(); } else { loadPendingHorses(); } setCurrentPage(1); }, [activeTab, loadRecords, loadPendingHorses]);
 
   const calculateNextDue = (dateStr) => {
     if (!dateStr) return '';
@@ -86,26 +88,36 @@ const FarrierShoeingPage = () => {
     try {
       setReminderSending(true);
       const response = await apiClient.post('/farrier-shoeing/reminders', {});
-      if (response.data.sent) { showMsg('? Reminder email sent successfully'); } else { showMsg(response.data.message || 'No reminder sent', 'error'); }
+      if (response.data.sent) { showMsg('Reminder email sent successfully'); } else { showMsg(response.data.message || 'No reminder sent', 'error'); }
       loadReminderStatus();
     } catch (error) { showMsg('Failed to send reminder email', 'error'); } finally { setReminderSending(false); }
   };
 
   const handleSnooze = async () => {
-    try { setReminderSending(true); await apiClient.post('/farrier-shoeing/reminders', { action: 'snooze' }); showMsg('? Reminder snoozed for 24 hours'); loadReminderStatus(); }
+    try { setReminderSending(true); await apiClient.post('/farrier-shoeing/reminders', { action: 'snooze' }); showMsg('Reminder snoozed for 24 hours'); loadReminderStatus(); }
     catch (error) { showMsg('Failed to snooze reminder', 'error'); } finally { setReminderSending(false); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.horseId || !formData.farrierId || !formData.shoeingDate) { showMsg('Please fill in all required fields', 'error'); return; }
+    
+    // Check for duplicate shoeing on same date
+    const selectedDate = new Date(formData.shoeingDate).toLocaleDateString('en-GB');
+    const isDuplicate = records.some(record => 
+      record.horse?.id === formData.horseId && 
+      new Date(record.shoeingDate).toLocaleDateString('en-GB') === selectedDate
+    );
+    
+    if (isDuplicate) { showMsg('This horse already has a shoeing record for this date', 'error'); return; }
+    
     try {
       setLoading(true);
       await apiClient.post('/farrier-shoeing', { horseId: formData.horseId, farrierId: formData.farrierId, shoeingDate: new Date(formData.shoeingDate).toISOString(), notes: formData.notes || '' });
-      showMsg('? Shoeing record created successfully');
+      showMsg('Shoeing record created successfully');
       setFormData({ horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), notes: '' });
       setShowForm(false);
-      loadRecords(); loadPendingHorses();
+      loadRecords(); loadPendingHorses(); loadReminderStatus();
     } catch (error) { showMsg(error.response?.data?.error || 'Failed to create shoeing record', 'error'); } finally { setLoading(false); }
   };
 
@@ -113,7 +125,7 @@ const FarrierShoeingPage = () => {
 
   const confirmDelete = async () => {
     const id = confirmModal.id; setConfirmModal({ isOpen: false, id: null });
-    try { setLoading(true); await apiClient.delete('/farrier-shoeing', { data: { id } }); showMsg('? Record deleted'); loadRecords(); loadPendingHorses(); }
+    try { setLoading(true); await apiClient.delete('/farrier-shoeing', { data: { id } }); showMsg('Record deleted'); loadRecords(); loadPendingHorses(); loadReminderStatus(); }
     catch (error) { showMsg('Failed to delete record', 'error'); } finally { setLoading(false); }
   };
 
@@ -137,6 +149,11 @@ const FarrierShoeingPage = () => {
   if (!user) return null;
   if (!p.viewFarrierShoeing) return <Navigate to="/dashboard" replace />;
 
+  const totalPages = Math.ceil((activeTab === 'completed' ? records.length : pendingHorses.length) / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedCompleted = records.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedPending = pendingHorses.slice(startIndex, startIndex + rowsPerPage);
+
   const getStatusBadge = (record) => {
     const now = new Date();
     const nextDue = new Date(record.nextDueDate);
@@ -147,14 +164,11 @@ const FarrierShoeingPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="farrier-shoeing-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Farrier <span className="text-primary">Shoeing</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule � every {SHOEING_INTERVAL_DAYS} days</p>
-        </div>
-        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Farrier <span className="text-primary">Shoeing</span></h1>
+        <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule every {SHOEING_INTERVAL_DAYS} days</p>
       </div>
 
       {/* Message */}
@@ -171,7 +185,7 @@ const FarrierShoeingPage = () => {
             <Bell className={`w-5 h-5 shrink-0 mt-0.5 ${reminder.isSnoozed ? 'text-warning' : 'text-destructive'}`} />
             <div>
               <p className="text-sm font-bold text-foreground">
-                {reminder.isSnoozed ? '?? Reminder Snoozed' : `?? ${reminder.pendingCount} horse${reminder.pendingCount !== 1 ? 's' : ''} pending shoeing`}
+                {reminder.isSnoozed ? 'Reminder Snoozed' : `${reminder.pendingCount} horse${reminder.pendingCount !== 1 ? 's' : ''} pending shoeing`}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {reminder.isSnoozed ? `Snoozed until ${new Date(reminder.snoozedUntil).toLocaleString('en-GB')}` : 'You have pending horse shoeing tasks. Please complete them.'}
@@ -218,7 +232,7 @@ const FarrierShoeingPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shoeing Date & Time *</label>
-                <DateTimePicker value={formData.shoeingDate} onChange={(val) => setFormData((prev) => ({ ...prev, shoeingDate: val }))} required />
+                <input type="datetime-local" value={formData.shoeingDate} onChange={(e) => setFormData((prev) => ({ ...prev, shoeingDate: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Due (auto)</label>
@@ -240,11 +254,24 @@ const FarrierShoeingPage = () => {
       {/* Completed Tab */}
       {activeTab === 'completed' && (
         <>
-          {loading && <TableSkeleton cols={6} rows={5} />}
-          {!loading && records.length > 0 ? (
-            <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+          <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+            <div className="farrier-shoeing-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <input
+                  placeholder="Search horses or farrier..."
+                  className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={handleDownloadExcel} className="btn-download farrier-shoeing-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+                  <Download className="w-4 h-4" /> Export
+                </button>
+                <span className="text-xs text-muted-foreground mono-data hidden sm:block">{records.length} records</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
                       {['Horse', 'Stable #', 'Farrier', 'Shoeing Date', 'Next Due', 'Status', 'Notes', 'Actions'].map(h => (
@@ -253,15 +280,15 @@ const FarrierShoeingPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {records.map((record) => (
+                    {paginatedCompleted.map((record) => (
                       <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{record.horse?.name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{record.horse?.stableNumber || '�'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{record.horse?.stableNumber || 'N/A'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{record.farrier?.fullName || 'Unknown'}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.shoeingDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.nextDueDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3">{getStatusBadge(record)}</td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || '�'}</td>
+                        <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || 'N/A'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleDelete(record.id)} disabled={loading} className="h-8 px-3 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition-colors flex items-center gap-1.5"><Trash2 className="w-3 h-3" /> Delete</button>
                         </td>
@@ -270,9 +297,18 @@ const FarrierShoeingPage = () => {
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+                total={records.length}
+              />
             </div>
-          ) : (
-            !loading && <div className="text-center py-12 text-muted-foreground">No shoeing records yet</div>
+          {loading && <TableSkeleton cols={6} rows={5} />}
+          {!loading && records.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">No shoeing records yet</div>
           )}
         </>
       )}
@@ -280,11 +316,24 @@ const FarrierShoeingPage = () => {
       {/* Pending Tab */}
       {activeTab === 'pending' && (
         <>
-          {loading && <TableSkeleton cols={5} rows={5} />}
-          {!loading && pendingHorses.length > 0 ? (
-            <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+          <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+            <div className="farrier-shoeing-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <input
+                  placeholder="Search horses or farrier..."
+                  className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={handleDownloadExcel} className="btn-download farrier-shoeing-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+                  <Download className="w-4 h-4" /> Export
+                </button>
+                <span className="text-xs text-muted-foreground mono-data hidden sm:block">{pendingHorses.length} pending</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
                       {['Horse', 'Stable #', 'Last Shoeing', 'Next Due', 'Overdue', 'Last Farrier', 'Actions'].map(h => (
@@ -293,18 +342,18 @@ const FarrierShoeingPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingHorses.map((item, idx) => (
+                    {paginatedPending.map((item, idx) => (
                       <tr key={idx} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{item.horse?.name || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || '�'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || 'N/A'}</td>
                         <td className="px-4 py-3">{item.neverShoed ? <span className="text-destructive font-semibold text-xs">Never Shoed</span> : <span className="text-muted-foreground mono-data">{new Date(item.lastShoeingDate).toLocaleDateString('en-GB')}</span>}</td>
-                        <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : '�'}</td>
+                        <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : 'N/A'}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-destructive/30 text-destructive bg-destructive/10">
                             {item.neverShoed ? 'Never Shoed' : `${item.daysOverdue} day${item.daysOverdue !== 1 ? 's' : ''} overdue`}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || '�'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || 'N/A'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleQuickShoe(item.horse?.id)} className="h-8 px-4 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1.5"><Hammer className="w-3 h-3" /> Shoe Now</button>
                         </td>
@@ -313,9 +362,18 @@ const FarrierShoeingPage = () => {
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+                total={pendingHorses.length}
+              />
             </div>
-          ) : (
-            !loading && <div className="text-center py-12 text-success font-medium">All horses are up to date on shoeing!</div>
+          {loading && <TableSkeleton cols={5} rows={5} />}
+          {!loading && pendingHorses.length === 0 && (
+            <div className="text-center py-12 text-success font-medium">All horses are up to date on shoeing!</div>
           )}
         </>
       )}
@@ -326,3 +384,6 @@ const FarrierShoeingPage = () => {
 };
 
 export default FarrierShoeingPage;
+
+
+

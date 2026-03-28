@@ -9,7 +9,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, Search, User, Users, X, Trash2 } from 'lucide-react';
+import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, User, Users, X, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // All 18 roles in the system
@@ -495,16 +495,18 @@ const EmployeesPage = () => {
   return (
     <div className="employees-page space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Team Directory</h1>
+      <div className="employees-header-row">
+        <div className="min-w-0">
+          <div className="employees-title-row flex items-end justify-between gap-3 w-full">
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Team</h1>
+            {canAddEmployee && (
+              <button onClick={() => setShowModal(true)} className="employees-header-add-btn inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap shrink-0">
+                <Plus className="w-4 h-4" /> Add New Employee
+              </button>
+            )}
+          </div>
           <p className="text-muted-foreground mt-2 text-sm">Manage staff roles, supervisors, and contact details.</p>
         </div>
-        {canAddEmployee && (
-          <button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
-            <Plus className="w-4 h-4" /> Add New Employee
-          </button>
-        )}
       </div>
 
       {message && (
@@ -565,8 +567,7 @@ const EmployeesPage = () => {
       <div className="bg-surface-container-highest rounded-[18px] edge-glow">
         {/* Toolbar */}
         <div className="employee-directory-toolbar flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
-          <div className="employee-directory-search">
-            <Search className="employee-directory-search-icon w-4 h-4" />
+          <div className="employee-directory-search employee-directory-search--compact">
             <input
               type="text"
               placeholder={t("Search by name, email, or role...")}
@@ -574,13 +575,8 @@ const EmployeesPage = () => {
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="employee-directory-search-input"
             />
-            {searchTerm && (
-              <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="employee-directory-clear">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="employee-directory-toolbar-actions flex items-center gap-3">
             <SearchableSelect
               name="employeeRoleFilter"
               className="employee-directory-role-filter"
@@ -591,7 +587,7 @@ const EmployeesPage = () => {
             />
             <button
               onClick={handleDownloadExcel}
-              className="btn-download h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
+              className="btn-download employee-directory-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
               title={t('Download employees')}
             >
               <Download className="w-4 h-4" />
@@ -785,3 +781,6 @@ const EmployeesPage = () => {
 };
 
 export default EmployeesPage;
+
+
+

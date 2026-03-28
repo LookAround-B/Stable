@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { CardGridSkeleton } from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import inspectionService from '../services/inspectionService';
 import apiClient from '../services/apiClient';
 import * as XLSX from 'xlsx';
@@ -156,25 +157,14 @@ const InspectionPage = () => {
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('✗') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         {[
           { label: 'TOTAL RECORDED', value: String(inspections.length).padStart(2, '0'), icon: ClipboardList, colorClass: 'text-primary', bgClass: 'bg-primary/10' },
           { label: 'OPEN ISSUES', value: String(inspections.filter(i => i.status !== 'Resolved').length).padStart(2, '0'), icon: Activity, colorClass: 'text-warning', bgClass: 'bg-warning/10' },
           { label: 'CRITICAL', value: String(inspections.filter(i => i.severityLevel === 'Critical' && i.status !== 'Resolved').length).padStart(2, '0'), icon: AlertOctagon, colorClass: 'text-destructive', bgClass: 'bg-destructive/10' },
           { label: 'RESOLVED', value: String(inspections.filter(i => i.status === 'Resolved').length).padStart(2, '0'), icon: CheckCircle2, colorClass: 'text-success', bgClass: 'bg-success/10' },
         ].map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
-              <k.icon className="w-24 h-24" />
-            </div>
-            <div className="flex items-center justify-between mb-3 relative z-10">
-              <span className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{k.label}</span>
-              <div className={`w-9 h-9 rounded-lg ${k.bgClass} flex items-center justify-center`}>
-                <k.icon className={`w-4 h-4 ${k.colorClass}`} />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-foreground mt-1 mono-data relative z-10">{k.value}</p>
-          </div>
+          <OperationalMetricCard key={k.label} label={k.label} value={k.value} icon={k.icon} colorClass={k.colorClass} bgClass={k.bgClass} />
         ))}
       </div>
 
@@ -277,7 +267,28 @@ const InspectionPage = () => {
       {loading && <CardGridSkeleton count={6} withImage />}
 
       {!loading && inspections.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">{Object.values(filters).some(v => v) ? 'No inspections match filters' : 'No inspections yet'}</div>
+        <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Round', 'Horse', 'Area', 'Location', 'Severity', 'Status', 'Reported By', 'Date'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center">
+                    <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-container px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Nil Report
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {!loading && inspections.length > 0 && (

@@ -355,25 +355,29 @@ const HorsesPage = () => {
   return (
     <div className="horses-page space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <div className="lovable-header-kicker mb-2">
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
-            <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>FLEET MANAGEMENT</span>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4">
+          <div className="flex-1">
+            <div className="lovable-header-kicker mb-2">
+              <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
+              <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
+              <span>FLEET MANAGEMENT</span>
+            </div>
+            <div className="horses-header-row flex items-end justify-between gap-3">
+              <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Horses</h1>
+              {canAddHorse && (
+                <button onClick={() => setShowModal(true)} className="horses-header-add-btn inline-flex items-center gap-2 h-8 px-3 rounded-lg bg-primary text-primary-foreground text-xs sm:text-sm font-medium hover:brightness-110 transition-all sm:h-10 sm:px-5 w-fit whitespace-nowrap shrink-0">
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add New Horse
+                </button>
+              )}
+            </div>
+            <p className="text-muted-foreground mt-2 text-sm">
+              {canAddHorse 
+                ? t('You can add new horses to the system') 
+                : t('Only Admin and Instructor can add horses')}
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Horses</h1>
-          <p className="text-muted-foreground mt-2 text-sm">
-            {canAddHorse 
-              ? t('You can add new horses to the system') 
-              : t('Only Admin and Instructor can add horses')}
-          </p>
         </div>
-        {canAddHorse && (
-          <button onClick={() => setShowModal(true)} className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
-            <Plus className="w-4 h-4" /> Add New Horse
-          </button>
-        )}
       </div>
 
       {/* KPI Cards */}
@@ -427,28 +431,28 @@ const HorsesPage = () => {
       {/* Table Section */}
       <div className="bg-surface-container-highest rounded-[18px] edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="horse-directory-toolbar flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
-          <div className="horse-directory-search">
-            <Search className="horse-directory-search-icon w-4 h-4" />
+        <div className="horse-directory-toolbar flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-5 border-b border-border">
+          <div className="horse-directory-search flex-1">
+            <Search className="horse-directory-search-icon w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <input
               type="text"
-              placeholder={t("Search horses by name, status, breed...")}
+              placeholder={t("Search horses...")}
               value={searchTerm}
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="horse-directory-search-input"
+              className="horse-directory-search-input h-8 sm:h-10 text-xs sm:text-sm"
             />
             {searchTerm && (
               <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="horse-directory-clear">
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             )}
           </div>
           <button
             onClick={handleDownloadExcel}
-            className="btn-download h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
+            className="btn-download horse-directory-export h-8 sm:h-10 px-3 sm:px-4 rounded-lg border border-border text-foreground text-xs sm:text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
             title={t('Download horses')}
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
 

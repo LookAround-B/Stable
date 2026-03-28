@@ -7,12 +7,10 @@ import {
   getTaskPermissions, updateTaskPermissions, getRoleDefaults
 } from '../services/permissionService';
 import {
-  Search, ChevronRight, Check, Users, LayoutDashboard, BarChart2,
-  AlertTriangle, Package, Calendar, CreditCard, Save, Info, Shield,
-  Settings2, Download, Filter, SlidersHorizontal, Lock, CheckCircle, Plus, RotateCcw, Unlock,
-  Home, Feather, Wind, Flag, GraduationCap, Hammer, Wrench,
-  Briefcase, Folder, Wallet, Receipt, Utensils, ChefHat, Flame,
-  ClipboardList, Leaf, Sparkles, Zap, Bell
+  Search, ChevronRight, Users, LayoutDashboard, BarChart2,
+  AlertTriangle, Package, Calendar, CreditCard, Save, Shield,
+  Download, Filter, SlidersHorizontal, Lock, CheckCircle, Plus, RotateCcw,
+  Bell
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -70,9 +68,7 @@ const PermissionsPage = () => {
     { key: 'viewNotifications', label: t('View Notifications'), desc: t('Receive and view in-app alerts.'), icon: Bell },
   ];
 
-  useEffect(() => { fetchData(); }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [permRes, roleRes] = await Promise.all([
@@ -92,7 +88,10 @@ const PermissionsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const loadTaskPerms = useCallback(async (empId) => {
     setTaskLoading(true);

@@ -89,20 +89,24 @@ const GroomWorkSheetPage = () => {
   if (!p.viewGroomWorksheet) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="groom-worksheet-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="groom-worksheet-header-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><ClipboardCheck className="w-7 h-7 inline-block mr-2 text-primary" />{t('Groom')} <span className="text-primary">Work Sheet</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Track groom activities, horse care hours, and supplies used daily.</p>
         </div>
-        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+        {canCreateWorksheet && (
+          <button onClick={() => setShowAddForm(!showAddForm)} className="groom-worksheet-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+            {showAddForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> New Worksheet</>}
+          </button>
+        )}
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Failed') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4">
+      <div className="groom-worksheet-toolbar flex flex-col md:flex-row items-stretch md:items-end gap-4">
         <div>
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
@@ -111,11 +115,7 @@ const GroomWorkSheetPage = () => {
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Groom Filter</label>
           <SearchableSelect value={filterGroomId} onChange={(e) => setFilterGroomId(e.target.value)} placeholder="All Grooms" options={[{ value: 'all', label: 'All Grooms' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
         </div>
-        {canCreateWorksheet && (
-          <button onClick={() => setShowAddForm(!showAddForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showAddForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> New Worksheet</>}
-          </button>
-        )}
+        <button onClick={handleDownloadExcel} disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"><Download className="w-4 h-4" /> Excel</button>
       </div>
 
       {/* Add Worksheet Form */}
@@ -192,7 +192,28 @@ const GroomWorkSheetPage = () => {
 
       {/* Worksheets List */}
       {worksheets.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">No worksheets for {selectedDate}</div>
+        <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Horse', 'AM Hours', 'PM Hours', 'Total', 'Woodchips', 'Bichali (kg)', 'Boo Sa', 'Remarks'].map(h => (
+                    <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={8} className="px-3 py-10 text-center">
+                    <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-container px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Nil Report
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
         worksheets.map((worksheet) => (
           <div key={worksheet.id} className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
@@ -213,18 +234,28 @@ const GroomWorkSheetPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {worksheet.entries.map((entry, idx) => (
-                    <tr key={idx} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
-                      <td className="px-3 py-3 font-medium text-foreground">{getHorseName(entry.horseId)}</td>
-                      <td className="px-3 py-3 text-muted-foreground mono-data">{entry.amHours}</td>
-                      <td className="px-3 py-3 text-muted-foreground mono-data">{entry.pmHours}</td>
-                      <td className="px-3 py-3 text-primary font-bold mono-data">{entry.wholeDayHours}</td>
-                      <td className="px-3 py-3 text-muted-foreground mono-data">{entry.woodchipsUsed || '-'}</td>
-                      <td className="px-3 py-3 text-muted-foreground mono-data">{entry.bichaliUsed || '-'}</td>
-                      <td className="px-3 py-3 text-muted-foreground mono-data">{entry.booSaUsed || '-'}</td>
-                      <td className="px-3 py-3 text-muted-foreground text-xs">{entry.remarks || '-'}</td>
+                  {worksheet.entries?.length ? (
+                    worksheet.entries.map((entry, idx) => (
+                      <tr key={idx} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
+                        <td className="px-3 py-3 font-medium text-foreground">{getHorseName(entry.horseId)}</td>
+                        <td className="px-3 py-3 text-muted-foreground mono-data">{entry.amHours}</td>
+                        <td className="px-3 py-3 text-muted-foreground mono-data">{entry.pmHours}</td>
+                        <td className="px-3 py-3 text-primary font-bold mono-data">{entry.wholeDayHours}</td>
+                        <td className="px-3 py-3 text-muted-foreground mono-data">{entry.woodchipsUsed || '-'}</td>
+                        <td className="px-3 py-3 text-muted-foreground mono-data">{entry.bichaliUsed || '-'}</td>
+                        <td className="px-3 py-3 text-muted-foreground mono-data">{entry.booSaUsed || '-'}</td>
+                        <td className="px-3 py-3 text-muted-foreground text-xs">{entry.remarks || '-'}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="px-3 py-8 text-center">
+                        <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-container px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Nil Report
+                        </div>
+                      </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -236,3 +267,8 @@ const GroomWorkSheetPage = () => {
 };
 
 export default GroomWorkSheetPage;
+
+
+
+
+

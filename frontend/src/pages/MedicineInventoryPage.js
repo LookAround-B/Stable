@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import ConfirmModal from '../components/ConfirmModal';
 import medicineInventoryService from '../services/medicineInventoryService';
 import { Navigate } from 'react-router-dom';
@@ -313,7 +314,6 @@ const MedicineInventoryPage = () => {
   const totalStock = inventoryRecords.reduce((s, m) => s + (m.unitsLeft || 0), 0);
   const lowStockCount = inventoryRecords.filter(m => m.threshold !== null && m.threshold !== undefined && m.unitsLeft < m.threshold).length;
   const efficiency = inventoryRecords.length > 0 ? Math.round((totalStock / Math.max(1, inventoryRecords.reduce((s, m) => s + (m.openingStock || 0) + (m.unitsPurchased || 0), 0))) * 100) : 0;
-  const reportControlClass = 'h-10 w-full min-w-[180px] px-4 rounded-xl border border-border bg-surface-container-high text-foreground text-sm font-medium focus:ring-1 focus:ring-primary outline-none';
   const reportButtonClass = 'h-10 min-w-[180px] px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2';
   const medicineTypeOptions = [
     ...MEDICINE_TYPES.map((type) => ({ value: type, label: MEDICINE_LABELS[type] })),
@@ -330,22 +330,26 @@ const MedicineInventoryPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="medicine-inventory-page space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">Inventory</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('Manage and track medicine stock levels across the facility.')}</p>
+      <div className="medicine-inventory-header-row space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">Inventory</span></h1>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => !showForm && setShowForm(true)}
+              disabled={loading || showForm}
+              className="medicine-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">Add Record</span>
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <button
-            onClick={() => !showForm && setShowForm(true)}
-            disabled={loading || showForm}
-            className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" /> Add Record
-          </button>
-        </div>
+        <p className="text-sm text-muted-foreground mt-1">{t('Manage and track medicine stock levels across the facility.')}</p>
       </div>
 
       {/* ── Message ── */}
@@ -356,14 +360,19 @@ const MedicineInventoryPage = () => {
       )}
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {kpis.map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2">
-              <k.icon className="w-3.5 h-3.5 text-primary" /> {k.label}
-            </p>
-            <p className="text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-            <p className={`text-xs mt-1 ${k.subColor}`}>{k.sub}</p>
+      <div className="medicine-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {kpis.map((k, idx) => (
+          <div key={k.label} className={idx === kpis.length - 1 ? 'medicine-inventory-kpi-card medicine-inventory-kpi-card--wide-mobile' : 'medicine-inventory-kpi-card'}>
+            <OperationalMetricCard
+              label={k.label}
+              value={String(k.value)}
+              icon={k.icon}
+              colorClass={k.subColor === 'text-success' ? 'text-success' : k.subColor === 'text-warning' ? 'text-warning' : 'text-primary'}
+              bgClass={k.subColor === 'text-success' ? 'bg-success/10' : k.subColor === 'text-warning' ? 'bg-warning/10' : 'bg-primary/10'}
+              sub={k.sub}
+              subColor={k.subColor}
+              valueClass="text-4xl font-bold text-foreground mt-2 mono-data relative z-10"
+            />
           </div>
         ))}
       </div>
@@ -482,7 +491,7 @@ const MedicineInventoryPage = () => {
 
           {/* Table */}
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 border-b border-border gap-3">
+            <div className="medicine-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 border-b border-border gap-3">
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -496,8 +505,9 @@ const MedicineInventoryPage = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <button onClick={handleDownloadExcel} className="btn-download h-10 px-4 sm:px-5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                  <Download className="w-4 h-4" /> Export
+                <button onClick={handleDownloadExcel} className="btn-download medicine-inventory-export h-10 px-4 sm:px-5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center justify-center gap-0 sm:gap-2">
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Export</span>
                 </button>
               </div>
             </div>
@@ -607,7 +617,7 @@ const MedicineInventoryPage = () => {
       {activeTab === 'report' && (
         <div className="space-y-4">
           <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
-            <div className="flex flex-wrap items-end gap-4">
+            <div className="medicine-inventory-report-controls flex flex-wrap items-end gap-4">
               <div className="flex-1 min-w-[180px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
                 <DatePicker value={reportStartDate} onChange={(val) => setReportStartDate(val)} />
@@ -616,11 +626,11 @@ const MedicineInventoryPage = () => {
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
                 <DatePicker value={reportEndDate} onChange={(val) => setReportEndDate(val)} />
               </div>
-              <button onClick={handleLoadReport} disabled={loading} className={`${reportButtonClass} bg-primary text-primary-foreground hover:brightness-110`}>
+              <button onClick={handleLoadReport} disabled={loading} className={`medicine-inventory-report-generate ${reportButtonClass} bg-primary text-primary-foreground hover:brightness-110`}>
                 {loading ? 'Loading...' : 'Generate Report'}
               </button>
               {reportData && Object.keys(reportData).length > 0 && (
-                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className={`${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high`}>
+                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className={`medicine-inventory-report-download ${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high`}>
                   <Download className="w-4 h-4" /> {downloadingCSV ? 'Downloading...' : 'CSV'}
                 </button>
               )}
@@ -701,3 +711,10 @@ const MedicineInventoryPage = () => {
 };
 
 export default MedicineInventoryPage;
+
+
+
+
+
+
+

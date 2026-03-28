@@ -3,7 +3,8 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
-import { Download, Plus, X, Users, UserCheck, CalendarCheck, Clock, CheckCircle2, XCircle, Calendar, Sparkles } from 'lucide-react';
+import OperationalMetricCard from '../components/OperationalMetricCard';
+import { Download, Plus, X, Users, CalendarCheck, CheckCircle2, XCircle, Calendar } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -112,18 +113,15 @@ const TeamAttendancePage = () => {
   if (!p.viewTeamAttendance) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="team-attendance-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="team-attendance-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Mark Team')} <span className="text-primary">{t('Attendance')}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage and report daily attendance for staff')}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
-          </button>
-          <button onClick={() => setShowForm(!showForm)} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="team-attendance-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span>
           </button>
@@ -134,27 +132,11 @@ const TeamAttendancePage = () => {
       {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
 
       {/* KPI Cards (EFM matched) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Users className="w-3.5 h-3.5 text-primary" /> TEAM MEMBERS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(teamMembers.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-muted-foreground">Total assigned staff</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CalendarCheck className="w-3.5 h-3.5 text-accent" /> TOTAL MARKED</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(attendanceRecords.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-accent">Records saved today</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-success" /> PRESENT</p>
-          <p className="text-4xl font-bold text-success mt-2 mono-data">{String(presentCount).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-success">Currently on shift</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><XCircle className="w-3.5 h-3.5 text-destructive" /> ABSENT / LEAVE</p>
-          <p className="text-4xl font-bold text-destructive mt-2 mono-data">{String(absentCount).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-destructive">Unavailable staff</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+        <OperationalMetricCard label="TEAM MEMBERS" value={String(teamMembers.length).padStart(2, '0')} icon={Users} colorClass="text-primary" bgClass="bg-primary/10" sub="Total assigned staff" hideSub />
+        <OperationalMetricCard label="TOTAL MARKED" value={String(attendanceRecords.length).padStart(2, '0')} icon={CalendarCheck} colorClass="text-primary" bgClass="bg-primary/10" sub="Records saved today" subColor="text-primary" hideSub />
+        <OperationalMetricCard label="PRESENT" value={String(presentCount).padStart(2, '0')} icon={CheckCircle2} colorClass="text-success" bgClass="bg-success/10" sub="Currently on shift" subColor="text-success" valueClass="text-3xl font-bold text-success mt-1 mono-data relative z-10" hideSub />
+        <OperationalMetricCard label="ABSENT / LEAVE" value={String(absentCount).padStart(2, '0')} icon={XCircle} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Unavailable staff" subColor="text-destructive" valueClass="text-3xl font-bold text-destructive mt-1 mono-data relative z-10" hideSub />
       </div>
 
       {/* Form */}
@@ -221,13 +203,18 @@ const TeamAttendancePage = () => {
       {/* Table Container */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+        <div className="team-attendance-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
             <span className="text-sm font-medium text-foreground whitespace-nowrap">{t('Records for:')}</span>
             <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} className="w-40" />
           </div>
-          <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
+            <button onClick={handleDownloadExcel} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -273,16 +260,14 @@ const TeamAttendancePage = () => {
                 </tbody>
               </table>
             </div>
-            <div className="px-4 py-1 border-t border-border">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
-                total={attendanceRecords.length}
-              />
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+              total={attendanceRecords.length}
+            />
           </>
         ) : (
           <div className="text-center py-12 text-sm text-muted-foreground">
@@ -295,3 +280,7 @@ const TeamAttendancePage = () => {
 };
 
 export default TeamAttendancePage;
+
+
+
+

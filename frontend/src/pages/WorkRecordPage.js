@@ -3,11 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Search, SlidersHorizontal, X, Plus, Wrench, Clock, ListChecks, Download } from 'lucide-react';
+import { X, Plus, Wrench, Clock, ListChecks, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import DatePicker from '../components/shared/DatePicker';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px]';
@@ -31,12 +31,12 @@ const WorkRecordPage = () => {
   const [message, setMessage] = useState('');
   
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('office');
   const [filterStaffId, setFilterStaffId] = useState('all');
   
   const [search, setSearch] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
 
   const [newWorkRecord, setNewWorkRecord] = useState({
     staffId: '',
@@ -175,12 +175,12 @@ const WorkRecordPage = () => {
     XLSX.writeFile(wb, `WorkRecord_${selectedDate}.xlsx`);
   };
 
-  const getStaffName = (id) => employees.find(e => e.id === id)?.fullName || 'Unknown';
+  const getStaffName = useCallback((id) => employees.find(e => e.id === id)?.fullName || 'Unknown', [employees]);
 
   const filteredRecords = useMemo(() => workRecords.filter(w => {
     if (search && !getStaffName(w.staffId).toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }), [workRecords, search, employees]);
+  }), [workRecords, search, getStaffName]);
 
   const totalHours = filteredRecords.reduce((s, w) => s + (w.entries || []).reduce((a, e) => a + Number(e.wholeDayHours || 0), 0), 0);
   const totalTasks = filteredRecords.reduce((s, w) => s + (w.entries || []).length, 0);
@@ -190,7 +190,7 @@ const WorkRecordPage = () => {
   if (!p.viewGroomWorksheet) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="work-records-page space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -198,9 +198,6 @@ const WorkRecordPage = () => {
           <p className="text-sm text-muted-foreground mt-1">{t('Staff work activity logs and hours tracking')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export CSV')}</span><span className="sm:hidden">{t('Export')}</span>
-          </button>
           {canCreateWorkRecord && (
             <button onClick={() => setShowAddForm(!showAddForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
                {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />} 
@@ -225,11 +222,15 @@ const WorkRecordPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={lbl}>{t('Staff Category')}</label>
-                <SearchableSelect 
+                <select 
+                  className={inp} 
                   value={selectedCategory} 
                   onChange={(e) => { setSelectedCategory(e.target.value); setFilterStaffId('all'); setNewWorkRecord({...newWorkRecord, staffId: ''}); }}
-                  options={Object.entries(STAFF_CATEGORIES).map(([key, cat]) => ({ value: key, label: t(cat.label) }))}
-                />
+                >
+                  {Object.entries(STAFF_CATEGORIES).map(([key, cat]) => (
+                    <option key={key} value={key}>{t(cat.label)}</option>
+                  ))}
+                </select>
               </div>
               <div className="z-10">
                  <label className={lbl}>{t('Staff Member')} *</label>
@@ -310,71 +311,38 @@ const WorkRecordPage = () => {
       )}
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Staff on Record')}</span>
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><Wrench className="w-4 h-4 text-primary" /></div>
-          </div>
-          <p className="text-3xl font-bold text-foreground">{String(filteredRecords.length).padStart(2, '0')}</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Total Hours')}</span>
-            <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center"><Clock className="w-4 h-4 text-success" /></div>
-          </div>
-          <p className="text-3xl font-bold text-foreground">{totalHours}<span className="text-lg text-muted-foreground ml-1">hrs</span></p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t('Tasks Completed')}</span>
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"><ListChecks className="w-4 h-4 text-primary" /></div>
-          </div>
-          <p className="text-3xl font-bold text-foreground">{String(totalTasks).padStart(2, '0')}</p>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <OperationalMetricCard label={t('Staff on Record')} value={String(filteredRecords.length).padStart(2, '0')} icon={Wrench} colorClass="text-primary" bgClass="bg-primary/10" sub="Visible staff records" />
+        <OperationalMetricCard label={t('Total Hours')} value={`${totalHours} hrs`} icon={Clock} colorClass="text-success" bgClass="bg-success/10" sub="Logged working hours" subColor="text-success" valueClass="text-3xl font-bold text-foreground mt-1 relative z-10" />
+        <OperationalMetricCard label={t('Tasks Completed')} value={String(totalTasks).padStart(2, '0')} icon={ListChecks} colorClass="text-primary" bgClass="bg-primary/10" sub="Task entries submitted" />
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 pl-10 pr-8 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
-          {search && <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+      <div className="work-records-toolbar flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div className="flex-1 max-w-sm w-full">
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 px-3 rounded-lg bg-white border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
         
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
-           <button onClick={() => setShowFilters(v => !v)} className={`shrink-0 h-10 px-4 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors ${showFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-border/50'}`}>
-              <SlidersHorizontal className="w-4 h-4" /> {t('Filters')}
-           </button>
-           <DatePicker
-              value={selectedDate}
-              onChange={(val) => setSelectedDate(val)}
-              size="sm"
+        <div className="flex items-center gap-2 w-full md:w-auto">
+           <input 
+              type="date" 
+              className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" 
+              value={selectedDate} 
+              onChange={e => setSelectedDate(e.target.value)} 
+           />
+           <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
+           <input 
+              type="date" 
+              className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" 
+              value={toDate} 
+              onChange={e => setToDate(e.target.value)} 
            />
         </div>
+        
+        <button onClick={handleDownloadExcel} className="btn-download work-records-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors shrink-0 ml-auto">
+         <Download className="w-4 h-4" /> {t('Export')}
+        </button>
       </div>
-
-      {showFilters && (
-        <div className="flex flex-wrap gap-4 items-end px-5 py-4 bg-surface-container-highest rounded-xl border border-border/50 shadow-inner">
-          <div className="w-full sm:w-48 z-10">
-             <label className={lbl}>{t('Filters')}</label>
-             <SearchableSelect
-               value={filterStaffId}
-               onChange={(e) => setFilterStaffId(e.target.value)}
-               placeholder="All Staff"
-               options={[
-                 { value: 'all', label: 'All Staff' },
-                 ...employees.map(s => ({ value: s.id, label: s.fullName }))
-               ]}
-             />
-          </div>
-          {filterStaffId !== 'all' && (
-             <button onClick={() => setFilterStaffId('all')} className="h-10 px-3 md:mt-auto rounded-lg text-xs font-semibold text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5 shrink-0">
-               <X className="w-3 h-3" /> {t('Clear')}
-             </button>
-          )}
-        </div>
-      )}
 
       {/* List */}
       <div className="space-y-4">
@@ -443,3 +411,6 @@ const WorkRecordPage = () => {
 };
 
 export default WorkRecordPage;
+
+
+

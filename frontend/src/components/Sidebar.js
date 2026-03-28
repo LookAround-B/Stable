@@ -101,7 +101,14 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
   const permissions = usePermissions();
   const location = useLocation();
   const navigate = useNavigate();
-  const [openGroups, setOpenGroups] = useState({});
+  const [openGroups, setOpenGroups] = useState(() => {
+    try {
+      const saved = window.localStorage.getItem('efm.sidebar.openGroups');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [flyout, setFlyout] = useState(null);
   const flyoutTimer = useRef(null);
   const groupButtonRefs = useRef({});
@@ -134,17 +141,22 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
     setOpenGroups((prev) => {
       const next = { ...prev };
       visibleGroups.forEach((group) => {
-        const shouldBeOpen = group.items.some((item) => isActive(item.to));
         if (typeof next[group.label] !== 'boolean') {
-          next[group.label] = shouldBeOpen;
+          next[group.label] = false;
         }
-        if (group.items.some((item) => isActive(item.to))) {
-          next[group.label] = true;
+      });
+      Object.keys(next).forEach((label) => {
+        if (!visibleGroups.some((group) => group.label === label)) {
+          delete next[label];
         }
       });
       return next;
     });
-  }, [visibleGroups, isActive]);
+  }, [visibleGroups]);
+
+  useEffect(() => {
+    window.localStorage.setItem('efm.sidebar.openGroups', JSON.stringify(openGroups));
+  }, [openGroups]);
 
   useEffect(() => {
     if (!collapsed) {

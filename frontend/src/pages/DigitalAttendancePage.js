@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
+import OperationalMetricCard from '../components/OperationalMetricCard';
+import Pagination from '../components/Pagination';
 import { useI18n } from '../context/I18nContext';
-import { Download, Plus, X, CalendarCheck, Clock, CheckCircle2, History, Calendar, LayoutDashboard } from 'lucide-react';
+import { Download, Plus, X, CalendarCheck, CheckCircle2, History, Calendar } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import SelectField from '../components/shared/SelectField';
@@ -33,6 +35,8 @@ const DigitalAttendancePage = () => {
   const [searchDate, setSearchDate] = useState(new Date().toISOString().split('T')[0]);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const loadAttendanceRecords = useCallback(async () => {
     setLoading(true);
@@ -50,7 +54,7 @@ const DigitalAttendancePage = () => {
     }
   }, [searchDate]);
 
-  useEffect(() => { loadAttendanceRecords(); }, [loadAttendanceRecords]);
+  useEffect(() => { loadAttendanceRecords(); setCurrentPage(1); }, [loadAttendanceRecords]);
 
   // Auto-set to WOFF if date is Monday
   useEffect(() => {
@@ -107,20 +111,20 @@ const DigitalAttendancePage = () => {
 
   const presentCount = attendanceRecords.filter(r => r.status === 'Present').length;
   const leaveCount = attendanceRecords.filter(r => ['Absent', 'Leave', 'Half Day'].includes(r.status)).length;
+  const totalPages = Math.ceil(attendanceRecords.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedRecords = attendanceRecords.slice(startIndex, startIndex + rowsPerPage);
 
   return (
-    <div className="space-y-6">
+    <div className="digital-attendance-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="digital-attendance-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Digital Attendance')}</h1>
           <p className="text-sm text-muted-foreground mt-1">Manual attendance logging for <span className="text-primary font-medium">{user?.fullName || 'Staff'}</span></p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
-          </button>
-          <button onClick={() => setShowForm(!showForm)} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="digital-attendance-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             <span className="hidden sm:inline">{showForm ? t('Cancel') : t('Mark Attendance')}</span>
           </button>
@@ -132,20 +136,10 @@ const DigitalAttendancePage = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><History className="w-3.5 h-3.5 text-primary" /> MONTH LOGS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(attendanceRecords.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-muted-foreground">Total records found</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-success" /> PRESENT</p>
-          <p className="text-4xl font-bold text-success mt-2 mono-data">{String(presentCount).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-success">Total present days</p>
-        </div>
-        <div className="col-span-2 lg:col-span-1 bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><CalendarCheck className="w-3.5 h-3.5 text-warning" /> ABSENCES</p>
-          <p className="text-4xl font-bold text-warning mt-2 mono-data">{String(leaveCount).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-warning">Total leaves & absences</p>
+        <OperationalMetricCard label="MONTH LOGS" value={String(attendanceRecords.length).padStart(2, '0')} icon={History} colorClass="text-primary" bgClass="bg-primary/10" sub="Total records found" />
+        <OperationalMetricCard label="PRESENT" value={String(presentCount).padStart(2, '0')} icon={CheckCircle2} colorClass="text-success" bgClass="bg-success/10" sub="Total present days" subColor="text-success" valueClass="text-4xl font-bold text-success mt-2 mono-data relative z-10" />
+        <div className="col-span-2 lg:col-span-1">
+          <OperationalMetricCard label="ABSENCES" value={String(leaveCount).padStart(2, '0')} icon={CalendarCheck} colorClass="text-warning" bgClass="bg-warning/10" sub="Total leaves & absences" subColor="text-warning" valueClass="text-4xl font-bold text-warning mt-2 mono-data relative z-10" />
         </div>
       </div>
 
@@ -185,43 +179,58 @@ const DigitalAttendancePage = () => {
       {/* Table Container */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+        <div className="digital-attendance-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
             <span className="text-sm font-medium text-foreground whitespace-nowrap">{t('Records for Date:')}</span>
             <DatePicker value={searchDate} onChange={(val) => setSearchDate(val)} className="w-40" />
           </div>
-          <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
+            <button onClick={handleDownloadExcel} className="btn-download digital-attendance-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 whitespace-nowrap">
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
         ) : attendanceRecords.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[600px]">
-              <thead>
-                <tr className="border-b border-border">
-                  {['DATE', 'STATUS', 'CHECK-IN', 'CHECK-OUT', 'REMARKS'].map(h => (
-                    <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceRecords.map((record) => {
-                  const isAbs = record.status === 'Absent' || record.status === 'Leave';
-                  return (
-                    <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isAbs ? 'bg-destructive/5' : ''}`}>
-                      <td className="px-6 py-4 font-mono text-sm text-foreground">{new Date(record.date).toLocaleDateString('en-GB')}</td>
-                      <td className="px-6 py-4"><StatusBadge status={record.status} /></td>
-                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
-                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
-                      <td className="px-6 py-4 text-muted-foreground text-sm">{record.remarks || '-'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-border">
+                    {['DATE', 'STATUS', 'CHECK-IN', 'CHECK-OUT', 'REMARKS'].map(h => (
+                      <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedRecords.map((record) => {
+                    const isAbs = record.status === 'Absent' || record.status === 'Leave';
+                    return (
+                      <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isAbs ? 'bg-destructive/5' : ''}`}>
+                        <td className="px-6 py-4 font-mono text-sm text-foreground">{new Date(record.date).toLocaleDateString('en-GB')}</td>
+                        <td className="px-6 py-4"><StatusBadge status={record.status} /></td>
+                        <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                        <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm">{record.remarks || '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }}
+              total={attendanceRecords.length}
+            />
+          </>
         ) : (
           <div className="text-center py-12 text-muted-foreground text-sm">
             {t('No attendance records found for')} {new Date(searchDate).toLocaleDateString('en-GB')}
@@ -233,3 +242,8 @@ const DigitalAttendancePage = () => {
 };
 
 export default DigitalAttendancePage;
+
+
+
+
+

@@ -302,7 +302,7 @@ const AnalysisPageSkeleton = () => (
   </div>
 );
 
-const KpiTile = ({ icon: Icon, watermarkIcon: WatermarkIcon = HorseIcon, label, value, subtitle, colorClass, sparkData = [] }) => {
+const KpiTile = ({ icon: Icon, watermarkIcon: WatermarkIcon = HorseIcon, label, value, colorClass, sparkData = [] }) => {
   const animatedValue = useCounter(typeof value === 'number' ? value : 0);
   const displayValue = typeof value === 'number' ? animatedValue : value;
   const normalizedSpark = normalizeSparkData(sparkData);
@@ -315,7 +315,6 @@ const KpiTile = ({ icon: Icon, watermarkIcon: WatermarkIcon = HorseIcon, label, 
       <div className="analysis-kpi-label">{label}</div>
       <div className="analysis-kpi-value">{displayValue}</div>
       <div className="analysis-kpi-footer">
-        <div className="analysis-kpi-sub">{subtitle}</div>
         {normalizedSpark.some((entry) => entry > 0) && (
           <div className="analysis-kpi-spark" aria-hidden="true">
             {normalizedSpark.map((entry, index) => (
@@ -579,12 +578,12 @@ function AnalysisPage() {
         </div>
       </div>
 
-      <div className="analysis-kpi-grid">
-        <KpiTile icon={HorseIcon} watermarkIcon={HorseIcon} label="Total Horses" value={data.metrics.totalHorses} subtitle="+ live facility count" colorClass="primary" sparkData={data.kpiSparks.horses} />
-        <KpiTile icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} label="Active Staff" value={data.metrics.activeStaff} subtitle="Current approved workforce" colorClass="success" sparkData={data.kpiSparks.staff} />
-        <KpiTile icon={CheckSquare} label="Task Completion" value={`${data.metrics.taskCompletion}%`} subtitle="Completed vs total tasks" colorClass="primary" sparkData={data.kpiSparks.taskCompletion} />
-        <KpiTile icon={Cog} label="Operational Score" value={data.metrics.operationalScore} subtitle="Derived from live backend data" colorClass="success" sparkData={data.kpiSparks.operationalScore} />
-      </div>
+        <div className="analysis-kpi-grid">
+          <KpiTile icon={HorseIcon} watermarkIcon={HorseIcon} label="Total Horses" value={data.metrics.totalHorses} colorClass="primary" sparkData={data.kpiSparks.horses} />
+          <KpiTile icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} label="Active Staff" value={data.metrics.activeStaff} colorClass="success" sparkData={data.kpiSparks.staff} />
+          <KpiTile icon={CheckSquare} watermarkIcon={CheckSquare} label="Task Completion" value={`${data.metrics.taskCompletion}%`} colorClass="primary" sparkData={data.kpiSparks.taskCompletion} />
+          <KpiTile icon={Cog} watermarkIcon={Cog} label="Operational Score" value={data.metrics.operationalScore} colorClass="success" sparkData={data.kpiSparks.operationalScore} />
+        </div>
 
       <div className="analysis-chart-grid">
         <ChartCard title="Facility Growth Trend" subtitle="Monthly overview" className="analysis-chart-card--wide">

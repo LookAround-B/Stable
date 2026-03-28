@@ -8,7 +8,6 @@ import * as XLSX from 'xlsx';
 import DateTimePicker from '../components/shared/DateTimePicker';
 import SelectField from '../components/shared/SelectField';
 
-const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
 
 const StatusBadge = ({ status }) => {

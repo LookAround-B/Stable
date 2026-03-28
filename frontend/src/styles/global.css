@@ -8690,7 +8690,7 @@ p {
 /* Base skeleton element */
 .sk {
   display: inline-block;
-  background: var(--bg-skeleton, #e2e8f0);
+  background: var(--bg-skeleton, var(--surface-container-high, #e2e8f0));
   border-radius: 4px;
   line-height: 1;
   vertical-align: middle;
@@ -8743,7 +8743,7 @@ p {
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: 12px;
   padding: 14px 16px;
-  background: #f8fafc;
+  background: var(--surface-container-high, #f8fafc);
 }
 .sk-table-row {
   display: grid;
@@ -8751,7 +8751,7 @@ p {
   gap: 12px;
   padding: 12px 16px;
   border-top: 1px solid var(--border-primary);
-  background: #fff;
+  background: var(--surface-container-highest, #fff);
 }
 
 /* ── Stats skeleton ── */
@@ -8767,7 +8767,7 @@ p {
   padding: 14px;
   border-radius: 10px;
   border: 1px solid var(--border-primary);
-  background: #fff;
+  background: var(--surface-container-highest, #fff);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -8782,7 +8782,7 @@ p {
 .sk-card {
   border-radius: 12px;
   border: 1px solid var(--border-primary);
-  background: #fff;
+  background: var(--surface-container-highest, #fff);
   overflow: hidden;
 }
 .sk-card-body {
@@ -12495,11 +12495,11 @@ html[data-text-size="large"] {
     font-size: 0.8rem;
   }
 
-  /* Horse directory toolbar stacks on mobile */
-  .horse-directory-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
+  /* Horse directory toolbar stays compact on mobile */
+  .horses-page .horse-directory-toolbar {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
 
   .horse-directory-toolbar .horse-directory-heading {
@@ -12510,16 +12510,23 @@ html[data-text-size="large"] {
     font-size: 1rem;
   }
 
-  .horse-directory-search {
-    flex-basis: 100%;
-    height: 40px;
+  .horses-page .horse-directory-search {
+    flex: 1 1 auto;
+    flex-basis: auto;
+    width: auto;
+    min-width: 0;
+    height: 32px;
   }
 
-  .horse-directory-action {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
-    align-self: flex-end;
+  .horses-page .horse-directory-export,
+  .horses-page .horse-directory-action {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    flex: 0 0 32px;
+    align-self: center;
+    justify-content: center;
   }
 
   /* Table horizontal scroll */
@@ -13310,10 +13317,11 @@ html[data-text-size="large"] {
 }
 
 .dashboard-lovable .dashboard-lovable-hero-name {
-  color: #f5edff;
+  color: #d199ff;
   text-shadow:
-    0 0 10px rgba(209, 153, 255, 0.24),
-    0 0 24px rgba(209, 153, 255, 0.16);
+    0 0 14px rgba(209, 153, 255, 0.34),
+    0 0 30px rgba(209, 153, 255, 0.22),
+    0 0 48px rgba(209, 153, 255, 0.14);
 }
 
 .dashboard-lovable .dashboard-lovable-hero-meta {
@@ -13332,6 +13340,11 @@ html[data-text-size="large"] {
 .dashboard-lovable .dashboard-lovable-meta-strong {
   color: var(--lovable-primary);
   font-weight: 700;
+}
+
+.dashboard-lovable .dashboard-lovable-meta-status {
+  display: block;
+  margin-top: 6px;
 }
 
 .dashboard-lovable .dashboard-lovable-card-grid,
@@ -13736,7 +13749,7 @@ html[data-text-size="large"] {
 
 @media (max-width: 640px) {
   .dashboard-lovable .dashboard-lovable-hero {
-    padding: 18px;
+    padding: 0;
   }
 
   .dashboard-lovable .dashboard-lovable-card-grid {
@@ -13756,6 +13769,10 @@ html[data-text-size="large"] {
 
   .dashboard-lovable .dashboard-lovable-hero-name {
     margin-top: 6px;
+    text-shadow:
+      0 0 14px rgba(209, 153, 255, 0.38),
+      0 0 30px rgba(209, 153, 255, 0.22),
+      0 0 48px rgba(209, 153, 255, 0.14);
   }
 
   .dashboard-lovable .dashboard-lovable-hero-meta {
@@ -14879,6 +14896,13 @@ html[data-text-size="large"] {
   color: #252a32;
 }
 
+.lovable-shell.lovable-theme-light .lovable-brand-mobile {
+  color: #7c3aed;
+  text-shadow:
+    0 0 10px rgba(124, 58, 237, 0.18),
+    0 0 22px rgba(124, 58, 237, 0.1);
+}
+
 .lovable-shell.lovable-theme-light .lovable-user-avatar {
   background: rgba(124, 58, 237, 0.14);
   color: #7c3aed;
@@ -14970,9 +14994,10 @@ html[data-text-size="large"] {
 }
 
 .lovable-shell.lovable-theme-light .dashboard-lovable .dashboard-lovable-hero-name {
+  color: #7c3aed;
   text-shadow:
-    0 0 10px rgba(124, 58, 237, 0.16),
-    0 0 20px rgba(124, 58, 237, 0.08);
+    0 0 12px rgba(124, 58, 237, 0.2),
+    0 0 24px rgba(124, 58, 237, 0.1);
 }
 
 .lovable-shell.lovable-theme-light .dashboard-lovable .dashboard-lovable-card-icon--primary {
@@ -17533,12 +17558,19 @@ body.efm-theme-light .crop-area {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   height: 36px;
   padding: 0 10px;
   border-radius: 10px;
   border: 1px solid var(--lovable-line);
   background: #09090B;
+}
+
+.employee-directory-search--compact {
+  flex: 0 1 280px;
+  max-width: 280px;
+  height: 32px;
+  padding: 0 8px;
 }
 
 .employee-directory-search-icon {
@@ -17551,7 +17583,7 @@ body.efm-theme-light .crop-area {
   min-width: 0;
   width: 100%;
   height: 100%;
-  padding: 0;
+  padding: 0 2px 0 0;
   border: 0 !important;
   outline: 0;
   appearance: none;
@@ -17560,6 +17592,13 @@ body.efm-theme-light .crop-area {
   color: var(--lovable-table-text);
   font-size: 14px;
   font-weight: 400;
+}
+
+.employee-directory-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .lovable-main-content .employee-directory-search-input::placeholder {
@@ -18065,6 +18104,57 @@ body.efm-theme-light .crop-area {
   .employee-directory-role-filter {
     min-width: 0;
     max-width: none;
+  }
+
+  .horses-page .horses-header-row {
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .horses-page .horses-header-row h1 {
+    min-width: 0;
+    font-size: 1.75rem;
+    line-height: 1;
+  }
+
+  .horses-page .horses-header-add-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+    border-radius: 10px;
+  }
+
+  .horses-page .horse-directory-toolbar {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .horses-page .horse-directory-search {
+    width: auto;
+    flex: 1 1 auto;
+    flex-basis: auto;
+    min-width: 0;
+    height: 32px;
+  }
+
+  .horses-page .lovable-main-content .horse-directory-search-input {
+    height: 32px;
+    font-size: 12px;
+    padding-left: 10px;
+  }
+
+  .horses-page .horse-directory-export {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+  }
+
+  .horses-page .horse-directory-export svg {
+    width: 14px;
+    height: 14px;
   }
 
   .horse-directory-toolbar--subsection .horse-directory-search {
@@ -18629,7 +18719,7 @@ body.efm-theme-light .crop-area {
 
 @media (max-width: 767px) {
   .analysis-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .analysis-split {
@@ -18674,6 +18764,9 @@ body.efm-theme-light .crop-area {
 .lovable-shell {
   width: 100%;
   max-width: 100%;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .lovable-sidebar + .lovable-shell-body {
@@ -18685,6 +18778,21 @@ body.efm-theme-light .crop-area {
 
 .lovable-sidebar.lovable-sidebar-collapsed + .lovable-shell-body {
   max-width: calc(100% - 68px);
+}
+
+.lovable-shell-body {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lovable-topbar {
+  flex-shrink: 0;
+}
+
+.lovable-main-content {
+  min-height: 0;
 }
 
 @media (min-width: 1025px) {
@@ -19120,5 +19228,586 @@ body.efm-theme-light .crop-area {
   .approvals-page .approval-card .card-footer > div .btn-reject {
     flex: 1;
     justify-content: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .horses-page .horse-directory-export,
+  .employees-page .employee-directory-export,
+  .medicine-inventory-page .medicine-inventory-export,
+  .horse-feeds-page .horse-feeds-export,
+  .farrier-shoeing-page .farrier-shoeing-export,
+  .farrier-inventory-page .farrier-inventory-export,
+  .digital-attendance-page .digital-attendance-export,
+  .groom-worksheet-page .groom-worksheet-export,
+  .work-records-page .work-records-export {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    font-size: 0 !important;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .horses-page .horse-directory-export .lucide-download,
+  .employees-page .employee-directory-export .lucide-download,
+  .medicine-inventory-page .medicine-inventory-export .lucide-download,
+  .horse-feeds-page .horse-feeds-export .lucide-download,
+  .farrier-shoeing-page .farrier-shoeing-export .lucide-download,
+  .farrier-inventory-page .farrier-inventory-export .lucide-download,
+  .digital-attendance-page .digital-attendance-export .lucide-download,
+  .groom-worksheet-page .groom-worksheet-export .lucide-download,
+  .work-records-page .work-records-export .lucide-download,
+  .horses-page .horse-directory-export svg,
+  .employees-page .employee-directory-export svg,
+  .medicine-inventory-page .medicine-inventory-export svg,
+  .horse-feeds-page .horse-feeds-export svg,
+  .farrier-shoeing-page .farrier-shoeing-export svg,
+  .farrier-inventory-page .farrier-inventory-export svg,
+  .digital-attendance-page .digital-attendance-export svg,
+  .groom-worksheet-page .groom-worksheet-export svg,
+  .work-records-page .work-records-export svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+
+  .employees-page .employees-header-row,
+  .horse-care-team-page .horse-care-team-header-row,
+  .medicine-inventory-page .medicine-inventory-header-row,
+  .horse-feeds-page .horse-feeds-header-row,
+  .farrier-inventory-page .farrier-inventory-header-row,
+  .team-attendance-page .team-attendance-header-row,
+  .digital-attendance-page .digital-attendance-header-row,
+  .groom-worksheet-page .groom-worksheet-header-row,
+  .housekeeping-inventory-page .housekeeping-inventory-header-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .employees-page .employees-header-row > div:first-child,
+  .horse-care-team-page .horse-care-team-header-row > div:first-child,
+  .medicine-inventory-page .medicine-inventory-header-row > div:first-child,
+  .horse-feeds-page .horse-feeds-header-row > div:first-child,
+  .farrier-inventory-page .farrier-inventory-header-row > div:first-child,
+  .team-attendance-page .team-attendance-header-row > div:first-child,
+  .digital-attendance-page .digital-attendance-header-row > div:first-child,
+  .groom-worksheet-page .groom-worksheet-header-row > div:first-child,
+  .housekeeping-inventory-page .housekeeping-inventory-header-row > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .employees-page .employees-header-add-btn,
+  .horse-care-team-page .horse-care-team-header-btn,
+  .medicine-inventory-page .medicine-inventory-header-btn,
+  .horse-feeds-page .horse-feeds-header-btn,
+  .farrier-inventory-page .farrier-inventory-header-btn,
+  .team-attendance-page .team-attendance-header-btn,
+  .digital-attendance-page .digital-attendance-header-btn,
+  .groom-worksheet-page .groom-worksheet-header-btn,
+  .housekeeping-inventory-page .housekeeping-inventory-header-btn {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    line-height: 1;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .employees-page .employee-directory-toolbar,
+  .medicine-inventory-page .medicine-inventory-toolbar,
+  .horse-feeds-page .horse-feeds-toolbar,
+  .farrier-shoeing-page .farrier-shoeing-toolbar,
+  .farrier-inventory-page .farrier-inventory-toolbar,
+  .team-attendance-page .team-attendance-toolbar,
+  .digital-attendance-page .digital-attendance-toolbar,
+  .groom-worksheet-page .groom-worksheet-toolbar,
+  .work-records-page .work-records-toolbar {
+    gap: 8px;
+  }
+
+  .employees-page .employee-directory-toolbar,
+  .medicine-inventory-page .medicine-inventory-toolbar,
+  .farrier-shoeing-page .farrier-shoeing-toolbar,
+  .farrier-inventory-page .farrier-inventory-toolbar,
+  .digital-attendance-page .digital-attendance-toolbar,
+  .team-attendance-page .team-attendance-toolbar {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 12px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .employees-page .employee-directory-search,
+  .medicine-inventory-page .medicine-inventory-toolbar > div:first-child,
+  .digital-attendance-page .digital-attendance-toolbar > div:first-child,
+  .team-attendance-page .team-attendance-toolbar > div:first-child,
+  .work-records-page .work-records-toolbar .flex-1 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .employees-page .employee-directory-role-filter {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  .employees-page .employee-directory-search--compact {
+    flex: 1 1 auto;
+    max-width: none;
+    height: 32px;
+  }
+
+  .employees-page .employee-directory-toolbar-actions {
+    gap: 8px;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+
+  .employees-page .employee-directory-search-input,
+  .horses-page .lovable-main-content .horse-directory-search-input,
+  .medicine-inventory-page .medicine-inventory-toolbar input[type='text'],
+  .horse-feeds-page .horse-feeds-toolbar input[type='text'],
+  .farrier-shoeing-page .farrier-shoeing-toolbar input[type='text'],
+  .farrier-inventory-page .farrier-inventory-toolbar input[type='text'],
+  .work-records-page .work-records-toolbar input[type='text'],
+  .horse-care-team-page .horse-care-team-search input {
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .horse-care-team-page .horse-care-team-toolbar {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .horse-feeds-page .horse-feeds-toolbar {
+    flex-direction: row;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .horse-feeds-page .horse-feeds-toolbar > .flex.items-center.gap-3 {
+    gap: 8px;
+    flex: 1 1 100%;
+  }
+
+  .horse-feeds-page .horse-feeds-toolbar > .relative.flex-1 {
+    max-width: none;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .horse-feeds-page .horse-feeds-toolbar > .flex.lg\:justify-end.lg\:ml-auto {
+    margin-left: 0;
+    flex: 0 0 auto;
+  }
+
+  .digital-attendance-page .digital-attendance-toolbar input[type='date'],
+  .team-attendance-page .team-attendance-toolbar input[type='date'],
+  .groom-worksheet-page .groom-worksheet-toolbar input[type='date'],
+  .work-records-page .work-records-toolbar input[type='date'],
+  .gate-entry-page .gate-entry-header-row input[type='date'] {
+    height: 32px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  .groom-worksheet-page .groom-worksheet-toolbar,
+  .work-records-page .work-records-toolbar,
+  .gate-entry-page .gate-entry-header-row {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .tack-inventory-page .tack-inventory-export,
+  .housekeeping-inventory-page .housekeeping-inventory-export {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    font-size: 0 !important;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .tack-inventory-page .tack-inventory-export svg,
+  .housekeeping-inventory-page .housekeeping-inventory-export svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+
+  .tack-inventory-page .tack-inventory-header-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .tack-inventory-page .tack-inventory-header-row > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .tack-inventory-page .tack-inventory-header-btn {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    line-height: 1;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .tack-inventory-page .tack-inventory-toolbar,
+  .housekeeping-inventory-page .housekeeping-inventory-toolbar {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .tack-inventory-page .tack-inventory-toolbar > .relative.flex-1,
+  .housekeeping-inventory-page .housekeeping-inventory-toolbar > .relative.flex-1 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .tack-inventory-page .tack-inventory-toolbar input[type='text'],
+  .housekeeping-inventory-page .housekeeping-inventory-toolbar input[type='text'] {
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .pagination-shell {
+    border-top: none !important;
+    padding-top: 10px;
+  }
+
+  .pagination-meta,
+  .pagination-pages {
+    width: 100%;
+    justify-content: center !important;
+  }
+
+  .pagination-nav {
+    width: 100%;
+  }
+
+  .bg-surface-container-highest.rounded-xl.edge-glow.overflow-hidden > div:first-child,
+  .bg-surface-container-highest.rounded-\[18px\].edge-glow.overflow-hidden > div:first-child,
+  .bg-surface-container-highest.rounded-lg.edge-glow.overflow-hidden > div:first-child,
+  .bg-surface-container-highest.rounded-xl.edge-glow > div:first-child,
+  .bg-surface-container-highest.rounded-\[18px\].edge-glow > div:first-child,
+  .bg-surface-container-highest.rounded-lg.edge-glow > div:first-child {
+    border-bottom: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .pagination-shell {
+    margin-top: 4px;
+    padding-top: 6px;
+  }
+}
+
+@media (max-width: 767px) {
+  .pagination-shell {
+    border-top: 1px solid var(--border) !important;
+    margin-top: 4px;
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .bg-surface-container-highest table tbody tr:last-child,
+  .bg-surface-container-highest .table-scroll-wrap table tbody tr:last-child,
+  .bg-surface-container-highest .overflow-x-auto table tbody tr:last-child {
+    border-bottom: none !important;
+  }
+}
+
+.employee-directory-toolbar,
+.horse-directory-toolbar,
+.medicine-inventory-toolbar,
+.farrier-shoeing-toolbar,
+.farrier-inventory-toolbar,
+.housekeeping-inventory-toolbar,
+.tack-inventory-toolbar,
+.team-attendance-toolbar,
+.digital-attendance-toolbar,
+.groom-worksheet-toolbar,
+.work-records-toolbar {
+  border-bottom: none !important;
+}
+
+.bg-surface-container-highest table tbody tr:last-child,
+.bg-surface-container-highest .table-scroll-wrap table tbody tr:last-child,
+.bg-surface-container-highest .overflow-x-auto table tbody tr:last-child,
+.bg-surface-container-highest table tbody tr:last-child td,
+.bg-surface-container-highest .table-scroll-wrap table tbody tr:last-child td,
+.bg-surface-container-highest .overflow-x-auto table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+.bg-surface-container-highest table,
+.bg-surface-container-highest tbody,
+.bg-surface-container-highest .table-scroll-wrap,
+.bg-surface-container-highest .overflow-x-auto {
+  border-bottom: none !important;
+}
+
+.bg-surface-container-highest table > tbody > tr:last-child,
+.bg-surface-container-highest .table-scroll-wrap table > tbody > tr:last-child,
+.bg-surface-container-highest .overflow-x-auto table > tbody > tr:last-child,
+.bg-surface-container-highest table > tbody > tr:last-child > td,
+.bg-surface-container-highest .table-scroll-wrap table > tbody > tr:last-child > td,
+.bg-surface-container-highest .overflow-x-auto table > tbody > tr:last-child > td,
+.bg-surface-container-highest table > tbody > tr:last-child > th,
+.bg-surface-container-highest .table-scroll-wrap table > tbody > tr:last-child > th,
+.bg-surface-container-highest .overflow-x-auto table > tbody > tr:last-child > th {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+.bg-surface-container-highest.edge-glow.overflow-hidden:has(.pagination-shell),
+.bg-surface-container-highest.edge-glow:has(.pagination-shell) {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.bg-surface-container-highest.edge-glow.overflow-hidden:has(.pagination-shell) > .pagination-shell,
+.bg-surface-container-highest.edge-glow:has(.pagination-shell) > .pagination-shell {
+  border-top: 1px solid var(--border) !important;
+}
+
+.bg-surface-container-highest.rounded-xl.edge-glow.overflow-hidden:has(.pagination-shell),
+.bg-surface-container-highest.rounded-\[18px\].edge-glow.overflow-hidden:has(.pagination-shell),
+.bg-surface-container-highest.rounded-lg.edge-glow.overflow-hidden:has(.pagination-shell),
+.bg-surface-container-highest.rounded-xl.edge-glow:has(.pagination-shell),
+.bg-surface-container-highest.rounded-\[18px\].edge-glow:has(.pagination-shell),
+.bg-surface-container-highest.rounded-lg.edge-glow:has(.pagination-shell) {
+  border: none !important;
+  box-shadow:
+    inset 0 1px 0 hsl(var(--primary) / 0.1),
+    inset 1px 0 0 hsl(var(--primary) / 0.1),
+    inset -1px 0 0 hsl(var(--primary) / 0.1) !important;
+}
+
+.lovable-shell.lovable-theme-light .bg-surface-container-highest.rounded-xl.edge-glow.overflow-hidden:has(.pagination-shell),
+.lovable-shell.lovable-theme-light .bg-surface-container-highest.rounded-\[18px\].edge-glow.overflow-hidden:has(.pagination-shell),
+.lovable-shell.lovable-theme-light .bg-surface-container-highest.rounded-lg.edge-glow.overflow-hidden:has(.pagination-shell),
+.lovable-shell.lovable-theme-light .bg-surface-container-highest.rounded-xl.edge-glow:has(.pagination-shell),
+.lovable-shell.lovable-theme-light .bg-surface-container-highest.rounded-\[18px\].edge-glow:has(.pagination-shell),
+.lovable-shell.lovable-theme-light .bg-surface-container-highest.rounded-lg.edge-glow:has(.pagination-shell) {
+  box-shadow:
+    inset 0 1px 0 hsl(var(--outline-variant) / 0.15),
+    inset 1px 0 0 hsl(var(--outline-variant) / 0.15),
+    inset -1px 0 0 hsl(var(--outline-variant) / 0.15) !important;
+}
+
+
+.orbit-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding-left: 4px;
+}
+
+.orbit-heading-dot {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-radius: 999px;
+  background: #a855f7;
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.16),
+    0 0 10px rgba(168, 85, 247, 0.34),
+    0 0 18px rgba(168, 85, 247, 0.2);
+}
+
+.orbit-heading-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 85, 247, 0.22);
+}
+
+.orbit-heading-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 999px;
+  background: rgba(232, 213, 255, 0.95);
+  box-shadow: 0 0 8px rgba(216, 180, 254, 0.72);
+  animation: orbit-heading-spin 2s linear infinite;
+  transform-origin: 0 0;
+}
+
+.orbit-heading-particle::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: inherit;
+  transform: translateX(9px);
+}
+
+.orbit-heading-accent {
+  color: #a855f7;
+  text-shadow: 0 0 14px rgba(168, 85, 247, 0.28);
+}
+
+.lovable-theme-light .orbit-heading-dot {
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.12),
+    0 0 8px rgba(168, 85, 247, 0.2),
+    0 0 14px rgba(168, 85, 247, 0.12);
+}
+
+.lovable-theme-light .orbit-heading-dot::after {
+  border-color: rgba(168, 85, 247, 0.14);
+}
+
+.lovable-theme-light .orbit-heading-particle {
+  background: rgba(168, 85, 247, 0.9);
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
+}
+
+.lovable-theme-light .orbit-heading-accent {
+  color: #9333ea;
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.14);
+}
+
+@keyframes orbit-heading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .orbit-heading {
+    column-gap: 10px;
+    padding-left: 2px;
+  }
+
+  .orbit-heading-dot {
+    width: 10px;
+    height: 10px;
+    flex-basis: 10px;
+  }
+
+  .orbit-heading-particle::before {
+    transform: translateX(8px);
+  }
+}
+
+
+.medicine-logs-export-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -2px;
+}
+
+.medicine-logs-export-mobile {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  justify-content: center;
+  gap: 0;
+  font-size: 0 !important;
+}
+
+.medicine-logs-export-mobile .lucide-download,
+.medicine-logs-export-mobile svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex: 0 0 14px;
+}
+
+
+@media (max-width: 767px) {
+  .medicine-inventory-page .medicine-inventory-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .medicine-inventory-page .medicine-inventory-kpi-card--wide-mobile {
+    grid-column: span 2;
+  }
+}
+
+
+@media (max-width: 767px) {
+  .medicine-inventory-page .medicine-inventory-toolbar > div:first-child {
+    flex: 1 1 calc(100% - 40px);
+    max-width: none;
+    min-width: 0;
+  }
+
+  .medicine-inventory-page .medicine-inventory-toolbar > div:first-child .relative {
+    width: 100%;
+  }
+
+  .medicine-inventory-page .medicine-inventory-toolbar input[type='text'] {
+    width: 100%;
+  }
+
+  .medicine-inventory-page .medicine-inventory-toolbar > div:last-child {
+    flex: 0 0 32px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .medicine-inventory-page .medicine-inventory-export {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+
+@media (max-width: 767px) {
+  .medicine-inventory-page .medicine-inventory-report-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .medicine-inventory-page .medicine-inventory-report-controls > div {
+    min-width: 0;
+  }
+
+  .medicine-inventory-page .medicine-inventory-report-generate,
+  .medicine-inventory-page .medicine-inventory-report-download {
+    justify-self: center;
+    width: min(220px, 100%);
   }
 }

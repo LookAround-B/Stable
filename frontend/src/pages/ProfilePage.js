@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import { User, Mail, Lock, Link2, Camera, Settings, Type, Globe, Download, Share, Plus, X, Sun, Moon, Edit, Lock as LockIcon, Save } from 'lucide-react';
+import { Camera, Type, Globe, Download, Share, Plus, X, Sun, Moon, Edit, Lock as LockIcon, Save } from 'lucide-react';
 import { useI18n, LANGUAGES } from '../context/I18nContext';
 import useTextSize from '../hooks/useTextSize';
 import usePwaInstall from '../hooks/usePwaInstall';
@@ -51,7 +51,7 @@ const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const { t, lang, setLang } = useI18n();
   const { textSize, setTextSize } = useTextSize();
-  const { canInstall, isInstalled, install, showIosModal, dismiss } = usePwaInstall();
+  const { install, showIosModal, dismiss } = usePwaInstall();
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -99,7 +99,7 @@ const ProfilePage = () => {
       });
       if (ROLES_WITH_HORSES.includes(user.designation)) loadAssignedHorses();
     }
-  }, [user]);
+  }, [user, loadAssignedHorses]);
 
   const loadAssignedHorses = useCallback(async () => {
     try {

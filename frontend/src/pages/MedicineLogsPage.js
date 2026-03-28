@@ -6,6 +6,7 @@ import medicineLogService from '../services/medicineLogService';
 import medicineInventoryService from '../services/medicineInventoryService';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -301,7 +302,7 @@ const MedicineLogsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">Logs</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Track medicine administration records and treatment history.')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="hidden sm:flex gap-2">
           <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
             <Download className="w-4 h-4" /> Export
           </button>
@@ -316,17 +317,24 @@ const MedicineLogsPage = () => {
       )}
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
         {kpis.map(k => (
-          <div key={k.label} className="bg-surface-container-highest rounded-xl p-4 sm:p-5 edge-glow relative overflow-hidden">
-            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2">
-              <k.icon className="w-3.5 h-3.5 text-primary" /> {k.label}
-            </p>
-            <p className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mono-data">{k.value}</p>
-            <p className={`text-xs mt-1 ${k.subColor}`}>{k.sub}</p>
-          </div>
+          <OperationalMetricCard key={k.label} label={k.label} value={String(k.value)} icon={k.icon} colorClass={k.subColor === 'text-success' ? 'text-success' : k.subColor === 'text-warning' ? 'text-warning' : 'text-primary'} bgClass={k.subColor === 'text-success' ? 'bg-success/10' : k.subColor === 'text-warning' ? 'bg-warning/10' : 'bg-primary/10'} sub={k.sub} subColor={k.subColor} hideSub />
         ))}
       </div>
+
+      {selectedTab === 'all-logs' && !loading && filteredLogs.length > 0 && (
+        <div className="medicine-logs-export-row sm:hidden">
+          <button
+            onClick={handleDownloadExcel}
+            className="medicine-logs-export-mobile btn-download"
+            aria-label="Export medicine logs"
+            title="Export"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* ── Tab Filters ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -353,7 +361,7 @@ const MedicineLogsPage = () => {
           {/* Toolbar */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-foreground">{t('Administration Log')}</h2>
+              <h2 className="orbit-heading-ignore text-lg font-bold text-foreground">{t('Administration Log')}</h2>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider hidden sm:inline-block">LiveSync</span>
             </div>
             <div className="flex items-center gap-2">

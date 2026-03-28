@@ -8,9 +8,8 @@ import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Search, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react';
-import DatePicker from '../components/shared/DatePicker';
-import SelectField from '../components/shared/SelectField';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import OperationalMetricCard from '../components/OperationalMetricCard';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
 const UNIT_TYPES = ["Liters", "Pieces", "Kg"];
@@ -34,11 +33,7 @@ const HousekeepingInventoryPage = () => {
   const [messageType, setMessageType] = useState("success");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(5);
-  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
-
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterArea, setFilterArea] = useState("");
   const [search, setSearch] = useState("");
 
   const emptyForm = {
@@ -58,11 +53,11 @@ const HousekeepingInventoryPage = () => {
   const fetchItems = useCallback(async () => {
     try {
       setLoading(true); setCurrentPage(1);
-      const data = await housekeepingInventoryService.getItems({ category: filterCategory, usageArea: filterArea, search });
+      const data = await housekeepingInventoryService.getItems({ search });
       setItems(Array.isArray(data) ? data : []);
     } catch { showMsg("Failed to load housekeeping inventory", "error"); }
     finally { setLoading(false); }
-  }, [filterCategory, filterArea, search]);
+  }, [search]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
   useEffect(() => {
@@ -145,27 +140,19 @@ const HousekeepingInventoryPage = () => {
   const lowStockItems = items.filter(i => i.reorderAlert && i.minimumStockLevel && i.quantity < i.minimumStockLevel);
   const expiredItems = items.filter(i => i.expiryDate && new Date(i.expiryDate) < new Date());
 
-  const hasActiveFilters = filterCategory || filterArea;
-  const clearFilters = () => { setFilterCategory(''); setFilterArea(''); setCurrentPage(1); };
-
   if (!p.viewHousekeepingInventory) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="housekeeping-inventory-page space-y-6">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="housekeeping-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Housekeeping <span className="text-primary">Inventory</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> Export
-          </button>
-          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
-          </button>
-        </div>
+        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+          {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+        </button>
       </div>
 
       {/* ── Message ── */}
@@ -176,22 +163,10 @@ const HousekeepingInventoryPage = () => {
       )}
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Package className="w-3.5 h-3.5 text-primary" /> TOTAL ITEMS</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(items.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-muted-foreground">Across all categories</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5 text-warning" /> LOW STOCK</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(lowStockItems.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-warning">Needs reorder</p>
-        </div>
-        <div className="bg-surface-container-highest rounded-xl p-5 edge-glow relative overflow-hidden">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-destructive" /> EXPIRED</p>
-          <p className="text-4xl font-bold text-foreground mt-2 mono-data">{String(expiredItems.length).padStart(2, '0')}</p>
-          <p className="text-xs mt-1 text-destructive">Past expiry date</p>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Across all categories" />
+        <OperationalMetricCard label="LOW STOCK" value={String(lowStockItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub="Needs reorder" subColor="text-warning" />
+        <OperationalMetricCard label="EXPIRED" value={String(expiredItems.length).padStart(2, '0')} icon={Sparkles} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Past expiry date" subColor="text-destructive" />
       </div>
 
       {/* ── Low Stock Alert ── */}
@@ -249,15 +224,15 @@ const HousekeepingInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
-                <DatePicker value={formData.purchaseDate} onChange={(val) => handleInputChange({ target: { name: 'purchaseDate', value: val } })} />
+                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Expiry Date</label>
-                <DatePicker value={formData.expiryDate} onChange={(val) => handleInputChange({ target: { name: 'expiryDate', value: val } })} />
+                <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Restocked</label>
-                <DatePicker value={formData.lastRestockedDate} onChange={(val) => handleInputChange({ target: { name: 'lastRestockedDate', value: val } })} />
+                <input type="date" name="lastRestockedDate" value={formData.lastRestockedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assigned Staff</label>
@@ -283,49 +258,22 @@ const HousekeepingInventoryPage = () => {
       {/* ── Table Container (EFM Replica) ── */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
+        <div className="housekeeping-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               placeholder={t("Search items...")}
-              className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+              className="h-9 px-3 w-full rounded-lg bg-white text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
-            {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setShowFilters(v => !v)}
-              className={`flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors ${showFilters || hasActiveFilters ? 'bg-primary/15 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
-              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} items</span>
+            <button onClick={handleDownloadExcel} className="btn-download housekeeping-inventory-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4" /> Export
             </button>
-            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} of {items.length} items</span>
           </div>
         </div>
-
-        {/* Filter Panel */}
-        {showFilters && (
-          <div className="px-3 sm:px-6 py-4 border-b border-border bg-surface-container-high/50">
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="w-44">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category</label>
-                <SelectField value={filterCategory} onChange={(val) => { setFilterCategory(val); setCurrentPage(1); }} options={['', ...CATEGORIES]} placeholder="All Areas" size="sm" />
-              </div>
-              <div className="w-40">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Usage Area</label>
-                <SelectField value={filterArea} onChange={(val) => { setFilterArea(val); setCurrentPage(1); }} options={['', ...USAGE_AREAS]} placeholder="All" size="sm" />
-              </div>
-              {hasActiveFilters && (
-                <button onClick={clearFilters} className="h-9 px-3 rounded-lg text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
-                  <X className="w-3 h-3" /> Clear Filters
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Table */}
         {loading ? <div className="p-4"><TableSkeleton cols={8} rows={5} /></div> : items.length === 0 ? (
@@ -424,3 +372,8 @@ const HousekeepingInventoryPage = () => {
 };
 
 export default HousekeepingInventoryPage;
+
+
+
+
+
