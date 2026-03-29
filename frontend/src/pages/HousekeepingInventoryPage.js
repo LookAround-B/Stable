@@ -9,6 +9,7 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import DatePicker from '../components/shared/DatePicker';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
@@ -224,15 +225,15 @@ const HousekeepingInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
-                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.purchaseDate} onChange={(val) => setFormData(prev => ({ ...prev, purchaseDate: val }))} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Expiry Date</label>
-                <input type="date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.expiryDate} onChange={(val) => setFormData(prev => ({ ...prev, expiryDate: val }))} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Restocked</label>
-                <input type="date" name="lastRestockedDate" value={formData.lastRestockedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker value={formData.lastRestockedDate} onChange={(val) => setFormData(prev => ({ ...prev, lastRestockedDate: val }))} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assigned Staff</label>
@@ -264,7 +265,7 @@ const HousekeepingInventoryPage = () => {
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               placeholder={t("Search items...")}
-              className="h-9 px-3 w-full rounded-lg bg-white text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+              className="h-9 px-3 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
           </div>
           <div className="flex items-center gap-2 shrink-0">

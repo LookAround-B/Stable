@@ -22,6 +22,7 @@ function parseDefault(val?: string) {
   const [h, m] = val.split(':').map(Number);
   const period: 'AM' | 'PM' = h >= 12 ? 'PM' : 'AM';
   const hour = String(h === 0 ? 12 : h > 12 ? h - 12 : h).padStart(2, '0');
+  const minute = String(m || 0).padStart(2, '0');
   // Round minute to nearest 5
   const roundedMin = String(Math.round(m / 5) * 5 % 60).padStart(2, '0');
   return { hour, minute: roundedMin, period };

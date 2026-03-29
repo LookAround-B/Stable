@@ -10,6 +10,7 @@ import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DateTimePicker from '../components/shared/DateTimePicker';
+import DatePicker from '../components/shared/DatePicker';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
@@ -348,9 +349,9 @@ const GateAttendancePage = () => {
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">{activeTab === 'staff' ? 'Staff Entry/Exit Logs' : 'Visitor Logs'} ({displayLogs.length})</h3>
           <div className="flex items-center gap-2">
-            <input type="date" value={filterFromDate} onChange={(e) => setFilterFromDate(e.target.value)} className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="From" />
+            <DatePicker value={filterFromDate} onChange={(val) => setFilterFromDate(val)} size="sm" />
             <span className="text-xs text-muted-foreground">to</span>
-            <input type="date" value={filterToDate} onChange={(e) => setFilterToDate(e.target.value)} className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="To" />
+            <DatePicker value={filterToDate} onChange={(val) => setFilterToDate(val)} size="sm" />
           </div>
         </div>
         {displayLogs.length === 0 ? (

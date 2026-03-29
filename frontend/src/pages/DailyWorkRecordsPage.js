@@ -6,6 +6,7 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History } from 'lucide-react';
+import DatePicker from '../components/shared/DatePicker';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
@@ -147,13 +148,8 @@ const DailyWorkRecordsPage = () => {
 
       {/* Controls */}
       <div className="flex flex-col md:flex-row items-center gap-3">
-        <div className="relative w-44">
-          <input 
-            type="date" 
-            value={selectedDate} 
-            onChange={(e) => setSelectedDate(e.target.value)} 
-            className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none hover:bg-surface-container-highest transition-colors"
-          />
+        <div className="w-44">
+          <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
         {!showForm && canCreateRecords && (
           <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm font-medium hover:bg-surface-container-highest hover:text-primary transition-all flex items-center gap-2">
@@ -171,7 +167,7 @@ const DailyWorkRecordsPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
-                <input type="date" name="date" value={formData.date} onChange={handleDateChange} required className={inputCls} />
+                <DatePicker value={formData.date} onChange={(val) => setFormData(prev => ({ ...prev, date: val }))} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>

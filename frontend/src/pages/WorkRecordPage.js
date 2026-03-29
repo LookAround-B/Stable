@@ -7,6 +7,7 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { X, Plus, Wrench, Clock, ListChecks, Download } from 'lucide-react';
+import DatePicker from '../components/shared/DatePicker';
 import * as XLSX from 'xlsx';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
@@ -222,15 +223,11 @@ const WorkRecordPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={lbl}>{t('Staff Category')}</label>
-                <select 
-                  className={inp} 
-                  value={selectedCategory} 
+                <SearchableSelect
+                  value={selectedCategory}
                   onChange={(e) => { setSelectedCategory(e.target.value); setFilterStaffId('all'); setNewWorkRecord({...newWorkRecord, staffId: ''}); }}
-                >
-                  {Object.entries(STAFF_CATEGORIES).map(([key, cat]) => (
-                    <option key={key} value={key}>{t(cat.label)}</option>
-                  ))}
-                </select>
+                  options={Object.entries(STAFF_CATEGORIES).map(([key, cat]) => ({ value: key, label: t(cat.label) }))}
+                />
               </div>
               <div className="z-10">
                  <label className={lbl}>{t('Staff Member')} *</label>
@@ -320,23 +317,13 @@ const WorkRecordPage = () => {
       {/* Toolbar */}
       <div className="work-records-toolbar flex flex-col md:flex-row items-start md:items-center gap-4">
         <div className="flex-1 max-w-sm w-full">
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 px-3 rounded-lg bg-white border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
         
         <div className="flex items-center gap-2 w-full md:w-auto">
-           <input 
-              type="date" 
-              className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" 
-              value={selectedDate} 
-              onChange={e => setSelectedDate(e.target.value)} 
-           />
+           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
            <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
-           <input 
-              type="date" 
-              className="h-7 px-2 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none" 
-              value={toDate} 
-              onChange={e => setToDate(e.target.value)} 
-           />
+           <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
         </div>
         
         <button onClick={handleDownloadExcel} className="btn-download work-records-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors shrink-0 ml-auto">
