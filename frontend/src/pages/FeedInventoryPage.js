@@ -3,7 +3,7 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings, Search, SlidersHorizontal } from 'lucide-react';
+import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings, SlidersHorizontal } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
