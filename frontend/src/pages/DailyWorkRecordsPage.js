@@ -58,7 +58,6 @@ const DailyWorkRecordsPage = () => {
   useEffect(() => { loadRecords(); loadHorsesAndEmployees(); }, [selectedDate, loadRecords]);
 
   const handleInputChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
-  const handleDateChange = (e) => { setFormData(prev => ({ ...prev, date: e.target.value })); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

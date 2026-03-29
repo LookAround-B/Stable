@@ -228,7 +228,7 @@ const MeetingPage = () => {
             {t('Schedule and track team meetings')} &nbsp;·&nbsp; Coordination Desk
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="meeting-header-actions flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           {canCreateMeeting && (
             <button
               onClick={() => { setFormData(prev => ({ ...prev, meetingDate: new Date().toISOString().split('T')[0] })); setShowCreateForm(true) }}
@@ -237,8 +237,8 @@ const MeetingPage = () => {
               <Plus className="w-4 h-4" /> {t('New Meeting')}
             </button>
           )}
-          <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center">
+          <div className="meeting-upcoming-queue-card w-full sm:w-auto bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
               <span className="text-lg font-bold text-primary">{scheduledCount}</span>
             </div>
             <div>

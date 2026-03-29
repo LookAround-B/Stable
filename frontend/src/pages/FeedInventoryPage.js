@@ -3,12 +3,13 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings } from 'lucide-react';
+import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings, Search, SlidersHorizontal } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import DatePicker from '../components/shared/DatePicker';
+import * as XLSX from 'xlsx';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
@@ -41,6 +42,8 @@ const FeedInventoryPage = () => {
   const [reportData, setReportData] = useState(null);
   const [downloadingCSV, setDownloadingCSV] = useState(false);
   const [thresholdModal, setThresholdModal] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showTableSearch, setShowTableSearch] = useState(false);
 
   const showMessage = (msg, type = 'success') => { setMessage(msg); setMessageType(type); setTimeout(() => setMessage(''), 5000); };
 
@@ -97,9 +100,47 @@ const FeedInventoryPage = () => {
     finally { setDownloadingCSV(false); }
   };
 
-  const totalPages = Math.ceil(inventoryRecords.length / rowsPerPage);
+  const handleDownloadExcel = () => {
+    if (!inventoryRecords.length) return;
+    const data = inventoryRecords.map((record) => {
+      const totalAvailable = (record.openingStock || 0) + (record.unitsBrought || 0);
+      const percentUsed = totalAvailable > 0 ? ((record.totalUsed || 0) / totalAvailable) * 100 : 0;
+      return {
+        'Feed Type': FEED_LABELS[record.feedType] || record.feedType,
+        'Opening Stock': record.openingStock ?? 0,
+        'Units Brought': record.unitsBrought ?? 0,
+        'Total Available': totalAvailable,
+        'Used Today': record.usedToday ?? 0,
+        'Total Used': record.totalUsed ?? 0,
+        'Units Left': record.unitsLeft ?? 0,
+        'Unit': record.unit || '',
+        'Status %': `${Math.round(percentUsed)}%`,
+        'Threshold': record.threshold ?? '',
+        'Month': MONTH_NAMES[selectedMonth - 1],
+        'Year': selectedYear,
+      };
+    });
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Feed Inventory');
+    XLSX.writeFile(workbook, `FeedInventory_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.xlsx`);
+  };
+
+  const filteredInventoryRecords = inventoryRecords.filter((record) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    const feedLabel = (FEED_LABELS[record.feedType] || record.feedType || '').toLowerCase();
+    return [
+      feedLabel,
+      String(record.unit || '').toLowerCase(),
+      String(record.notes || '').toLowerCase(),
+    ].some((value) => value.includes(term));
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredInventoryRecords.length / rowsPerPage));
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedRecords = inventoryRecords.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedRecords = filteredInventoryRecords.slice(startIndex, startIndex + rowsPerPage);
 
   const handleSaveThreshold = async () => {
     if (!thresholdModal) return;
@@ -114,7 +155,7 @@ const FeedInventoryPage = () => {
   if (!p.viewFeedInventory) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="feed-inventory-page space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
@@ -126,11 +167,11 @@ const FeedInventoryPage = () => {
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2 ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{messageType === 'success' ? '✓' : '✕'} {message}</div>}
 
       {/* Tabs */}
-      <div className="flex items-center gap-3 w-full overflow-x-auto pb-1 hide-scrollbar">
-        <button onClick={() => setActiveTab('inventory')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'inventory' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+      <div className="feed-inventory-tab-switcher flex items-center gap-3 w-full overflow-x-auto pb-1 hide-scrollbar">
+        <button onClick={() => setActiveTab('inventory')} className={`feed-inventory-tab-btn px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'inventory' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
           <Package className="w-4 h-4" /> Monthly Inventory
         </button>
-        <button onClick={() => setActiveTab('report')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'report' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+        <button onClick={() => setActiveTab('report')} className={`feed-inventory-tab-btn px-5 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'report' ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
           <TrendingUp className="w-4 h-4" /> Consumption Report
         </button>
       </div>
@@ -139,8 +180,8 @@ const FeedInventoryPage = () => {
       {activeTab === 'inventory' && (
         <div className="space-y-5">
           {/* Filters */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
-            <div className="flex items-end gap-3 w-full sm:w-auto">
+          <div className="feed-inventory-controls flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
+            <div className="feed-inventory-control-grid flex items-end gap-3 w-full sm:w-auto">
               <div className="flex-1 min-w-[140px]">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Month</label>
                 <SearchableSelect
@@ -161,11 +202,11 @@ const FeedInventoryPage = () => {
                 />
               </div>
             </div>
-            <div className="flex gap-2 md:ml-auto w-full sm:w-auto">
-              <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
+            <div className="feed-inventory-actions flex gap-2 md:ml-auto w-full sm:w-auto">
+              <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="feed-inventory-add-btn flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
                 {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Entry</>}
               </button>
-              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="h-10 px-4 rounded-lg border border-border/90 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
+              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="feed-inventory-recalc-btn h-10 px-4 rounded-lg border border-primary/35 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.14)] text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
                 <RotateCw className="w-4 h-4" /> Recalculate
               </button>
             </div>
@@ -218,16 +259,67 @@ const FeedInventoryPage = () => {
 
           {/* Inventory Table (EFM style) */}
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Status</h3>
-              <span className="text-xs text-muted-foreground mono-data">{inventoryRecords.length} records</span>
+            <div className="px-5 py-4 border-b border-border">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Status</h3>
+                <div className="feed-inventory-status-actions flex items-center gap-2">
+                  <div className="relative hidden sm:block">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                      placeholder="Search feed type..."
+                      className="h-8 px-3 w-52 rounded-lg bg-surface-container-high text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowTableSearch((prev) => !prev)}
+                    className={`p-2 rounded-lg transition-colors sm:hidden ${showTableSearch ? 'bg-primary/15 text-primary' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
+                    aria-label="Toggle search"
+                    type="button"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                  </button>
+                  {inventoryRecords.length > 0 && (
+                    <button
+                      onClick={handleDownloadExcel}
+                      className="feed-inventory-mobile-export btn-download p-2 rounded-lg border border-border text-foreground transition-colors flex items-center justify-center sm:hidden"
+                      aria-label="Export feed inventory"
+                      title="Export"
+                      type="button"
+                    >
+                      <Download className="w-4 h-4 shrink-0" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
+            {showTableSearch && (
+              <div className="px-5 py-4 border-b border-border bg-surface-container-high/50 sm:hidden">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                    placeholder="Search feed type..."
+                    className="h-9 px-3 w-full rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  />
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>
-            ) : inventoryRecords.length === 0 ? (
+            ) : filteredInventoryRecords.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p>No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.</p>
-                <p className="text-xs mt-1">Click "Add Entry" to start tracking feed inventory.</p>
+                {searchTerm ? (
+                  <p>No feed inventory records match your search.</p>
+                ) : (
+                  <>
+                    <p>No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.</p>
+                    <p className="text-xs mt-1">Click "Add Entry" to start tracking feed inventory.</p>
+                  </>
+                )}
               </div>
             ) : (
               <>
@@ -295,7 +387,7 @@ const FeedInventoryPage = () => {
                   </table>
                 </div>
                 <div className="px-4 py-1 border-t border-border">
-                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }} total={inventoryRecords.length} />
+                  <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} rowsPerPage={rowsPerPage} onRowsPerPageChange={(newRows) => { setRowsPerPage(newRows); setCurrentPage(1); }} total={filteredInventoryRecords.length} />
                 </div>
               </>
             )}
@@ -320,7 +412,7 @@ const FeedInventoryPage = () => {
               </div>
             </div>
             <div className="flex gap-2 md:ml-auto w-full sm:w-auto">
-              <button onClick={loadReport} disabled={loading} className="flex-1 sm:flex-none h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all disabled:opacity-50 min-w-[150px]">{loading ? 'Loading...' : 'Generate'}</button>
+              <button onClick={loadReport} disabled={loading} className="feed-inventory-report-generate flex-1 sm:flex-none h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all disabled:opacity-50 min-w-[150px]">{loading ? 'Loading...' : 'Generate'}</button>
               {reportData && (
                 <button onClick={handleDownloadCSV} disabled={downloadingCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-2"><Download className="w-4 h-4" />{downloadingCSV ? 'CSV...' : 'CSV'}</button>
               )}

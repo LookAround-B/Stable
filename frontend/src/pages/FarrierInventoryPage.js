@@ -125,23 +125,25 @@ const FarrierInventoryPage = () => {
       {/* ── Header ── */}
       <div className="farrier-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Farrier <span className="text-primary">Inventory</span></h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Farrier <span className="text-primary">Inventory</span></h1>
+            <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="farrier-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+              {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{t('Track farrier tools, horseshoes & service records')}</p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="farrier-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
-          </button>
         </div>
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === "error" ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{messageType === 'success' ? '✓' : '✕'} {message}</div>}
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="farrier-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
         <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Across all categories" subColor="text-success" />
         <OperationalMetricCard label="SERVICE OVERDUE" value={String(overdueSvc.length).padStart(2, '0')} icon={Wrench} colorClass="text-warning" bgClass="bg-warning/10" sub="Tools needing service" subColor="text-warning" />
-        <OperationalMetricCard label="DAMAGED" value={String(damagedItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
+        <div className="farrier-inventory-kpi-card--wide-mobile">
+          <OperationalMetricCard label="DAMAGED" value={String(damagedItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
+        </div>
       </div>
 
       {overdueSvc.length > 0 && (
@@ -229,7 +231,7 @@ const FarrierInventoryPage = () => {
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
         <div className="farrier-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
-          <div className="relative flex-1 max-w-xs">
+          <div className="farrier-inventory-search-wrap relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               value={search}
@@ -239,12 +241,13 @@ const FarrierInventoryPage = () => {
             />
             {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="farrier-inventory-toolbar-actions flex items-center gap-2 shrink-0">
             <button
               onClick={handleDownloadExcel}
               className="btn-download farrier-inventory-export flex items-center gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors bg-surface-container-high text-muted-foreground hover:text-foreground"
             >
-              <Download className="w-3.5 h-3.5" /> Export
+              <Download className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Export</span>
             </button>
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{filteredItems.length} of {items.length} items</span>
           </div>
@@ -343,8 +346,6 @@ const FarrierInventoryPage = () => {
 };
 
 export default FarrierInventoryPage;
-
-
 
 
 

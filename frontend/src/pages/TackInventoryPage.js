@@ -158,12 +158,14 @@ const TackInventoryPage = () => {
       {/* ── Header ── */}
       <div className="tack-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Tack <span className="text-primary">Inventory</span></h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Tack <span className="text-primary">Inventory</span></h1>
+            <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
+              {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage tack and equipment across all stable operations.')}</p>
         </div>
-        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
-          {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
-        </button>
       </div>
 
       {/* ── Message ── */}
@@ -174,10 +176,12 @@ const TackInventoryPage = () => {
       )}
 
       {/* ── KPI Cards (EFM Style) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="tack-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
         <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Inventory count" subColor="text-success" />
         <OperationalMetricCard label="CATEGORIES" value={String(uniqueCategories.length || CATEGORIES.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Unique equipment types" />
-        <OperationalMetricCard label="NEEDS ATTENTION" value={String(needsAttention + maintenanceItems.length).padStart(2, '0')} icon={Wrench} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
+        <div className="tack-inventory-kpi-card--wide-mobile">
+          <OperationalMetricCard label="NEEDS ATTENTION" value={String(needsAttention + maintenanceItems.length).padStart(2, '0')} icon={Wrench} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
+        </div>
       </div>
 
       {/* ── Maintenance Alert ── */}
@@ -270,7 +274,7 @@ const TackInventoryPage = () => {
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar — matches EFM */}
         <div className="tack-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
-          <div className="relative flex-1 max-w-xs">
+          <div className="tack-inventory-search-wrap relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               value={search}
@@ -280,9 +284,10 @@ const TackInventoryPage = () => {
             />
             {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="tack-inventory-toolbar-actions flex items-center gap-2 shrink-0">
             <button onClick={handleDownloadExcel} className="btn-download tack-inventory-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" /> Export
+              <Download className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Export</span>
             </button>
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} of {items.length} items</span>
           </div>
@@ -384,8 +389,6 @@ const TackInventoryPage = () => {
 };
 
 export default TackInventoryPage;
-
-
 
 
 

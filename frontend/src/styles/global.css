@@ -10622,8 +10622,8 @@ html[data-text-size="large"] {
 .inv-stat-card {
   flex: 1 1 120px;
   min-width: 110px;
-  background: var(--white, #ffffff);
-  border: 1px solid var(--gray-200, #e5e7eb);
+  background: hsl(var(--surface-container-highest));
+  border: 1px solid hsl(var(--border));
   border-radius: 10px;
   padding: 14px 16px;
   display: flex;
@@ -10634,21 +10634,21 @@ html[data-text-size="large"] {
 .inv-stat-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary, #111);
+  color: hsl(var(--foreground));
   line-height: 1.1;
 }
 
 .inv-stat-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--text-secondary, #555);
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .inv-stat-sub {
   font-size: 0.7rem;
-  color: var(--text-muted, #888);
+  color: hsl(var(--muted-foreground));
   margin-top: 2px;
 }
 
@@ -10666,8 +10666,8 @@ html[data-text-size="large"] {
 }
 
 .inv-chart-card {
-  background: var(--white, #ffffff);
-  border: 1px solid var(--gray-200, #e5e7eb);
+  background: hsl(var(--surface-container-highest));
+  border: 1px solid hsl(var(--border));
   border-radius: 10px;
   padding: 16px 16px 8px;
   overflow: hidden;
@@ -10676,7 +10676,7 @@ html[data-text-size="large"] {
 .inv-chart-title {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-secondary, #555);
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 8px;
@@ -16157,6 +16157,30 @@ html[data-text-size="large"] {
   border-color: rgba(9, 9, 11, 0.24);
 }
 
+.farrier-shoeing-tab-stack {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.farrier-shoeing-tab-grid {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.farrier-shoeing-record-btn {
+  margin-left: auto;
+}
+
+.farrier-shoeing-search-wrap {
+  max-width: none;
+}
+
+.farrier-shoeing-toolbar-actions {
+  margin-left: auto;
+}
+
 .modal input:focus,
 .modal textarea:focus,
 .modal select:focus,
@@ -19274,6 +19298,41 @@ body.efm-theme-light .crop-area {
     flex: 0 0 14px;
   }
 
+  .farrier-shoeing-tab-stack {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .farrier-shoeing-tab-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .farrier-shoeing-tab-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 8px;
+  }
+
+  .farrier-shoeing-record-btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    padding: 10px 12px;
+  }
+
+  .farrier-shoeing-search-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .farrier-shoeing-toolbar-actions {
+    margin-left: auto;
+  }
+
   .employees-page .employees-header-row,
   .horse-care-team-page .horse-care-team-header-row,
   .medicine-inventory-page .medicine-inventory-header-row,
@@ -19429,6 +19488,89 @@ body.efm-theme-light .crop-area {
 }
 
 @media (max-width: 767px) {
+  .gate-entry-page .gate-entry-export {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    font-size: 0 !important;
+    gap: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .gate-entry-page .gate-entry-export svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+
+  .gate-entry-page .gate-entry-page-header {
+    gap: 2px;
+  }
+
+  .gate-entry-page .gate-entry-title-block {
+    margin-top: -2px;
+  }
+
+  .gate-entry-page .gate-entry-header-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .gate-entry-page .gate-entry-header-btn {
+    margin-left: 0;
+    width: 100%;
+    height: 45px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    line-height: 1;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    justify-content: center;
+  }
+
+  .gate-entry-page .gate-entry-date-wrap {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .gate-entry-page .gate-entry-date-wrap input[type='date'] {
+    width: 100%;
+    height: 32px;
+  }
+
+  .gate-entry-page .gate-entry-form-panel {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .gate-entry-page .gate-entry-submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .gate-entry-page .gate-entry-toggle-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .gate-entry-page .gate-entry-toggle-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    justify-content: center;
+  }
+
   .tack-inventory-page .tack-inventory-export,
   .housekeeping-inventory-page .housekeeping-inventory-export {
     width: 32px;
@@ -19484,14 +19626,117 @@ body.efm-theme-light .crop-area {
     min-width: 0;
   }
 
+  .tack-inventory-page .tack-inventory-search-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .tack-inventory-page .tack-inventory-toolbar-actions {
+    margin-left: auto;
+  }
+
   .tack-inventory-page .tack-inventory-toolbar input[type='text'],
   .housekeeping-inventory-page .housekeeping-inventory-toolbar input[type='text'] {
     height: 32px;
     font-size: 12px;
   }
+
+  .tack-inventory-page .tack-inventory-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tack-inventory-page .tack-inventory-kpi-card--wide-mobile {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 767px) {
+  .farrier-inventory-page .farrier-inventory-search-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .farrier-inventory-page .farrier-inventory-toolbar-actions {
+    margin-left: auto;
+  }
+
+  .farrier-inventory-page .farrier-inventory-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .farrier-inventory-page .farrier-inventory-kpi-card--wide-mobile {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .daily-attendance-page .daily-attendance-kpi-grid,
+  .housekeeping-inventory-page .housekeeping-inventory-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-attendance-page .daily-attendance-kpi-card--wide-mobile,
+  .housekeeping-inventory-page .housekeeping-inventory-kpi-card--wide-mobile {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .gate-attendance-page .gate-attendance-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .gate-attendance-page .gate-attendance-tab-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  .gate-attendance-page .gate-attendance-tab-btn {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 10px 8px;
+  }
+
+  .gate-attendance-page .gate-attendance-action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .gate-attendance-page .gate-attendance-action-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 40px;
+    justify-content: center;
+  }
+
+  .gate-attendance-page .gate-attendance-export {
+    margin-left: auto;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    font-size: 0 !important;
+    gap: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .gate-attendance-page .gate-attendance-export svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+
   .pagination-shell {
     border-top: none !important;
     padding-top: 10px;
@@ -19809,5 +20054,100 @@ body.efm-theme-light .crop-area {
   .medicine-inventory-page .medicine-inventory-report-download {
     justify-self: center;
     width: min(220px, 100%);
+  }
+}
+
+
+@media (max-width: 767px) {
+  .meeting-page .meeting-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .meeting-page .meeting-header-actions > button {
+    align-self: flex-start;
+  }
+
+  .meeting-page .meeting-upcoming-queue-card {
+    width: 100%;
+  }
+}
+
+
+@media (max-width: 767px) {
+  .feed-inventory-page .feed-inventory-control-grid,
+  .feed-inventory-page .feed-inventory-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .feed-inventory-page .feed-inventory-control-grid > div,
+  .feed-inventory-page .feed-inventory-actions > button {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .feed-inventory-page .feed-inventory-add-btn,
+  .feed-inventory-page .feed-inventory-recalc-btn {
+    height: 40px;
+    padding: 0 10px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .feed-inventory-page .feed-inventory-mobile-export {
+    min-width: 0;
+    padding: 8px !important;
+    gap: 0;
+    justify-content: center;
+    align-items: center;
+    font-size: 0 !important;
+  }
+
+  .feed-inventory-page .feed-inventory-mobile-export .lucide-download,
+  .feed-inventory-page .feed-inventory-mobile-export svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+    flex: 0 0 14px;
+  }
+}
+
+.lovable-shell.lovable-theme-dark .inv-stat-card,
+.lovable-shell.lovable-theme-dark .inv-chart-card {
+  background: hsl(var(--surface-container-highest));
+  border-color: hsl(var(--border));
+}
+
+
+@media (max-width: 767px) {
+  .feed-inventory-page .feed-inventory-tab-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .feed-inventory-page .feed-inventory-tab-btn {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+  }
+}
+
+
+@media (max-width: 767px) {
+  .feed-inventory-page .feed-inventory-report-generate {
+    flex: 0 0 auto;
+    width: 132px;
+    min-width: 132px;
   }
 }

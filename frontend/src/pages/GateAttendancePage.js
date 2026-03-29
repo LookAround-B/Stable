@@ -245,20 +245,22 @@ const GateAttendancePage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setActiveTab('staff')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'staff' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
-            <UserCheck className="w-4 h-4" /> Staff Entry/Exit
+      <div className="gate-attendance-controls space-y-3">
+        <div className="gate-attendance-tab-row grid grid-cols-2 gap-3">
+          <button onClick={() => setActiveTab('staff')} className={`gate-attendance-tab-btn px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 justify-center ${activeTab === 'staff' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+            <UserCheck className="w-4 h-4 shrink-0" /> Staff Entry/Exit
           </button>
-          <button onClick={() => setActiveTab('visitor')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'visitor' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
-            <Users className="w-4 h-4" /> Visitor Log
+          <button onClick={() => setActiveTab('visitor')} className={`gate-attendance-tab-btn px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 justify-center ${activeTab === 'visitor' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+            <Users className="w-4 h-4 shrink-0" /> Visitor Log
           </button>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`h-10 px-5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
+        <div className="gate-attendance-action-row grid grid-cols-2 gap-3">
+          <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
             {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
           </button>
-          <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" />Excel</button>
+          <button onClick={handleDownloadExcel} title="Download as Excel" className="gate-attendance-export h-12 w-12 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto">
+            <Download className="w-7 h-7" />
+          </button>
         </div>
       </div>
 

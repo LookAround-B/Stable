@@ -139,16 +139,18 @@ const HorseFeedsPage = () => {
   return (
     <div className="horse-feeds-page space-y-6">
       {/* Header */}
-      <div className="horse-feeds-header-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">Feeds</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('Record daily feed consumption for horses')}</p>
+      <div className="horse-feeds-header-row space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">Feeds</span></h1>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button onClick={() => setShowForm(!showForm)} className="horse-feeds-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+              {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add Feed</>}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => setShowForm(!showForm)} className="horse-feeds-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add Feed Record</>}
-          </button>
-        </div>
+        <p className="text-sm text-muted-foreground mt-1">{t('Record daily feed consumption for horses')}</p>
       </div>
 
       {/* KPI Cards */}
@@ -185,12 +187,14 @@ const HorseFeedsPage = () => {
           </div>
         </div>
         <div className="relative flex-1 max-w-xs">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Search</label>
           <input type="text" placeholder="Search horse name..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="h-10 w-full px-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
         </div>
         {summaryDataArray.length > 0 && (
           <div className="flex lg:justify-end lg:ml-auto">
-            <button onClick={handleDownloadExcel} className="btn-download horse-feeds-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+            <button onClick={handleDownloadExcel} className="btn-download horse-feeds-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center justify-center gap-0 sm:gap-2">
+              <Download className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Excel</span>
+            </button>
           </div>
         )}
       </div>

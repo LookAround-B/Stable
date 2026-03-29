@@ -105,13 +105,15 @@ const DailyAttendancePage = () => {
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Failed') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="daily-attendance-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
           { label: 'TOTAL GROOMS', value: String(employees.length).padStart(2, '0'), icon: Users, sub: 'Assigned groom roster' },
           { label: 'CHECKED IN', value: String(checkedInCount).padStart(2, '0'), icon: UserCheck, sub: 'Currently on duty', subColor: 'text-success', colorClass: 'text-success', bgClass: 'bg-success/10' },
           { label: 'CHECKED OUT', value: String(employees.length - checkedInCount).padStart(2, '0'), icon: UserX, sub: 'Out of shift', subColor: 'text-warning', colorClass: 'text-warning', bgClass: 'bg-warning/10' },
-        ].map(k => (
-          <OperationalMetricCard key={k.label} label={k.label} value={k.value} icon={k.icon} colorClass={k.colorClass || 'text-primary'} bgClass={k.bgClass || 'bg-primary/10'} sub={k.sub} subColor={k.subColor || 'text-muted-foreground'} />
+        ].map((k, index) => (
+          <div key={k.label} className={index === 2 ? 'daily-attendance-kpi-card--wide-mobile col-span-2 sm:col-span-1' : ''}>
+            <OperationalMetricCard label={k.label} value={k.value} icon={k.icon} colorClass={k.colorClass || 'text-primary'} bgClass={k.bgClass || 'bg-primary/10'} sub={k.sub} subColor={k.subColor || 'text-muted-foreground'} />
+          </div>
         ))}
       </div>
 

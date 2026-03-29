@@ -201,16 +201,18 @@ const FarrierShoeingPage = () => {
       )}
 
       {/* Tab Pills */}
-      <div className="flex items-center gap-3">
-        <button onClick={() => setActiveTab('completed')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'completed' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+      <div className="farrier-shoeing-tab-stack">
+        <div className="farrier-shoeing-tab-grid">
+        <button onClick={() => setActiveTab('completed')} className={`farrier-shoeing-tab-btn px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'completed' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
           <CheckCircle className="w-4 h-4" /> Completed Shoeings
         </button>
-        <button onClick={() => setActiveTab('pending')} className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'pending' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+        <button onClick={() => setActiveTab('pending')} className={`farrier-shoeing-tab-btn px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'pending' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
           <Clock className="w-4 h-4" /> Pending / Overdue
           {pendingHorses.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-destructive text-white text-[10px] font-bold">{pendingHorses.length}</span>}
         </button>
+        </div>
         {activeTab === 'completed' && (
-          <button onClick={() => setShowForm(!showForm)} disabled={loading} className="ml-auto h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} disabled={loading} className="farrier-shoeing-record-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Record Shoeing</>}
           </button>
         )}
@@ -256,16 +258,17 @@ const FarrierShoeingPage = () => {
         <>
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
             <div className="farrier-shoeing-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
-              <div className="relative flex-1 max-w-xs">
+              <div className="farrier-shoeing-search-wrap relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   placeholder="Search horses or farrier..."
                   className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="farrier-shoeing-toolbar-actions flex items-center gap-2 shrink-0">
                 <button onClick={handleDownloadExcel} className="btn-download farrier-shoeing-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                  <Download className="w-4 h-4" /> Export
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Export</span>
                 </button>
                 <span className="text-xs text-muted-foreground mono-data hidden sm:block">{records.length} records</span>
               </div>
@@ -318,16 +321,17 @@ const FarrierShoeingPage = () => {
         <>
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
             <div className="farrier-shoeing-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
-              <div className="relative flex-1 max-w-xs">
+              <div className="farrier-shoeing-search-wrap relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   placeholder="Search horses or farrier..."
                   className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="farrier-shoeing-toolbar-actions flex items-center gap-2 shrink-0">
                 <button onClick={handleDownloadExcel} className="btn-download farrier-shoeing-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                  <Download className="w-4 h-4" /> Export
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Export</span>
                 </button>
                 <span className="text-xs text-muted-foreground mono-data hidden sm:block">{pendingHorses.length} pending</span>
               </div>
@@ -384,6 +388,3 @@ const FarrierShoeingPage = () => {
 };
 
 export default FarrierShoeingPage;
-
-
-

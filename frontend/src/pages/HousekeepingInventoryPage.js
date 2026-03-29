@@ -148,12 +148,14 @@ const HousekeepingInventoryPage = () => {
       {/* ── Header ── */}
       <div className="housekeeping-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Housekeeping <span className="text-primary">Inventory</span></h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Housekeeping <span className="text-primary">Inventory</span></h1>
+            <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+              {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
         </div>
-        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-          {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
-        </button>
       </div>
 
       {/* ── Message ── */}
@@ -164,10 +166,12 @@ const HousekeepingInventoryPage = () => {
       )}
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="housekeeping-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
         <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Across all categories" />
         <OperationalMetricCard label="LOW STOCK" value={String(lowStockItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub="Needs reorder" subColor="text-warning" />
-        <OperationalMetricCard label="EXPIRED" value={String(expiredItems.length).padStart(2, '0')} icon={Sparkles} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Past expiry date" subColor="text-destructive" />
+        <div className="housekeeping-inventory-kpi-card--wide-mobile col-span-2 sm:col-span-1">
+          <OperationalMetricCard label="EXPIRED" value={String(expiredItems.length).padStart(2, '0')} icon={Sparkles} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Past expiry date" subColor="text-destructive" />
+        </div>
       </div>
 
       {/* ── Low Stock Alert ── */}
@@ -373,7 +377,6 @@ const HousekeepingInventoryPage = () => {
 };
 
 export default HousekeepingInventoryPage;
-
 
 
 

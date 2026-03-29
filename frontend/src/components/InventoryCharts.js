@@ -14,9 +14,8 @@ import {
 
 // B/W SaaS palette — from near-black to light gray
 const PALETTE = [
-  '#111111', '#2a2a2a', '#404040', '#565656', '#6c6c6c',
-  '#828282', '#989898', '#afafaf', '#c5c5c5', '#dbdbdb',
-  '#1f1f1f', '#353535',
+  '#d199ff', '#a855f7', '#00e6c7', '#fb7185', '#f59e0b', '#60a5fa',
+  '#22c55e', '#f97316', '#8b5cf6', '#14b8a6', '#ec4899', '#38bdf8',
 ];
 
 // ── Custom Tooltip ──────────────────────────────────────────────────────────
@@ -106,8 +105,8 @@ const MedicineCharts = ({ records, labels }) => {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
               <YAxis tick={{ fontSize: 11 }} width={40} />
               <Tooltip content={<CustomBarTooltip />} />
-              <Bar dataKey="Opening Stock" stackId="a" fill="#111111" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="Purchased" stackId="a" fill="#888888" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Opening Stock" stackId="a" fill="#d199ff" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="Purchased" stackId="a" fill="#60a5fa" radius={[3, 3, 0, 0]} />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
             </BarChart>
           </ResponsiveContainer>
@@ -201,8 +200,8 @@ const FeedCharts = ({ records, labels }) => {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
               <YAxis tick={{ fontSize: 11 }} width={40} />
               <Tooltip content={<CustomBarTooltip />} />
-              <Bar dataKey="Units Left" stackId="a" fill="#111111" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="Used" stackId="a" fill="#aaaaaa" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="Units Left" stackId="a" fill="#d199ff" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="Used" stackId="a" fill="#00e6c7" radius={[3, 3, 0, 0]} />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
             </BarChart>
           </ResponsiveContainer>

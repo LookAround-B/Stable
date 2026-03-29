@@ -126,8 +126,8 @@ const GateEntryRegisterPage = () => {
     <div className="gate-entry-page space-y-6">
       <style>{dateInputStyles}</style>
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div>
+      <div className="gate-entry-page-header flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div className="gate-entry-title-block">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Gate Entry/Exit')} <span className="text-primary">Register</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Recorded by Guard: {user?.fullName || 'Guard'}</p>
         </div>
@@ -150,33 +150,33 @@ const GateEntryRegisterPage = () => {
 
       {/* Entry/Exit Section */}
       <div className="gate-entry-header-row flex flex-col md:flex-row items-stretch md:items-end gap-4">
-        <button onClick={() => setShowForm(!showForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+        <button onClick={() => setShowForm(!showForm)} className={`gate-entry-header-btn h-10 px-5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showForm ? 'bg-primary text-primary-foreground border border-primary/45 shadow-[0_0_0_1px_rgba(168,85,247,0.24)]' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
           {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Record Entry/Exit</>}
         </button>
-        <div className="flex items-end gap-3 md:ml-auto">
+        <div className="gate-entry-date-wrap flex items-end gap-3 md:ml-auto">
           <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={dateInputCls} />
         </div>
       </div>
 
       {/* Form */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+        <div className="gate-entry-form-panel bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/30 shadow-[inset_0_1px_0_rgba(168,85,247,0.14)]">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Mode */}
             <div className="flex items-center gap-4">
               <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Operation:</label>
-              <div className="flex gap-2">
+              <div className="gate-entry-toggle-group flex gap-2">
                 {['entry', 'exit'].map(m => (
-                  <button key={m} type="button" onClick={() => setFormMode(m)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formMode === m ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground border border-transparent hover:bg-surface-container-highest'}`}>{m === 'entry' ? 'Entry' : 'Exit'}</button>
+                  <button key={m} type="button" onClick={() => setFormMode(m)} className={`gate-entry-toggle-btn px-4 py-2 rounded-lg text-sm font-medium transition-all ${formMode === m ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground border border-transparent hover:bg-surface-container-highest'}`}>{m === 'entry' ? 'Entry' : 'Exit'}</button>
                 ))}
               </div>
             </div>
             {/* Person Type */}
             <div className="flex items-center gap-4">
               <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Person Type:</label>
-              <div className="flex gap-2">
+              <div className="gate-entry-toggle-group flex gap-2">
                 {['Staff', 'Visitor'].map(pt => (
-                  <button key={pt} type="button" onClick={() => handlePersonTypeChange(pt)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${formData.personType === pt ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+                  <button key={pt} type="button" onClick={() => handlePersonTypeChange(pt)} className={`gate-entry-toggle-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${formData.personType === pt ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground border border-transparent hover:bg-surface-container-highest'}`}>
                     {pt === 'Staff' ? <UserCheck className="w-4 h-4" /> : <Users className="w-4 h-4" />} {pt}
                   </button>
                 ))}
@@ -219,7 +219,7 @@ const GateEntryRegisterPage = () => {
                 <input type="text" name="notes" value={formData.notes} onChange={handleFormChange} placeholder="Additional notes" maxLength="250" className={inputCls} />
               </div>
             </div>
-            <button type="submit" className={`h-10 px-6 rounded-lg text-sm font-semibold tracking-wider uppercase ${formMode === 'entry' ? 'bg-gradient-to-r from-success to-success/80 text-white' : 'bg-gradient-to-r from-warning to-warning/80 text-white'}`}>Record {formMode === 'entry' ? 'Entry' : 'Exit'}</button>
+            <button type="submit" className={`gate-entry-submit-btn h-10 px-6 rounded-lg text-sm font-semibold tracking-wider uppercase ${formMode === 'entry' ? 'bg-gradient-to-r from-success to-success/80 text-white' : 'bg-gradient-to-r from-warning to-warning/80 text-white'}`}>Record {formMode === 'entry' ? 'Entry' : 'Exit'}</button>
           </form>
         </div>
       )}
@@ -228,7 +228,10 @@ const GateEntryRegisterPage = () => {
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">Gate Register — {new Date(selectedDate).toLocaleDateString('en-GB')}</h3>
-          <button onClick={handleDownloadExcel} className="h-9 px-3 rounded-lg border border-border text-foreground text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-3.5 h-3.5" />Excel</button>
+          <button onClick={handleDownloadExcel} className="gate-entry-export h-9 px-3 rounded-lg border border-border text-foreground text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+            <Download className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Excel</span>
+          </button>
         </div>
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Loading gate entries...</div>
@@ -287,5 +290,3 @@ const GateEntryRegisterPage = () => {
 };
 
 export default GateEntryRegisterPage;
-
-
