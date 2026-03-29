@@ -2,17 +2,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId, isValidString, sanitizeString, safePositiveInt } from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -44,8 +42,8 @@ async function handleGetApprovals(req: NextApiRequest, res: NextApiResponse) {
 
     const approvals = await prisma.approval.findMany({
       where,
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: safePositiveInt(skip, 0),
+      take: safePositiveInt(take, 10, 100),
       include: {
         task: { include: { horse: true, assignedEmployee: true } },
         approver: true,
@@ -69,15 +67,21 @@ async function handleCreateApproval(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { taskId, approverId, approverLevel } = req.body
 
-    if (!taskId || !approverId || !approverLevel) {
-      return res.status(400).json({ error: 'Missing required fields' })
+    if (!isValidId(taskId)) {
+      return res.status(400).json({ error: 'Valid taskId is required' })
+    }
+    if (!isValidId(approverId)) {
+      return res.status(400).json({ error: 'Valid approverId is required' })
+    }
+    if (!isValidString(approverLevel, 1, 100)) {
+      return res.status(400).json({ error: 'approverLevel is required (max 100 chars)' })
     }
 
     const approval = await prisma.approval.create({
       data: {
         taskId,
         approverId,
-        approverLevel,
+        approverLevel: sanitizeString(approverLevel),
         status: 'Pending',
       },
     })

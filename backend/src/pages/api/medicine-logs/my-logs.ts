@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
 
 const JAMEDAR_ROLES = ['Jamedar'];
 
@@ -13,12 +14,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -95,6 +92,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ data: myLogs });
   } catch (error: any) {
     console.error('Error fetching my medicine logs:', error);
-    return res.status(500).json({ error: 'Failed to fetch medicine logs', message: String(error) });
+    return res.status(500).json({ error: 'Failed to fetch medicine logs' });
   }
 }

@@ -2,38 +2,40 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { generateToken } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
 import bcrypt from 'bcryptjs'
+import { isValidEmail, isValidString, validationError } from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers (works on Render, Vercel's infrastructure also adds these)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   try {
     const { email, password } = req.body
 
     // Validate input
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' })
+    if (!email || !isValidEmail(email)) {
+      validationError(res, 'A valid email is required');
+      return;
     }
 
-    if (!password) {
-      return res.status(400).json({ error: 'Password is required' })
+    if (!password || !isValidString(password, 1, 200)) {
+      validationError(res, 'Password is required');
+      return;
     }
 
     // Find user by email (include permissions for real-time access control)
@@ -55,20 +57,22 @@ export default async function handler(
     })
 
     if (!user) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Invalid email or password',
         code: 'INVALID_CREDENTIALS'
-      })
+      });
+      return;
     }
 
     // Verify password
     const passwordMatch = await bcrypt.compare(password, user.password)
 
     if (!passwordMatch) {
-      return res.status(401).json({
+      res.status(401).json({
         error: 'Invalid email or password',
         code: 'INVALID_CREDENTIALS'
-      })
+      });
+      return;
     }
 
     // Generate token
@@ -78,7 +82,7 @@ export default async function handler(
       designation: user.designation,
     })
 
-    return res.status(200).json({
+    res.status(200).json({
       token,
       user: {
         id: user.id,
@@ -90,10 +94,10 @@ export default async function handler(
         profileImage: user.profileImage,
         permissions: user.permissions || null,
       },
-    })
+    });
   } catch (error) {
-    console.error('Login error:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
 

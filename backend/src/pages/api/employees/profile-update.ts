@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
 import { uploadBase64Image } from '../../../lib/s3';
+import { setCorsHeaders } from '@/lib/cors'
 
 export const config = {
   api: {
@@ -12,12 +13,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -46,18 +43,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const { fullName, phoneNumber, designation, profileImage } = req.body;
+    const { fullName, phoneNumber, profileImage } = req.body;
 
     // Validate input — require at least a name or a profile image
     if (!fullName && !profileImage) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Build update data — only include fields that are provided
+    // Build update data — only include safe fields (NOT designation — prevents privilege escalation)
     const updateData: any = {};
-    if (fullName) updateData.fullName = fullName;
-    if (phoneNumber) updateData.phoneNumber = phoneNumber;
-    if (designation) updateData.designation = designation;
+    if (fullName) {
+      if (typeof fullName !== 'string' || fullName.trim().length < 1 || fullName.trim().length > 200) {
+        return res.status(400).json({ error: 'Full name must be 1-200 characters' });
+      }
+      updateData.fullName = fullName.replace(/<[^>]*>/g, '').trim();
+    }
+    if (phoneNumber) {
+      if (typeof phoneNumber !== 'string' || !/^\+?[\d\s\-()]{6,20}$/.test(phoneNumber.trim())) {
+        return res.status(400).json({ error: 'Invalid phone number format' });
+      }
+      updateData.phoneNumber = phoneNumber.trim();
+    }
+    // NOTE: designation intentionally NOT updateable through this endpoint
     if (profileImage !== undefined) {
       // If it's a base64 string, upload to R2 and store the CDN URL
       if (typeof profileImage === 'string' && profileImage.length > 0) {
@@ -89,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: any) {
     console.error('Profile update error:', error);
     return res.status(500).json({
-      error: error.message || 'Failed to update profile',
+      error: 'Failed to update profile',
     });
   }
 }

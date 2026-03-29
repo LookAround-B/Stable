@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
 
 const AUTHORIZED_ROLES = [
   'Super Admin',
@@ -33,12 +35,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -89,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error: any) {
     console.error('Feed inventory API error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -152,6 +150,25 @@ async function handlePost(
     return res.status(400).json({ error: 'Month must be between 1 and 12' });
   }
 
+  if (unit && !isValidString(unit, 1, 20)) {
+    return res.status(400).json({ error: 'Unit must be max 20 chars' });
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+  }
+  if (unitsBrought !== undefined) {
+    const ub = parseFloat(unitsBrought);
+    if (isNaN(ub) || ub < 0 || ub > 10000000) {
+      return res.status(400).json({ error: 'Units brought must be 0-10000000' });
+    }
+  }
+  if (openingStock !== undefined) {
+    const os = parseFloat(openingStock);
+    if (isNaN(os) || os < 0 || os > 10000000) {
+      return res.status(400).json({ error: 'Opening stock must be 0-10000000' });
+    }
+  }
+
   // Check if entry already exists
   const existing = await prisma.feedInventory.findUnique({
     where: {
@@ -182,7 +199,7 @@ async function handlePost(
       totalUsed,
       unitsLeft: Math.max(0, unitsLeft),
       unit: unit || 'kg',
-      notes: notes || null,
+      notes: notes ? sanitizeString(notes) : null,
       recordedById: user.id,
     },
     include: {
@@ -205,8 +222,8 @@ async function handlePut(
 ) {
   const { id, unitsBrought, openingStock, unit, notes } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'Record ID is required' });
+  if (!isValidId(id)) {
+    return res.status(400).json({ error: 'Valid Record ID is required' });
   }
 
   const existing = await prisma.feedInventory.findUnique({ where: { id } });
@@ -231,7 +248,7 @@ async function handlePut(
       totalUsed,
       unitsLeft: Math.max(0, unitsLeft),
       unit: unit || existing.unit,
-      notes: notes !== undefined ? notes : existing.notes,
+      notes: notes !== undefined ? (notes ? sanitizeString(notes) : null) : existing.notes,
     },
     include: {
       recordedBy: {

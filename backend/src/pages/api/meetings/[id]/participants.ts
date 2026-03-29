@@ -2,18 +2,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId } from '@/lib/validate'
 const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -40,8 +38,8 @@ export default async function handler(
       // Add participant to meeting
       const { employeeId } = req.body
 
-      if (!employeeId) {
-        return res.status(400).json({ error: 'Employee ID is required' })
+      if (!employeeId || !isValidId(employeeId)) {
+        return res.status(400).json({ error: 'Valid Employee ID is required' })
       }
 
       const meeting = await prisma.meeting.findUnique({

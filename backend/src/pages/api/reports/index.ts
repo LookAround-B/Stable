@@ -2,16 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, safePositiveInt } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -47,8 +45,8 @@ async function handleGetReports(req: NextApiRequest, res: NextApiResponse) {
 
     const reports = await prisma.report.findMany({
       where,
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: safePositiveInt(skip, 0),
+      take: safePositiveInt(take, 10, 100),
       include: {
         reportedEmployee: true,
         reporter: true,
@@ -73,17 +71,29 @@ async function handleCreateReport(req: NextApiRequest, res: NextApiResponse) {
     const { reportedEmployeeId, reporterEmployeeId, reason, category, taskId } =
       req.body
 
-    if (!reportedEmployeeId || !reporterEmployeeId || !reason) {
-      return res.status(400).json({ error: 'Missing required fields' })
+    if (!isValidId(reportedEmployeeId)) {
+      return res.status(400).json({ error: 'Valid reportedEmployeeId is required' })
+    }
+    if (!isValidId(reporterEmployeeId)) {
+      return res.status(400).json({ error: 'Valid reporterEmployeeId is required' })
+    }
+    if (!isValidString(reason, 1, 1000)) {
+      return res.status(400).json({ error: 'Reason is required (max 1000 chars)' })
+    }
+    if (category && !isValidString(category, 1, 100)) {
+      return res.status(400).json({ error: 'Category must be max 100 chars' })
+    }
+    if (taskId && !isValidId(taskId)) {
+      return res.status(400).json({ error: 'Invalid taskId' })
     }
 
     const report = await prisma.report.create({
       data: {
         reportedEmployeeId,
         reporterEmployeeId,
-        reason,
-        category,
-        taskId,
+        reason: sanitizeString(reason),
+        category: category ? sanitizeString(category) : undefined,
+        taskId: taskId || undefined,
         status: 'Pending',
       },
     })

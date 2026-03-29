@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { uploadImage } from '@/lib/s3'
 import busboy from 'busboy'
+import { setCorsHeaders } from '@/lib/cors'
 
 export const config = {
   api: {
@@ -14,12 +15,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -76,9 +73,10 @@ export default async function handler(
           return res.status(400).json({ error: 'No file uploaded' })
         }
 
-        // Validate file type
-        if (!mimetype.startsWith('image/')) {
-          return res.status(400).json({ error: 'Only image files are allowed' })
+        // Validate file type against strict allowlist
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        if (!mimetype || !allowedMimes.includes(mimetype.toLowerCase())) {
+          return res.status(400).json({ error: `Only image files are allowed (${allowedMimes.join(', ')})` })
         }
 
         // Upload to S3

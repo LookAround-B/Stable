@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../../lib/prisma';
 import { setCorsHeaders } from '../../../../lib/cors';
+import { sanitizeString, isValidString, isValidId } from '../../../../lib/validate';
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -13,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { id } = req.query;
+
+    if (!id || typeof id !== 'string' || !isValidId(id)) {
+      return res.status(400).json({ message: 'Invalid worksheet ID' });
+    }
 
     if (req.method === 'GET') {
       // Get single worksheet
@@ -51,10 +56,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Update worksheet
       const { remarks } = req.body;
 
+      if (remarks !== undefined && !isValidString(remarks, 0, 1000)) {
+        return res.status(400).json({ message: 'Remarks must be max 1000 chars' });
+      }
+
       const worksheet = await prisma.groomWorkSheet.update({
         where: { id: id as string },
         data: {
-          remarks,
+          remarks: remarks !== undefined ? sanitizeString(remarks) : undefined,
           updatedAt: new Date(),
         },
         include: {
@@ -97,6 +106,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Groom Worksheet API error:', error);
-    return res.status(500).json({ message: 'Internal server error', error: String(error) });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }

@@ -89,18 +89,6 @@ const ProfilePage = () => {
   const [isPwdOpen, setIsPwdOpen] = useState(false);
   const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
 
-  useEffect(() => {
-    if (user) {
-      setEditForm({
-        fullName: user.fullName || '',
-        email: user.email || '',
-        phone: user.phoneNumber || user.mobile || '',
-        department: user.department || ''
-      });
-      if (ROLES_WITH_HORSES.includes(user.designation)) loadAssignedHorses();
-    }
-  }, [user, loadAssignedHorses]);
-
   const loadAssignedHorses = useCallback(async () => {
     try {
       setLoading(true);
@@ -120,6 +108,18 @@ const ProfilePage = () => {
       setLoading(false);
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || user.mobile || '',
+        department: user.department || ''
+      });
+      if (ROLES_WITH_HORSES.includes(user.designation)) loadAssignedHorses();
+    }
+  }, [user, loadAssignedHorses]);
 
   /* file selected */
   const onFileChange = (e) => {

@@ -2,14 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidId } from '@/lib/validate'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -36,6 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
+    if (!id || typeof id !== 'string' || !isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid inspection ID' })
+    }
     const token = getTokenFromRequest(req as any)
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
@@ -48,7 +49,7 @@ async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const inspection = await prisma.inspectionRound.findUnique({
-      where: { id: id as string },
+      where: { id },
       include: {
         jamedar: {
           select: { id: true, fullName: true, designation: true, email: true },
@@ -144,12 +145,12 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
     // Build update data
     const updateData: any = {
       ...(round && { round }),
-      ...(description && { description }),
+      ...(description && { description: sanitizeString(description) }),
       ...(horseId !== undefined && { horseId: horseId || null }),
-      ...(location && { location }),
+      ...(location && { location: sanitizeString(location) }),
       ...(area !== undefined && { area: area || null }),
       ...(severityLevel && { severityLevel }),
-      ...(comments !== undefined && { comments: comments || null }),
+      ...(comments !== undefined && { comments: comments ? sanitizeString(comments) : null }),
     }
 
     // Handle images array update if provided
@@ -183,7 +184,7 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       if (status === 'Resolved') {
         updateData.resolvedById = userId
         updateData.resolvedAt = new Date()
-        updateData.resolutionNotes = resolutionNotes || null
+        updateData.resolutionNotes = resolutionNotes ? sanitizeString(resolutionNotes) : null
       } else if (status === 'Open') {
         updateData.resolvedById = null
         updateData.resolvedAt = null

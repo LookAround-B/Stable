@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken, checkPermission } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
 
 const AUTHORIZED_ROLES = [
   'Super Admin',
@@ -31,12 +33,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -93,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error: any) {
     console.error('Medicine inventory API error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -133,8 +131,17 @@ async function handlePost(
       : medicineType;
   const normalizedMedicineType = typeof rawMedicineType === 'string' ? rawMedicineType.trim() : '';
 
-  if (!normalizedMedicineType || !month || !year) {
-    return res.status(400).json({ error: 'Medicine type, month, and year are required' });
+  if (!isValidString(normalizedMedicineType, 1, 100)) {
+    return res.status(400).json({ error: 'Medicine type is required (max 100 chars)' });
+  }
+  if (!month || !year) {
+    return res.status(400).json({ error: 'Month and year are required' });
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+  }
+  if (unit && !isValidString(unit, 1, 20)) {
+    return res.status(400).json({ error: 'Unit must be max 20 chars' });
   }
 
   const monthNum = parseInt(month);
@@ -162,13 +169,13 @@ async function handlePost(
 
     const record = await prisma.medicineInventory.create({
       data: {
-        medicineType: normalizedMedicineType,
+        medicineType: sanitizeString(normalizedMedicineType),
         month: monthNum,
         year: yearNum,
         unitsPurchased: parseFloat(unitsPurchased) || 0,
         openingStock: parseFloat(openingStock) || 0,
         unit: unit || 'ml',
-        notes: notes || null,
+        notes: notes ? sanitizeString(notes) : null,
         recordedById: user.id,
         totalUsed: 0,
         unitsLeft: (parseFloat(openingStock) || 0) + (parseFloat(unitsPurchased) || 0),
@@ -197,8 +204,8 @@ async function handlePut(
 ) {
   const { id, unitsPurchased, openingStock, totalUsed, notes } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'id is required' });
+  if (!isValidId(id)) {
+    return res.status(400).json({ error: 'Valid id is required' });
   }
 
   try {
@@ -224,7 +231,7 @@ async function handlePut(
         openingStock: opening,
         totalUsed: used,
         unitsLeft,
-        notes: notes !== undefined ? notes : existing.notes,
+        notes: notes !== undefined ? (notes ? sanitizeString(notes) : null) : existing.notes,
       },
       include: {
         recordedBy: {
@@ -250,8 +257,8 @@ async function handleDelete(
 ) {
   const { id } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'id is required' });
+  if (!isValidId(id)) {
+    return res.status(400).json({ error: 'Valid id is required' });
   }
 
   try {
@@ -291,7 +298,7 @@ async function handlePatch(
   }
 
   const { id, threshold, notifyAdmin } = req.body;
-  if (!id) return res.status(400).json({ error: 'Record ID is required' });
+  if (!isValidId(id)) return res.status(400).json({ error: 'Valid Record ID is required' });
 
   const record = await prisma.medicineInventory.update({
     where: { id },

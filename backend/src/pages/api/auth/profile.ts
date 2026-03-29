@@ -1,21 +1,16 @@
 // pages/api/auth/profile.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
-import { generateToken } from '@/lib/auth'
+import { generateToken, getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidPhone, validationError } from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const origin = req.headers.origin as string;
-  
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  setCorsHeaders(res, origin);
 
   // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
@@ -27,37 +22,45 @@ export default async function handler(
   }
 
   try {
-    const authHeader = req.headers.authorization
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Unauthorized' })
+    // Properly verify JWT token to get the authenticated user's identity
+    const token = getTokenFromRequest(req as any)
+    if (!token) {
+      return res.status(401).json({ error: 'No authorization header' })
+    }
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid or expired token' })
     }
     
-    const { fullName, phoneNumber, designation } = req.body
+    const { fullName, phoneNumber } = req.body
 
     if (!fullName || !phoneNumber) {
-      return res.status(400).json({ error: 'Full name and phone number are required' })
+      return validationError(res, 'Full name and phone number are required')
     }
 
-    // For now, we'll extract the email from the request body or token
-    // In a real scenario, you'd decode the token to get user info
-    const email = req.body.email || 'unknown@example.com'
+    // Validate input
+    if (!isValidString(fullName, 1, 200)) {
+      return validationError(res, 'Full name must be 1-200 characters')
+    }
+    if (!isValidPhone(phoneNumber)) {
+      return validationError(res, 'Invalid phone number format')
+    }
 
-    // Find user by email (assuming email is passed in body or from token)
+    // Use authenticated user's ID from JWT — NOT email from body (prevents IDOR)
     let user = await prisma.employee.findUnique({
-      where: { email },
+      where: { id: decoded.id },
     })
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    // Update user profile
+    // Only update safe fields — NOT designation (prevents privilege escalation)
     user = await prisma.employee.update({
-      where: { email },
+      where: { id: decoded.id },
       data: {
-        fullName,
-        phoneNumber,
-        ...(designation && { designation }),
+        fullName: sanitizeString(fullName),
+        phoneNumber: phoneNumber.trim(),
       },
     })
 

@@ -2,16 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -87,6 +85,29 @@ export default async function handler(
 
       const { pointsDiscussed, memberInputs, decisions } = req.body
 
+      // Validate arrays - limit size to prevent abuse
+      const maxItems = 200
+      const maxItemLen = 5000
+      for (const [name, arr] of [['pointsDiscussed', pointsDiscussed], ['memberInputs', memberInputs], ['decisions', decisions]] as const) {
+        if (arr !== undefined) {
+          if (!Array.isArray(arr) || arr.length > maxItems) {
+            return res.status(400).json({ error: `${name} must be an array with at most ${maxItems} items` })
+          }
+          if (arr.some((item: any) => typeof item === 'string' && item.length > maxItemLen)) {
+            return res.status(400).json({ error: `Each ${name} item must be at most ${maxItemLen} chars` })
+          }
+        }
+      }
+
+      // Sanitize string entries
+      const sanitizeArr = (arr: any[]) => arr.map((item: any) =>
+        typeof item === 'string' ? sanitizeString(item) : item
+      )
+
+      const safePoints = pointsDiscussed ? sanitizeArr(pointsDiscussed) : []
+      const safeInputs = memberInputs ? sanitizeArr(memberInputs) : []
+      const safeDecisions = decisions ? sanitizeArr(decisions) : []
+
       // Check if MOM exists
       let mom = await prisma.meetingMOM.findUnique({
         where: { meetingId: id },
@@ -97,9 +118,9 @@ export default async function handler(
         mom = await prisma.meetingMOM.create({
           data: {
             meetingId: id,
-            pointsDiscussed: JSON.stringify(pointsDiscussed || []),
-            memberInputs: JSON.stringify(memberInputs || []),
-            decisions: JSON.stringify(decisions || []),
+            pointsDiscussed: JSON.stringify(safePoints),
+            memberInputs: JSON.stringify(safeInputs),
+            decisions: JSON.stringify(safeDecisions),
           },
         })
       } else {
@@ -107,9 +128,9 @@ export default async function handler(
         mom = await prisma.meetingMOM.update({
           where: { id: mom.id },
           data: {
-            pointsDiscussed: JSON.stringify(pointsDiscussed || []),
-            memberInputs: JSON.stringify(memberInputs || []),
-            decisions: JSON.stringify(decisions || []),
+            pointsDiscussed: JSON.stringify(safePoints),
+            memberInputs: JSON.stringify(safeInputs),
+            decisions: JSON.stringify(safeDecisions),
           },
         })
       }

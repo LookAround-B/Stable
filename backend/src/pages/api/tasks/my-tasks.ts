@@ -1,17 +1,14 @@
-// pages/api/tasks/my-tasks.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { safePositiveInt } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -45,8 +42,8 @@ export default async function handler(
 
     const tasks = await prisma.task.findMany({
       where,
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: safePositiveInt(skip, 0),
+      take: safePositiveInt(take, 1000, 1000),
       include: {
         horse: true,
         assignedEmployee: true,

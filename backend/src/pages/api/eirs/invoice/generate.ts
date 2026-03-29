@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../../lib/prisma';
 import { verifyToken } from '../../../../lib/auth';
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId, safeDate } from '@/lib/validate'
 
 interface InvoiceRecord {
   id: string;
@@ -35,12 +37,8 @@ interface InvoiceData {
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -93,9 +91,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(403).json({ error: 'You do not have permission to generate invoices' });
       }
 
+      // Validate instructorId if provided
+      if (instructorId && !isValidId(instructorId)) {
+        return res.status(400).json({ error: 'Invalid instructorId' });
+      }
+
       // Validate dates
-      if (!startDate || !endDate) {
-        return res.status(400).json({ error: 'startDate and endDate are required' });
+      if (!startDate || !endDate || !safeDate(startDate) || !safeDate(endDate)) {
+        return res.status(400).json({ error: 'Valid startDate and endDate are required' });
       }
 
       const start = new Date(startDate);
@@ -191,7 +194,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   } catch (error: any) {
     console.error('Invoice generation error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 

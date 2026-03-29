@@ -1,19 +1,25 @@
 // pages/api/expenses/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 import { uploadImage } from '@/lib/s3'
+import {
+  sanitizeString,
+  isValidString,
+  isValidId,
+  isOneOf,
+  safeDate,
+  safePositiveInt,
+  validationError,
+} from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -66,7 +72,7 @@ async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, _dec
 
     console.log('🔍 Where clause:', JSON.stringify(where, null, 2))
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string)
+    const skip = (safePositiveInt(page, 1, 1000) - 1) * safePositiveInt(limit, 10, 100)
 
     const expenses = await prisma.expense.findMany({
       where,
@@ -87,7 +93,7 @@ async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, _dec
       },
       orderBy: { createdAt: 'desc' },
       skip,
-      take: parseInt(limit as string),
+      take: safePositiveInt(limit, 10, 100),
     })
 
     console.log('✅ Expenses found:', expenses.length)
@@ -100,8 +106,8 @@ async function handleGetExpenses(req: NextApiRequest, res: NextApiResponse, _dec
     return res.status(200).json({
       expenses,
       total,
-      pages: Math.ceil(total / parseInt(limit as string)),
-      currentPage: parseInt(page as string),
+      pages: Math.ceil(total / safePositiveInt(limit, 10, 100)),
+      currentPage: safePositiveInt(page, 1, 1000),
     })
   } catch (error) {
     console.error('❌ Error fetching expenses:', error)
@@ -117,24 +123,42 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
 
     // Validate required fields
     if (!type || !amount || !description || !date) {
-      return res.status(400).json({ error: 'Missing required fields' })
+      return validationError(res, 'Missing required fields: type, amount, description, date')
     }
 
-    // Validate expense type
-    const validTypes = ['Medicine', 'Treatment', 'Maintenance', 'Miscellaneous']
-    if (!validTypes.includes(type)) {
-      return res.status(400).json({ error: `Invalid expense type. Must be one of: ${validTypes.join(', ')}` })
+    // Validate expense type against strict enum
+    const validTypes = ['Medicine', 'Treatment', 'Maintenance', 'Miscellaneous'] as const
+    if (!isOneOf(type, validTypes)) {
+      return validationError(res, `Invalid expense type. Must be one of: ${validTypes.join(', ')}`)
+    }
+
+    // Validate description length
+    if (!isValidString(description, 1, 1000)) {
+      return validationError(res, 'Description must be 1-1000 characters')
     }
 
     // Ensure at least one of horseId or employeeId is provided
     if (!horseId && !employeeId) {
-      return res.status(400).json({ error: 'Either horseId or employeeId must be provided' })
+      return validationError(res, 'Either horseId or employeeId must be provided')
     }
+
+    // Validate IDs if present
+    if (horseId && horseId !== '' && !isValidId(horseId)) return validationError(res, 'Invalid horseId format')
+    if (employeeId && employeeId !== '' && !isValidId(employeeId)) return validationError(res, 'Invalid employeeId format')
 
     // Validate amount
     const parsedAmount = parseFloat(amount)
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      return res.status(400).json({ error: 'Amount must be a positive number' })
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > 100000000) {
+      return validationError(res, 'Amount must be a positive number under 100,000,000')
+    }
+
+    // Validate date
+    const parsedDate = safeDate(date)
+    if (!parsedDate) return validationError(res, 'Invalid date format')
+
+    // Limit attachments count
+    if (attachments && Array.isArray(attachments) && attachments.length > 10) {
+      return validationError(res, 'Maximum 10 attachments allowed')
     }
 
     console.log('✅ Basic validations passed')
@@ -189,7 +213,20 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
               }
             }
 
+            // Validate mime type against allowlist (images + common receipt formats)
+            const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']
+            if (!allowedMimes.includes(mimeType.toLowerCase())) {
+              console.warn(`   ⚠️ Rejected attachment with disallowed type: ${mimeType}`)
+              continue
+            }
+
             const buffer = Buffer.from(base64Data, 'base64')
+
+            // Reject files over 5MB each
+            if (buffer.length > 5 * 1024 * 1024) {
+              console.warn(`   ⚠️ Rejected attachment exceeding 5MB: ${buffer.length} bytes`)
+              continue
+            }
             
             // Generate filename from mime type if not already set
             if (filename === 'file') {
@@ -216,8 +253,8 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
       data: {
         type,
         amount: parsedAmount,
-        description,
-        date: new Date(date),
+        description: sanitizeString(description),
+        date: parsedDate,
         createdById: decoded.id,
         horseId: horseId && horseId !== '' ? horseId : null,
         employeeId: employeeId && employeeId !== '' ? employeeId : null,
@@ -247,7 +284,7 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
     console.error('❌ Error creating expense:', error)
     console.error('   Error message:', (error as any).message)
     console.error('   Error stack:', (error as any).stack)
-    return res.status(500).json({ error: 'Internal server error', details: (error as any).message })
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
 
@@ -255,7 +292,7 @@ async function handleCreateExpense(req: NextApiRequest, res: NextApiResponse, de
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '50mb',
+      sizeLimit: '15mb',
     },
   },
 }

@@ -2,20 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const origin = req.headers.origin as string;
-  
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  const origin = req.headers.origin as string | undefined
+  setCorsHeaders(res, origin)
 
   // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {

@@ -1,16 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { setCorsHeaders } from '@/lib/cors'
 
 const prisma = new PrismaClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -29,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let decoded: any;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-only-insecure-secret');
   } catch (err) {
     return res.status(401).json({ error: 'Unauthorized - Invalid token' });
   }

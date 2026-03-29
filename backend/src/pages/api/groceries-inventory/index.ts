@@ -1,14 +1,14 @@
 ﻿import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
+import { setCorsHeaders } from '@/lib/cors';
+import { sanitizeString, isValidString, isValidId } from '@/lib/validate';
 
 const ALLOWED_ROLES = ["Senior Executive Admin", "Junior Executive Admin", "Restaurant Manager", "Super Admin", "Director", "School Administrator"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT");
-  res.setHeader("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization");
+  const origin = req.headers.origin;
+  setCorsHeaders(res, origin as string | undefined);
 
   if (req.method === "OPTIONS") { res.status(200).end(); return; }
 
@@ -94,18 +94,28 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: string) {
   const { name, quantity, unit, price, description, employeeId, purchaseDate, expiryDate } = req.body;
-  if (!name || quantity === undefined) return res.status(400).json({ error: "Name and quantity are required" });
+  if (!isValidString(name, 1, 200)) return res.status(400).json({ error: "Name is required (max 200 chars)" });
+  if (quantity === undefined || isNaN(parseFloat(quantity)) || parseFloat(quantity) < 0 || parseFloat(quantity) > 10000000) {
+    return res.status(400).json({ error: "Valid quantity is required (0-10000000)" });
+  }
+  if (unit && !isValidString(unit, 1, 30)) return res.status(400).json({ error: "Unit must be max 30 chars" });
+  if (description && !isValidString(description, 0, 1000)) return res.status(400).json({ error: "Description must be max 1000 chars" });
+  if (employeeId && !isValidId(employeeId)) return res.status(400).json({ error: "Invalid employeeId" });
+  if (price !== undefined) {
+    const p = parseFloat(price);
+    if (isNaN(p) || p < 0 || p > 10000000) return res.status(400).json({ error: "Price must be 0-10000000" });
+  }
 
   const qty = parseFloat(quantity);
   const prc = parseFloat(price || "0") || 0;
   const grocery = await prisma.groceriesInventory.create({
     data: {
-      name: name.trim(),
+      name: sanitizeString(name),
       quantity: qty,
-      unit: unit || "units",
+      unit: unit ? sanitizeString(unit) : "units",
       price: prc,
       totalPrice: qty * prc,
-      description: description || null,
+      description: description ? sanitizeString(description) : null,
       purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
       expiryDate: expiryDate ? new Date(expiryDate) : null,
       employeeId: employeeId || null,
@@ -122,7 +132,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
 
 async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const { id, name, quantity, unit, price, description, employeeId, purchaseDate, expiryDate } = req.body;
-  if (!id) return res.status(400).json({ error: "ID is required" });
+  if (!isValidId(id)) return res.status(400).json({ error: "Valid ID is required" });
 
   const qty = quantity !== undefined ? parseFloat(quantity) : undefined;
   const prc = price !== undefined ? (parseFloat(price) || 0) : undefined;
@@ -130,7 +140,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const grocery = await prisma.groceriesInventory.update({
     where: { id },
     data: {
-      ...(name && { name: name.trim() }),
+      ...(name && { name: sanitizeString(name) }),
       ...(qty !== undefined && { quantity: qty }),
       ...(unit && { unit }),
       ...(prc !== undefined && { price: prc }),
@@ -151,7 +161,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.body;
-  if (!id) return res.status(400).json({ error: "ID is required" });
+  if (!isValidId(id)) return res.status(400).json({ error: "Valid ID is required" });
   await prisma.groceriesInventory.delete({ where: { id } });
   res.status(200).json({ message: "Grocery deleted successfully" });
 }
@@ -163,7 +173,7 @@ async function handlePatch(req: NextApiRequest, res: NextApiResponse, user: any)
   }
 
   const { id, threshold, notifyAdmin } = req.body;
-  if (!id) return res.status(400).json({ error: 'ID is required' });
+  if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' });
 
   const grocery = await prisma.groceriesInventory.update({
     where: { id },

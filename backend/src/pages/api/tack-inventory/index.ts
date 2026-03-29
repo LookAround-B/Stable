@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
 
 const AUTHORIZED_ROLES = [
   'Super Admin', 'Director', 'School Administrator',
@@ -8,10 +10,8 @@ const AUTHORIZED_ROLES = [
 ]
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') return res.status(200).end()
 
@@ -83,28 +83,46 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
     maintenanceRequired, notes, cleaningSchedule, repairHistory, storageLocation,
   } = req.body
 
-  if (!itemName || !category) {
-    return res.status(400).json({ error: 'Item name and category are required' })
+  if (!isValidString(itemName, 1, 200)) {
+    return res.status(400).json({ error: 'Item name is required (max 200 chars)' })
+  }
+  if (!isValidString(category, 1, 100)) {
+    return res.status(400).json({ error: 'Category is required (max 100 chars)' })
+  }
+  if (horseId && !isValidId(horseId)) {
+    return res.status(400).json({ error: 'Invalid horseId' })
+  }
+  if (riderId && !isValidId(riderId)) {
+    return res.status(400).json({ error: 'Invalid riderId' })
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' })
+  }
+  if (brand && !isValidString(brand, 0, 100)) {
+    return res.status(400).json({ error: 'Brand must be max 100 chars' })
+  }
+  if (storageLocation && !isValidString(storageLocation, 0, 200)) {
+    return res.status(400).json({ error: 'Storage location must be max 200 chars' })
   }
 
   const record = await prisma.tackInventory.create({
     data: {
-      itemName: itemName.trim(),
-      category,
+      itemName: sanitizeString(itemName),
+      category: sanitizeString(category),
       horseId: horseId || null,
       riderId: riderId || null,
       quantity: parseInt(quantity) || 1,
       condition: condition || 'Good',
-      brand: brand || null,
-      size: size || null,
-      material: material || null,
+      brand: brand ? sanitizeString(brand) : null,
+      size: size ? sanitizeString(size) : null,
+      material: material ? sanitizeString(material) : null,
       purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
       lastUsedDate: lastUsedDate ? new Date(lastUsedDate) : null,
       maintenanceRequired: Boolean(maintenanceRequired),
-      notes: notes || null,
-      cleaningSchedule: cleaningSchedule || null,
-      repairHistory: repairHistory || null,
-      storageLocation: storageLocation || null,
+      notes: notes ? sanitizeString(notes) : null,
+      cleaningSchedule: cleaningSchedule ? sanitizeString(cleaningSchedule) : null,
+      repairHistory: repairHistory ? sanitizeString(repairHistory) : null,
+      storageLocation: storageLocation ? sanitizeString(storageLocation) : null,
       createdById: userId,
     },
     include: includeRelations,
@@ -120,7 +138,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     maintenanceRequired, notes, cleaningSchedule, repairHistory, storageLocation,
   } = req.body
 
-  if (!id) return res.status(400).json({ error: 'ID is required' })
+  if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' })
 
   const existing = await prisma.tackInventory.findUnique({ where: { id } })
   if (!existing) return res.status(404).json({ error: 'Record not found' })
@@ -128,7 +146,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const record = await prisma.tackInventory.update({
     where: { id },
     data: {
-      ...(itemName && { itemName: itemName.trim() }),
+      ...(itemName && { itemName: sanitizeString(itemName) }),
       ...(category && { category }),
       ...(horseId !== undefined && { horseId: horseId || null }),
       ...(riderId !== undefined && { riderId: riderId || null }),
@@ -153,7 +171,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleDelete(req: NextApiRequest, res: NextApiResponse, user: any) {
   const { id } = req.body
-  if (!id) return res.status(400).json({ error: 'ID is required' })
+  if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' })
 
   const record = await prisma.tackInventory.findUnique({ where: { id } })
   if (!record) return res.status(404).json({ error: 'Record not found' })

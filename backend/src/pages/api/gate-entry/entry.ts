@@ -1,16 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { setCorsHeaders } from '@/lib/cors'
 
 const prisma = new PrismaClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST (before any other logic)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
@@ -25,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let decoded: any;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-only-insecure-secret');
   } catch (err) {
     return res.status(401).json({ error: 'Unauthorized - Invalid token' });
   }
@@ -76,12 +73,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     } = req.body;
 
     if (!personType || !['Staff', 'Visitor'].includes(personType)) {
-      return res.status(400).json({ error: 'Invalid person type' });
+      return res.status(400).json({ error: 'Invalid person type. Must be Staff or Visitor.' });
     }
 
     if (personType === 'Staff' && !employeeId) {
       return res.status(400).json({ error: 'Employee ID required for staff' });
     }
+
+    // Validate string lengths 
+    if (newVisitorName && (typeof newVisitorName !== 'string' || newVisitorName.length > 200)) {
+      return res.status(400).json({ error: 'Visitor name must be under 200 characters' });
+    }
+    if (newVisitorPurpose && (typeof newVisitorPurpose !== 'string' || newVisitorPurpose.length > 500)) {
+      return res.status(400).json({ error: 'Purpose must be under 500 characters' });
+    }
+    if (newVisitorPhone && (typeof newVisitorPhone !== 'string' || !/^\+?[\d\s\-()]{6,20}$/.test(newVisitorPhone.trim()))) {
+      return res.status(400).json({ error: 'Invalid phone number format' });
+    }
+    if (vehicleNo && (typeof vehicleNo !== 'string' || vehicleNo.length > 20)) {
+      return res.status(400).json({ error: 'Vehicle number must be under 20 characters' });
+    }
+    if (notes && (typeof notes !== 'string' || notes.length > 1000)) {
+      return res.status(400).json({ error: 'Notes must be under 1000 characters' });
+    }
+
+    const sanitize = (s: string) => s.replace(/<[^>]*>/g, '').trim();
 
     let visitorIdToUse = visitorId;
 
@@ -89,9 +105,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (personType === 'Visitor' && newVisitorName) {
       const newVisitor = await prisma.visitor.create({
         data: {
-          name: newVisitorName,
-          purpose: newVisitorPurpose || 'Not specified',
-          contactNumber: newVisitorPhone || null
+          name: sanitize(newVisitorName),
+          purpose: newVisitorPurpose ? sanitize(newVisitorPurpose) : 'Not specified',
+          contactNumber: newVisitorPhone ? newVisitorPhone.trim() : null
         }
       });
       visitorIdToUse = newVisitor.id;
@@ -106,9 +122,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         personType,
         employeeId: personType === 'Staff' ? employeeId : null,
         visitorId: personType === 'Visitor' ? visitorIdToUse : null,
-        vehicleNo: vehicleNo || null,
+        vehicleNo: vehicleNo ? sanitize(vehicleNo) : null,
         entryTime: new Date(),
-        notes
+        notes: notes ? sanitize(notes) : undefined
       },
       include: {
         employee: {

@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId } from '@/lib/validate'
 
 const APPROVAL_ROLES = ['Stable Manager', 'Director', 'Super Admin', 'School Administrator'];
 
@@ -13,12 +15,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -61,6 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { id } = req.query;
+
+    if (!id || typeof id !== 'string' || !isValidId(id)) {
+      return res.status(400).json({ error: 'Invalid medicine log ID' });
+    }
 
     // Check if log exists
     const log = await prisma.medicineLog.findUnique({
@@ -111,6 +113,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(approvedLog);
   } catch (error: any) {
     console.error('Error approving medicine log:', error);
-    return res.status(500).json({ error: 'Failed to approve medicine log', message: String(error) });
+    return res.status(500).json({ error: 'Failed to approve medicine log' });
   }
 }

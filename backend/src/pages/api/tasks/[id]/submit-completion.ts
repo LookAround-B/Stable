@@ -2,16 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -65,13 +63,20 @@ export default async function handler(
       return res.status(400).json({ error: 'Photo evidence is required for this task' })
     }
 
+    if (proofImage && (typeof proofImage !== 'string' || proofImage.length > 2000)) {
+      return res.status(400).json({ error: 'Invalid proofImage URL' })
+    }
+    if (completionNotes && !isValidString(completionNotes, 0, 2000)) {
+      return res.status(400).json({ error: 'Completion notes must be max 2000 chars' })
+    }
+
     // Update task with completion data
     const updatedTask = await prisma.task.update({
       where: { id },
       data: {
         status: 'Pending Review',
-        proofImage,
-        completionNotes,
+        proofImage: proofImage || undefined,
+        completionNotes: completionNotes ? sanitizeString(completionNotes) : undefined,
         submittedAt: new Date(),
         completedTime: new Date(),
       },

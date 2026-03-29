@@ -1,17 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { setCorsHeaders } from '@/lib/cors';
+import { sanitizeString, isValidString, isValidId, isOneOf, safeDate } from '@/lib/validate';
 
-
-function setCorsHeaders(res: NextApiResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  setCorsHeaders(res);
+  const origin = req.headers.origin;
+  setCorsHeaders(res, origin as string | undefined);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -109,8 +105,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create or update attendance record
       const { employeeId, date, checkInTime, checkOutTime, status, remarks } = req.body;
 
-      if (!employeeId || !date || !status) {
-        return res.status(400).json({ message: 'Missing required fields: employeeId, date, status' });
+      if (!isValidId(employeeId)) {
+        return res.status(400).json({ message: 'Valid employeeId is required' });
+      }
+      if (!safeDate(date)) {
+        return res.status(400).json({ message: 'Valid date is required' });
+      }
+      const VALID_STATUSES = ['Present', 'Absent', 'Late', 'Half Day', 'On Leave', 'Holiday'] as const;
+      if (!isOneOf(status, VALID_STATUSES)) {
+        return res.status(400).json({ message: `Status must be one of: ${VALID_STATUSES.join(', ')}` });
+      }
+      if (remarks && !isValidString(remarks, 0, 500)) {
+        return res.status(400).json({ message: 'Remarks must be max 500 chars' });
       }
 
       const attendanceDate = new Date(date);
@@ -136,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             checkInTime: checkInTime ? new Date(checkInTime) : existing.checkInTime,
             checkOutTime: checkOutTime ? new Date(checkOutTime) : null,
             status,
-            remarks: remarks || existing.remarks,
+            remarks: remarks ? sanitizeString(remarks) : existing.remarks,
             updatedAt: new Date(),
           },
           include: {
@@ -159,7 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             checkInTime: checkInTime ? new Date(checkInTime) : null,
             checkOutTime: checkOutTime ? new Date(checkOutTime) : null,
             status,
-            remarks,
+            remarks: remarks ? sanitizeString(remarks) : null,
           },
           include: {
             employee: {
@@ -184,7 +190,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Attendance API error:', error);
-    return res.status(500).json({ message: 'Internal server error', error: String(error) });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 

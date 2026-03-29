@@ -1,15 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
 
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -115,8 +113,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const { horseId, date, balance, barley, oats, soya, lucerne, linseed, rOil, biotin, joint, epsom, heylase, notes } = req.body;
 
-      if (!horseId || !date) {
-        return res.status(400).json({ error: 'Horse ID and date are required' });
+      if (!isValidId(horseId)) {
+        return res.status(400).json({ error: 'Valid Horse ID is required' });
+      }
+      if (!safeDate(date)) {
+        return res.status(400).json({ error: 'Valid date is required' });
+      }
+      if (notes && !isValidString(notes, 0, 1000)) {
+        return res.status(400).json({ error: 'Notes must be max 1000 chars' });
       }
 
       // Validate horse exists
@@ -162,7 +166,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           joint: joint ? parseFloat(joint) : null,
           epsom: epsom ? parseFloat(epsom) : null,
           heylase: heylase ? parseFloat(heylase) : null,
-          notes,
+          notes: notes ? sanitizeString(notes) : null,
         },
         include: {
           horse: {
@@ -192,7 +196,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   } catch (error: any) {
     console.error('Horse feeds API error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 

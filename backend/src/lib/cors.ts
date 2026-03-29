@@ -71,13 +71,18 @@ export function createCorsMiddleware() {
 
 // Set CORS headers manually for API routes that don't use middleware
 export function setCorsHeaders(res: NextApiResponse, origin?: string) {
-  // ALWAYS send permissive CORS headers
-  res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  const allowedOrigins = getAllowedOrigins();
+  // Only reflect the origin if it's in the allowlist; otherwise omit the header
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // Non-browser requests (curl, mobile) — allow through
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  // If origin is set but not allowed, we intentionally do NOT set the header
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
 }
 
 // Helper function to run middleware

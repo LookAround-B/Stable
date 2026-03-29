@@ -3,7 +3,17 @@ import jwt from 'jsonwebtoken'
 import { NextRequest, NextResponse } from 'next/server'
 import type { NextApiRequest } from 'next'
 
-const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET: string = (() => {
+  const secret = process.env.JWT_SECRET
+  if (!secret || secret === 'your-secret-key') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET environment variable must be set in production')
+    }
+    console.warn('[AUTH] WARNING: Using default JWT_SECRET. Set JWT_SECRET env var for production.')
+    return 'dev-only-insecure-secret'
+  }
+  return secret
+})()
 const JWT_EXPIRE: string = process.env.JWT_EXPIRE || '7d'
 
 export interface JwtPayload {

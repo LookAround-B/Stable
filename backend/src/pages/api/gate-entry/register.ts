@@ -1,16 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
 
 const prisma = new PrismaClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST (before any other logic)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
@@ -25,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let decoded: any;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-only-insecure-secret');
   } catch (err) {
     return res.status(401).json({ error: 'Unauthorized - Invalid token' });
   }
@@ -91,19 +89,25 @@ async function handleCreateGateEntry(req: NextApiRequest, res: NextApiResponse, 
       return res.status(400).json({ error: 'Invalid person type' });
     }
 
-    if (personType === 'Staff' && !employeeId) {
-      return res.status(400).json({ error: 'Employee ID required for staff' });
+    if (personType === 'Staff' && !isValidId(employeeId)) {
+      return res.status(400).json({ error: 'Valid Employee ID required for staff' });
     }
 
     let visitorIdToUse = visitorId;
 
     // If creating new visitor
     if (personType === 'Visitor' && newVisitorName) {
+      if (!isValidString(newVisitorName, 1, 200)) {
+        return res.status(400).json({ error: 'Visitor name must be 1-200 chars' });
+      }
+      if (newVisitorPurpose && !isValidString(newVisitorPurpose, 0, 500)) {
+        return res.status(400).json({ error: 'Purpose must be max 500 chars' });
+      }
       const newVisitor = await prisma.visitor.create({
         data: {
-          name: newVisitorName,
-          purpose: newVisitorPurpose || 'Not specified',
-          contactNumber: newVisitorPhone
+          name: sanitizeString(newVisitorName),
+          purpose: newVisitorPurpose ? sanitizeString(newVisitorPurpose) : 'Not specified',
+          contactNumber: newVisitorPhone || null
         }
       });
       visitorIdToUse = newVisitor.id;
@@ -112,15 +116,21 @@ async function handleCreateGateEntry(req: NextApiRequest, res: NextApiResponse, 
     }
 
     // Create gate entry
+    if (vehicleNo && !isValidString(vehicleNo, 0, 30)) {
+      return res.status(400).json({ error: 'Vehicle number must be max 30 chars' });
+    }
+    if (notes && !isValidString(notes, 0, 1000)) {
+      return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+    }
     const entry = await prisma.gateEntry.create({
       data: {
         guardId,
         personType,
         employeeId: personType === 'Staff' ? employeeId : null,
         visitorId: personType === 'Visitor' ? visitorIdToUse : null,
-        vehicleNo: vehicleNo || null,
+        vehicleNo: vehicleNo ? sanitizeString(vehicleNo) : null,
         entryTime: new Date(),
-        notes
+        notes: notes ? sanitizeString(notes) : null
       },
       include: {
         employee: {

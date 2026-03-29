@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
 
 const AUTHORIZED_ROLES = [
   'Super Admin', 'Director', 'School Administrator',
@@ -8,10 +10,8 @@ const AUTHORIZED_ROLES = [
 ]
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') return res.status(200).end()
 
@@ -81,28 +81,55 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
     usageArea, consumptionRate, lastRestockedDate, assignedStaffId, costPerUnit, notes,
   } = req.body
 
-  if (!itemName || !category) {
-    return res.status(400).json({ error: 'Item name and category are required' })
+  if (!isValidString(itemName, 1, 200)) {
+    return res.status(400).json({ error: 'Item name is required (max 200 chars)' })
+  }
+  if (!isValidString(category, 1, 100)) {
+    return res.status(400).json({ error: 'Category is required (max 100 chars)' })
+  }
+  if (assignedStaffId && !isValidId(assignedStaffId)) {
+    return res.status(400).json({ error: 'Invalid assignedStaffId' })
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' })
+  }
+  if (supplierName && !isValidString(supplierName, 0, 200)) {
+    return res.status(400).json({ error: 'Supplier name must be max 200 chars' })
+  }
+  if (storageLocation && !isValidString(storageLocation, 0, 200)) {
+    return res.status(400).json({ error: 'Storage location must be max 200 chars' })
+  }
+  if (quantity !== undefined) {
+    const q = parseFloat(quantity)
+    if (isNaN(q) || q < 0 || q > 1000000) {
+      return res.status(400).json({ error: 'Quantity must be 0-1000000' })
+    }
+  }
+  if (costPerUnit !== undefined && costPerUnit !== null) {
+    const c = parseFloat(costPerUnit)
+    if (isNaN(c) || c < 0 || c > 10000000) {
+      return res.status(400).json({ error: 'Cost must be 0-10000000' })
+    }
   }
 
   const record = await prisma.housekeepingInventory.create({
     data: {
-      itemName: itemName.trim(),
-      category,
+      itemName: sanitizeString(itemName),
+      category: sanitizeString(category),
       quantity: parseFloat(quantity) || 0,
       unitType: unitType || 'pcs',
       minimumStockLevel: minimumStockLevel ? parseFloat(minimumStockLevel) : null,
       reorderAlert: Boolean(reorderAlert),
-      storageLocation: storageLocation || null,
-      supplierName: supplierName || null,
+      storageLocation: storageLocation ? sanitizeString(storageLocation) : null,
+      supplierName: supplierName ? sanitizeString(supplierName) : null,
       purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
       expiryDate: expiryDate ? new Date(expiryDate) : null,
-      usageArea: usageArea || null,
-      consumptionRate: consumptionRate || null,
+      usageArea: usageArea ? sanitizeString(usageArea) : null,
+      consumptionRate: consumptionRate ? sanitizeString(consumptionRate) : null,
       lastRestockedDate: lastRestockedDate ? new Date(lastRestockedDate) : null,
       assignedStaffId: assignedStaffId || null,
       costPerUnit: costPerUnit ? parseFloat(costPerUnit) : null,
-      notes: notes || null,
+      notes: notes ? sanitizeString(notes) : null,
       createdById: userId,
     },
     include: includeRelations,
@@ -118,7 +145,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     usageArea, consumptionRate, lastRestockedDate, assignedStaffId, costPerUnit, notes,
   } = req.body
 
-  if (!id) return res.status(400).json({ error: 'ID is required' })
+  if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' })
 
   const existing = await prisma.housekeepingInventory.findUnique({ where: { id } })
   if (!existing) return res.status(404).json({ error: 'Record not found' })
@@ -126,7 +153,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const record = await prisma.housekeepingInventory.update({
     where: { id },
     data: {
-      ...(itemName && { itemName: itemName.trim() }),
+      ...(itemName && { itemName: sanitizeString(itemName) }),
       ...(category && { category }),
       ...(quantity !== undefined && { quantity: parseFloat(quantity) || 0 }),
       ...(unitType && { unitType }),
@@ -151,7 +178,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
 
 async function handleDelete(req: NextApiRequest, res: NextApiResponse, user: any) {
   const { id } = req.body
-  if (!id) return res.status(400).json({ error: 'ID is required' })
+  if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' })
 
   const record = await prisma.housekeepingInventory.findUnique({ where: { id } })
   if (!record) return res.status(404).json({ error: 'Record not found' })

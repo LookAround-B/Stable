@@ -2,16 +2,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -53,10 +50,24 @@ async function handleUpdateSetting(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
+    // Validate key/value types and length to prevent storing arbitrary data
+    if (typeof key !== 'string' || key.length > 100 || !/^[a-zA-Z0-9_.\-]+$/.test(key)) {
+      return res.status(400).json({ error: 'Invalid key format (alphanumeric, dots, dashes, underscores only, max 100 chars)' })
+    }
+    if (typeof value !== 'string' || value.length > 2000) {
+      return res.status(400).json({ error: 'Value must be a string under 2000 characters' })
+    }
+    if (description && (typeof description !== 'string' || description.length > 500)) {
+      return res.status(400).json({ error: 'Description must be under 500 characters' })
+    }
+
+    const sanitizedValue = value.replace(/<[^>]*>/g, '').trim()
+    const sanitizedDesc = description ? description.replace(/<[^>]*>/g, '').trim() : undefined
+
     const setting = await prisma.systemSettings.upsert({
       where: { key },
-      update: { value, description },
-      create: { key, value, description },
+      update: { value: sanitizedValue, description: sanitizedDesc },
+      create: { key, value: sanitizedValue, description: sanitizedDesc },
     })
 
     return res.status(200).json(setting)

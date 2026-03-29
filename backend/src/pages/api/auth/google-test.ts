@@ -1,17 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { setCorsHeaders } from '@/lib/cors'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin as string;
   
-  console.log('[auth-test] Method:', req.method, 'Origin:', origin);
-  
-  // Set headers FIRST thing
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  // No COOP for now
+  setCorsHeaders(res, origin);
   
   if (req.method === 'OPTIONS') {
     console.log('[auth-test] Responding to OPTIONS preflight');

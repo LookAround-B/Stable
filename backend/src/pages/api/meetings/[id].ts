@@ -1,19 +1,16 @@
-// pages/api/meetings/[id].ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, isOneOf } from '@/lib/validate'
 const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -32,7 +29,7 @@ export default async function handler(
     const userId = decoded.id
     const { id } = req.query
 
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string' || !isValidId(id)) {
       return res.status(400).json({ error: 'Invalid meeting ID' })
     }
 
@@ -95,14 +92,27 @@ export default async function handler(
 
       const { title, description, meetingDate, meetingTime, location, status } = req.body
 
+      if (title && !isValidString(title, 1, 200)) {
+        return res.status(400).json({ error: 'Title must be 1-200 chars' })
+      }
+      if (description && !isValidString(description, 0, 2000)) {
+        return res.status(400).json({ error: 'Description must be max 2000 chars' })
+      }
+      if (location && !isValidString(location, 0, 200)) {
+        return res.status(400).json({ error: 'Location must be max 200 chars' })
+      }
+      if (status && !isOneOf(status, ['Scheduled', 'In Progress', 'Completed', 'Cancelled'] as const)) {
+        return res.status(400).json({ error: 'Invalid status' })
+      }
+
       const updatedMeeting = await prisma.meeting.update({
         where: { id },
         data: {
-          title,
-          description,
+          title: title ? sanitizeString(title) : undefined,
+          description: description !== undefined ? sanitizeString(description) : undefined,
           meetingDate: meetingDate ? new Date(meetingDate) : undefined,
-          meetingTime,
-          location,
+          meetingTime: meetingTime ? sanitizeString(meetingTime) : undefined,
+          location: location !== undefined ? sanitizeString(location) : undefined,
           status,
         },
         include: {

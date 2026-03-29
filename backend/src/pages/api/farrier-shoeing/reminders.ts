@@ -2,16 +2,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
+import { setCorsHeaders } from '@/lib/cors'
 
 const resend = new Resend('re_aMP7Lvtj_FJ4SJ4aS1jxTgK7K31tduQZx');
 const NOTIFICATION_EMAIL = 'saiakhil066@gmail.com';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -45,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
     console.error('Reminder API error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -145,7 +143,7 @@ async function handleSendReminder(_req: NextApiRequest, res: NextApiResponse) {
 
     if (error) {
       console.error('Resend error:', error);
-      return res.status(500).json({ sent: false, error: error.message || 'Email send failed' });
+      return res.status(500).json({ sent: false, error: 'Email send failed' });
     }
 
     // Store last sent timestamp

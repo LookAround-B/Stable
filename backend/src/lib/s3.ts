@@ -20,11 +20,18 @@ export const uploadImage = async (
   folderPath: string
 ): Promise<string> => {
   try {
-    // Extract file extension safely
-    const ext = filename.split('.').pop()?.toLowerCase() || 'bin'
+    // Sanitize folder path — strip leading/trailing slashes and reject path traversal
+    const sanitizedFolder = folderPath.replace(/^\/+|\/+$/g, '').replace(/\.\./g, '')
+    if (!sanitizedFolder || /[^a-zA-Z0-9_\-/]/.test(sanitizedFolder)) {
+      throw new Error('Invalid folder path')
+    }
+
+    // Extract file extension safely — strip path components from filename
+    const baseName = filename.split('/').pop()?.split('\\').pop() || 'file'
+    const ext = baseName.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin'
     // Generate safe filename without special characters
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
-    const key = `${folderPath}/${uniqueName}`
+    const key = `${sanitizedFolder}/${uniqueName}`
 
     // Upload to R2
     await r2.send(
@@ -66,10 +73,20 @@ export const deleteImage = async (imageUrl: string): Promise<void> => {
 /**
  * Accept a data-URI or plain base64 string, upload it to R2 and return the public CDN URL.
  * Returns the original string unchanged if R2 is not configured.
+ * Only allows image mimetypes (JPEG, PNG, GIF, WebP) unless extraMimes are specified.
  */
+const ALLOWED_BASE64_MIMES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
+])
+
 export const uploadBase64Image = async (
   base64: string,
-  folder: string
+  folder: string,
+  extraAllowedMimes: string[] = []
 ): Promise<string> => {
   if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID) {
     // R2 not configured – fall back to storing base64 as-is
@@ -77,7 +94,7 @@ export const uploadBase64Image = async (
   }
 
   // Strip the data-URI prefix if present (data:image/jpeg;base64,…)
-  const matches = base64.match(/^data:([a-zA-Z0-9+/]+\/[a-zA-Z0-9+/]+);base64,(.+)$/)
+  const matches = base64.match(/^data:([a-zA-Z0-9+/.-]+\/[a-zA-Z0-9+/.-]+);base64,(.+)$/)
   let mimeType = 'image/jpeg'
   let raw = base64
   if (matches) {
@@ -85,8 +102,20 @@ export const uploadBase64Image = async (
     raw = matches[2]
   }
 
+  // Validate mime type against allowlist
+  const allowSet = new Set([...ALLOWED_BASE64_MIMES, ...extraAllowedMimes])
+  if (!allowSet.has(mimeType.toLowerCase())) {
+    throw new Error(`Disallowed file type: ${mimeType}. Allowed: ${[...allowSet].join(', ')}`)
+  }
+
   const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg'
   const buffer = Buffer.from(raw, 'base64')
+
+  // Reject suspiciously large uploads (10 MB hard limit)
+  if (buffer.length > 10 * 1024 * 1024) {
+    throw new Error('File exceeds 10 MB limit')
+  }
+
   const url = await uploadImage(buffer, `photo.${ext}`, mimeType, folder)
   return url
 }

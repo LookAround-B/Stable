@@ -2,18 +2,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
 const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -95,14 +92,37 @@ export default async function handler(
         return res.status(400).json({ error: 'Title and meeting date are required' })
       }
 
+      // Validate inputs
+      if (typeof title !== 'string' || title.trim().length < 1 || title.length > 200) {
+        return res.status(400).json({ error: 'Title must be 1-200 characters' })
+      }
+      if (description && (typeof description !== 'string' || description.length > 2000)) {
+        return res.status(400).json({ error: 'Description must be under 2000 characters' })
+      }
+      if (location && (typeof location !== 'string' || location.length > 200)) {
+        return res.status(400).json({ error: 'Location must be under 200 characters' })
+      }
+      if (meetingTime && (typeof meetingTime !== 'string' || meetingTime.length > 50)) {
+        return res.status(400).json({ error: 'Invalid meeting time' })
+      }
+      const parsedDate = new Date(meetingDate)
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid meeting date' })
+      }
+      if (!Array.isArray(participantIds) || participantIds.length > 100) {
+        return res.status(400).json({ error: 'participantIds must be an array (max 100)' })
+      }
+
+      const sanitize = (s: string) => s.replace(/<[^>]*>/g, '').trim()
+
       // Create meeting with participants
       const meeting = await prisma.meeting.create({
         data: {
-          title,
-          description,
-          meetingDate: new Date(meetingDate),
-          meetingTime,
-          location,
+          title: sanitize(title),
+          description: description ? sanitize(description) : undefined,
+          meetingDate: parsedDate,
+          meetingTime: meetingTime ? sanitize(meetingTime) : undefined,
+          location: location ? sanitize(location) : undefined,
           createdById: userId,
           participants: {
             create: participantIds.map((empId: string) => ({

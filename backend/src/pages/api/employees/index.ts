@@ -1,20 +1,26 @@
 // pages/api/employees/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { uploadBase64Image } from '@/lib/s3'
+import {
+  sanitizeString,
+  isValidString,
+  isValidEmail,
+  isValidPhone,
+  safePositiveInt,
+  validateBase64Image,
+  validationError,
+} from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -55,21 +61,22 @@ async function handleGetEmployees(req: NextApiRequest, res: NextApiResponse) {
     const designationValue = Array.isArray(designation) ? designation[0] : designation
     const searchValue = Array.isArray(search) ? search[0] : search
     
-    const where: any = designationValue ? { designation: designationValue } : {}
+    const where: any = designationValue ? { designation: sanitizeString(designationValue) } : {}
     
-    // Add search filter if provided
+    // Add search filter if provided — sanitize search input
     if (searchValue && searchValue.trim().length > 0) {
+      const sanitizedSearch = sanitizeString(searchValue).slice(0, 100)
       where.OR = [
-        { fullName: { contains: searchValue, mode: 'insensitive' } },
-        { email: { contains: searchValue, mode: 'insensitive' } },
-        { designation: { contains: searchValue, mode: 'insensitive' } },
+        { fullName: { contains: sanitizedSearch, mode: 'insensitive' } },
+        { email: { contains: sanitizedSearch, mode: 'insensitive' } },
+        { designation: { contains: sanitizedSearch, mode: 'insensitive' } },
       ]
     }
 
     const employees = await prisma.employee.findMany({
       where,
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: safePositiveInt(skip, 0, 10000),
+      take: safePositiveInt(take, 1000, 1000),
       select: {
         id: true,
         fullName: true,
@@ -102,12 +109,20 @@ async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
       req.body
 
     if (!fullName || !email || !designation) {
-      return res.status(400).json({ error: 'Missing required fields' })
+      return validationError(res, 'Missing required fields: fullName, email, designation')
     }
+
+    // Strict type + format validation
+    if (!isValidString(fullName, 1, 200)) return validationError(res, 'Full name must be 1-200 characters')
+    if (!isValidEmail(email)) return validationError(res, 'Invalid email format')
+    if (!isValidString(designation, 1, 100)) return validationError(res, 'Invalid designation')
+    if (phoneNumber && !isValidPhone(phoneNumber)) return validationError(res, 'Invalid phone number format')
 
     // Upload profile image to R2 if provided as base64
     let imageUrl: string | null = null
     if (profileImage && typeof profileImage === 'string' && profileImage.length > 0) {
+      const imgResult = validateBase64Image(profileImage, 5 * 1024 * 1024)
+      if (!imgResult.valid) return validationError(res, imgResult.reason)
       imageUrl = await uploadBase64Image(profileImage, 'profiles/employees')
     }
 
@@ -126,9 +141,9 @@ async function handleCreateEmployee(req: NextApiRequest, res: NextApiResponse) {
 
     const employee = await prisma.employee.create({
       data: {
-        fullName,
-        email,
-        designation,
+        fullName: sanitizeString(fullName),
+        email: email.trim().toLowerCase(),
+        designation: sanitizeString(designation),
         password: defaultPassword,
         phoneNumber,
         colorCode,

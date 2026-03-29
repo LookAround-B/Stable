@@ -1,18 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import prisma from '@/lib/prisma'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
+import {
+  sanitizeString,
+  isValidString,
+  isValidId,
+  isOneOf,
+  safeDate,
+  validationError,
+} from '@/lib/validate'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Authenticate all requests with proper JWT verification
+  const token = getTokenFromRequest(req as any)
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization header' })
+  }
+  const decoded = verifyToken(token)
+  if (!decoded) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
   if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
@@ -24,16 +41,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const authHeader = req.headers.authorization
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-
     const { employeeId, startDate, endDate, shift } = req.query
 
     let whereClause: any = {}
 
     if (employeeId) {
+      if (!isValidId(employeeId)) return validationError(res, 'Invalid employeeId format')
       whereClause.employeeId = employeeId
     }
 
@@ -77,17 +90,29 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const authHeader = req.headers.authorization
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-
     const { employeeId, timeIn, timeOut, shift, notes } = req.body
 
     // Validate required fields
     if (!employeeId || !timeIn) {
-      return res.status(400).json({ error: 'employeeId and timeIn are required' })
+      return validationError(res, 'employeeId and timeIn are required')
     }
+
+    // Validate ID format
+    if (!isValidId(employeeId)) return validationError(res, 'Invalid employeeId format')
+
+    // Validate dates
+    const parsedTimeIn = safeDate(timeIn)
+    if (!parsedTimeIn) return validationError(res, 'Invalid timeIn date')
+    const parsedTimeOut = timeOut ? safeDate(timeOut) : null
+    if (timeOut && !parsedTimeOut) return validationError(res, 'Invalid timeOut date')
+
+    // Validate shift if provided
+    if (shift && !isOneOf(shift, ['Morning', 'Afternoon', 'Evening', 'Night'] as const)) {
+      return validationError(res, 'Invalid shift value')
+    }
+
+    // Validate notes length
+    if (notes && !isValidString(notes, 0, 1000)) return validationError(res, 'Notes must be under 1000 characters')
 
     // Check if employee exists
     const employee = await prisma.employee.findUnique({
@@ -102,10 +127,10 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     const attendanceLog = await prisma.attendanceLog.create({
       data: {
         employeeId,
-        timeIn: new Date(timeIn),
-        timeOut: timeOut ? new Date(timeOut) : null,
+        timeIn: parsedTimeIn,
+        timeOut: parsedTimeOut,
         shift: shift || null,
-        notes: notes || null,
+        notes: notes ? sanitizeString(notes) : null,
         date: new Date(),
       },
       include: {

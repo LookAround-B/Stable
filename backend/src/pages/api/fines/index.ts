@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
 
 // Increase body size limit to 10MB for base64 image uploads
 export const config = {
@@ -15,12 +16,8 @@ export const config = {
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor']
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -144,8 +141,22 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
       })
     }
 
-    if (reason.length > 500) {
-      return res.status(400).json({ error: 'Reason cannot exceed 500 characters' })
+    // Validate ID format
+    if (typeof issuedToId !== 'string' || issuedToId.trim().length < 10) {
+      return res.status(400).json({ error: 'Invalid issuedToId format' })
+    }
+
+    // Validate reason length and sanitize
+    if (typeof reason !== 'string' || reason.trim().length < 1 || reason.length > 500) {
+      return res.status(400).json({ error: 'Reason must be 1-500 characters' })
+    }
+
+    // Validate amount if provided
+    if (amount !== undefined && amount !== null) {
+      const parsedAmt = parseFloat(amount)
+      if (isNaN(parsedAmt) || parsedAmt < 0 || parsedAmt > 10000000) {
+        return res.status(400).json({ error: 'Amount must be a positive number under 10,000,000' })
+      }
     }
 
     // Check if employee exists
@@ -176,7 +187,15 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
       try {
         const [header, ...dataParts] = evidenceImage.split(',')
         const mimeType = header.match(/:(.*?);/)?.[1] || 'image/jpeg'
+        // Validate mime type for evidence images
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        if (!allowedMimes.includes(mimeType.toLowerCase())) {
+          return res.status(400).json({ error: `Disallowed image type: ${mimeType}` })
+        }
         const buffer = Buffer.from(dataParts.join(','), 'base64')
+        if (buffer.length > 5 * 1024 * 1024) {
+          return res.status(400).json({ error: 'Evidence image must be under 5 MB' })
+        }
         const timestamp = Date.now()
         const filename = `${timestamp}-fine.${mimeType.split('/')[1]}`
         imageUrl = await uploadImage(buffer, filename, mimeType, 'fines')
@@ -192,7 +211,7 @@ async function handleCreateFine(req: NextApiRequest, res: NextApiResponse) {
       data: {
         issuedById,
         issuedToId,
-        reason,
+        reason: reason.replace(/<[^>]*>/g, '').trim(),
         amount: amount ? parseFloat(amount) : null,
         evidenceImage: imageUrl,
         status: 'Open',

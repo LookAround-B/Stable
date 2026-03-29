@@ -4,6 +4,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId } from '@/lib/validate'
 
 const ADMIN_ROLES = ['Super Admin', 'Director', 'School Administrator']
 
@@ -12,11 +14,8 @@ export default async function handler(
   res: NextApiResponse
 ) {
   // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none')
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
@@ -53,8 +52,8 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { employeeId } = req.query
 
-    if (!employeeId || typeof employeeId !== 'string') {
-      return res.status(400).json({ error: 'employeeId query parameter is required' })
+    if (!employeeId || typeof employeeId !== 'string' || !isValidId(employeeId)) {
+      return res.status(400).json({ error: 'Valid employeeId query parameter is required' })
     }
 
     const employee = await prisma.employee.findUnique({
@@ -106,12 +105,22 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { employeeId, overrides } = req.body
 
-    if (!employeeId || typeof employeeId !== 'string') {
-      return res.status(400).json({ error: 'employeeId is required' })
+    if (!employeeId || typeof employeeId !== 'string' || !isValidId(employeeId)) {
+      return res.status(400).json({ error: 'Valid employeeId is required' })
     }
 
-    if (!overrides || typeof overrides !== 'object') {
+    if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) {
       return res.status(400).json({ error: 'overrides object is required' })
+    }
+
+    const entries = Object.entries(overrides)
+    if (entries.length > 200) {
+      return res.status(400).json({ error: 'Too many overrides (max 200)' })
+    }
+    for (const [key] of entries) {
+      if (typeof key !== 'string' || key.length > 100 || !/^[a-zA-Z0-9_.:-]+$/.test(key)) {
+        return res.status(400).json({ error: `Invalid permission key: ${key.slice(0, 50)}` })
+      }
     }
 
     // Verify employee exists

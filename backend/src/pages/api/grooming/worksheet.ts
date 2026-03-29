@@ -1,6 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { setCorsHeaders } from '../../../lib/cors';
+import { getTokenFromRequest, verifyToken } from '@/lib/auth';
+import {
+  sanitizeString,
+  isValidId,
+  isValidString,
+  safeDate,
+  safePositiveInt,
+  validationError,
+} from '@/lib/validate';
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,6 +19,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  // Authenticate all requests
+  const token = getTokenFromRequest(req as any);
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization header' });
+  }
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
   try {
@@ -74,11 +93,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { groomId, date, entries, remarks } = req.body;
 
       if (!date || !Array.isArray(entries)) {
-        return res.status(400).json({ message: 'Missing required fields: date, entries' });
+        return validationError(res, 'Missing required fields: date, entries');
       }
 
-      const worksheetDate = new Date(date);
+      // Validate groomId if provided
+      if (groomId && !isValidId(groomId)) {
+        return validationError(res, 'Invalid groomId format');
+      }
+
+      // Validate date
+      const worksheetDate = safeDate(date);
+      if (!worksheetDate) {
+        return validationError(res, 'Invalid date format');
+      }
       worksheetDate.setHours(0, 0, 0, 0);
+
+      // Validate entries array (max 100 entries)
+      if (entries.length > 100) {
+        return validationError(res, 'Too many entries (max 100)');
+      }
+
+      // Validate remarks
+      if (remarks && !isValidString(remarks, 0, 1000)) {
+        return validationError(res, 'Remarks must be under 1000 characters');
+      }
+
+      // Validate each entry
+      for (const entry of entries) {
+        if (entry.horseId && !isValidId(entry.horseId)) {
+          return validationError(res, 'Invalid horseId in entry');
+        }
+        if (typeof entry.amHours === 'number' && (entry.amHours < 0 || entry.amHours > 24)) {
+          return validationError(res, 'amHours must be between 0 and 24');
+        }
+        if (typeof entry.pmHours === 'number' && (entry.pmHours < 0 || entry.pmHours > 24)) {
+          return validationError(res, 'pmHours must be between 0 and 24');
+        }
+      }
 
       // Calculate totals
       let totalAM = 0;
@@ -112,13 +163,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           entries: {
             create: entries.map((entry: any) => ({
               horseId: entry.horseId || null,
-              amHours: entry.amHours || 0,
-              pmHours: entry.pmHours || 0,
-              wholeDayHours: entry.wholeDayHours || 0,
-              woodchipsUsed: entry.woodchipsUsed || 0,
-              bichaliUsed: entry.bichaliUsed || 0,
-              booSaUsed: entry.booSaUsed || 0,
-              remarks: entry.remarks,
+              amHours: safePositiveInt(entry.amHours, 0, 24),
+              pmHours: safePositiveInt(entry.pmHours, 0, 24),
+              wholeDayHours: safePositiveInt(entry.wholeDayHours, 0, 24),
+              woodchipsUsed: safePositiveInt(entry.woodchipsUsed, 0, 10000),
+              bichaliUsed: safePositiveInt(entry.bichaliUsed, 0, 10000),
+              booSaUsed: safePositiveInt(entry.booSaUsed, 0, 10000),
+              remarks: entry.remarks ? sanitizeString(entry.remarks).slice(0, 500) : undefined,
             })),
           },
         },
@@ -153,7 +204,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Groom Worksheet API error:', error);
-    return res.status(500).json({ message: 'Internal server error', error: String(error) });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 

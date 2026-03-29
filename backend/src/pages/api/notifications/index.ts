@@ -2,16 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { safePositiveInt } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -43,8 +41,8 @@ async function handleGetNotifications(
 
     const notifications = await prisma.notification.findMany({
       where: { employeeId },
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: safePositiveInt(skip, 0),
+      take: safePositiveInt(take, 50, 200),
       orderBy: { createdAt: 'desc' },
     })
 
@@ -63,10 +61,27 @@ async function handleGetNotifications(
 async function handleMarkAsRead(
   req: NextApiRequest,
   res: NextApiResponse,
-  _employeeId: string
+  employeeId: string
 ) {
   try {
     const { notificationId } = req.body
+
+    if (!notificationId || typeof notificationId !== 'string') {
+      return res.status(400).json({ error: 'notificationId is required' })
+    }
+
+    // Verify the notification belongs to the authenticated user
+    const existing = await prisma.notification.findUnique({
+      where: { id: notificationId },
+    })
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Notification not found' })
+    }
+
+    if (existing.employeeId !== employeeId) {
+      return res.status(403).json({ error: 'Cannot modify another user\'s notification' })
+    }
 
     const notification = await prisma.notification.update({
       where: { id: notificationId },

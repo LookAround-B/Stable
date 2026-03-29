@@ -1,17 +1,14 @@
-// pages/api/tasks/[id].ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, isOneOf } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -80,19 +77,25 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     const decoded = verifyToken(token)   
     const userId = decoded?.id
 
-    if (!id) {
-      return res.status(400).json({ error: 'Task ID is required' })
+    if (!id || !isValidId(id as string)) {
+      return res.status(400).json({ error: 'Valid Task ID is required' })
     }
 
     // Validate status
-    const validStatuses = ['Pending', 'In Progress', 'Completed', 'Pending Review', 'Approved', 'Rejected', 'Cancelled']
-    if (status && !validStatuses.includes(status)) {
+    const validStatuses = ['Pending', 'In Progress', 'Completed', 'Pending Review', 'Approved', 'Rejected', 'Cancelled'] as const
+    if (status && !isOneOf(status, validStatuses)) {
       return res.status(400).json({ error: 'Invalid status' })
+    }
+    if (completionNotes && !isValidString(completionNotes, 0, 2000)) {
+      return res.status(400).json({ error: 'Completion notes must be max 2000 chars' })
+    }
+    if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 2000) {
+      return res.status(400).json({ error: 'Photo URL too long' })
     }
 
     const updateData: any = {}
     if (status) updateData.status = status
-    if (completionNotes) updateData.completionNotes = completionNotes
+    if (completionNotes) updateData.completionNotes = sanitizeString(completionNotes)
     if (photoUrl) updateData.proofImage = photoUrl
     if (status === 'Completed' || status === 'Pending Review') {
       updateData.completedTime = new Date()

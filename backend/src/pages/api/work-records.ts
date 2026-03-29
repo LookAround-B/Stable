@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '../../lib/auth'
 import prisma from '../../lib/prisma'
 import { setCorsHeaders } from '../../lib/cors'
+import { sanitizeString, isValidString, isValidId, safeDate } from '../../lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
@@ -83,7 +84,7 @@ async function handleGetWorkRecords(req: NextApiRequest, res: NextApiResponse) {
     })
   } catch (error: any) {
     console.error('Error fetching work records:', error)
-    return res.status(500).json({ message: 'Failed to fetch work records', error: error.message })
+    return res.status(500).json({ message: 'Failed to fetch work records' })
   }
 }
 
@@ -91,10 +92,32 @@ async function handleCreateWorkRecord(req: NextApiRequest, res: NextApiResponse)
   try {
     const { staffId, date, category, entries, remarks } = req.body
 
-    if (!staffId || !date || !category || !Array.isArray(entries)) {
-      return res.status(400).json({
-        message: 'Missing required fields: staffId, date, category, entries',
-      })
+    if (!isValidId(staffId)) {
+      return res.status(400).json({ message: 'Valid staffId is required' })
+    }
+    if (!safeDate(date)) {
+      return res.status(400).json({ message: 'Valid date is required' })
+    }
+    if (!isValidString(category, 1, 100)) {
+      return res.status(400).json({ message: 'Category is required (max 100 chars)' })
+    }
+    if (!Array.isArray(entries) || entries.length === 0 || entries.length > 50) {
+      return res.status(400).json({ message: 'Entries must be an array (1-50 items)' })
+    }
+    if (remarks && !isValidString(remarks, 0, 1000)) {
+      return res.status(400).json({ message: 'Remarks must be max 1000 chars' })
+    }
+    // Validate each entry
+    for (const entry of entries) {
+      if (entry.taskDescription && !isValidString(entry.taskDescription, 0, 500)) {
+        return res.status(400).json({ message: 'Task description must be max 500 chars' })
+      }
+      if (entry.amHours !== undefined && (typeof entry.amHours !== 'number' || entry.amHours < 0 || entry.amHours > 24)) {
+        return res.status(400).json({ message: 'AM hours must be 0-24' })
+      }
+      if (entry.pmHours !== undefined && (typeof entry.pmHours !== 'number' || entry.pmHours < 0 || entry.pmHours > 24)) {
+        return res.status(400).json({ message: 'PM hours must be 0-24' })
+      }
     }
 
     const recordDate = new Date(date)
@@ -115,18 +138,18 @@ async function handleCreateWorkRecord(req: NextApiRequest, res: NextApiResponse)
       data: {
         staffId,
         date: recordDate,
-        category,
+        category: sanitizeString(category),
         totalAM,
         totalPM,
         wholeDayHours: totalWholeDayHours,
-        remarks,
+        remarks: remarks ? sanitizeString(remarks) : null,
         entries: {
           create: entries.map((entry: any) => ({
-            taskDescription: entry.taskDescription,
+            taskDescription: entry.taskDescription ? sanitizeString(entry.taskDescription) : '',
             amHours: entry.amHours || 0,
             pmHours: entry.pmHours || 0,
             wholeDayHours: entry.wholeDayHours || 0,
-            remarks: entry.remarks,
+            remarks: entry.remarks ? sanitizeString(entry.remarks) : null,
           })),
         },
       },
@@ -148,6 +171,6 @@ async function handleCreateWorkRecord(req: NextApiRequest, res: NextApiResponse)
     })
   } catch (error: any) {
     console.error('Error creating work record:', error)
-    return res.status(500).json({ message: 'Failed to create work record', error: error.message })
+    return res.status(500).json({ message: 'Failed to create work record' })
   }
 }

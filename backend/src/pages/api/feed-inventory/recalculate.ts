@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
 
 const AUTHORIZED_ROLES = [
   'Super Admin',
@@ -11,11 +12,8 @@ const AUTHORIZED_ROLES = [
 ];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -45,6 +43,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const monthNum = parseInt(month);
     const yearNum = parseInt(year);
+
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      return res.status(400).json({ error: 'month must be between 1 and 12' });
+    }
+    if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2100) {
+      return res.status(400).json({ error: 'year must be between 2000 and 2100' });
+    }
 
     const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1, 0, 0, 0));
     const endDate = new Date(Date.UTC(yearNum, monthNum, 1, 0, 0, 0));

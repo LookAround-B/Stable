@@ -1,17 +1,28 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import prisma from '@/lib/prisma'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId, isOneOf, validationError } from '@/lib/validate'
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Authenticate all requests
+  const token = getTokenFromRequest(req as any)
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization header' })
+  }
+  const decoded = verifyToken(token)
+  if (!decoded) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
   if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
@@ -30,15 +41,19 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     let whereClause: any = {}
 
     if (horseId) {
+      if (!isValidId(horseId)) return validationError(res, 'Invalid horseId format')
       whereClause.horseId = horseId
     }
 
     if (staffId) {
+      if (!isValidId(staffId)) return validationError(res, 'Invalid staffId format')
       whereClause.staffId = staffId
     }
 
     if (role) {
-      whereClause.role = role // 'Groom', 'Rider', 'Instructor', 'Jamedar', 'Farrier'
+      const validRoles = ['Groom', 'Rider', 'Instructor', 'Jamedar', 'Farrier'] as const
+      if (!isOneOf(role, validRoles)) return validationError(res, `role must be one of: ${validRoles.join(', ')}`)
+      whereClause.role = role
     }
 
     if (isActive !== undefined) {
@@ -82,17 +97,17 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     // Validate required fields
     if (!horseId || !staffId || !role) {
-      return res.status(400).json({
-        error: 'horseId, staffId, and role are required',
-      })
+      return validationError(res, 'horseId, staffId, and role are required')
     }
 
+    // Validate ID formats
+    if (!isValidId(horseId)) return validationError(res, 'Invalid horseId format')
+    if (!isValidId(staffId)) return validationError(res, 'Invalid staffId format')
+
     // Validate role
-    const validRoles = ['Groom', 'Rider', 'Instructor', 'Jamedar', 'Farrier']
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({
-        error: `role must be one of: ${validRoles.join(', ')}`,
-      })
+    const validRoles = ['Groom', 'Rider', 'Instructor', 'Jamedar', 'Farrier'] as const
+    if (!isOneOf(role, validRoles)) {
+      return validationError(res, `role must be one of: ${validRoles.join(', ')}`)
     }
 
     // Check if horse exists

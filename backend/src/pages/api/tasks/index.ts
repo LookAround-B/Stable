@@ -2,17 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -82,8 +79,8 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
 
     const tasks = await prisma.task.findMany({
       where,
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: Math.max(0, parseInt(skip as string) || 0),
+      take: Math.min(100, Math.max(1, parseInt(take as string) || 10)),
       include: { 
         horse: true, 
         assignedEmployee: true, 
@@ -152,20 +149,45 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
     } = req.body
 
     if (!name || !type || !assignedEmployeeId || !scheduledTime) {
-      return res.status(400).json({ error: 'Missing required fields' })
+      return res.status(400).json({ error: 'Missing required fields: name, type, assignedEmployeeId, scheduledTime' })
     }
+
+    // Validate string fields
+    if (typeof name !== 'string' || name.trim().length < 1 || name.length > 200) {
+      return res.status(400).json({ error: 'Task name must be 1-200 characters' })
+    }
+    if (typeof type !== 'string' || type.trim().length < 1 || type.length > 100) {
+      return res.status(400).json({ error: 'Task type must be 1-100 characters' })
+    }
+    if (description && (typeof description !== 'string' || description.length > 2000)) {
+      return res.status(400).json({ error: 'Description must be under 2000 characters' })
+    }
+
+    // Validate priority enum
+    const validPriorities = ['Low', 'Medium', 'High', 'Urgent']
+    if (priority && !validPriorities.includes(priority)) {
+      return res.status(400).json({ error: `Priority must be one of: ${validPriorities.join(', ')}` })
+    }
+
+    // Validate date
+    const parsedScheduled = new Date(scheduledTime)
+    if (isNaN(parsedScheduled.getTime())) {
+      return res.status(400).json({ error: 'Invalid scheduledTime date' })
+    }
+
+    const sanitize = (s: string) => s.replace(/<[^>]*>/g, '').trim()
 
     const task = await prisma.task.create({
       data: {
-        name,
-        type,
+        name: sanitize(name),
+        type: sanitize(type),
         horseId: horseId && horseId.trim() ? horseId : null, // Convert empty string to null
         assignedEmployeeId,
         createdById: userId,
-        scheduledTime: new Date(scheduledTime),
+        scheduledTime: parsedScheduled,
         priority: priority || 'Medium',
-        requiredProof: requiredProof || false,
-        description,
+        requiredProof: requiredProof === true || requiredProof === 'true',
+        description: description ? sanitize(description) : undefined,
         status: 'Pending',
       },
       include: {

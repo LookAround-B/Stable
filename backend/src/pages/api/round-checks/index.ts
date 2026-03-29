@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { safeDate } from '@/lib/validate'
 
 async function handleGetRoundCheck(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -89,15 +91,15 @@ async function handleUpsertRoundCheck(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: 'Only Jamedars can update their round checks' })
     }
 
-    if (!date) {
-      return res.status(400).json({ error: 'Date is required' })
+    if (!date || !safeDate(date as string)) {
+      return res.status(400).json({ error: 'Valid date is required' })
     }
 
     const checkDate = new Date(date)
     checkDate.setHours(0, 0, 0, 0)
 
     // Check if any round was selected
-    if (!morningCompleted && !afternoonCompleted && !eveningCompleted) {
+    if (morningCompleted !== true && afternoonCompleted !== true && eveningCompleted !== true) {
       return res.status(400).json({ error: 'At least one round must be marked as completed' })
     }
 
@@ -137,12 +139,8 @@ async function handleUpsertRoundCheck(req: NextApiRequest, res: NextApiResponse)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

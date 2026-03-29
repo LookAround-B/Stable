@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
 
 const JAMEDAR_ROLES = ['Jamedar'];
 
@@ -13,12 +15,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -65,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error: any) {
     console.error('Medicine logs API error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -141,10 +139,30 @@ async function handlePost(
   const { jamiedarId, horseId, medicineName, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
 
   // Validate required fields
-  if (!jamiedarId || !horseId || !medicineName || !quantity || !timeAdministered) {
-    return res.status(400).json({
-      error: 'jamiedarId, horseId, medicineName, quantity, and timeAdministered are required',
-    });
+  if (!isValidId(jamiedarId)) {
+    return res.status(400).json({ error: 'Valid jamiedarId is required' });
+  }
+  if (!isValidId(horseId)) {
+    return res.status(400).json({ error: 'Valid horseId is required' });
+  }
+  if (!isValidString(medicineName, 1, 200)) {
+    return res.status(400).json({ error: 'Medicine name is required (max 200 chars)' });
+  }
+  const qty = parseFloat(quantity);
+  if (isNaN(qty) || qty <= 0 || qty > 100000) {
+    return res.status(400).json({ error: 'Quantity must be a positive number (max 100000)' });
+  }
+  if (!safeDate(timeAdministered)) {
+    return res.status(400).json({ error: 'Valid timeAdministered date is required' });
+  }
+  if (unit && !isValidString(unit, 1, 20)) {
+    return res.status(400).json({ error: 'Unit must be max 20 chars' });
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+  }
+  if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 2000) {
+    return res.status(400).json({ error: 'Photo URL too long' });
   }
 
   // Only Jamedar can create medicine logs
@@ -176,11 +194,11 @@ async function handlePost(
       data: {
         jamiedarId,
         horseId,
-        medicineName,
-        quantity: parseFloat(quantity),
+        medicineName: sanitizeString(medicineName),
+        quantity: qty,
         unit: unit || 'ml',
         timeAdministered: new Date(timeAdministered),
-        notes: notes || null,
+        notes: notes ? sanitizeString(notes) : null,
         photoUrl: photoUrl || null,
         approvalStatus: 'pending',
       },
@@ -216,8 +234,14 @@ async function handlePut(
 ) {
   const { id, medicineName, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'id is required' });
+  if (!isValidId(id)) {
+    return res.status(400).json({ error: 'Valid id is required' });
+  }
+  if (medicineName && !isValidString(medicineName, 1, 200)) {
+    return res.status(400).json({ error: 'Medicine name must be max 200 chars' });
+  }
+  if (notes !== undefined && notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
   }
 
   // Only Jamedar can update logs
@@ -244,11 +268,11 @@ async function handlePut(
     const updatedLog = await prisma.medicineLog.update({
       where: { id },
       data: {
-        medicineName: medicineName || log.medicineName,
+        medicineName: medicineName ? sanitizeString(medicineName) : log.medicineName,
         quantity: quantity !== undefined ? parseFloat(quantity) : log.quantity,
         unit: unit || log.unit,
         timeAdministered: timeAdministered ? new Date(timeAdministered) : log.timeAdministered,
-        notes: notes !== undefined ? notes : log.notes,
+        notes: notes !== undefined ? (notes ? sanitizeString(notes) : null) : log.notes,
         photoUrl: photoUrl !== undefined ? photoUrl : log.photoUrl,
       },
       include: {

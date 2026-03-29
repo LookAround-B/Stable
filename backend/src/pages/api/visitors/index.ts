@@ -1,15 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { setCorsHeaders } from '@/lib/cors'
 const prisma = new PrismaClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -22,7 +19,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let decoded: any;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-only-insecure-secret');
   } catch (err) {
     return res.status(401).json({ error: 'Unauthorized - Invalid token' });
   }
@@ -74,11 +71,24 @@ async function handleCreateVisitor(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Name and purpose are required' });
     }
 
+    // Validate and sanitize inputs
+    if (typeof name !== 'string' || name.trim().length < 1 || name.trim().length > 200) {
+      return res.status(400).json({ error: 'Name must be 1-200 characters' });
+    }
+    if (typeof purpose !== 'string' || purpose.trim().length < 1 || purpose.trim().length > 500) {
+      return res.status(400).json({ error: 'Purpose must be 1-500 characters' });
+    }
+    if (contactNumber && (typeof contactNumber !== 'string' || !/^\+?[\d\s\-()]{6,20}$/.test(contactNumber.trim()))) {
+      return res.status(400).json({ error: 'Invalid contact number format' });
+    }
+
+    const sanitize = (s: string) => s.replace(/<[^>]*>/g, '').trim();
+
     const visitor = await prisma.visitor.create({
       data: {
-        name,
-        purpose,
-        contactNumber: contactNumber || null
+        name: sanitize(name),
+        purpose: sanitize(purpose),
+        contactNumber: contactNumber ? contactNumber.trim() : null
       }
     });
 

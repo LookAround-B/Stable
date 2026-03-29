@@ -1,18 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import prisma from '@/lib/prisma'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { setCorsHeaders } from '@/lib/cors'
+import {
+  sanitizeString,
+  isValidString,
+  isValidId,
+  isOneOf,
+  safeDate,
+  validationError,
+} from '@/lib/validate'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // Authenticate all requests
+  const token = getTokenFromRequest(req as any)
+  if (!token) {
+    return res.status(401).json({ error: 'No authorization header' })
+  }
+  const decoded = verifyToken(token)
+  if (!decoded) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
   if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
@@ -29,11 +46,15 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     let whereClause: any = {}
 
     if (guardId) {
+      if (!isValidId(guardId)) return validationError(res, 'Invalid guardId format')
       whereClause.guardId = guardId
     }
 
     if (personType) {
-      whereClause.personType = personType // 'Staff' or 'Visitor'
+      if (!isOneOf(personType, ['Staff', 'Visitor'] as const)) {
+        return validationError(res, 'personType must be Staff or Visitor')
+      }
+      whereClause.personType = personType
     }
 
     if (startDate || endDate) {
@@ -75,15 +96,28 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     // Validate required fields
     if (!guardId || !personName || !personType || !entryTime) {
-      return res.status(400).json({ 
-        error: 'guardId, personName, personType, and entryTime are required' 
-      })
+      return validationError(res, 'guardId, personName, personType, and entryTime are required')
     }
 
+    // Validate ID format
+    if (!isValidId(guardId)) return validationError(res, 'Invalid guardId format')
+
+    // Validate string lengths
+    if (!isValidString(personName, 1, 200)) return validationError(res, 'personName must be 1-200 characters')
+
     // Validate personType
-    if (!['Staff', 'Visitor'].includes(personType)) {
-      return res.status(400).json({ error: 'personType must be Staff or Visitor' })
+    if (!isOneOf(personType, ['Staff', 'Visitor'] as const)) {
+      return validationError(res, 'personType must be Staff or Visitor')
     }
+
+    // Validate dates
+    const parsedEntry = safeDate(entryTime)
+    if (!parsedEntry) return validationError(res, 'Invalid entryTime date')
+    const parsedExit = exitTime ? safeDate(exitTime) : null
+    if (exitTime && !parsedExit) return validationError(res, 'Invalid exitTime date')
+
+    // Validate notes length
+    if (notes && !isValidString(notes, 0, 1000)) return validationError(res, 'Notes must be under 1000 characters')
 
     // Check if guard exists
     const guard = await prisma.employee.findUnique({
@@ -98,11 +132,11 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     const log = await prisma.gateAttendanceLog.create({
       data: {
         guardId,
-        personName,
+        personName: sanitizeString(personName),
         personType,
-        entryTime: new Date(entryTime),
-        exitTime: exitTime ? new Date(exitTime) : null,
-        notes: notes || null,
+        entryTime: parsedEntry,
+        exitTime: parsedExit,
+        notes: notes ? sanitizeString(notes) : null,
       },
       include: {
         guard: {

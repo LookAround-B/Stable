@@ -1,16 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, isOneOf, safeDate } from '@/lib/validate'
 
 const prisma = new PrismaClient();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -29,7 +27,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   let decoded: any;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-only-insecure-secret');
   } catch (err) {
     return res.status(401).json({ error: 'Unauthorized - Invalid token' });
   }
@@ -47,14 +45,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       status = 'WOFF';
     }
 
-    if (!employeeId || !date || !status) {
-      return res.status(400).json({ error: 'Employee ID, date, and status are required' });
+    if (!isValidId(employeeId)) {
+      return res.status(400).json({ error: 'Valid employeeId is required' });
+    }
+    if (!safeDate(date)) {
+      return res.status(400).json({ error: 'Valid date is required' });
     }
 
     // Validate status
-    const validStatuses = ['Present', 'Absent', 'Leave', 'WOFF', 'Half Day'];
-    if (!validStatuses.includes(status)) {
+    const validStatuses = ['Present', 'Absent', 'Leave', 'WOFF', 'Half Day'] as const;
+    if (!isOneOf(status, validStatuses)) {
       return res.status(400).json({ error: 'Invalid attendance status' });
+    }
+    if (remarks && !isValidString(remarks, 0, 500)) {
+      return res.status(400).json({ error: 'Remarks must be max 500 chars' });
     }
 
     // Verify that the employee exists and supervisor can mark their attendance
@@ -120,7 +124,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         where: { id: existingRecord.id },
         data: {
           status,
-          remarks,
+          remarks: remarks ? sanitizeString(remarks) : null,
           markedAt: now, // Record when attendance was marked
           updatedAt: now
         },
@@ -141,7 +145,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           employeeId,
           date: attendanceDate,
           status,
-          remarks,
+          remarks: remarks ? sanitizeString(remarks) : null,
           markedAt: now // Record when attendance was marked
         },
         include: {

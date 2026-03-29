@@ -8,6 +8,16 @@ import * as XLSX from 'xlsx';
 import usePermissions from '../hooks/usePermissions';
 import { Download, FileText, Printer, SlidersHorizontal, TrendingUp } from 'lucide-react';
 
+const esc = (str) => {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
   const p = usePermissions();
@@ -153,12 +163,12 @@ const InvoiceGenerationPage = () => {
       .map(
         (r) => `
         <tr>
-          <td>${new Date(r.date).toLocaleDateString()}</td>
-          <td>${r.horse.name}</td>
-          <td>${r.rider.fullName}</td>
-          <td>${r.workType}</td>
-          <td>${r.duration}</td>
-          <td>${r.notes || '-'}</td>
+          <td>${esc(new Date(r.date).toLocaleDateString())}</td>
+          <td>${esc(r.horse.name)}</td>
+          <td>${esc(r.rider.fullName)}</td>
+          <td>${esc(r.workType)}</td>
+          <td>${esc(r.duration)}</td>
+          <td>${esc(r.notes || '-')}</td>
         </tr>
       `
       )
@@ -168,9 +178,9 @@ const InvoiceGenerationPage = () => {
       .map(
         ([type, data]) => `
         <tr>
-          <td>${type}</td>
-          <td>${data.count}</td>
-          <td>${data.duration} min</td>
+          <td>${esc(type)}</td>
+          <td>${esc(data.count)}</td>
+          <td>${esc(data.duration)} min</td>
           <td>${Math.round((data.duration / 60) * 100) / 100} hrs</td>
         </tr>
       `
@@ -202,10 +212,10 @@ const InvoiceGenerationPage = () => {
         <h1>EIRS Invoice</h1>
         
         <div class="header-info">
-          <p><strong>Instructor:</strong> ${invoiceData.instructor.fullName}</p>
-          <p><strong>Invoice ID:</strong> ${invoiceData.invoiceId}</p>
-          <p><strong>Period:</strong> ${new Date(invoiceData.periodStart).toLocaleDateString()} to ${new Date(invoiceData.periodEnd).toLocaleDateString()}</p>
-          <p><strong>Generated:</strong> ${new Date(invoiceData.generatedDate).toLocaleString()}</p>
+          <p><strong>Instructor:</strong> ${esc(invoiceData.instructor.fullName)}</p>
+          <p><strong>Invoice ID:</strong> ${esc(invoiceData.invoiceId)}</p>
+          <p><strong>Period:</strong> ${esc(new Date(invoiceData.periodStart).toLocaleDateString())} to ${esc(new Date(invoiceData.periodEnd).toLocaleDateString())}</p>
+          <p><strong>Generated:</strong> ${esc(new Date(invoiceData.generatedDate).toLocaleString())}</p>
         </div>
 
         <h2>Work Sessions</h2>
@@ -242,13 +252,13 @@ const InvoiceGenerationPage = () => {
 
         <div class="summary">
           <div class="summary-stat">
-            <strong>Total Sessions:</strong> ${invoiceData.summary.totalSessions}
+            <strong>Total Sessions:</strong> ${esc(invoiceData.summary.totalSessions)}
           </div>
           <div class="summary-stat">
-            <strong>Total Duration:</strong> ${invoiceData.summary.totalDuration} minutes
+            <strong>Total Duration:</strong> ${esc(invoiceData.summary.totalDuration)} minutes
           </div>
           <div class="summary-stat">
-            <strong>Total Hours:</strong> ${invoiceData.summary.totalHours}
+            <strong>Total Hours:</strong> ${esc(invoiceData.summary.totalHours)}
           </div>
         </div>
 

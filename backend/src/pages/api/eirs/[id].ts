@@ -1,14 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, isOneOf, safeDate } from '@/lib/validate'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers FIRST
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -46,7 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const { id } = req.query;
 
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string' || !isValidId(id)) {
       return res.status(400).json({ error: 'Invalid record ID' });
     }
 
@@ -67,6 +65,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'PUT') {
       // Update record
       const { horseId, riderId, workType, duration, date, notes } = req.body;
+
+      // Validate fields
+      if (horseId && !isValidId(horseId)) {
+        return res.status(400).json({ error: 'Invalid horseId' });
+      }
+      if (riderId && !isValidId(riderId)) {
+        return res.status(400).json({ error: 'Invalid riderId' });
+      }
+      const WORK_TYPES = ['Flat Work', 'Jumping', 'Lunging', 'Hacking', 'Dressage', 'Cross Country', 'Pole Work', 'Walk', 'Other'] as const;
+      if (workType && !isOneOf(workType, WORK_TYPES)) {
+        return res.status(400).json({ error: `Invalid workType` });
+      }
+      if (duration) {
+        const dur = parseInt(duration);
+        if (isNaN(dur) || dur < 1 || dur > 480) {
+          return res.status(400).json({ error: 'Duration must be 1-480 minutes' });
+        }
+      }
+      if (date && !safeDate(date)) {
+        return res.status(400).json({ error: 'Invalid date' });
+      }
+      if (notes !== undefined && notes && !isValidString(notes, 0, 1000)) {
+        return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+      }
 
       // Validate horse if provided
       if (horseId) {
@@ -100,7 +122,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         console.log(`[EIRS PUT] Updating date: ${date} to UTC: ${recordDate.toISOString()}`);
         updateData.date = recordDate;
       }
-      if (notes !== undefined) updateData.notes = notes;
+      if (notes !== undefined) updateData.notes = notes ? sanitizeString(notes) : null;
 
       const updatedRecord = await prisma.instructorDailyWorkRecord.update({
         where: { id },
@@ -151,7 +173,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (error.code === 'P2002') {
       return res.status(400).json({ error: 'A record already exists for this instructor, horse, rider, and date combination' });
     }
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 

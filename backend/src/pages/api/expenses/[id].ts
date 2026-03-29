@@ -4,17 +4,17 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { uploadImage } from '@/lib/s3'
 import Busboy from 'busboy'
+import { setCorsHeaders } from '@/lib/cors'
+import { isValidId, isValidString, sanitizeString, isAllowedMime } from '@/lib/validate'
+
+const ALLOWED_UPLOAD_MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -32,6 +32,10 @@ export default async function handler(
   }
 
   const { id } = req.query
+
+  if (!id || typeof id !== 'string' || !isValidId(id)) {
+    return res.status(400).json({ error: 'Invalid expense ID' })
+  }
 
   switch (req.method) {
     case 'GET':
@@ -101,6 +105,11 @@ async function handleUpdateExpense(req: NextApiRequest, res: NextApiResponse, _d
       })
 
       bb.on('file', (_fieldname: string, file: any, info: any) => {
+        // Validate mime type
+        if (!isAllowedMime(info.mimeType, ALLOWED_UPLOAD_MIMES)) {
+          file.resume() // drain the stream
+          return
+        }
         const filePromise = new Promise((resolve, reject) => {
           try {
             const chunks: Buffer[] = []
@@ -139,12 +148,28 @@ async function handleUpdateExpense(req: NextApiRequest, res: NextApiResponse, _d
     const { type, amount, description, date, horseId, employeeId, existingAttachments } = formData
 
     const updateData: any = {}
-    if (type) updateData.type = type
-    if (amount) updateData.amount = parseFloat(amount)
-    if (description) updateData.description = description
+    if (type) {
+      if (!isValidString(type, 1, 100)) return res.status(400).json({ error: 'Type must be max 100 chars' })
+      updateData.type = sanitizeString(type)
+    }
+    if (amount) {
+      const parsed = parseFloat(amount)
+      if (isNaN(parsed) || parsed < 0 || parsed > 100000000) return res.status(400).json({ error: 'Invalid amount' })
+      updateData.amount = parsed
+    }
+    if (description) {
+      if (!isValidString(description, 0, 1000)) return res.status(400).json({ error: 'Description max 1000 chars' })
+      updateData.description = sanitizeString(description)
+    }
     if (date) updateData.date = new Date(date)
-    if (horseId !== undefined) updateData.horseId = horseId && horseId !== '' ? horseId : null
-    if (employeeId !== undefined) updateData.employeeId = employeeId && employeeId !== '' ? employeeId : null
+    if (horseId !== undefined) {
+      if (horseId && horseId !== '' && !isValidId(horseId)) return res.status(400).json({ error: 'Invalid horseId' })
+      updateData.horseId = horseId && horseId !== '' ? horseId : null
+    }
+    if (employeeId !== undefined) {
+      if (employeeId && employeeId !== '' && !isValidId(employeeId)) return res.status(400).json({ error: 'Invalid employeeId' })
+      updateData.employeeId = employeeId && employeeId !== '' ? employeeId : null
+    }
 
     // Handle attachments - combine existing and newly uploaded
     let allAttachments: string[] = []

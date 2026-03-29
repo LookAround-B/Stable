@@ -3,15 +3,11 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 import { prisma } from '../../../lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers (works on Render, Vercel's infrastructure also adds these)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -85,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: user.email,
         designation: user.designation,
       },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET || 'dev-only-insecure-secret',
       { expiresIn: '7d' }
     );
 
@@ -106,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Google auth error:', error);
     res.status(500).json({
       error: 'Authentication failed',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Authentication failed',
     });
   }
 }

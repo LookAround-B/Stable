@@ -1,14 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { verifyToken } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -53,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error: any) {
     console.error('Farrier Shoeing API error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: String(error) });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -138,10 +136,17 @@ async function handlePost(
 ) {
   const { horseId, farrierId, shoeingDate, notes } = req.body;
 
-  if (!horseId || !farrierId || !shoeingDate) {
-    return res.status(400).json({
-      error: 'horseId, farrierId, and shoeingDate are required',
-    });
+  if (!isValidId(horseId)) {
+    return res.status(400).json({ error: 'Valid horseId is required' });
+  }
+  if (!isValidId(farrierId)) {
+    return res.status(400).json({ error: 'Valid farrierId is required' });
+  }
+  if (!safeDate(shoeingDate)) {
+    return res.status(400).json({ error: 'Valid shoeingDate is required' });
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
   }
 
   // Verify horse exists
@@ -167,7 +172,7 @@ async function handlePost(
       farrierId,
       shoeingDate: shoeingDateObj,
       nextDueDate,
-      notes: notes || null,
+      notes: notes ? sanitizeString(notes) : null,
     },
     include: {
       horse: {
@@ -190,8 +195,8 @@ async function handleDelete(
 ) {
   const { id } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'id is required' });
+  if (!isValidId(id)) {
+    return res.status(400).json({ error: 'Valid id is required' });
   }
 
   const record = await prisma.farrierShoeing.findUnique({ where: { id } });

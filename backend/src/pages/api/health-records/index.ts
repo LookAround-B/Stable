@@ -1,17 +1,14 @@
-// pages/api/health-records/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, safeDate, safePositiveInt } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -41,8 +38,8 @@ async function handleGetHealthRecords(req: NextApiRequest, res: NextApiResponse)
 
     const records = await prisma.healthRecord.findMany({
       where,
-      skip: parseInt(skip as string),
-      take: parseInt(take as string),
+      skip: safePositiveInt(skip, 0),
+      take: safePositiveInt(take, 10, 100),
       include: {
         horse: true,
         healthAdvisor: true,
@@ -67,16 +64,31 @@ async function handleCreateHealthRecord(req: NextApiRequest, res: NextApiRespons
     const { horseId, healthAdvisorId, recordType, description, date, nextDueDate } =
       req.body
 
-    if (!horseId || !recordType || !date) {
-      return res.status(400).json({ error: 'Missing required fields' })
+    if (!isValidId(horseId)) {
+      return res.status(400).json({ error: 'Valid horseId is required' })
+    }
+    if (!isValidString(recordType, 1, 100)) {
+      return res.status(400).json({ error: 'Record type is required (max 100 chars)' })
+    }
+    if (!safeDate(date)) {
+      return res.status(400).json({ error: 'Valid date is required' })
+    }
+    if (healthAdvisorId && !isValidId(healthAdvisorId)) {
+      return res.status(400).json({ error: 'Invalid healthAdvisorId' })
+    }
+    if (description && !isValidString(description, 0, 2000)) {
+      return res.status(400).json({ error: 'Description must be max 2000 chars' })
+    }
+    if (nextDueDate && !safeDate(nextDueDate)) {
+      return res.status(400).json({ error: 'Invalid nextDueDate' })
     }
 
     const record = await prisma.healthRecord.create({
       data: {
         horseId,
-        healthAdvisorId,
-        recordType,
-        description,
+        healthAdvisorId: healthAdvisorId || null,
+        recordType: sanitizeString(recordType),
+        description: description ? sanitizeString(description) : null,
         date: new Date(date),
         nextDueDate: nextDueDate ? new Date(nextDueDate) : null,
       },

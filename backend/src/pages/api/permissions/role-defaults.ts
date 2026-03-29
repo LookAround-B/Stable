@@ -4,6 +4,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { ROLE_PERMISSIONS, DEPARTMENT_ROLES } from '@/lib/roles-prd'
+import { setCorsHeaders } from '@/lib/cors'
 
 const ADMIN_ROLES = ['Super Admin', 'Director', 'School Administrator']
 
@@ -12,11 +13,8 @@ export default async function handler(
   res: NextApiResponse
 ) {
   // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
-  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none')
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
