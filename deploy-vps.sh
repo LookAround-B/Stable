@@ -27,7 +27,7 @@ echo "🔨 Building backend..."
 cd backend
 # Install dependencies (picks up new packages)
 echo "📦 Installing backend dependencies..."
-npm install
+npm install --legacy-peer-deps
 # Clean build cache
 rm -rf .next 2>/dev/null || true
 # Sync database schema with new models
@@ -45,7 +45,7 @@ sleep 2
 # Deploy frontend (pre-built locally, already in git)
 echo "📦 Deploying frontend (pre-built)..."
 cd ../frontend
-npm install --prefer-offline --no-audit
+npm install --prefer-offline --no-audit --legacy-peer-deps
 echo "✅ Frontend dependencies installed"
 
 # Restart or start frontend
