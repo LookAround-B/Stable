@@ -13514,16 +13514,19 @@ html[data-text-size="large"] {
 
   .dashboard-lovable .dashboard-lovable-hero-title {
     font-size: 1.5rem;
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
   }
 
   .dashboard-lovable .dashboard-lovable-hero-greeting,
   .dashboard-lovable .dashboard-lovable-hero-name {
-    display: block;
+    display: inline;
   }
 
   .dashboard-lovable .dashboard-lovable-hero-name {
-    margin-top: 6px;
+    margin-top: 0;
     text-shadow:
       0 0 14px rgba(209, 153, 255, 0.38),
       0 0 30px rgba(209, 153, 255, 0.22),

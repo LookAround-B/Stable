@@ -225,7 +225,7 @@ const GateAttendancePage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><DoorOpen className="w-7 h-7 inline-block mr-2 text-primary" />{t('Gate')} <span className="text-primary">Attendance</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Gate')} <span className="text-primary">Attendance</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Log staff entry/exit and visitor visits</p>
         </div>
       </div>
@@ -258,8 +258,9 @@ const GateAttendancePage = () => {
           <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
             {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
           </button>
-          <button onClick={handleDownloadExcel} title="Download as Excel" className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto">
-            <Download className="w-4 h-4" />
+          <button onClick={handleDownloadExcel} title="Download as Excel" className="gate-attendance-export h-10 px-3 lg:px-4 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center gap-2 justify-center shrink-0 ml-auto">
+            <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+            <span className="hidden lg:inline text-sm font-medium">Excel</span>
           </button>
         </div>
       </div>

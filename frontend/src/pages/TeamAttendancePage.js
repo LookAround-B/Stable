@@ -211,8 +211,8 @@ const TeamAttendancePage = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
-            <button onClick={handleDownloadExcel} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export')}</span>
+            <button onClick={handleDownloadExcel} className="h-9 px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden sm:inline">{t('Excel')}</span>
             </button>
           </div>
         </div>

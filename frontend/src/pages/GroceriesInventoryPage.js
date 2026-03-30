@@ -483,11 +483,10 @@ const GroceriesInventoryPage = () => {
           <button
             type="button"
             onClick={handleDownloadExcel}
-            className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors"
+            className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hidden sm:flex items-center gap-2 hover:bg-surface-container-high transition-colors"
           >
             <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Export Report</span>
-            <span className="sm:hidden">Export</span>
+            Export Report
           </button>
           <button
             type="button"
@@ -836,6 +835,13 @@ const GroceriesInventoryPage = () => {
                   }`}
                 >
                   <SlidersHorizontal className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadExcel}
+                  className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-surface-container-high transition-colors flex sm:hidden items-center"
+                >
+                  <Upload className="w-4 h-4" />
                 </button>
               </div>
             </div>

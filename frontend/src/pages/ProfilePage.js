@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { getStoredTheme, setAppTheme, subscribeToThemeChange } from '../lib/theme';
 
 const ROLES_WITH_HORSES = [
   'Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Ground Supervisor'
@@ -55,21 +56,15 @@ const ProfilePage = () => {
   const [assignedHorses, setAssignedHorses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Theme logic
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('light') ? 'light' : 'dark';
-    }
-    return 'dark';
-  });
+  // Theme logic - sync with navbar
+  const [theme, setTheme] = useState(() => getStoredTheme());
 
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-    localStorage.setItem('efm-theme', theme);
+    return subscribeToThemeChange(setTheme);
+  }, []);
+
+  useEffect(() => {
+    setAppTheme(theme);
   }, [theme]);
 
   /* crop state */
@@ -212,7 +207,7 @@ const ProfilePage = () => {
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto text-foreground">
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 uppercase text-foreground">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
         Profile <span className="text-primary">Settings</span>
       </h1>
 
@@ -235,7 +230,7 @@ const ProfilePage = () => {
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFileChange} />
             <div className="text-center sm:text-left flex-1">
-              <h2 className="text-xl font-bold text-foreground mb-1">{user.fullName || 'User'}</h2>
+              <h2 className="orbit-heading-ignore text-xl font-bold text-foreground mb-1">{user.fullName || 'User'}</h2>
               <p className="text-sm font-semibold text-primary">{t(user.designation || 'Staff')}</p>
               <p className="text-[11px] text-muted-foreground mono-data uppercase tracking-wider mt-1 opacity-80">{user.email || 'NO EMAIL'}</p>
               {uploadMsg && <p className={`mt-2 text-xs font-bold ${uploadMsg.startsWith('✓') ? 'text-success' : 'text-destructive'}`}>{uploadMsg}</p>}
@@ -328,12 +323,21 @@ const ProfilePage = () => {
                 </DialogContent>
               </Dialog>
             )}
-
+          </div>
+          <div className="mt-3 flex sm:hidden justify-center">
             <button 
               onClick={install}
-              className="h-9 px-4 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all flex items-center gap-2 border border-success/20 ml-auto"
+              className="h-7 px-3 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all flex items-center gap-2 border border-success/20"
             >
-              <Download className="w-3.5 h-3.5" /> PWA Install
+              <Download className="w-3.5 h-3.5" /> Install App
+            </button>
+          </div>
+          <div className="mt-3 hidden sm:flex">
+            <button 
+              onClick={install}
+              className="h-7 px-3 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all flex items-center gap-2 border border-success/20 ml-auto"
+            >
+              <Download className="w-3.5 h-3.5" /> Install App
             </button>
           </div>
         </div>

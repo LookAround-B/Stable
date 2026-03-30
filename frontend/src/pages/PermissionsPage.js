@@ -7,7 +7,7 @@ import {
   getTaskPermissions, updateTaskPermissions, getRoleDefaults
 } from '../services/permissionService';
 import {
-  Search, ChevronRight, Users, LayoutDashboard, BarChart2,
+  ChevronRight, Users, LayoutDashboard, BarChart2,
   AlertTriangle, Package, Calendar, CreditCard, Save, Shield,
   Download, Filter, SlidersHorizontal, Lock, CheckCircle, Plus, RotateCcw,
   Bell
@@ -284,10 +284,10 @@ const PermissionsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-2">System <span className="text-primary">Permissions</span></h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">Configure global access matrices and individual task overrides. Changes are logged in real-time.</p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex flex-row-reverse sm:flex-row gap-2 shrink-0">
           <button 
             type="button"
-            className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm flex items-center gap-2 hover:bg-surface-container-high transition-colors font-bold uppercase tracking-wider"
+            className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm flex items-center gap-2 hover:bg-surface-container-high transition-colors font-bold uppercase tracking-wider ml-auto sm:ml-0"
             onClick={() => {
               const csv = `URL,NAME,ID\n${window.location.href},User,${user?.id || ''}`;
               const blob = new Blob([csv], { type: 'text/csv' });
@@ -299,13 +299,13 @@ const PermissionsPage = () => {
               toast.success("Metrics downloaded.");
             }}
           >
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">EXPORT LOG</span>
+            <Download className="w-4 h-4" /> <span className="hidden sm:inline">EXPORT</span>
           </button>
           <button
             type="button"
             onClick={handleSaveAll}
             disabled={isSaving || !selectedEmployee}
-            className="h-9 px-3 sm:px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all min-w-[100px] justify-center tracking-wider"
+            className="h-11 px-3 sm:px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-white text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all min-w-[100px] justify-center tracking-wider sm:ml-0"
           >
             {isSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
             {isSaving ? t('SAVING...') : t('SAVE CHANGES')}
@@ -325,13 +325,12 @@ const PermissionsPage = () => {
               </div>
             </div>
             <div className="relative mb-3">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 placeholder={t('Search staff...')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
+                className="w-full h-9 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
               />
             </div>
             <div className="space-y-1 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">

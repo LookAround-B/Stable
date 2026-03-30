@@ -94,6 +94,7 @@ const translations = {
   "Evidence":               { en: "Evidence",               hi: "साक्ष्य",                   te: "సాక్ష్యం",                      kn: "ಪುರಾವೆ" },
   "Add Record":             { en: "Add Record",             hi: "रिकॉर्ड जोड़ें",              te: "రికార్డ్ జోడించండి",              kn: "ದಾಖಲೆ ಸೇರಿಸಿ" },
   "Export":                 { en: "Export",                 hi: "निर्यात करें",               te: "ఎగుమతి చేయండి",                kn: "ರಫ್ತು ಮಾಡಿ" },
+  "Excel":                  { en: "Excel",                  hi: "एक्सेल",                     te: "ఎక్సెల్",                      kn: "ಎಕ್ಸೆಲ್" },
   "Download CSV":           { en: "Download CSV",           hi: "CSV डाउनलोड करें",           te: "CSV డౌన్‌లోడ్",                 kn: "CSV ಡೌನ್‌ಲೋಡ್" },
   "Download Excel":         { en: "Download Excel",         hi: "एक्सेल डाउनलोड करें",        te: "ఎక్సెల్ డౌన్‌లోడ్",              kn: "ಎಕ್ಸೆಲ್ ಡೌನ್‌ಲೋಡ್" },
   "Priority":               { en: "Priority",               hi: "प्राथमिकता",                 te: "ప్రాధాన్యత",                    kn: "ಆದ್ಯತೆ" },

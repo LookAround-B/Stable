@@ -7,7 +7,8 @@ import HorseIcon from '../components/HorseIcon';
 import { CheckSquare, NotebookPen, Package } from 'lucide-react';
 import {
   Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis
 } from 'recharts';
 
 const DATE_LOCALES = { en: 'en-US', hi: 'hi-IN', te: 'te-IN', kn: 'kn-IN' };
@@ -38,6 +39,22 @@ const DEPARTMENT_MAP = {
   'Super Admin': 'Leadership',
 };
 const CHART_COLORS = ['#d199ff', '#a855f7', '#00e6c7', '#fb7185', '#f59e0b', '#60a5fa', '#22c55e', '#f97316'];
+const ROLE_LABEL_SHORT_MAP = {
+  'Executive Admin': 'Exe. admin',
+  'Executive Accounts': 'Exe. acc.',
+  'Junior Executive Admin': 'Jr. exe. admin',
+  'Junior Executive Accounts': 'Jr. exe. acc.',
+  'Senior Executive Admin': 'Sen. exe. admin',
+  'Senior Executive Accounts': 'Sen. exe. acc.',
+  'School Administrator': 'School admin',
+  'Restaurant Manager': 'Rest. manager',
+  'Ground Supervisor': 'Ground sup.',
+  'Stable Manager': 'Stable manager',
+  'Kitchen Helper': 'Kitchen helper',
+  'Riding Boy': 'Riding boy',
+  'Super Admin': 'Super admin',
+};
+const formatRoleLabel = (role) => ROLE_LABEL_SHORT_MAP[role] || role;
 const GENDER_COLORS = {
   Stallion: '#60a5fa',
   Mare: '#fb7185',
@@ -279,6 +296,7 @@ const DashboardPage = () => {
     audit: [],
   });
   const [teamByDepartment, setTeamByDepartment] = useState([]);
+  const [teamByRole, setTeamByRole] = useState([]);
   const [horsesByGender, setHorsesByGender] = useState([]);
   const [transactionsByDepartment, setTransactionsByDepartment] = useState([]);
   const [clock, setClock] = useState('');
@@ -378,6 +396,17 @@ const DashboardPage = () => {
             roleCount[role] = (roleCount[role] || 0) + 1;
             departmentCount[department] = (departmentCount[department] || 0) + 1;
           });
+
+          setTeamByRole(
+            Object.entries(roleCount)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 10)
+              .map(([role, count], index) => ({
+                role,
+                count,
+                fill: CHART_COLORS[index % CHART_COLORS.length],
+              }))
+          );
 
           const departmentEntries = Object.entries(departmentCount).sort((a, b) => b[1] - a[1]);
           const departmentTotal = departmentEntries.reduce((sum, [, value]) => sum + value, 0);
@@ -527,6 +556,20 @@ const DashboardPage = () => {
             )}
           </ChartPanel>
 
+          <ChartPanel title="Staff by Role">
+            {teamByRole.length === 0 ? <EmptyState label="No role data available" /> : (
+              <ResponsiveContainer width="100%" height={240} minWidth={0} minHeight={240}>
+                <BarChart data={teamByRole} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
+                  <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--lovable-text-soft, var(--dashboard-tooltip-text))' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis dataKey="role" type="category" width={90} tick={{ fontSize: 9, fill: 'var(--lovable-text-soft, var(--dashboard-tooltip-text))' }} tickFormatter={formatRoleLabel} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={14}>
+                    {teamByRole.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartPanel>
       </div>
 
       <div className="dashboard-lovable-chart-grid">

@@ -435,10 +435,17 @@ const EntityMapPage = () => {
             <div style={styles.toolbarSub}>{ENTITIES.length} entities · {EDGES.length} relationships · Drag, zoom, click to explore</div>
           </div>
         </div>
-        <div style={styles.toolbarRight}>
+        <div className="hidden sm:flex items-center gap-2">
           <button style={styles.btn} onClick={resetView}>Reset</button>
           <button style={styles.btn} onClick={fitAll}>Fit All</button>
           <span style={styles.zoomBadge}>{Math.round(scale * 100)}%</span>
+        </div>
+        <div className="flex sm:hidden flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <button style={styles.btn} onClick={resetView}>Reset</button>
+            <span style={styles.zoomBadge}>{Math.round(scale * 100)}%</span>
+          </div>
+          <button style={styles.btn} onClick={fitAll}>Fit All</button>
         </div>
       </div>
 

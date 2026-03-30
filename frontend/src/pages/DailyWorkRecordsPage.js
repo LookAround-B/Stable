@@ -147,15 +147,17 @@ const DailyWorkRecordsPage = () => {
 
       {/* Controls */}
       <div className="flex flex-col md:flex-row items-center gap-3">
-        <div className="w-44">
-          <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="w-44">
+            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
+          </div>
+          <button onClick={handleDownloadExcel} disabled={loading} className="h-10 px-3 md:px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 ml-auto md:ml-0"><Download className="w-4 h-4" /><span className="hidden md:inline">Excel</span></button>
         </div>
         {!showForm && canCreateRecords && (
           <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm font-medium hover:bg-surface-container-highest hover:text-primary transition-all flex items-center gap-2">
             <Plus className="w-4 h-4" /> New Record
           </button>
         )}
-        <button onClick={handleDownloadExcel} disabled={loading} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 ml-auto"><Download className="w-4 h-4" />Excel</button>
       </div>
 
       {/* Form */}

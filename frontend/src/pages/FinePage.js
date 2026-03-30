@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
-import { Check, DollarSign, Download, Plus, Upload, X, Zap } from 'lucide-react';
+import { Check, Download, Upload, X, Zap } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
@@ -392,16 +392,13 @@ const FinePage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center mt-1 shrink-0">
-            <DollarSign className="w-5 h-5 text-primary" />
-          </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">FINANCE / <span className="text-primary">FINE SYSTEM</span></p>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-1">{t('Internal Compliance')} <span className="text-primary">&amp;</span> {t('Fines')}</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t('Manage facility-wide disciplinary actions and financial deductions.')}</p>
           </div>
         </div>
-        <div className="flex gap-3 shrink-0">
+        <div className="grid grid-cols-2 sm:flex gap-3 shrink-0">
           <div className="bg-surface-container-highest rounded-lg p-4 edge-glow text-center min-w-[120px]">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">MONTHLY VOLUME</p>
             <p className="text-xl sm:text-2xl font-bold text-foreground mono-data mt-1">₹{fines.reduce((s, f) => s + parseFloat(f.amount || 0), 0).toLocaleString()}</p>
@@ -429,7 +426,6 @@ const FinePage = () => {
           <div className="lg:col-span-4 order-2 lg:order-1">
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
-                <Plus className="w-5 h-5 text-success" />
                 <h2 className="text-base font-bold text-foreground uppercase tracking-wider">Issue Enforcement</h2>
               </div>
               <form onSubmit={handleSubmitForm} className="space-y-4">
@@ -530,9 +526,9 @@ const FinePage = () => {
                   </div>
                   <button
                     onClick={handleDownloadExcel}
-                    className="h-8 px-3 rounded-lg border border-black/20 dark:border-white/20 text-xs text-muted-foreground flex items-center gap-1.5 hover:bg-surface-container-high transition-colors shrink-0"
+                    className="h-8 px-3 lg:px-4 rounded-lg border border-black/20 dark:border-white/20 text-xs text-muted-foreground flex items-center gap-1.5 hover:bg-surface-container-high transition-colors shrink-0 ml-auto lg:ml-0"
                   >
-                    <Download className="w-3 h-3" /> Export
+                    <Download className="w-3 h-3 lg:w-4 lg:h-4" /> <span className="hidden sm:inline">Excel</span>
                   </button>
               </div>
             </div>

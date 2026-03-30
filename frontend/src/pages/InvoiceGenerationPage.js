@@ -4,9 +4,9 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import DatePicker from '../components/shared/DatePicker';
-import * as XLSX from 'xlsx';
+
 import usePermissions from '../hooks/usePermissions';
-import { Download, FileText, Printer, SlidersHorizontal, TrendingUp } from 'lucide-react';
+import { Printer, SlidersHorizontal, TrendingUp } from 'lucide-react';
 
 const esc = (str) => {
   if (str == null) return '';
@@ -95,56 +95,6 @@ const InvoiceGenerationPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDownloadExcel = () => {
-    if (!invoice) return;
-
-    // Create workbook and worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.aoa_to_sheet([]);
-
-    // Add title
-    XLSX.utils.sheet_add_aoa(worksheet, [
-      [`Invoice Report`],
-      [`Instructor: ${invoice.instructor.fullName}`],
-      [`Period: ${new Date(invoice.periodStart).toLocaleDateString('en-IN')} to ${new Date(invoice.periodEnd).toLocaleDateString('en-IN')}`],
-      [`Total Sessions: ${invoice.summary.totalSessions}`],
-      [`Total Hours: ${invoice.summary.totalHours}`],
-      [],
-      [`Date`, `Horse`, `Rider`, `Work Type`, `Duration (min)`, `Notes`]
-    ], { origin: 'A1' });
-
-    // Add records data
-    const recordsData = invoice.records.map(record => [
-      new Date(record.date).toLocaleDateString('en-IN'),
-      record.horse.name,
-      record.rider.fullName,
-      record.workType,
-      record.duration,
-      record.notes || '-'
-    ]);
-
-    XLSX.utils.sheet_add_aoa(worksheet, recordsData, { origin: 'A8' });
-
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 12 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 12 },
-      { wch: 14 },
-      { wch: 20 }
-    ];
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoice');
-
-    // Generate filename
-    const fileName = `Invoice_${invoice.instructor.fullName}_${new Date(invoice.periodStart).toLocaleDateString('en-IN').replace(/\//g, '-')}.xlsx`;
-
-    // Write file
-    XLSX.writeFile(workbook, fileName);
   };
 
   const handlePrint = () => {
@@ -284,17 +234,6 @@ const InvoiceGenerationPage = () => {
           </div>
           <h1 className="display-sm text-foreground mt-1">Invoice Generation</h1>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={handleDownloadExcel}
-            disabled={!invoice}
-            className="h-9 px-4 rounded-lg border border-black/20 dark:border-white/20 text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-        </div>
       </div>
 
       {message && (
@@ -401,14 +340,6 @@ const InvoiceGenerationPage = () => {
                 </span>
               </div>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleDownloadExcel}
-                  disabled={!invoice}
-                  className="p-2 rounded hover:bg-surface-container-highest text-muted-foreground disabled:opacity-40"
-                >
-                  <FileText className="w-4 h-4" />
-                </button>
                 <button
                   type="button"
                   onClick={handlePrint}

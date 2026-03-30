@@ -163,8 +163,8 @@ const AttendancePage = () => {
           <p className="text-sm text-muted-foreground mt-1">{isManager ? t('Manage your team attendance') : t('Log your attendance')}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">{t('Export CSV')}</span>
+          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+            <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden sm:inline">{t('Excel')}</span>
           </button>
           <button onClick={() => setShowForm(!showForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}

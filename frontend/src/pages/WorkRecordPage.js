@@ -324,11 +324,10 @@ const WorkRecordPage = () => {
            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
            <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
            <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
+           <button onClick={handleDownloadExcel} className="btn-download work-records-export h-10 px-3 md:px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors shrink-0">
+            <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden md:inline">{t('Excel')}</span>
+           </button>
         </div>
-        
-        <button onClick={handleDownloadExcel} className="btn-download work-records-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors shrink-0 ml-auto">
-         <Download className="w-4 h-4" /> {t('Export')}
-        </button>
       </div>
 
       {/* List */}

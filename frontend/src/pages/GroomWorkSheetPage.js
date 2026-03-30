@@ -93,7 +93,7 @@ const GroomWorkSheetPage = () => {
       {/* Header */}
       <div className="groom-worksheet-header-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><ClipboardCheck className="w-7 h-7 inline-block mr-2 text-primary" />{t('Groom')} <span className="text-primary">Work Sheet</span></h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight whitespace-nowrap"><ClipboardCheck className="w-5 h-5 sm:w-7 sm:h-7 inline-block mr-1.5 sm:mr-2 text-primary" />{t('Groom')} <span className="text-primary">Work Sheet</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Track groom activities, horse care hours, and supplies used daily.</p>
         </div>
         {canCreateWorksheet && (
@@ -115,7 +115,7 @@ const GroomWorkSheetPage = () => {
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Groom Filter</label>
           <SearchableSelect value={filterGroomId} onChange={(e) => setFilterGroomId(e.target.value)} placeholder="All Grooms" options={[{ value: 'all', label: 'All Grooms' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
         </div>
-        <button onClick={handleDownloadExcel} disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"><Download className="w-4 h-4" /> Excel</button>
+        <button onClick={handleDownloadExcel} disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 px-3 md:px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mx-auto md:mx-0 md:ml-auto"><Download className="w-4 h-4" /> <span className="hidden md:inline">Excel</span></button>
       </div>
 
       {/* Add Worksheet Form */}

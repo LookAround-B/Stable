@@ -201,13 +201,15 @@ const ReportsPage = () => {
 
   // Stats shown as KPI cards row
   const StatsTable = ({ stats }) => (
-    <div className="grid gap-3 mb-5" style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)` }}>
-      {stats.map((s, i) => (
-        <div key={i} className="bg-surface-container-highest rounded-xl p-4 edge-glow text-center">
-          <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{s.label}</p>
-          <p className="text-2xl font-bold mt-1 mono-data" style={{ color: s.color }}>{s.value}</p>
-        </div>
-      ))}
+    <div className="overflow-x-auto -mx-1 px-1 mb-5">
+      <div className="flex gap-3 min-w-max sm:grid sm:min-w-0" style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)` }}>
+        {stats.map((s, i) => (
+          <div key={i} className="bg-surface-container-highest rounded-xl p-4 edge-glow text-center min-w-[120px] sm:min-w-0">
+            <p className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">{s.label}</p>
+            <p className="text-2xl font-bold mt-1 mono-data" style={{ color: s.color }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -223,13 +225,6 @@ const ReportsPage = () => {
       />
     );
   };
-
-  const tabs = [
-    { id: 'attendance', label: t('Attendance Reports') },
-    { id: 'tasks', label: t('Task Reports') },
-    { id: 'expenses', label: t('Expense Reports') },
-    { id: 'health', label: t('Horse Health Reports') },
-  ];
 
   const handleDownloadExcel = () => {
     const workbook = XLSX.utils.book_new();
@@ -302,18 +297,20 @@ const ReportsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">{t('ANALYTICAL REPORTS')}</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t('System-wide performance matrices and multi-vector data exports.')}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex bg-surface-container-highest rounded-lg border border-border px-3 h-9 items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
-            <DatePicker value={dateRange.startDate} onChange={(val) => setDateRange(prev => ({ ...prev, startDate: val }))} className="w-32" />
-            <span className="text-muted-foreground text-xs">-</span>
-            <DatePicker value={dateRange.endDate} onChange={(val) => setDateRange(prev => ({ ...prev, endDate: val }))} className="w-32" />
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            <Calendar className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" />
+            <div className="w-[110px] sm:w-[140px]">
+              <DatePicker value={dateRange.startDate} onChange={(val) => setDateRange(prev => ({ ...prev, startDate: val }))} />
+            </div>
+            <span className="text-muted-foreground text-xs">to</span>
+            <div className="w-[110px] sm:w-[140px]">
+              <DatePicker value={dateRange.endDate} onChange={(val) => setDateRange(prev => ({ ...prev, endDate: val }))} />
+            </div>
           </div>
-          <div className="flex border border-border rounded-lg overflow-hidden h-9">
-            <button onClick={handleDownloadExcel} className="px-3 sm:px-4 text-foreground text-xs font-bold hover:bg-surface-container-high transition-colors flex items-center gap-2 uppercase tracking-wider">
-               <Download className="w-3.5 h-3.5" /> EXPORT EXCEL ({tabs.find(t => t.id === activeTab)?.label})
-            </button>
-          </div>
+          <button onClick={handleDownloadExcel} className="h-10 px-3 sm:px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0">
+            <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+          </button>
         </div>
       </div>
 
@@ -333,10 +330,11 @@ const ReportsPage = () => {
               <div className="flex gap-2">
                 <button 
                   onClick={(e) => { e.stopPropagation(); setActiveTab(cat.id); handleDownloadExcel(); }}
-                  className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border border-border/50"
+                  className="h-9 px-3 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors border border-border hover:border-primary/50"
                   title="Download Report"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-4 h-4 mr-1.5" />
+                  <span className="text-xs font-medium shrink-0">Export</span>
                 </button>
                 <ArrowUpRight className={`w-4 h-4 transition-colors ${activeTab === cat.id ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
               </div>

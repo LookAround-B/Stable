@@ -5,7 +5,7 @@ import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { CheckCircle, FileText, Filter, Plus, TrendingUp, Upload } from 'lucide-react';
+import { CheckCircle, Filter, Plus, TrendingUp, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import usePermissions from '../hooks/usePermissions';
@@ -581,7 +581,7 @@ const ExpensePage = () => {
           <h1 className="display-sm text-foreground mt-1">Expense Tracking</h1>
         </div>
         {isAccountsUser && (
-          <div className="flex flex-wrap gap-2 shrink-0">
+          <div className="flex flex-wrap gap-2 shrink-0 self-end sm:self-auto">
             <div className="flex rounded-lg overflow-hidden border border-border">
               {['Facility', 'Asset'].map((mode) => (
                 <button
@@ -607,7 +607,7 @@ const ExpensePage = () => {
                 resetForm();
                 setEditingExpense(null);
               }}
-              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold flex items-center gap-2"
+              className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-white text-sm font-semibold flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               New Expense
@@ -714,6 +714,15 @@ const ExpensePage = () => {
             onChange={(val) => handleFilterChange({ target: { name: 'endDate', value: val } })}
             size="sm"
           />
+          <button
+            type="button"
+            onClick={handleDownloadExcel}
+            disabled={!visibleExpenses.length}
+            className="h-8 px-3 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground text-xs flex items-center gap-1.5 hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
+          >
+            <Upload className="w-3 h-3" />
+            Export
+          </button>
         </div>
         {Object.values(filters).some(Boolean) && (
           <button
@@ -727,15 +736,6 @@ const ExpensePage = () => {
             Clear
           </button>
         )}
-        <button
-          type="button"
-          onClick={handleDownloadExcel}
-          disabled={!visibleExpenses.length}
-          className="h-8 px-3 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground text-xs flex items-center gap-1.5 hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
-        >
-          <Upload className="w-3 h-3" />
-          Export
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -867,7 +867,6 @@ const ExpensePage = () => {
           <div className="lg:col-span-5 space-y-4">
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
-                <Plus className="w-5 h-5 text-primary" />
                 <h2 className="heading-md text-foreground uppercase tracking-wider">
                   {editingExpense ? 'Edit Expense' : 'Post New Entry'}
                 </h2>
@@ -911,7 +910,7 @@ const ExpensePage = () => {
                       step="0.01"
                       min="0"
                       required
-                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm mono-data focus:ring-1 focus:ring-primary outline-none"
+                      className="w-full h-8 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm mono-data focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
@@ -1012,7 +1011,6 @@ const ExpensePage = () => {
 
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
-                <FileText className="w-5 h-5 text-primary" />
                 <h2 className="heading-md text-foreground uppercase tracking-wider">Live Transaction Stream</h2>
               </div>
               <div className="space-y-3">

@@ -272,10 +272,10 @@ const HousekeepingInventoryPage = () => {
               className="h-9 px-3 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 sm:ml-0 mx-auto sm:mx-0">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} items</span>
-            <button onClick={handleDownloadExcel} className="btn-download housekeeping-inventory-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" /> Export
+            <button onClick={handleDownloadExcel} className="btn-download housekeeping-inventory-export h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span>
             </button>
           </div>
         </div>

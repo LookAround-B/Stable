@@ -8,6 +8,7 @@ import Sidebar from './Sidebar';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 import NotificationCenter from './NotificationCenter';
+import { getStoredTheme, setAppTheme, subscribeToThemeChange } from '../lib/theme';
 
 const QUOTES = [
   'A horse is poetry in motion.',
@@ -95,12 +96,26 @@ const accentLastWord = (heading) => {
   targetNode.parentNode?.replaceChild(fragment, targetNode);
 };
 
+const resetHeadingEnhancement = (heading) => {
+  heading.querySelectorAll('.orbit-heading-dot').forEach((dot) => dot.remove());
+  heading.querySelectorAll('.orbit-heading-accent').forEach((accent) => {
+    accent.replaceWith(document.createTextNode(accent.textContent || ''));
+  });
+  heading.classList.remove('orbit-heading');
+  delete heading.dataset.orbitHeadingReady;
+};
+
 const enhanceHeading = (heading) => {
-  if (!(heading instanceof HTMLElement) || heading.dataset.orbitHeadingReady === '1') {
+  if (!(heading instanceof HTMLElement)) {
     return;
   }
 
   if (heading.classList.contains('orbit-heading-ignore') || heading.closest('.dashboard-page, .dashboard-lovable, .dashboard-lovable-hero')) {
+    resetHeadingEnhancement(heading);
+    return;
+  }
+
+  if (heading.dataset.orbitHeadingReady === '1') {
     return;
   }
 
@@ -134,13 +149,7 @@ function MainLayout() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [routeSkeleton, setRouteSkeleton] = useState(true);
-  const [theme, setTheme] = useState(() => {
-    const saved = window.localStorage.getItem('efm.ui.theme');
-    if (saved === 'light' || saved === 'dark') {
-      return saved;
-    }
-    return 'dark';
-  });
+  const [theme, setTheme] = useState(() => getStoredTheme());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = window.localStorage.getItem('efm.sidebar.collapsed');
     return saved === '1';
@@ -204,17 +213,10 @@ function MainLayout() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
-    window.localStorage.setItem('efm.ui.theme', theme);
-    document.documentElement.setAttribute('data-efm-theme', theme);
-    document.documentElement.classList.toggle('light', theme === 'light');
-    document.body.classList.toggle('light', theme === 'light');
-    document.body.classList.toggle('efm-theme-light', theme === 'light');
-    const themeColor = theme === 'light' ? '#f6f7fb' : '#09090b';
-    const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) {
-      themeMeta.setAttribute('content', themeColor);
-    }
+    setAppTheme(theme);
   }, [theme]);
+
+  useEffect(() => subscribeToThemeChange(setTheme), []);
 
   useEffect(() => {
     if (routeSkeleton || !innerContentRef.current) {
