@@ -21,7 +21,7 @@ rmdir /s /q build >nul 2>&1
 
 REM Install dependencies
 echo 📦 Installing dependencies...
-call npm install
+call npm install --legacy-peer-deps
 if errorlevel 1 (
   echo ❌ npm install failed
   exit /b 1
