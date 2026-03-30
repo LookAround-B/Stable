@@ -10,26 +10,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car } from 'lucide-react';
 import * as XLSX from 'xlsx';
-
-const dateInputStyles = `
-  input[type="date"] {
-    color-scheme: light;
-  }
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.8);
-    cursor: pointer;
-  }
-  input[type="date"]::-webkit-outer-spin-button,
-  input[type="date"]::-webkit-inner-spin-button {
-    display: none;
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  /* Calendar styling adjustments */
-  input[type="date"]::selection {
-    background-color: hsl(var(--primary, 210 100% 50%));
-  }
-`;
+import DatePicker from '../components/shared/DatePicker';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -113,7 +94,6 @@ const GateEntryRegisterPage = () => {
   };
 
   const inputCls = "w-full h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
-  const dateInputCls = "h-4 px-2.5 rounded-lg bg-surface-container-high border border-border text-foreground text-xs focus:ring-1 focus:ring-primary outline-none";
   const activeIn = entries.filter(e => !e.exitTime).length;
   const totalExited = entries.filter(e => e.exitTime).length;
   const totalPages = Math.ceil(entries.length / rowsPerPage);
@@ -124,7 +104,6 @@ const GateEntryRegisterPage = () => {
 
   return (
     <div className="gate-entry-page space-y-6">
-      <style>{dateInputStyles}</style>
       {/* Header */}
       <div className="gate-entry-page-header flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div className="gate-entry-title-block">
@@ -154,7 +133,7 @@ const GateEntryRegisterPage = () => {
           {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Record Entry/Exit</>}
         </button>
         <div className="gate-entry-date-wrap flex items-end gap-3 md:ml-auto">
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={dateInputCls} />
+          <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
       </div>
 
@@ -163,8 +142,8 @@ const GateEntryRegisterPage = () => {
         <div className="gate-entry-form-panel bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/30 shadow-[inset_0_1px_0_rgba(168,85,247,0.14)]">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Mode */}
-            <div className="flex items-center gap-4">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Operation:</label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground shrink-0">Operation:</label>
               <div className="gate-entry-toggle-group flex gap-2">
                 {['entry', 'exit'].map(m => (
                   <button key={m} type="button" onClick={() => setFormMode(m)} className={`gate-entry-toggle-btn px-4 py-2 rounded-lg text-sm font-medium transition-all ${formMode === m ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground border border-transparent hover:bg-surface-container-highest'}`}>{m === 'entry' ? 'Entry' : 'Exit'}</button>
@@ -172,8 +151,9 @@ const GateEntryRegisterPage = () => {
               </div>
             </div>
             {/* Person Type */}
-            <div className="flex items-center gap-4">
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Person Type:</label>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground shrink-0">Person
+                Type:</label>
               <div className="gate-entry-toggle-group flex gap-2">
                 {['Staff', 'Visitor'].map(pt => (
                   <button key={pt} type="button" onClick={() => handlePersonTypeChange(pt)} className={`gate-entry-toggle-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${formData.personType === pt ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground border border-transparent hover:bg-surface-container-highest'}`}>
@@ -219,7 +199,7 @@ const GateEntryRegisterPage = () => {
                 <input type="text" name="notes" value={formData.notes} onChange={handleFormChange} placeholder="Additional notes" maxLength="250" className={inputCls} />
               </div>
             </div>
-            <button type="submit" className={`gate-entry-submit-btn h-10 px-6 rounded-lg text-sm font-semibold tracking-wider uppercase ${formMode === 'entry' ? 'bg-gradient-to-r from-success to-success/80 text-white' : 'bg-gradient-to-r from-warning to-warning/80 text-white'}`}>Record {formMode === 'entry' ? 'Entry' : 'Exit'}</button>
+            <button type="submit" className={`gate-entry-submit-btn h-10 px-6 rounded-lg text-sm font-semibold tracking-wider uppercase ${formMode === 'entry' ? 'bg-gradient-to-r from-success to-success/80 text-success-foreground' : 'bg-gradient-to-r from-warning to-warning/80 text-warning-foreground'}`}>Record {formMode === 'entry' ? 'Entry' : 'Exit'}</button>
           </form>
         </div>
       )}
@@ -251,7 +231,7 @@ const GateEntryRegisterPage = () => {
                     <tr key={entry.id} className={`border-b border-border/50 hover:bg-surface-container-high transition-colors ${!entry.exitTime ? 'bg-success/5' : ''}`}>
                       <td className="px-3 py-3 font-medium text-foreground">{entry.personType === 'Staff' ? getStaffName(entry.employeeId) : entry.visitor?.name || 'Visitor'}</td>
                       <td className="px-3 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${entry.personType === 'Staff' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' : 'border-purple-500/30 text-purple-400 bg-purple-500/10'}`}>{entry.personType}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${entry.personType === 'Staff' ? 'border-primary/30 text-primary bg-primary/10' : 'border-secondary/30 text-secondary bg-secondary/10'}`}>{entry.personType}</span>
                       </td>
                       <td className="px-3 py-3 text-muted-foreground mono-data">{entry.vehicleNo || '-'}</td>
                       <td className="px-3 py-3 text-muted-foreground mono-data whitespace-nowrap">{formatTime(entry.entryTime)}</td>

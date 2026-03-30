@@ -104,7 +104,7 @@ const DailyWorkRecordsPage = () => {
 
   const totalMinutes = records.reduce((sum, r) => sum + (r.duration || 0), 0);
   const workTypeBadge = (wt) => {
-    const colors = { Lesson: 'border-blue-500/30 text-blue-400 bg-blue-500/10', Training: 'border-purple-500/30 text-purple-400 bg-purple-500/10', Exercise: 'border-green-500/30 text-green-400 bg-green-500/10', Rehab: 'border-orange-500/30 text-orange-400 bg-orange-500/10', Groundwork: 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10', Lunge: 'border-cyan-500/30 text-cyan-400 bg-cyan-500/10', Hack: 'border-pink-500/30 text-pink-400 bg-pink-500/10' };
+    const colors = { Lesson: 'border-primary/30 text-primary bg-primary/10', Training: 'border-secondary/30 text-secondary bg-secondary/10', Exercise: 'border-success/30 text-success bg-success/10', Rehab: 'border-warning/30 text-warning bg-warning/10', Groundwork: 'border-accent-foreground/30 text-accent-foreground bg-accent', Lunge: 'border-muted-foreground/30 text-muted-foreground bg-muted-foreground/10', Hack: 'border-destructive/30 text-destructive bg-destructive/10' };
     return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${colors[wt] || 'border-border text-muted-foreground'}`}>{wt}</span>;
   };
 

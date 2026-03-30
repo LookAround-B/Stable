@@ -127,7 +127,7 @@ const InspectionPage = () => {
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-GB') + ' ' + new Date(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
 
   const severityBadge = (sev) => {
-    const cfg = { Low: 'border-success/30 text-success bg-success/10', Medium: 'border-warning/30 text-warning bg-warning/10', High: 'border-orange-500/30 text-orange-400 bg-orange-500/10', Critical: 'border-destructive/30 text-destructive bg-destructive/10' };
+    const cfg = { Low: 'border-success/30 text-success bg-success/10', Medium: 'border-warning/30 text-warning bg-warning/10', High: 'border-warning/50 text-warning bg-warning/15', Critical: 'border-destructive/30 text-destructive bg-destructive/10' };
     return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${cfg[sev] || 'border-border text-muted-foreground'}`}>{sev}</span>;
   };
   const statusBadge = (status) => {
@@ -307,7 +307,7 @@ const InspectionPage = () => {
               {/* Card Content */}
               <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-blue-500/30 text-blue-400 bg-blue-500/10">{inspection.round}</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border border-primary/30 text-primary bg-primary/10">{inspection.round}</span>
                   {severityBadge(inspection.severityLevel)}
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1">
@@ -357,7 +357,7 @@ const InspectionPage = () => {
               {/* Details */}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {[
-                  ['Round', <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-blue-500/30 text-blue-400 bg-blue-500/10">{viewingInspection.round}</span>],
+                  ['Round', <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-primary/30 text-primary bg-primary/10">{viewingInspection.round}</span>],
                   ['Severity', severityBadge(viewingInspection.severityLevel)],
                   ['Date', formatDate(viewingInspection.createdAt)],
                   ['Location', viewingInspection.location],
@@ -421,7 +421,7 @@ const InspectionPage = () => {
                 <textarea name="resolutionNotes" value={resolveData.resolutionNotes} onChange={(e) => setResolveData(prev => ({ ...prev, resolutionNotes: e.target.value }))} placeholder="Resolution details..." maxLength="500" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-success to-success/80 text-white text-sm font-semibold tracking-wider uppercase">{loading ? 'Processing...' : 'Resolve'}</button>
+                <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-success to-success/80 text-success-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Processing...' : 'Resolve'}</button>
                 <button type="button" onClick={() => setResolvingInspection(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
               </div>
             </form>

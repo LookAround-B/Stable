@@ -221,7 +221,7 @@ const GateAttendancePage = () => {
   if (!p.viewGateEntry) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="gate-attendance-page space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
@@ -258,8 +258,8 @@ const GateAttendancePage = () => {
           <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
             {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
           </button>
-          <button onClick={handleDownloadExcel} title="Download as Excel" className="gate-attendance-export h-12 w-12 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto">
-            <Download className="w-7 h-7" />
+          <button onClick={handleDownloadExcel} title="Download as Excel" className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto">
+            <Download className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -348,12 +348,12 @@ const GateAttendancePage = () => {
 
       {/* Logs Table */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-foreground">{activeTab === 'staff' ? 'Staff Entry/Exit Logs' : 'Visitor Logs'} ({displayLogs.length})</h3>
-          <div className="flex items-center gap-2">
-            <DatePicker value={filterFromDate} onChange={(val) => setFilterFromDate(val)} size="sm" />
+          <div className="flex flex-wrap items-center gap-2">
+            <DatePicker value={filterFromDate} onChange={(val) => { setFilterFromDate(val); setCurrentPage(1); }} placeholder="From" />
             <span className="text-xs text-muted-foreground">to</span>
-            <DatePicker value={filterToDate} onChange={(val) => setFilterToDate(val)} size="sm" />
+            <DatePicker value={filterToDate} onChange={(val) => { setFilterToDate(val); setCurrentPage(1); }} placeholder="To" />
           </div>
         </div>
         {displayLogs.length === 0 ? (
