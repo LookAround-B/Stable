@@ -8,7 +8,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Sparkles, Trash2, X, Search } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { showNoExportDataToast } from '../lib/exportToast';
@@ -155,18 +155,16 @@ const HousekeepingInventoryPage = () => {
   if (!p.viewHousekeepingInventory) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="housekeeping-inventory-page space-y-6">
+    <div className="housekeeping-inventory-page space-y-6 pb-40">
       {/* ── Header ── */}
       <div className="housekeeping-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-start justify-between gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Housekeeping <span className="text-primary">Inventory</span></h1>
-            <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-              {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
-            </button>
+            <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
-        </div>
+          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 w-fit px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
+            {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+          </button>
       </div>
 
       {/* ── Message ── */}
@@ -285,11 +283,12 @@ const HousekeepingInventoryPage = () => {
         {/* Toolbar */}
         <div className="housekeeping-inventory-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
           <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               placeholder={t("Search items...")}
-              className="h-9 px-3 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+              className="h-9 pl-9 pr-3 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
           </div>
           <div className="flex items-center gap-2 shrink-0 sm:ml-0 mx-auto sm:mx-0">
@@ -298,8 +297,9 @@ const HousekeepingInventoryPage = () => {
               title="Export Housekeeping Inventory"
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
-                <button className="btn-download housekeeping-inventory-export h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export housekeeping inventory" title="Export housekeeping inventory">
-                  <Download className="w-4 h-4" />
+                <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label="Export housekeeping inventory" title="Export housekeeping inventory">
+                  <Download className="w-4 h-4 shrink-0" />
+                    <span className="text-sm font-medium">Export</span>
                 </button>
               )}
             />

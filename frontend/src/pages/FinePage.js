@@ -545,7 +545,7 @@ const FinePage = () => {
                         aria-label="Export fines"
                         title="Export fines"
                       >
-                        <Download className="w-3 h-3 lg:w-4 lg:h-4" />
+                        <Download className="w-3.5 h-3.5 shrink-0" />
                       </button>
                     )}
                   />

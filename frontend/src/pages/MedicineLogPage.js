@@ -140,7 +140,7 @@ const MedicineLogPage = () => {
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label="Export medicine logs" title="Export medicine logs">
-                <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
           />

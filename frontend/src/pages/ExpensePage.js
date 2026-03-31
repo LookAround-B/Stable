@@ -5,7 +5,7 @@ import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { CheckCircle, Filter, Plus, TrendingUp, Upload } from 'lucide-react';
+import { CheckCircle, Filter, Plus, TrendingUp, Upload, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import usePermissions from '../hooks/usePermissions';
@@ -727,7 +727,7 @@ const ExpensePage = () => {
                 aria-label="Export expenses"
                 title="Export expenses"
               >
-                <Upload className="w-3 h-3" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
           />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import { useAuth } from '../context/AuthContext'
 import { CardListSkeleton } from '../components/Skeleton'
 import apiClient from '../services/apiClient'
@@ -544,15 +545,16 @@ const MeetingPage = () => {
       )}
 
       {/* ═══════════ CREATE MODAL ═══════════ */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => setShowCreateForm(false)}>
-          <div className="bg-surface-container-highest border border-border rounded-xl p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
+      {showCreateForm && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowCreateForm(false)}>
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-[560px] overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
               <h2 className="text-xl font-bold text-foreground">{t('New Meeting')}</h2>
-              <button onClick={() => setShowCreateForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => setShowCreateForm(false)} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
+            <div className="p-4 sm:p-6 overflow-y-auto min-h-0 flex-1">
             <form onSubmit={handleCreateMeeting} className="space-y-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Meeting Title *</label>
@@ -593,16 +595,17 @@ const MeetingPage = () => {
                   })}
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">
+              <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+                <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">Cancel</button>
+                <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
                   {loading ? 'Creating...' : 'Create Meeting'}
                 </button>
-                <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
               </div>
             </form>
+            </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   )
 }

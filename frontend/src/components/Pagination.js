@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const Pagination = ({
   currentPage,
@@ -49,18 +50,21 @@ const Pagination = ({
         {typeof onRowsPerPageChange === 'function' && (
           <div className="pagination-rows lovable-pagination-rows hidden sm:flex items-center gap-2">
             <span className="lovable-pagination-label">Rows per page</span>
-            <div className="lovable-pagination-select-shell">
-              <select
+            <div className="w-[80px]">
+              <SearchableSelect
                 value={rowsPerPage}
                 onChange={(e) => onRowsPerPageChange(parseInt(e.target.value, 10))}
-                className="lovable-pagination-select"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                searchable={false}
+                size="sm"
+                menuPosition="top"
+                options={[
+                  { value: 5, label: '5' },
+                  { value: 10, label: '10' },
+                  { value: 15, label: '15' },
+                  { value: 20, label: '20' },
+                  { value: 50, label: '50' },
+                ]}
+              />
             </div>
           </div>
         )}

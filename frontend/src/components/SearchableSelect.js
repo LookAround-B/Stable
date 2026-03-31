@@ -31,6 +31,7 @@ const SearchableSelect = ({
   searchable = true,
   creatable = false,
   size = 'default',
+  menuPosition = 'bottom',
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -79,6 +80,7 @@ const SearchableSelect = ({
   };
 
   const heightClass = size === 'sm' ? 'h-10' : 'h-11';
+  const dropdownClass = menuPosition === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5';
 
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
@@ -112,7 +114,7 @@ const SearchableSelect = ({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 top-full mt-1.5 w-full min-w-[200px] rounded-xl bg-surface-container-highest border border-border shadow-2xl overflow-hidden">
+        <div className={`absolute z-50 ${dropdownClass} w-full min-w-full rounded-xl bg-surface-container-highest border border-border shadow-2xl overflow-hidden`}>
           {showSearch && (
             <div className="p-2.5 border-b border-border/50">
               <div className="relative">

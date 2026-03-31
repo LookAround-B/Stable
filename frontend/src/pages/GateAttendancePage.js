@@ -279,7 +279,7 @@ const GateAttendancePage = () => {
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button title="Export gate attendance" className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto" type="button" aria-label="Export gate attendance">
-                <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
           />

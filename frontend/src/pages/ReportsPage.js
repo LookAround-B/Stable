@@ -365,7 +365,7 @@ const ReportsPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto">
+    <div className="space-y-6 max-w-[1400px] mx-auto pb-40">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
@@ -377,7 +377,7 @@ const ReportsPage = () => {
         </div>
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 shrink-0">
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            <Calendar className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" />
+            {/* <Calendar className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" /> */}
             <div className="w-[110px] sm:w-[140px]">
               <DatePicker value={dateRange.startDate} onChange={(val) => setDateRange(prev => ({ ...prev, startDate: val }))} />
             </div>
@@ -390,8 +390,9 @@ const ReportsPage = () => {
             title="Export Reports"
             options={{ xlsx: () => handleDownloadExcel(), csv: () => handleDownloadCSV() }}
             trigger={(
-              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0" type="button" aria-label="Export reports" title="Export reports">
-                <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+              <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label="Export reports" title="Export reports">
+                <Download className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-medium hidden sm:inline-block">Export</span>
               </button>
             )}
           />
@@ -416,14 +417,14 @@ const ReportsPage = () => {
                   title={`Export ${cat.label}`}
                   options={{ xlsx: () => handleDownloadExcel(cat.id), csv: () => handleDownloadCSV(cat.id) }}
                   trigger={(
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); setActiveTab(cat.id); }}
                       className="h-9 w-9 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors border border-border hover:border-primary/50"
                       title="Export report"
                       type="button"
                       aria-label="Export report"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   )}
                 />

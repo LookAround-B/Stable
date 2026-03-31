@@ -343,7 +343,7 @@ const PermissionsPage = () => {
                 aria-label="Export permissions"
                 title="Export permissions"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
           />
@@ -572,10 +572,10 @@ const PermissionsPage = () => {
                        );
                  })}
                  {/* Append Task Node */}
-                 <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors min-h-[160px]">
+                 {/* <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors min-h-[160px]">
                    <Plus className="w-6 h-6 text-muted-foreground mb-2" />
                    <p className="label-sm text-muted-foreground">APPEND TASK NODE</p>
-                 </div>
+                 </div> */}
                  {/* Empty State */}
                  {taskPermsList.length === 0 && !taskLoading && (
                    <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center min-h-[160px] bg-surface-container/50">

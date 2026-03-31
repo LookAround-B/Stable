@@ -149,7 +149,7 @@ const DailyAttendancePage = () => {
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button className="btn-download daily-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export daily attendance" title="Export daily attendance">
-                <Download className="w-5 h-5" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
           />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
@@ -435,9 +436,9 @@ const MedicineInventoryPage = () => {
           </div>
 
           {/* Add/Edit Record Form */}
-          {showForm && (
-            <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={handleCancel}>
-              <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+          {showForm && ReactDOM.createPortal(
+            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={handleCancel}>
+              <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border">
                   <h3 className="text-xl font-bold text-foreground">{editingRecord ? 'Edit Record' : 'Add Medicine Record'}</h3>
                   <button type="button" onClick={handleCancel} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
@@ -519,7 +520,7 @@ const MedicineInventoryPage = () => {
                 </div>
               </div>
             </div>
-          )}
+          , document.body)}
 
           {/* Table */}
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">

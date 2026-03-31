@@ -146,7 +146,7 @@ const InspectionPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><Search className="w-7 h-7 hidden sm:inline-block mr-2 text-primary" />{t('Jamedar Inspection')} <span className="text-foreground sm:text-primary">Rounds</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Jamedar Inspection')} <span className="text-foreground sm:text-primary">Rounds</span></h1>
           <p className="text-sm text-muted-foreground mt-1">Report and track facility inspection issues</p>
         </div>
         {isJamedar && (

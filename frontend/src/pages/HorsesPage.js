@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, Navigate, useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X } from 'lucide-react';
+import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
@@ -95,6 +95,7 @@ const HorsesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const location = useLocation();
+  const navigate = useNavigate();
   const p = usePermissions();
   const [showModal, setShowModal] = useState(false);
   const [horses, setHorses] = useState([]);
@@ -525,7 +526,7 @@ const HorsesPage = () => {
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Breed</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Manager</th>
-                    {/* <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Performance</th> */}
+                      <th className="px-4 sm:px-6 py-3 text-right"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -562,9 +563,14 @@ const HorsesPage = () => {
                         <td className="px-4 sm:px-6 py-4 text-muted-foreground hidden lg:table-cell">
                           {horse.supervisor ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})` : '-'}
                         </td>
-                        {/* <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
-                          <PerformanceBar value={getHorsePerformance(horse)} />
-                        </td> */}
+                          <td className="px-4 sm:px-6 py-4 text-right">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); navigate(`/horses/${horse.id}`); }}
+                              className="h-8 px-3 rounded-lg border border-border bg-surface-container-high text-foreground text-xs font-medium hover:bg-surface-container-highest transition-colors inline-flex items-center gap-1"
+                            >
+                              {t('View')} <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
                       </tr>
                     );
                   })}

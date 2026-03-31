@@ -586,7 +586,6 @@ const GroceriesInventoryPage = () => {
         <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
           <div ref={formCardRef} className="bg-surface-container-highest rounded-lg p-5 edge-glow">
             <div className="flex items-center gap-2 mb-5">
-              <Package className="w-5 h-5 text-primary" />
               <h2 className="heading-md text-foreground">STOCK REGISTRATION</h2>
             </div>
 
