@@ -3,13 +3,15 @@ import InventoryCharts from '../components/InventoryCharts';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import feedInventoryService from '../services/feedInventoryService';
-import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings, SlidersHorizontal } from 'lucide-react';
+import { RotateCw, Download, Plus, X, AlertTriangle, Package, TrendingUp, Pencil, BellRing, Settings, SlidersHorizontal, Search } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import DatePicker from '../components/shared/DatePicker';
 import * as XLSX from 'xlsx';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
@@ -40,7 +42,6 @@ const FeedInventoryPage = () => {
   const [reportStartDate, setReportStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportData, setReportData] = useState(null);
-  const [downloadingCSV, setDownloadingCSV] = useState(false);
   const [thresholdModal, setThresholdModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showTableSearch, setShowTableSearch] = useState(false);
@@ -94,15 +95,7 @@ const FeedInventoryPage = () => {
     finally { setLoading(false); }
   };
 
-  const handleDownloadCSV = async () => {
-    try { setDownloadingCSV(true); await feedInventoryService.downloadConsumptionCSV(reportStartDate, reportEndDate); showMessage('CSV report downloaded successfully'); }
-    catch (error) { showMessage('Failed to download CSV report', 'error'); }
-    finally { setDownloadingCSV(false); }
-  };
-
-  const handleDownloadExcel = () => {
-    if (!inventoryRecords.length) return;
-    const data = inventoryRecords.map((record) => {
+  const getInventoryExportRows = () => inventoryRecords.map((record) => {
       const totalAvailable = (record.openingStock || 0) + (record.unitsBrought || 0);
       const percentUsed = totalAvailable > 0 ? ((record.totalUsed || 0) / totalAvailable) * 100 : 0;
       return {
@@ -121,10 +114,52 @@ const FeedInventoryPage = () => {
       };
     });
 
+  const handleDownloadInventoryCSV = () => {
+    const data = getInventoryExportRows();
+    if (!data.length) return;
+    downloadCsvFile(
+      data,
+      `FeedInventory_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.csv`
+    );
+  };
+
+  const handleDownloadExcel = () => {
+    const data = getInventoryExportRows();
+    if (!data.length) return;
+
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Feed Inventory');
     XLSX.writeFile(workbook, `FeedInventory_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.xlsx`);
+  };
+
+  const getReportExportRows = () => {
+    if (!reportData?.horseConsumption) return [];
+    return Object.values(reportData.horseConsumption).map((hc) => ({
+      'Horse': hc.horseName,
+      'Stable': hc.stableNumber || '-',
+      'Days': hc.daysRecorded,
+      ...Object.fromEntries(
+        FEED_TYPES
+          .filter((ft) => reportData.totalConsumption?.[ft] > 0)
+          .map((ft) => [FEED_LABELS[ft], hc.feeds?.[ft] || 0])
+      ),
+    }));
+  };
+
+  const handleDownloadReportCSV = () => {
+    const rows = getReportExportRows();
+    if (!rows.length) { showMessage('No report data to export', 'error'); return; }
+    downloadCsvFile(rows, `FeedConsumption_${reportStartDate}_to_${reportEndDate}.csv`);
+  };
+
+  const handleDownloadReportExcel = () => {
+    const rows = getReportExportRows();
+    if (!rows.length) { showMessage('No report data to export', 'error'); return; }
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Feed Report');
+    XLSX.writeFile(workbook, `FeedConsumption_${reportStartDate}_to_${reportEndDate}.xlsx`);
   };
 
   const filteredInventoryRecords = inventoryRecords.filter((record) => {
@@ -214,38 +249,47 @@ const FeedInventoryPage = () => {
 
           {/* Form */}
           {showForm && (
-            <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-              <h3 className="text-lg font-bold text-foreground mb-4">{editingRecord ? `Edit: ${FEED_LABELS[editingRecord.feedType]}` : 'Add Stock Entry'}</h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {!editingRecord && (
-                    <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Feed Type *</label>
-                      <SearchableSelect name="feedType" value={formData.feedType} onChange={(e) => setFormData({ ...formData, feedType: e.target.value })} options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))} placeholder="Select feed type..." required />
+            <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
+              <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                  <h3 className="text-xl font-bold text-foreground">{editingRecord ? `Edit: ${FEED_LABELS[editingRecord.feedType]}` : 'Add Stock Entry'}</h3>
+                  <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-6">
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {!editingRecord && (
+                        <div>
+                          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Feed Type *</label>
+                          <SearchableSelect name="feedType" value={formData.feedType} onChange={(e) => setFormData({ ...formData, feedType: e.target.value })} options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))} placeholder="Select feed type..." required />
+                        </div>
+                      )}
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Opening Stock</label>
+                        <input type="number" step="0.01" min="0" value={formData.openingStock} onChange={(e) => setFormData({ ...formData, openingStock: e.target.value })} placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Units Brought *</label>
+                        <input type="number" step="0.01" min="0" value={formData.unitsBrought} onChange={(e) => setFormData({ ...formData, unitsBrought: e.target.value })} required placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
+                        <SearchableSelect name="unit" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} options={[{ value: 'kg', label: 'Kilograms (kg)' }, { value: 'liters', label: 'Liters' }, { value: 'packets', label: 'Packets' }, { value: 'bags', label: 'Bags' }, { value: 'units', label: 'Units' }]} />
+                      </div>
                     </div>
-                  )}
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Opening Stock</label>
-                    <input type="number" step="0.01" min="0" value={formData.openingStock} onChange={(e) => setFormData({ ...formData, openingStock: e.target.value })} placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Units Brought *</label>
-                    <input type="number" step="0.01" min="0" value={formData.unitsBrought} onChange={(e) => setFormData({ ...formData, unitsBrought: e.target.value })} required placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
-                    <SearchableSelect name="unit" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} options={[{ value: 'kg', label: 'Kilograms (kg)' }, { value: 'liters', label: 'Liters' }, { value: 'packets', label: 'Packets' }, { value: 'bags', label: 'Bags' }, { value: 'units', label: 'Units' }]} />
-                  </div>
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                      <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                    </div>
+                    <div className="flex gap-3">
+                      <button type="submit" disabled={loading} className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{loading ? 'Saving...' : editingRecord ? 'Save Changes' : 'Create Entry'}</button>
+                      <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                    </div>
+                  </form>
                 </div>
-                <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
-                  <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
-                </div>
-                <div className="flex gap-3">
-                  <button type="submit" disabled={loading} className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{loading ? 'Saving...' : editingRecord ? 'Save Changes' : 'Create Entry'}</button>
-                  <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
-                </div>
-              </form>
+              </div>
             </div>
           )}
 
@@ -264,12 +308,13 @@ const FeedInventoryPage = () => {
                 <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Status</h3>
                 <div className="feed-inventory-status-actions flex items-center gap-2">
                   <div className="relative hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                       placeholder="Search feed type..."
-                      className="h-8 px-3 w-52 rounded-lg bg-surface-container-high text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                      className="h-10 pl-10 pr-3 w-52 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                     />
                   </div>
                   <button
@@ -281,15 +326,20 @@ const FeedInventoryPage = () => {
                     <SlidersHorizontal className="w-4 h-4" />
                   </button>
                   {inventoryRecords.length > 0 && (
-                    <button
-                      onClick={handleDownloadExcel}
-                      className="feed-inventory-mobile-export btn-download p-2 rounded-lg border border-border text-foreground transition-colors flex items-center justify-center sm:hidden"
-                      aria-label="Export feed inventory"
-                      title="Export"
-                      type="button"
-                    >
-                      <Download className="w-4 h-4 shrink-0" />
-                    </button>
+                    <ExportDialog
+                      title="Export Feed Inventory"
+                      options={{ xlsx: handleDownloadExcel, csv: handleDownloadInventoryCSV }}
+                      trigger={(
+                        <button
+                          className="feed-inventory-mobile-export btn-download p-2 rounded-lg border border-border text-foreground transition-colors flex items-center justify-center sm:hidden"
+                          aria-label="Export feed inventory"
+                          title="Export feed inventory"
+                          type="button"
+                        >
+                          <Download className="w-4 h-4 shrink-0" />
+                        </button>
+                      )}
+                    />
                   )}
                 </div>
               </div>
@@ -297,12 +347,13 @@ const FeedInventoryPage = () => {
             {showTableSearch && (
               <div className="px-5 py-4 border-b border-border bg-surface-container-high/50 sm:hidden">
                 <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     placeholder="Search feed type..."
-                    className="h-9 px-3 w-full rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                    className="h-10 pl-10 pr-3 w-full rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                   />
                 </div>
               </div>
@@ -414,7 +465,15 @@ const FeedInventoryPage = () => {
             <div className="flex gap-2 md:ml-auto w-full sm:w-auto">
               <button onClick={loadReport} disabled={loading} className="feed-inventory-report-generate flex-1 sm:flex-none h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all disabled:opacity-50 min-w-[150px]">{loading ? 'Loading...' : 'Generate'}</button>
               {reportData && (
-                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-2"><Download className="w-4 h-4" />{downloadingCSV ? 'CSV...' : 'CSV'}</button>
+                <ExportDialog
+                  title="Export Feed Report"
+                  options={{ xlsx: handleDownloadReportExcel, csv: handleDownloadReportCSV }}
+                  trigger={(
+                    <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container transition-colors flex items-center justify-center" type="button" aria-label="Export feed report" title="Export feed report">
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
+                />
               )}
             </div>
           </div>

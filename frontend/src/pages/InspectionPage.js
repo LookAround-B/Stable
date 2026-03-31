@@ -12,6 +12,8 @@ import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, Search, Al
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const InspectionPage = () => {
   const { user } = useAuth();
@@ -108,14 +110,14 @@ const InspectionPage = () => {
   };
 
   const handleDownloadExcel = () => {
-    if (!inspections.length) { alert('No data'); return; }
+    if (!inspections.length) { showNoExportDataToast('No data'); return; }
     const data = inspections.map(i => ({ 'Date': i.createdAt ? new Date(i.createdAt).toLocaleDateString('en-GB') : '', 'Round': i.round, 'Horse': i.horse?.name || '-', 'Area': i.area || '-', 'Location': i.location, 'Description': i.description, 'Severity': i.severityLevel, 'Reported By': i.jamedar?.fullName || '' }));
     const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Inspections'); XLSX.writeFile(wb, `Inspections_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   // eslint-disable-next-line no-unused-vars
   const handleDownloadCSV = () => {
-    if (!inspections.length) { alert('No data'); return; }
+    if (!inspections.length) { showNoExportDataToast('No data'); return; }
     const csvData = inspections.map(i => ({ 'Date': i.createdAt ? new Date(i.createdAt).toLocaleDateString('en-GB') : '', 'Round': i.round, 'Horse': i.horse?.name || '-', 'Area': i.area || '-', 'Location': i.location, 'Description': i.description, 'Severity': i.severityLevel, 'Reported By': i.jamedar?.fullName || '' }));
     const headers = Object.keys(csvData[0]);
     const escape = (val) => { const s = String(val ?? ''); return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -198,8 +200,15 @@ const InspectionPage = () => {
 
       {/* Form */}
       {showForm && isJamedar && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-          <h3 className="text-lg font-bold text-foreground mb-4">{editingInspection ? t('Edit Inspection') : t('Report Issue')}</h3>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={closeForm}>
+          <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">{editingInspection ? t('Edit Inspection') : t('Report Issue')}</h3>
+              <button type="button" onClick={closeForm} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
@@ -252,6 +261,8 @@ const InspectionPage = () => {
               <button type="button" onClick={closeForm} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
       )}
 
@@ -259,7 +270,17 @@ const InspectionPage = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-foreground">Inspections ({inspections.length})</h2>
         <div className="flex gap-2">
-          {inspections.length > 0 && <button onClick={handleDownloadExcel} className="h-8 px-3 rounded-lg border border-border text-foreground text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center gap-1"><Download className="w-3 h-3" />Excel</button>}
+          {inspections.length > 0 && (
+            <ExportDialog
+              title="Export Inspections"
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button className="h-8 w-8 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export inspections" title="Export inspections">
+                  <Download className="w-3 h-3" />
+                </button>
+              )}
+            />
+          )}
           {Object.values(filters).some(v => v) && <button onClick={() => setFilters({ round: '', horseId: '', severityLevel: '', area: '', startDate: '', endDate: '' })} className="h-8 px-3 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:bg-surface-container-high transition-colors">Clear Filters</button>}
         </div>
       </div>

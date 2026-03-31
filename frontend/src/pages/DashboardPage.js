@@ -280,6 +280,26 @@ const EmptyState = ({ label }) => (
   <div className="dashboard-lovable-empty">{label}</div>
 );
 
+const RoleTooltip = ({ active, payload }) => {
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+
+  const item = payload[0]?.payload;
+  if (!item) {
+    return null;
+  }
+
+  return (
+    <div style={tooltipStyle}>
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>{formatRoleLabel(item.role)}</div>
+      <div style={{ color: item.fill, fontWeight: 800 }}>
+        Count: {item.count}
+      </div>
+    </div>
+  );
+};
+
 const DashboardPage = () => {
   const { user } = useAuth();
   const { lang } = useI18n();
@@ -562,7 +582,7 @@ const DashboardPage = () => {
                 <BarChart data={teamByRole} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
                   <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--lovable-text-soft, var(--dashboard-tooltip-text))' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <YAxis dataKey="role" type="category" width={90} tick={{ fontSize: 9, fill: 'var(--lovable-text-soft, var(--dashboard-tooltip-text))' }} tickFormatter={formatRoleLabel} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
+                  <Tooltip content={<RoleTooltip />} />
                   <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={14}>
                     {teamByRole.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
                   </Bar>

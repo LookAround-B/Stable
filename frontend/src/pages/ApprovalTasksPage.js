@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { CheckCircle2, XCircle, Clock, BarChart3, Shield, SlidersHorizontal } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, BarChart3, Search, Shield } from 'lucide-react';
 import apiClient from '../services/apiClient';
 import medicineLogService from '../services/medicineLogService';
 import { useI18n } from '../context/I18nContext';
@@ -108,10 +108,16 @@ const ApprovalTasksPage = () => {
   const filtered = allItems.filter(item => {
     const status = item.status === 'Pending Review' ? 'Pending' : item.status;
     if (activeFilter !== 'All' && status !== activeFilter) return false;
-    const searchTerm = search.toLowerCase();
+    const searchTerm = search.trim().toLowerCase();
+    if (!searchTerm) return true;
     const itemName = item.itemType === 'task' ? item.name : item.medicineName;
     const createdBy = item.itemType === 'task' ? item.createdBy?.fullName : item.jamedar?.fullName;
-    return itemName?.toLowerCase().includes(searchTerm) || createdBy?.toLowerCase().includes(searchTerm);
+    const horseName = item.itemType === 'task' ? item.horse?.name : '';
+    return (
+      itemName?.toLowerCase().includes(searchTerm) ||
+      createdBy?.toLowerCase().includes(searchTerm) ||
+      horseName?.toLowerCase().includes(searchTerm)
+    );
   });
 
   const pendingCount = pendingItems.length;
@@ -236,12 +242,12 @@ const ApprovalTasksPage = () => {
         <div className="relative w-full md:w-72">
           <input
             type="text"
-            placeholder={t('Filter by name or person...')}
+            placeholder={t('Search by name or person...')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
           />
-          <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 

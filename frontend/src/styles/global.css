@@ -1976,6 +1976,26 @@ p {
   border: 1px solid var(--success-border)
 }
 
+.btn-confirm-green {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--success) / 0.3);
+  background: linear-gradient(135deg, hsl(var(--success)), hsl(var(--success) / 0.82));
+  color: hsl(var(--success-foreground));
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 14px 30px hsl(var(--success) / 0.24);
+}
+
+.btn-confirm-green:hover {
+  filter: brightness(1.04);
+}
+
 .btn-link {
   background: none;
   color: var(--text);
@@ -15581,15 +15601,40 @@ html[data-text-size="large"] {
 }
 
 .lovable-pagination-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   min-width: 56px;
   height: 30px;
   padding: 0 24px 0 10px;
   border-radius: 10px;
   border: 1px solid var(--lovable-table-line);
   background-color: rgba(255, 255, 255, 0.04);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b9a7d6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 12px 12px;
   color: var(--lovable-table-text);
   font-size: 12px;
   font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.lovable-pagination-select:hover {
+  border-color: var(--lovable-table-line-strong);
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.lovable-pagination-select:focus {
+  border-color: hsl(var(--primary) / 0.32);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+}
+
+.lovable-pagination-select option {
+  background: hsl(var(--surface-container-highest));
+  color: hsl(var(--foreground));
 }
 
 .lovable-shell.lovable-theme-light .lovable-pagination-nav,
@@ -15598,6 +15643,10 @@ html[data-text-size="large"] {
   background: hsl(var(--foreground) / 0.04);
   border-color: hsl(var(--border));
   color: hsl(var(--muted-foreground));
+}
+
+.lovable-shell.lovable-theme-light .lovable-pagination-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 .lovable-shell.lovable-theme-light .lovable-pagination-nav:hover:not(:disabled),
@@ -15937,6 +15986,12 @@ html[data-text-size="large"] {
 
 .farrier-shoeing-toolbar-actions {
   margin-left: auto;
+}
+
+.farrier-shoeing-page .farrier-shoeing-search-wrap {
+  width: 13rem;
+  flex: 0 0 13rem;
+  min-width: 13rem;
 }
 
 .modal input:focus,
@@ -17515,6 +17570,13 @@ body.efm-theme-light .crop-area {
   flex-wrap: wrap;
 }
 
+.horse-directory-toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .horse-directory-toolbar--subsection {
   justify-content: flex-end;
 }
@@ -17877,7 +17939,8 @@ body.efm-theme-light .crop-area {
   .employee-directory-search,
   .employee-directory-role-filter,
   .horse-directory-heading,
-  .horse-directory-search {
+  .horse-directory-search,
+  .horse-directory-toolbar-actions {
     width: 100%;
     flex-basis: 100%;
   }
@@ -17919,6 +17982,12 @@ body.efm-theme-light .crop-area {
     flex-basis: auto;
     min-width: 0;
     height: 32px;
+  }
+
+  .horses-page .horse-directory-toolbar-actions {
+    width: auto;
+    flex: 0 0 auto;
+    margin-left: auto;
   }
 
   .horses-page .lovable-main-content .horse-directory-search-input {
@@ -19212,19 +19281,24 @@ body.efm-theme-light .crop-area {
     flex-wrap: wrap;
   }
 
-  .horse-feeds-page .horse-feeds-toolbar > .flex.items-center.gap-3 {
-    gap: 8px;
-    flex: 1 1 100%;
-  }
-
-  .horse-feeds-page .horse-feeds-toolbar > .relative.flex-1 {
+  .horse-feeds-page .horse-feeds-search {
     max-width: none;
     flex: 1 1 auto;
     min-width: 0;
   }
 
-  .horse-feeds-page .horse-feeds-toolbar > .flex.lg\:justify-end.lg\:ml-auto {
-    margin-left: 0;
+  .horse-feeds-page .horse-feeds-toolbar-actions {
+    margin-left: auto;
+    flex: 0 0 auto;
+    align-items: flex-end;
+  }
+
+  .horse-feeds-page .horse-feeds-date-range {
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .horse-feeds-page .horse-feeds-toolbar-actions .horse-feeds-export {
     flex: 0 0 auto;
   }
 
@@ -19427,6 +19501,52 @@ body.efm-theme-light .crop-area {
   }
 }
 
+.farrier-inventory-page .farrier-inventory-search-wrap {
+  width: 13rem;
+  flex: 0 0 13rem;
+  min-width: 13rem;
+}
+
+.lovable-main-content form button[type='submit'],
+.modal form button[type='submit'],
+.tasks-page .fixed form button[type='submit'] {
+  border-color: hsl(var(--success) / 0.3) !important;
+  background: linear-gradient(135deg, hsl(var(--success)), hsl(var(--success) / 0.82)) !important;
+  color: hsl(var(--success-foreground)) !important;
+  box-shadow: 0 14px 30px hsl(var(--success) / 0.24) !important;
+}
+
+.lovable-main-content form button[type='submit']:hover,
+.modal form button[type='submit']:hover,
+.tasks-page .fixed form button[type='submit']:hover {
+  filter: brightness(1.04);
+}
+
+.daily-attendance-page .daily-attendance-toolbar {
+  align-items: flex-end;
+}
+
+.daily-attendance-page .daily-attendance-search {
+  width: 16rem;
+  flex: 0 0 16rem;
+  min-width: 16rem;
+}
+
+.daily-attendance-page .daily-attendance-toolbar-actions {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.groom-worksheet-page .groom-worksheet-date-field {
+  width: 10.5rem;
+  flex: 0 0 10.5rem;
+}
+
+.groom-worksheet-page .groom-worksheet-filter-field {
+  width: 13rem;
+  flex: 0 0 13rem;
+}
+
 @media (max-width: 767px) {
   .daily-attendance-page .daily-attendance-kpi-grid,
   .housekeeping-inventory-page .housekeeping-inventory-kpi-grid {
@@ -19436,6 +19556,25 @@ body.efm-theme-light .crop-area {
   .daily-attendance-page .daily-attendance-kpi-card--wide-mobile,
   .housekeeping-inventory-page .housekeeping-inventory-kpi-card--wide-mobile {
     grid-column: span 2;
+  }
+
+  .daily-attendance-page .daily-attendance-search {
+    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .daily-attendance-page .daily-attendance-toolbar-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .groom-worksheet-page .groom-worksheet-date-field,
+  .groom-worksheet-page .groom-worksheet-filter-field {
+    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 }
 
@@ -19956,6 +20095,399 @@ body.efm-theme-light .crop-area {
   }
 
   .gate-attendance-page .gate-attendance-controls .gate-attendance-action-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* Shared tab toolbar sizing */
+.lovable-main-content {
+  --efm-tab-control-height: 42px;
+  --efm-tab-control-radius: 14px;
+  --efm-tab-control-gap: 12px;
+  --efm-tab-control-padding-x: 16px;
+}
+
+.lovable-header-actions,
+.employee-directory-toolbar-actions,
+.analysis-toolbar-actions {
+  gap: var(--efm-tab-control-gap);
+  align-items: center;
+}
+
+.employee-directory-toolbar,
+.horse-directory-toolbar,
+.digital-attendance-toolbar {
+  gap: var(--efm-tab-control-gap);
+}
+
+.employee-directory-search,
+.horse-directory-search,
+.lovable-main-content .search-bar,
+.lovable-main-content .task-filters .search-input {
+  min-height: var(--efm-tab-control-height);
+  height: var(--efm-tab-control-height);
+  padding: 0 var(--efm-tab-control-padding-x);
+  border-radius: var(--efm-tab-control-radius);
+}
+
+.employee-directory-search--compact {
+  flex: 1 1 320px;
+  max-width: 360px;
+}
+
+.employee-directory-role-filter .ss-trigger,
+.analysis-toolbar-btn,
+.lovable-main-content .btn-download,
+.lovable-header-actions .btn-add,
+.horses-page .horse-header-action,
+.employees-page .employee-header-action {
+  min-height: var(--efm-tab-control-height);
+  height: var(--efm-tab-control-height);
+  padding: 0 var(--efm-tab-control-padding-x);
+  border-radius: var(--efm-tab-control-radius);
+}
+
+.lovable-header-actions .btn-add,
+.horses-page .horse-header-action,
+.employees-page .employee-header-action {
+  min-width: 160px;
+}
+
+.analysis-toolbar-btn,
+.lovable-main-content .btn-download {
+  font-size: 0.875rem;
+}
+
+.employee-directory-clear,
+.employee-directory-action,
+.horse-directory-clear,
+.horse-directory-action {
+  width: var(--efm-tab-control-height);
+  height: var(--efm-tab-control-height);
+  flex-basis: var(--efm-tab-control-height);
+  border-radius: var(--efm-tab-control-radius);
+}
+
+.lovable-main-content .employee-directory-search-input,
+.lovable-main-content .horse-directory-search-input {
+  font-size: 0.875rem;
+}
+
+.horses-page .horse-directory-search,
+.horse-care-team-page .horse-care-team-search {
+  width: 100%;
+  max-width: 360px;
+}
+
+.horses-page .horse-directory-search {
+  flex: 0 1 360px;
+}
+
+.horse-care-team-page .horse-care-team-search {
+  flex: 0 1 360px;
+}
+
+.horse-directory-filter,
+.horse-care-team-filter {
+  width: 100%;
+  max-width: 180px;
+}
+
+.horse-directory-filter > button,
+.horse-care-team-filter > button {
+  min-height: var(--efm-tab-control-height);
+  height: var(--efm-tab-control-height);
+  padding: 0 var(--efm-tab-control-padding-x);
+  border-radius: var(--efm-tab-control-radius);
+  background: hsl(var(--surface-container-high));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+}
+
+.horse-directory-filter > button:hover,
+.horse-care-team-filter > button:hover {
+  border-color: hsl(var(--primary) / 0.4);
+}
+
+.horse-directory-filter > button:focus,
+.horse-care-team-filter > button:focus {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+}
+
+.horse-directory-filter > div,
+.horse-care-team-filter > div {
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .employee-directory-search--compact {
+    max-width: none;
+  }
+
+  .horses-page .horse-directory-search,
+  .horse-care-team-page .horse-care-team-search,
+  .horse-directory-filter,
+  .horse-care-team-filter {
+    max-width: none;
+  }
+}
+
+/* Sidebar scrollbar hidden, app scrollbars thin */
+.lovable-sidebar-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.lovable-sidebar-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.lovable-main-content,
+.lovable-main-content * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(209, 153, 255, 0.28) transparent;
+}
+
+.lovable-main-content *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.lovable-main-content *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lovable-main-content *::-webkit-scrollbar-thumb {
+  background: rgba(209, 153, 255, 0.22);
+  border-radius: 999px;
+}
+
+.lovable-main-content *::-webkit-scrollbar-thumb:hover {
+  background: rgba(209, 153, 255, 0.34);
+}
+
+.lovable-shell.lovable-theme-light .lovable-main-content,
+.lovable-shell.lovable-theme-light .lovable-main-content * {
+  scrollbar-color: rgba(124, 58, 237, 0.22) transparent;
+}
+
+.lovable-shell.lovable-theme-light .lovable-main-content *::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.18);
+}
+
+.lovable-shell.lovable-theme-light .lovable-main-content *::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.28);
+}
+
+/* Final UI consistency overrides */
+.lovable-pagination-rows {
+  gap: 10px;
+}
+
+.lovable-pagination-select-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.lovable-pagination-select-shell::after {
+  content: "";
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+}
+
+.lovable-pagination-select {
+  min-width: 84px;
+  height: 34px;
+  padding: 0 32px 0 12px;
+  border-radius: 12px;
+  border-color: hsl(var(--border));
+  background-color: hsl(var(--surface-container-high));
+  background-image: none;
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.lovable-pagination-select:hover {
+  border-color: hsl(var(--primary) / 0.35);
+  background-color: hsl(var(--surface-container-highest));
+}
+
+.lovable-pagination-select:focus {
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+}
+
+.lovable-shell.lovable-theme-light .lovable-pagination-select {
+  background-color: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+
+.lovable-shell.lovable-theme-light .lovable-pagination-select-shell::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.horses-page .horse-directory-toolbar {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.horses-page .horse-directory-search {
+  flex: 0 1 360px;
+  max-width: 360px;
+  min-width: 0;
+}
+
+.horses-page .horse-directory-toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.horse-feeds-page .horse-feeds-toolbar {
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.horse-feeds-page .horse-feeds-search {
+  flex: 0 1 360px;
+  max-width: 360px;
+  min-width: 0;
+}
+
+.horse-feeds-page .horse-feeds-toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.horse-feeds-page .horse-feeds-date-range {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.horse-feeds-page .horse-feeds-date-range > div {
+  width: 10.5rem;
+}
+
+.horse-feeds-page .horse-feeds-toolbar input[type='text'],
+.horse-feeds-page .horse-feeds-toolbar input[type='date'],
+.horse-feeds-page .horse-feeds-export {
+  height: 40px;
+}
+
+.horse-feeds-page .horse-feeds-export {
+  width: 40px;
+}
+
+.farrier-shoeing-page .farrier-shoeing-search-wrap,
+.farrier-inventory-page .farrier-inventory-search-wrap,
+.tack-inventory-page .tack-inventory-search-wrap {
+  width: 13rem;
+  flex: 0 0 13rem;
+  min-width: 13rem;
+}
+
+.daily-attendance-page .daily-attendance-toolbar {
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.daily-attendance-page .daily-attendance-search {
+  width: 22rem;
+  flex: 0 1 22rem;
+  min-width: 18rem;
+}
+
+.daily-attendance-page .daily-attendance-toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.daily-attendance-page .daily-attendance-export,
+.team-attendance-export,
+.work-records-export,
+.daily-work-records-export,
+.farrier-shoeing-export,
+.farrier-inventory-export,
+.tack-inventory-export {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+}
+
+.daily-attendance-page .daily-attendance-export svg,
+.team-attendance-export svg,
+.work-records-export svg,
+.daily-work-records-export svg,
+.farrier-shoeing-export svg,
+.farrier-inventory-export svg,
+.tack-inventory-export svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+@media (max-width: 767px) {
+  .horses-page .horse-directory-toolbar,
+  .horse-feeds-page .horse-feeds-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .horses-page .horse-directory-search,
+  .horse-feeds-page .horse-feeds-search,
+  .daily-attendance-page .daily-attendance-search {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .horses-page .horse-directory-toolbar-actions,
+  .horse-feeds-page .horse-feeds-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .horse-feeds-page .horse-feeds-date-range {
+    width: 100%;
+  }
+
+  .horse-feeds-page .horse-feeds-date-range > div {
+    width: 100%;
+  }
+
+  .daily-attendance-page .daily-attendance-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .farrier-shoeing-page .farrier-shoeing-search-wrap,
+  .farrier-inventory-page .farrier-inventory-search-wrap,
+  .tack-inventory-page .tack-inventory-search-wrap {
+    width: 100%;
     flex: 1 1 auto;
     min-width: 0;
   }

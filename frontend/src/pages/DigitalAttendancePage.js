@@ -8,6 +8,9 @@ import { Download, Plus, X, CalendarCheck, CheckCircle2, History, Calendar } fro
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import SelectField from '../components/shared/SelectField';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none disabled:opacity-50';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -94,19 +97,27 @@ const DigitalAttendancePage = () => {
 
   const isMonday = () => new Date(formData.date).getDay() === 1;
 
-  const handleDownloadExcel = () => {
-    if (!attendanceRecords.length) { alert('No records'); return; }
-    const data = attendanceRecords.map(r => ({
+  const getExportRows = () => attendanceRecords.map(r => ({
       'Date': new Date(r.date).toLocaleDateString('en-GB'),
       'Status': r.status,
       'Check-in Time': r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString() : '',
       'Check-out Time': r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString() : '',
       'Remarks': r.remarks || ''
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No records'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'My Attendance');
     XLSX.writeFile(wb, `MyAttendance_${searchDate}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No records'); return; }
+    downloadCsvFile(data, `MyAttendance_${searchDate}.csv`);
   };
 
   const presentCount = attendanceRecords.filter(r => r.status === 'Present').length;
@@ -145,8 +156,15 @@ const DigitalAttendancePage = () => {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg relative edge-glow">
-          <h3 className="text-lg font-bold text-foreground mb-5 pb-3 border-b border-border/50">{t('Quick Mark Attendance')}</h3>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">{t('Quick Mark Attendance')}</h3>
+              <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -173,6 +191,8 @@ const DigitalAttendancePage = () => {
               </button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
       )}
 
@@ -187,9 +207,15 @@ const DigitalAttendancePage = () => {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
-            <button onClick={handleDownloadExcel} className="btn-download digital-attendance-export h-9 px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 whitespace-nowrap">
-              <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden sm:inline">{t('Excel')}</span>
-            </button>
+            <ExportDialog
+              title="Export Digital Attendance"
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button className="btn-download digital-attendance-export h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center whitespace-nowrap" type="button" aria-label="Export digital attendance" title="Export digital attendance">
+                  <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                </button>
+              )}
+            />
           </div>
         </div>
 
@@ -242,8 +268,5 @@ const DigitalAttendancePage = () => {
 };
 
 export default DigitalAttendancePage;
-
-
-
 
 

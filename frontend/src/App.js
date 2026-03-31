@@ -46,6 +46,7 @@ import HousekeepingInventoryPage from './pages/HousekeepingInventoryPage';
 import FarrierInventoryPage from './pages/FarrierInventoryPage';
 import EntityMapPage from './pages/EntityMapPage';
 import NotFoundPage from './pages/NotFoundPage';
+import { Toaster } from './components/ui/sonner';
 
 function App() {
   // Use a default Google Client ID - you should replace this with your actual Client ID
@@ -105,6 +106,7 @@ function App() {
           
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        <Toaster position="top-right" richColors closeButton theme="system" />
       </Router>
     </AuthProvider>
     </GoogleOAuthProvider>

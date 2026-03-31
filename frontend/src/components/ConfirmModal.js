@@ -20,12 +20,10 @@ const ConfirmModal = ({
   const getConfirmButtonClass = () => {
     switch (confirmVariant) {
       case 'danger':
-        return 'btn-danger';
       case 'warning':
-        return 'btn-warning';
       case 'primary':
       default:
-        return 'btn-primary';
+        return 'btn-confirm-green';
     }
   };
 

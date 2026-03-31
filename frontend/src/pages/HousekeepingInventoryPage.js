@@ -11,6 +11,9 @@ import usePermissions from '../hooks/usePermissions';
 import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import OperationalMetricCard from '../components/OperationalMetricCard';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
 const UNIT_TYPES = ["Liters", "Pieces", "Kg"];
@@ -121,9 +124,7 @@ const HousekeepingInventoryPage = () => {
 
   const formatDate = (d) => d ? new Date(d).toISOString().split('T')[0] : "-";
 
-  const handleDownloadExcel = () => {
-    if (items.length === 0) { alert("No data"); return; }
-    const data = items.map(i => ({
+  const getExportRows = () => items.map(i => ({
       "Item Name": i.itemName, "Category": i.category,
       "Qty": i.quantity, "Unit": i.unitType, "Min Stock": i.minimumStockLevel || "",
       "Reorder Alert": i.reorderAlert ? "Yes" : "No", "Usage Area": i.usageArea || "",
@@ -132,10 +133,20 @@ const HousekeepingInventoryPage = () => {
       "Expiry": formatDate(i.expiryDate), "Staff": i.assignedStaff?.fullName || "",
       "Notes": i.notes || "",
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (data.length === 0) { showNoExportDataToast('No data'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, "Housekeeping");
     XLSX.writeFile(wb, `HousekeepingInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (data.length === 0) { showNoExportDataToast('No data'); return; }
+    downloadCsvFile(data, `HousekeepingInventory_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   const lowStockItems = items.filter(i => i.reorderAlert && i.minimumStockLevel && i.quantity < i.minimumStockLevel);
@@ -183,8 +194,15 @@ const HousekeepingInventoryPage = () => {
 
       {/* ── Form ── */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-          <h3 className="text-lg font-bold text-foreground mb-4">{editingId ? "Edit Item" : "Add Item"}</h3>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={resetForm}>
+          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">{editingId ? "Edit Item" : "Add Item"}</h3>
+              <button type="button" onClick={resetForm} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
@@ -257,6 +275,8 @@ const HousekeepingInventoryPage = () => {
               <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={resetForm}>Cancel</button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
       )}
 
@@ -274,9 +294,15 @@ const HousekeepingInventoryPage = () => {
           </div>
           <div className="flex items-center gap-2 shrink-0 sm:ml-0 mx-auto sm:mx-0">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} items</span>
-            <button onClick={handleDownloadExcel} className="btn-download housekeeping-inventory-export h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span>
-            </button>
+            <ExportDialog
+              title="Export Housekeeping Inventory"
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button className="btn-download housekeeping-inventory-export h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export housekeeping inventory" title="Export housekeeping inventory">
+                  <Download className="w-4 h-4" />
+                </button>
+              )}
+            />
           </div>
         </div>
 
@@ -377,7 +403,4 @@ const HousekeepingInventoryPage = () => {
 };
 
 export default HousekeepingInventoryPage;
-
-
-
 

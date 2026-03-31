@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
-const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
+const parentRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager']
 
 export default async function handler(
   req: NextApiRequest,
@@ -167,4 +167,3 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-

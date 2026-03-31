@@ -8,6 +8,9 @@ import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, ClipboardCheck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
@@ -72,16 +75,28 @@ const GroomWorkSheetPage = () => {
 
   const canCreateWorksheet = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Groom'].includes(user?.designation);
 
-  const handleDownloadExcel = () => {
-    if (!worksheets.length) { alert('No data'); return; }
+  const getExportRows = () => {
     const rows = [];
     worksheets.forEach(ws => {
       if (ws.entries && ws.entries.length) {
         ws.entries.forEach(entry => { rows.push({ 'Date': ws.date ? new Date(ws.date).toLocaleDateString('en-GB') : '', 'Groom': ws.groom?.fullName || '', 'Horse': getHorseName(entry.horseId), 'Morning Hours': entry.amHours || 0, 'PM Hours': entry.pmHours || 0, 'Total Hours': entry.wholeDayHours || 0, 'Woodchips': entry.woodchipsUsed || 0, 'Bichali (kg)': entry.bichaliUsed || 0, 'Boo Sa (bags)': entry.booSaUsed || 0, 'Remarks': entry.remarks || '' }); });
       } else { rows.push({ 'Date': ws.date ? new Date(ws.date).toLocaleDateString('en-GB') : '', 'Groom': ws.groom?.fullName || '', 'Horse': '', 'Morning Hours': '', 'PM Hours': '', 'Total Hours': '', 'Woodchips': '', 'Bichali (kg)': '', 'Boo Sa (bags)': '', 'Remarks': '' }); }
     });
-    if (!rows.length) { alert('No data'); return; }
+    return rows;
+  };
+
+  const handleDownloadExcel = () => {
+    if (!worksheets.length) { showNoExportDataToast('No data'); return; }
+    const rows = getExportRows();
+    if (!rows.length) { showNoExportDataToast('No data'); return; }
     const wb = XLSX.utils.book_new(); const wsSheet = XLSX.utils.json_to_sheet(rows); XLSX.utils.book_append_sheet(wb, wsSheet, 'Groom WorkSheet'); XLSX.writeFile(wb, `GroomWorkSheet_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    if (!worksheets.length) { showNoExportDataToast('No data'); return; }
+    const rows = getExportRows();
+    if (!rows.length) { showNoExportDataToast('No data'); return; }
+    downloadCsvFile(rows, `GroomWorkSheet_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
@@ -107,21 +122,36 @@ const GroomWorkSheetPage = () => {
 
       {/* Controls */}
       <div className="groom-worksheet-toolbar flex flex-col md:flex-row items-stretch md:items-end gap-4">
-        <div>
+        <div className="groom-worksheet-date-field">
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
-        <div className="min-w-[200px]">
+        <div className="groom-worksheet-filter-field">
           <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Groom Filter</label>
-          <SearchableSelect value={filterGroomId} onChange={(e) => setFilterGroomId(e.target.value)} placeholder="All Grooms" options={[{ value: 'all', label: 'All Grooms' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
+          <SearchableSelect size="sm" value={filterGroomId} onChange={(e) => setFilterGroomId(e.target.value)} placeholder="All Grooms" options={[{ value: 'all', label: 'All Grooms' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
         </div>
-        <button onClick={handleDownloadExcel} disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 px-3 md:px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mx-auto md:mx-0 md:ml-auto"><Download className="w-4 h-4" /> <span className="hidden md:inline">Excel</span></button>
+        <ExportDialog
+          title="Export Groom Worksheet"
+          options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+          trigger={(
+            <button disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed mx-auto md:mx-0 md:ml-auto" type="button" aria-label="Export groom worksheet" title="Export groom worksheet">
+              <Download className="w-4 h-4" />
+            </button>
+          )}
+        />
       </div>
 
       {/* Add Worksheet Form */}
       {showAddForm && canCreateWorksheet && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-          <h3 className="text-lg font-bold text-foreground mb-4">Create New Work Sheet</h3>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowAddForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">Create New Work Sheet</h3>
+              <button type="button" onClick={() => setShowAddForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmitWorksheet} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -187,6 +217,8 @@ const GroomWorkSheetPage = () => {
 
             <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Creating...' : 'Create Worksheet'}</button>
           </form>
+            </div>
+          </div>
         </div>
       )}
 
@@ -267,8 +299,4 @@ const GroomWorkSheetPage = () => {
 };
 
 export default GroomWorkSheetPage;
-
-
-
-
 

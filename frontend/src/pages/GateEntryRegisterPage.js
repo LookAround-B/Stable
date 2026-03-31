@@ -11,6 +11,9 @@ import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -87,10 +90,18 @@ const GateEntryRegisterPage = () => {
     return `${Math.floor(diff / 60)}h ${diff % 60}m`;
   };
 
+  const getExportRows = () => entries.map(entry => ({ 'Name': entry.personType === 'staff' ? getStaffName(entry.employeeId) : (entry.visitor?.name || entry.personName || ''), 'Type': entry.personType, 'Vehicle': entry.vehicleNo || '', 'Entry': formatTime(entry.entryTime), 'Exit': formatTime(entry.exitTime), 'Duration': getTotalDuration(entry.entryTime, entry.exitTime), 'Purpose/Notes': entry.visitor?.purpose || entry.notes || '' }));
+
   const handleDownloadExcel = () => {
-    if (!entries.length) { alert('No data'); return; }
-    const data = entries.map(entry => ({ 'Name': entry.personType === 'staff' ? getStaffName(entry.employeeId) : (entry.visitor?.name || entry.personName || ''), 'Type': entry.personType, 'Vehicle': entry.vehicleNo || '', 'Entry': formatTime(entry.entryTime), 'Exit': formatTime(entry.exitTime), 'Duration': getTotalDuration(entry.entryTime, entry.exitTime), 'Purpose/Notes': entry.visitor?.purpose || entry.notes || '' }));
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data'); return; }
     const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Gate Register'); XLSX.writeFile(wb, `GateRegister_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data'); return; }
+    downloadCsvFile(data, `GateRegister_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   const inputCls = "w-full h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
@@ -139,7 +150,15 @@ const GateEntryRegisterPage = () => {
 
       {/* Form */}
       {showForm && (
-        <div className="gate-entry-form-panel bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/30 shadow-[inset_0_1px_0_rgba(168,85,247,0.14)]">
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">Record Gate Entry</h3>
+              <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Mode */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -201,6 +220,8 @@ const GateEntryRegisterPage = () => {
             </div>
             <button type="submit" className={`gate-entry-submit-btn h-10 px-6 rounded-lg text-sm font-semibold tracking-wider uppercase ${formMode === 'entry' ? 'bg-gradient-to-r from-success to-success/80 text-success-foreground' : 'bg-gradient-to-r from-warning to-warning/80 text-warning-foreground'}`}>Record {formMode === 'entry' ? 'Entry' : 'Exit'}</button>
           </form>
+            </div>
+          </div>
         </div>
       )}
 
@@ -208,10 +229,15 @@ const GateEntryRegisterPage = () => {
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <h3 className="text-sm font-bold text-foreground">Gate Register — {new Date(selectedDate).toLocaleDateString('en-GB')}</h3>
-          <button onClick={handleDownloadExcel} className="gate-entry-export h-9 px-3 rounded-lg border border-border text-foreground text-xs font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden sm:inline">Excel</span>
-          </button>
+          <ExportDialog
+            title="Export Gate Register"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button className="gate-entry-export h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export gate register" title="Export gate register">
+                <Download className="w-3.5 h-3.5 shrink-0" />
+              </button>
+            )}
+          />
         </div>
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">Loading gate entries...</div>

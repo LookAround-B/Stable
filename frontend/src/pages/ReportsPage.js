@@ -10,6 +10,8 @@ import * as XLSX from 'xlsx';
 import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, Calendar } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import DatePicker from '../components/shared/DatePicker';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const trendData = [
   { month: 'JAN_24', optimal: 60, actual: 55 },
@@ -226,10 +228,10 @@ const ReportsPage = () => {
     );
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = (tabId = activeTab) => {
     const workbook = XLSX.utils.book_new();
     const dateStr = new Date().toISOString().split('T')[0];
-    if (activeTab === 'attendance') {
+    if (tabId === 'attendance') {
       const data = attendanceData.map(r => ({
         'Date': formatDate(r.date),
         'Employee': r.employee?.fullName || '-',
@@ -239,7 +241,7 @@ const ReportsPage = () => {
       }));
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Attendance');
       XLSX.writeFile(workbook, `Attendance_Report_${dateStr}.xlsx`);
-    } else if (activeTab === 'tasks') {
+    } else if (tabId === 'tasks') {
       const data = tasksData.map(task => ({
         'Date': formatDate(task.scheduledTime || task.createdAt),
         'Task': task.name || '-',
@@ -250,7 +252,7 @@ const ReportsPage = () => {
       }));
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Tasks');
       XLSX.writeFile(workbook, `Tasks_Report_${dateStr}.xlsx`);
-    } else if (activeTab === 'expenses') {
+    } else if (tabId === 'expenses') {
       const data = expensesData.map(exp => ({
         'Date': formatDate(exp.date),
         'Type': exp.type || '-',
@@ -261,7 +263,7 @@ const ReportsPage = () => {
       }));
       XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Expenses');
       XLSX.writeFile(workbook, `Expenses_Report_${dateStr}.xlsx`);
-    } else if (activeTab === 'health') {
+    } else if (tabId === 'health') {
       const inspData = inspectionsData.map(insp => ({
         'Date': formatDate(insp.createdAt),
         'Round': insp.round || '-',
@@ -286,6 +288,82 @@ const ReportsPage = () => {
     }
   };
 
+  const getReportRows = (tabId = activeTab) => {
+    if (tabId === 'attendance') {
+      return attendanceData.map(r => ({
+        'Date': formatDate(r.date),
+        'Employee': r.employee?.fullName || '-',
+        'Designation': r.employee?.designation || '-',
+        'Status': r.status || '-',
+        'Remarks': r.remarks || '-',
+      }));
+    }
+
+    if (tabId === 'tasks') {
+      return tasksData.map(task => ({
+        'Date': formatDate(task.scheduledTime || task.createdAt),
+        'Task': task.name || '-',
+        'Assigned To': task.assignedEmployee?.fullName || '-',
+        'Created By': task.createdBy?.fullName || '-',
+        'Priority': task.priority || '-',
+        'Status': task.status || '-',
+      }));
+    }
+
+    if (tabId === 'expenses') {
+      return expensesData.map(exp => ({
+        'Date': formatDate(exp.date),
+        'Type': exp.type || '-',
+        'Description': exp.description || '-',
+        'Amount (INR)': parseFloat(exp.amount || 0).toFixed(2),
+        'Created By': exp.createdBy?.fullName || '-',
+        'Horse/Employee': exp.horse?.name || exp.employee?.fullName || '-',
+      }));
+    }
+
+    if (tabId === 'health') {
+      return [
+        ...inspectionsData.map(insp => ({
+          'Record Type': 'Inspection',
+          'Date': formatDate(insp.createdAt),
+          'Round': insp.round || '-',
+          'Horse': insp.horse?.name || '-',
+          'Submitted By': insp.jamedar?.fullName || '-',
+          'Severity/Approval': insp.severityLevel || '-',
+          'Status': insp.status || '-',
+          'Description/Medicine': insp.description || '-',
+        })),
+        ...medicineLogsData.map(log => ({
+          'Record Type': 'Medicine Log',
+          'Date': formatDateTime(log.timeAdministered || log.createdAt),
+          'Round': '-',
+          'Horse': log.horse?.name || '-',
+          'Submitted By': log.jamedar?.fullName || '-',
+          'Severity/Approval': log.approvalStatus || '-',
+          'Status': '-',
+          'Description/Medicine': log.medicineName || '-',
+        })),
+      ];
+    }
+
+    return [];
+  };
+
+  const handleDownloadCSV = (tabId = activeTab) => {
+    const rows = getReportRows(tabId);
+    if (!rows.length) return;
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filenames = {
+      attendance: `Attendance_Report_${dateStr}.csv`,
+      tasks: `Tasks_Report_${dateStr}.csv`,
+      expenses: `Expenses_Report_${dateStr}.csv`,
+      health: `Health_Report_${dateStr}.csv`,
+    };
+
+    downloadCsvFile(rows, filenames[tabId] || `Report_${dateStr}.csv`);
+  };
+
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -308,9 +386,15 @@ const ReportsPage = () => {
               <DatePicker value={dateRange.endDate} onChange={(val) => setDateRange(prev => ({ ...prev, endDate: val }))} />
             </div>
           </div>
-          <button onClick={handleDownloadExcel} className="h-10 px-3 sm:px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0">
-            <Download className="w-4 h-4 lg:w-5 lg:h-5" />
-          </button>
+          <ExportDialog
+            title="Export Reports"
+            options={{ xlsx: () => handleDownloadExcel(), csv: () => handleDownloadCSV() }}
+            trigger={(
+              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0" type="button" aria-label="Export reports" title="Export reports">
+                <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+              </button>
+            )}
+          />
         </div>
       </div>
 
@@ -328,14 +412,21 @@ const ReportsPage = () => {
                 <cat.icon className="w-4 h-4" />
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setActiveTab(cat.id); handleDownloadExcel(); }}
-                  className="h-9 px-3 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors border border-border hover:border-primary/50"
-                  title="Download Report"
-                >
-                  <Download className="w-4 h-4 mr-1.5" />
-                  <span className="text-xs font-medium shrink-0">Export</span>
-                </button>
+                <ExportDialog
+                  title={`Export ${cat.label}`}
+                  options={{ xlsx: () => handleDownloadExcel(cat.id), csv: () => handleDownloadCSV(cat.id) }}
+                  trigger={(
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setActiveTab(cat.id); }}
+                      className="h-9 w-9 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors border border-border hover:border-primary/50"
+                      title="Export report"
+                      type="button"
+                      aria-label="Export report"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
+                />
                 <ArrowUpRight className={`w-4 h-4 transition-colors ${activeTab === cat.id ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`} />
               </div>
             </div>
@@ -614,4 +705,3 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
-

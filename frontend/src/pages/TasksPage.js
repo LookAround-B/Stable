@@ -6,7 +6,7 @@ import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { BarChart3, Camera, Check, Clock3, Package, Play, SlidersHorizontal, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import { BarChart3, Camera, Check, Clock3, Package, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
 import DateTimePicker from '../components/shared/DateTimePicker';
 
 const TASK_TYPES = [
@@ -527,17 +527,19 @@ const TasksPage = () => {
   };
 
   const filteredTasks = tasks.filter(task => {
+    const query = searchTerm.trim().toLowerCase();
     const filterMatch =
       activeFilter === 'All Tasks' ||
       (activeFilter === 'High Priority' && ['High', 'Urgent'].includes(task.priority)) ||
       (activeFilter === 'Medication' && ['Health Check', 'Medical'].includes(task.type)) ||
       (activeFilter === 'Training' && ['Training', 'Exercise'].includes(task.type));
+    const taskId = String(task.id || '');
+    const shortTaskId = taskId.slice(0, 8);
     const searchMatch =
-      task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getHorseName(task.horseId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getEmployeeName(task.assignedEmployeeId).toLowerCase().includes(searchTerm.toLowerCase());
+      !query ||
+      taskId.toLowerCase().includes(query) ||
+      shortTaskId.toLowerCase().includes(query) ||
+      getHorseName(task.horseId).toLowerCase().includes(query);
     return filterMatch && searchMatch;
   });
 
@@ -741,12 +743,12 @@ const TasksPage = () => {
         <div className="task-filter-search relative w-full sm:w-72">
           <input
             type="text"
-            placeholder={t('Filter task ID or horse name...')}
+            placeholder={t('Search task ID or horse name...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
-          <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 

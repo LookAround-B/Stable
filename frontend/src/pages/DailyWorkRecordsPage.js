@@ -5,11 +5,14 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
-import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History } from 'lucide-react';
+import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History, X } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const getTodayString = () => {
   const today = new Date();
@@ -91,13 +94,20 @@ const DailyWorkRecordsPage = () => {
     setFormData({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: selectedDate, notes: '' });
   };
 
+  const getExportRows = () => records.map(r => ({ 'Date': r.date ? new Date(r.date).toLocaleDateString('en-GB') : '', 'Horse': r.horse?.name || '-', 'Rider': r.rider?.fullName || '-', 'Work Type': r.workType, 'Duration (min)': r.duration || '-', 'Notes': r.notes || '' }));
+
   const handleDownloadExcel = () => {
-    if (records.length === 0) { alert('No records'); return; }
-    const data = records.map(r => ({ 'Date': r.date ? new Date(r.date).toLocaleDateString('en-GB') : '', 'Horse': r.horse?.name || '-', 'Rider': r.rider?.fullName || '-', 'Work Type': r.workType, 'Duration (min)': r.duration || '-', 'Notes': r.notes || '' }));
+    if (records.length === 0) { showNoExportDataToast('No records'); return; }
+    const data = getExportRows();
     const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data);
     ws['!cols'] = [{ wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 30 }];
     XLSX.utils.book_append_sheet(wb, ws, 'Daily Work Records');
     XLSX.writeFile(wb, `DailyWorkRecords_${selectedDate}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    if (records.length === 0) { showNoExportDataToast('No records'); return; }
+    downloadCsvFile(getExportRows(), `DailyWorkRecords_${selectedDate}.csv`);
   };
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
@@ -111,7 +121,7 @@ const DailyWorkRecordsPage = () => {
   if (!p.viewEIRS) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-6">
+    <div className="daily-work-records-page space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
@@ -151,7 +161,17 @@ const DailyWorkRecordsPage = () => {
           <div className="w-44">
             <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
           </div>
-          <button onClick={handleDownloadExcel} disabled={loading} className="h-10 px-3 md:px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 ml-auto md:ml-0"><Download className="w-4 h-4" /><span className="hidden md:inline">Excel</span></button>
+        </div>
+        <div className="w-full md:w-auto md:ml-auto flex justify-end">
+          <ExportDialog
+            title="Export Daily Work Records"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button disabled={loading} className="btn-download daily-work-records-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export daily work records" title="Export daily work records">
+                <Download className="w-5 h-5" />
+              </button>
+            )}
+          />
         </div>
         {!showForm && canCreateRecords && (
           <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm font-medium hover:bg-surface-container-highest hover:text-primary transition-all flex items-center gap-2">
@@ -162,9 +182,16 @@ const DailyWorkRecordsPage = () => {
 
       {/* Form */}
       {showForm && canCreateRecords && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-          <h3 className="text-lg font-bold text-foreground mb-4">{editingId ? t('Edit Work Record') : t('New Work Record')}</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={handleCancel}>
+          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">{editingId ? t('Edit Work Record') : t('New Work Record')}</h3>
+              <button type="button" onClick={handleCancel} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
@@ -191,11 +218,13 @@ const DailyWorkRecordsPage = () => {
                 <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder="Additional session notes" rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
             </div>
-            <div className="flex gap-3">
-              <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
-              <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                <div className="flex gap-3">
+                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
+                  <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                </div>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
       )}
 

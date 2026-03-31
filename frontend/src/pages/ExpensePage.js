@@ -10,6 +10,8 @@ import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const ExpensePage = () => {
   const { user } = useAuth();
@@ -381,7 +383,7 @@ const ExpensePage = () => {
 
   const handleDownloadExcel = () => {
     if (expenses.length === 0) {
-      alert('No expenses to download');
+      showNoExportDataToast('No expenses to download');
       return;
     }
 
@@ -436,7 +438,7 @@ const ExpensePage = () => {
   // eslint-disable-next-line no-unused-vars
   const handleDownloadCSV = () => {
     if (expenses.length === 0) {
-      alert('No expenses to download');
+      showNoExportDataToast('No expenses to download');
       return;
     }
 
@@ -714,15 +716,21 @@ const ExpensePage = () => {
             onChange={(val) => handleFilterChange({ target: { name: 'endDate', value: val } })}
             size="sm"
           />
-          <button
-            type="button"
-            onClick={handleDownloadExcel}
-            disabled={!visibleExpenses.length}
-            className="h-8 px-3 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground text-xs flex items-center gap-1.5 hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
-          >
-            <Upload className="w-3 h-3" />
-            Export
-          </button>
+          <ExportDialog
+            title="Export Expenses"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button
+                type="button"
+                disabled={!visibleExpenses.length}
+                className="h-8 w-8 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
+                aria-label="Export expenses"
+                title="Export expenses"
+              >
+                <Upload className="w-3 h-3" />
+              </button>
+            )}
+          />
         </div>
         {Object.values(filters).some(Boolean) && (
           <button
@@ -1052,4 +1060,3 @@ const ExpensePage = () => {
 };
 
 export default ExpensePage;
-

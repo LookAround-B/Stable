@@ -14,6 +14,9 @@ import { Download, Pill, Activity, CheckCircle, AlertTriangle, SlidersHorizontal
 import * as XLSX from 'xlsx';
 import DateTimePicker from '../components/shared/DateTimePicker';
 import SelectField from '../components/shared/SelectField';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const MedicineLogsPage = () => {
   const { user } = useAuth();
@@ -232,9 +235,7 @@ const MedicineLogsPage = () => {
 
   if (!user) return null;
 
-  const handleDownloadExcel = () => {
-    if (!logs.length) { alert('No data to download'); return; }
-    const data = logs.map(l => ({
+  const getExportRows = () => logs.map(l => ({
       'Date': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '',
       'Horse': l.horse?.name || '',
       'Medicine': l.medicineName,
@@ -244,10 +245,20 @@ const MedicineLogsPage = () => {
       'Status': l.status || '',
       'Submitted By': l.jamedar?.fullName || '',
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Medicine Logs');
     XLSX.writeFile(wb, `MedicineLogs_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(data, `MedicineLogs_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   if (!p.viewMedicineLogs) return <Navigate to="/dashboard" replace />;
@@ -303,9 +314,15 @@ const MedicineLogsPage = () => {
           <p className="text-sm text-muted-foreground mt-1">{t('Track medicine administration records and treatment history.')}</p>
         </div>
         <div className="hidden sm:flex gap-2">
-          <button onClick={handleDownloadExcel} className="h-10 px-4 sm:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" /> Export
-          </button>
+          <ExportDialog
+            title="Export Medicine Logs"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export medicine logs" title="Export medicine logs">
+                <Download className="w-4 h-4" />
+              </button>
+            )}
+          />
         </div>
       </div>
 
@@ -325,14 +342,20 @@ const MedicineLogsPage = () => {
 
       {selectedTab === 'all-logs' && !loading && filteredLogs.length > 0 && (
         <div className="medicine-logs-export-row sm:hidden">
-          <button
-            onClick={handleDownloadExcel}
-            className="medicine-logs-export-mobile btn-download"
-            aria-label="Export medicine logs"
-            title="Export"
-          >
-            <Download className="w-4 h-4" />
-          </button>
+          <ExportDialog
+            title="Export Medicine Logs"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button
+                className="medicine-logs-export-mobile btn-download"
+                aria-label="Export medicine logs"
+                title="Export medicine logs"
+                type="button"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            )}
+          />
         </div>
       )}
 
@@ -453,7 +476,16 @@ const MedicineLogsPage = () => {
 
           {/* Add form */}
           {showForm && (
-            <form onSubmit={handleSubmit} className="bg-surface-container-highest rounded-xl p-6 edge-glow space-y-4">
+            <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+              <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                  <h3 className="text-xl font-bold text-foreground">Add Medicine Log</h3>
+                  <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
@@ -516,6 +548,9 @@ const MedicineLogsPage = () => {
                 </button>
               </div>
             </form>
+                </div>
+              </div>
+            </div>
           )}
 
           {loading && <TableSkeleton cols={6} rows={5} />}

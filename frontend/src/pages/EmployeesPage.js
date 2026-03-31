@@ -9,8 +9,11 @@ import ConfirmModal from '../components/ConfirmModal';
 import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, User, Users, X, Trash2 } from 'lucide-react';
+import { BriefcaseBusiness, Camera, CheckCircle2, Clock3, Download, Plus, Search, User, Users, X, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 // All 18 roles in the system
 const EMPLOYEE_DESIGNATIONS = [
@@ -474,9 +477,7 @@ const EmployeesPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
 
-  const handleDownloadExcel = () => {
-    if (!filteredEmployees.length) { alert('No data to download'); return; }
-    const data = filteredEmployees.map(emp => ({
+  const getExportRows = () => filteredEmployees.map(emp => ({
       'Name': emp.fullName,
       'Email': emp.email,
       'Role': emp.designation,
@@ -484,10 +485,20 @@ const EmployeesPage = () => {
       'Phone': emp.phoneNumber || '',
       'Status': emp.employmentStatus,
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Employees');
     XLSX.writeFile(wb, `Employees_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(data, `Employees_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   if (!p.manageEmployees) return <Navigate to="/dashboard" replace />;
@@ -568,6 +579,7 @@ const EmployeesPage = () => {
         {/* Toolbar */}
         <div className="employee-directory-toolbar flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
           <div className="employee-directory-search employee-directory-search--compact">
+            <Search className="employee-directory-search-icon w-4 h-4" />
             <input
               type="text"
               placeholder={t("Search by name, email, or role...")}
@@ -575,6 +587,16 @@ const EmployeesPage = () => {
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="employee-directory-search-input"
             />
+            {searchTerm && (
+              <button
+                onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+                className="employee-directory-clear"
+                type="button"
+                aria-label={t('Clear search')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <div className="employee-directory-toolbar-actions flex items-center gap-3">
             <SearchableSelect
@@ -585,13 +607,20 @@ const EmployeesPage = () => {
               options={availableRoles.map((role) => ({ value: role, label: t(role) }))}
               placeholder={t('All Roles')}
             />
-            <button
-              onClick={handleDownloadExcel}
-              className="btn-download employee-directory-export h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
-              title={t('Download employees')}
-            >
-              <Download className="w-4 h-4" />
-            </button>
+            <ExportDialog
+              title="Export Employees"
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button
+                  className="btn-download employee-directory-export shrink-0"
+                  title={t('Export employees')}
+                  type="button"
+                  aria-label={t('Export employees')}
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+              )}
+            />
           </div>
         </div>
 
@@ -690,8 +719,8 @@ const EmployeesPage = () => {
 
       {/* Modal */}
       {showModal && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80 backdrop-blur-sm">
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
               <h2 className="text-lg font-bold text-foreground">{t('Add New Employee')}</h2>
               <button onClick={closeModal} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground"><X size={18} /></button>
@@ -781,6 +810,3 @@ const EmployeesPage = () => {
 };
 
 export default EmployeesPage;
-
-
-

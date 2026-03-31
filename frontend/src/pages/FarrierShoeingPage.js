@@ -9,6 +9,9 @@ import ConfirmModal from '../components/ConfirmModal';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Bell, BellOff, Send, Plus, X, Trash2, Hammer, Clock, CheckCircle, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const SHOEING_INTERVAL_DAYS = 21;
 
@@ -134,16 +137,31 @@ const FarrierShoeingPage = () => {
     setShowForm(true); setActiveTab('completed');
   };
 
+  const getCompletedExportRows = () => records.map((r) => ({ 'Horse': r.horse?.name || '', 'Stable #': r.horse?.stableNumber || '', 'Farrier': r.farrier?.fullName || '', 'Shoeing Date': r.shoeingDate ? new Date(r.shoeingDate).toLocaleDateString('en-GB') : '', 'Next Due Date': r.nextDueDate ? new Date(r.nextDueDate).toLocaleDateString('en-GB') : '', 'Notes': r.notes || '' }));
+
+  const getPendingExportRows = () => pendingHorses.map((ph) => ({ 'Horse': ph.horse?.name || '', 'Stable #': ph.horse?.stableNumber || '', 'Last Shoeing': ph.lastShoeingDate ? new Date(ph.lastShoeingDate).toLocaleDateString('en-GB') : 'Never', 'Next Due': ph.nextDueDate ? new Date(ph.nextDueDate).toLocaleDateString('en-GB') : 'N/A', 'Days Overdue': ph.neverShoed ? 'Never Shoed' : (ph.daysOverdue || 0), 'Last Farrier': ph.farrier?.fullName || 'N/A' }));
+
   const handleDownloadExcel = () => {
     if (activeTab === 'completed') {
-      if (!records.length) { alert('No data to download'); return; }
-      const data = records.map((r) => ({ 'Horse': r.horse?.name || '', 'Stable #': r.horse?.stableNumber || '', 'Farrier': r.farrier?.fullName || '', 'Shoeing Date': r.shoeingDate ? new Date(r.shoeingDate).toLocaleDateString('en-GB') : '', 'Next Due Date': r.nextDueDate ? new Date(r.nextDueDate).toLocaleDateString('en-GB') : '', 'Notes': r.notes || '' }));
+      if (!records.length) { showNoExportDataToast('No data to download'); return; }
+      const data = getCompletedExportRows();
       const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Completed Shoeings'); XLSX.writeFile(wb, `FarrierShoeing_Completed_${new Date().toISOString().slice(0, 10)}.xlsx`);
     } else {
-      if (!pendingHorses.length) { alert('No data to download'); return; }
-      const data = pendingHorses.map((ph) => ({ 'Horse': ph.horse?.name || '', 'Stable #': ph.horse?.stableNumber || '', 'Last Shoeing': ph.lastShoeingDate ? new Date(ph.lastShoeingDate).toLocaleDateString('en-GB') : 'Never', 'Next Due': ph.nextDueDate ? new Date(ph.nextDueDate).toLocaleDateString('en-GB') : 'N/A', 'Days Overdue': ph.neverShoed ? 'Never Shoed' : (ph.daysOverdue || 0), 'Last Farrier': ph.farrier?.fullName || 'N/A' }));
+      if (!pendingHorses.length) { showNoExportDataToast('No data to download'); return; }
+      const data = getPendingExportRows();
       const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Pending Shoeings'); XLSX.writeFile(wb, `FarrierShoeing_Pending_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
+  };
+
+  const handleDownloadCSV = () => {
+    if (activeTab === 'completed') {
+      if (!records.length) { showNoExportDataToast('No data to download'); return; }
+      downloadCsvFile(getCompletedExportRows(), `FarrierShoeing_Completed_${new Date().toISOString().slice(0, 10)}.csv`);
+      return;
+    }
+
+    if (!pendingHorses.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(getPendingExportRows(), `FarrierShoeing_Pending_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   if (!user) return null;
@@ -220,36 +238,45 @@ const FarrierShoeingPage = () => {
 
       {/* Add Form */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-          <h3 className="text-lg font-bold text-foreground mb-4">New Shoeing Record</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
-                <SearchableSelect value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder="Search horse..." options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
-              </div>
-              <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Farrier *</label>
-                <SearchableSelect value={formData.farrierId} onChange={(e) => setFormData((prev) => ({ ...prev, farrierId: e.target.value }))} placeholder="Search farrier..." options={[{ value: '', label: 'Select Farrier' }, ...farriers.map((f) => ({ value: f.id, label: `${f.fullName} (${f.designation})` }))]} />
-              </div>
-              <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shoeing Date & Time *</label>
-                <input type="datetime-local" value={formData.shoeingDate} onChange={(e) => setFormData((prev) => ({ ...prev, shoeingDate: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Due (auto)</label>
-                <input type="text" value={calculateNextDue(formData.shoeingDate)} disabled className="w-full h-10 px-3 rounded-lg bg-muted border border-border text-muted-foreground text-sm" />
-              </div>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">New Shoeing Record</h3>
+              <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div>
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
-              <textarea value={formData.notes} onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))} placeholder="Any notes about the shoeing..." rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
+                    <SearchableSelect value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder="Search horse..." options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Farrier *</label>
+                    <SearchableSelect value={formData.farrierId} onChange={(e) => setFormData((prev) => ({ ...prev, farrierId: e.target.value }))} placeholder="Search farrier..." options={[{ value: '', label: 'Select Farrier' }, ...farriers.map((f) => ({ value: f.id, label: `${f.fullName} (${f.designation})` }))]} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shoeing Date & Time *</label>
+                    <input type="datetime-local" value={formData.shoeingDate} onChange={(e) => setFormData((prev) => ({ ...prev, shoeingDate: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Due (auto)</label>
+                    <input type="text" value={calculateNextDue(formData.shoeingDate)} disabled className="w-full h-10 px-3 rounded-lg bg-muted border border-border text-muted-foreground text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                  <textarea value={formData.notes} onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))} placeholder="Any notes about the shoeing..." rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                </div>
+                <div className="flex gap-3">
+                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Shoeing Record'}</button>
+                  <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                </div>
+              </form>
             </div>
-            <div className="flex gap-3">
-              <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Shoeing Record'}</button>
-              <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
 
@@ -258,18 +285,23 @@ const FarrierShoeingPage = () => {
         <>
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
             <div className="farrier-shoeing-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
-              <div className="farrier-shoeing-search-wrap relative flex-1 min-w-0">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <div className="farrier-shoeing-search-wrap relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                 <input
                   placeholder="Search horses or farrier..."
-                  className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  className="h-10 pl-9 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
               <div className="farrier-shoeing-toolbar-actions flex items-center gap-2 shrink-0">
-                <button onClick={handleDownloadExcel} className="btn-download farrier-shoeing-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                  <Download className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Export</span>
-                </button>
+                <ExportDialog
+                  title="Export Farrier Shoeing"
+                  options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+                  trigger={(
+                    <button className="btn-download farrier-shoeing-export h-10 w-11 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export farrier shoeing" title="Export farrier shoeing">
+                      <Download className="w-5 h-5 shrink-0" />
+                    </button>
+                  )}
+                />
                 <span className="text-xs text-muted-foreground mono-data hidden sm:block">{records.length} records</span>
               </div>
             </div>
@@ -321,18 +353,23 @@ const FarrierShoeingPage = () => {
         <>
           <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
             <div className="farrier-shoeing-toolbar flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-border gap-3">
-              <div className="farrier-shoeing-search-wrap relative flex-1 min-w-0">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <div className="farrier-shoeing-search-wrap relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                 <input
                   placeholder="Search horses or farrier..."
-                  className="h-9 pl-8 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                  className="h-10 pl-9 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
               <div className="farrier-shoeing-toolbar-actions flex items-center gap-2 shrink-0">
-                <button onClick={handleDownloadExcel} className="btn-download farrier-shoeing-export h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-                  <Download className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Export</span>
-                </button>
+                <ExportDialog
+                  title="Export Farrier Shoeing"
+                  options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+                  trigger={(
+                    <button className="btn-download farrier-shoeing-export h-10 w-11 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export farrier shoeing" title="Export farrier shoeing">
+                      <Download className="w-5 h-5 shrink-0" />
+                    </button>
+                  )}
+                />
                 <span className="text-xs text-muted-foreground mono-data hidden sm:block">{pendingHorses.length} pending</span>
               </div>
             </div>

@@ -11,6 +11,9 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DateTimePicker from '../components/shared/DateTimePicker';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
@@ -199,21 +202,34 @@ const GateAttendancePage = () => {
     setCurrentPage(1);
   }, [activeTab, filterFromDate, filterToDate, logs.length]);
 
-  const handleDownloadExcel = () => {
-    if (displayLogs.length === 0) { alert(`No ${activeTab} logs to download`); return; }
-    let excelData, fileName, sheetName;
+  const getExportRows = () => {
     if (activeTab === 'staff') {
-      excelData = displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Employee Name': log.personName || '-', 'Designation': log.designation || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Shift': log.shift || '-', 'Notes': log.notes || '' }));
-      fileName = `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`; sheetName = 'Staff Entry/Exit';
-    } else {
-      excelData = displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Visitor Name': log.personName || '-', 'Purpose': log.purpose || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Contact': log.contact || '-', 'Notes': log.notes || '' }));
-      fileName = `VisitorLog_${new Date().toISOString().slice(0, 10)}.xlsx`; sheetName = 'Visitor Log';
+      return displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Employee Name': log.personName || '-', 'Designation': log.designation || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Shift': log.shift || '-', 'Notes': log.notes || '' }));
     }
+    return displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Visitor Name': log.personName || '-', 'Purpose': log.purpose || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Contact': log.contact || '-', 'Notes': log.notes || '' }));
+  };
+
+  const handleDownloadExcel = () => {
+    const excelData = getExportRows();
+    if (excelData.length === 0) { showNoExportDataToast(`No ${activeTab} logs to download`); return; }
+    const fileName = activeTab === 'staff'
+      ? `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`
+      : `VisitorLog_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const sheetName = activeTab === 'staff' ? 'Staff Entry/Exit' : 'Visitor Log';
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     worksheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 25 }];
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
     XLSX.writeFile(workbook, fileName);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (data.length === 0) { showNoExportDataToast(`No ${activeTab} logs to download`); return; }
+    const fileName = activeTab === 'staff'
+      ? `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.csv`
+      : `VisitorLog_${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadCsvFile(data, fileName);
   };
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
@@ -258,10 +274,15 @@ const GateAttendancePage = () => {
           <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
             {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
           </button>
-          <button onClick={handleDownloadExcel} title="Download as Excel" className="gate-attendance-export h-10 px-3 lg:px-4 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center gap-2 justify-center shrink-0 ml-auto">
-            <Download className="w-4 h-4 lg:w-5 lg:h-5" />
-            <span className="hidden lg:inline text-sm font-medium">Excel</span>
-          </button>
+          <ExportDialog
+            title="Export Gate Attendance"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button title="Export gate attendance" className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto" type="button" aria-label="Export gate attendance">
+                <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+              </button>
+            )}
+          />
         </div>
       </div>
 

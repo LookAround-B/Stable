@@ -6,7 +6,13 @@ import SearchableSelect from '../components/SearchableSelect';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Users, Star, AlertTriangle, Shield, CheckCircle, Plus, X } from 'lucide-react';
+import { Users, Star, AlertTriangle, Shield, CheckCircle, Plus, Search, X } from 'lucide-react';
+
+const HORSE_TEAM_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Horses' },
+  { value: 'with-team', label: 'With Team' },
+  { value: 'needs-team', label: 'Needs Team' },
+];
 
 const HorseCareTeamPage = () => {
   const { user } = useAuth();
@@ -21,6 +27,7 @@ const HorseCareTeamPage = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedHorse, setSelectedHorse] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [teamFilter, setTeamFilter] = useState('all');
 
   const [formData, setFormData] = useState({
     horseId: '',
@@ -219,8 +226,7 @@ const HorseCareTeamPage = () => {
   const unassignedHorses = totalHorses - horsesWithTeams;
   const filteredHorses = horses.filter((horse) => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return true;
-    return [
+    const matchesSearch = !q || [
       horse.name,
       horse.registrationNumber,
       horse.stableNumber,
@@ -228,6 +234,19 @@ const HorseCareTeamPage = () => {
     ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(q));
+
+    if (!matchesSearch) {
+      return false;
+    }
+
+    const hasTeam = getHorseCareTeam(horse.id).length > 0;
+    if (teamFilter === 'with-team') {
+      return hasTeam;
+    }
+    if (teamFilter === 'needs-team') {
+      return !hasTeam;
+    }
+    return true;
   });
 
   return (
@@ -271,77 +290,107 @@ const HorseCareTeamPage = () => {
 
       {/* Assignment Form */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-          <h3 className="text-lg font-bold text-foreground mb-4">Assign Care Team Member</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
-                  <SearchableSelect
-                    name="horseId"
-                    value={formData.horseId}
-                    onChange={(e) => {
-                      handleInputChange(e);
-                      setSelectedHorse(horses.find((h) => h.id === e.target.value));
-                    }}
-                    options={[{ value: '', label: '-- Select Horse --' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (Reg: ${h.registrationNumber || h.stableNumber})` }))]}
-                    required disabled={loading}
-                  />
-                </div>
-                {selectedHorse && (
-                  <div className="p-3 rounded-lg bg-surface-container-high border border-border space-y-1 text-sm">
-                    <p><span className="text-muted-foreground w-24 inline-block">Age:</span> <strong className="text-foreground">{getHorseAgeLabel(selectedHorse)}</strong></p>
-                    <p><span className="text-muted-foreground w-24 inline-block">Breed:</span> <strong className="text-foreground">{t(selectedHorse.breed) || 'N/A'}</strong></p>
-                    <p><span className="text-muted-foreground w-24 inline-block">Current Team:</span> <strong className="text-foreground">{getHorseCareTeam(selectedHorse.id).length} members</strong></p>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">Assign Care Team Member</h3>
+              <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
+                      <SearchableSelect
+                        name="horseId"
+                        value={formData.horseId}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          setSelectedHorse(horses.find((h) => h.id === e.target.value));
+                        }}
+                        options={[{ value: '', label: '-- Select Horse --' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (Reg: ${h.registrationNumber || h.stableNumber})` }))]}
+                        required
+                        disabled={loading}
+                      />
+                    </div>
+                    {selectedHorse && (
+                      <div className="p-3 rounded-lg bg-surface-container-high border border-border space-y-1 text-sm">
+                        <p><span className="text-muted-foreground w-24 inline-block">Age:</span> <strong className="text-foreground">{getHorseAgeLabel(selectedHorse)}</strong></p>
+                        <p><span className="text-muted-foreground w-24 inline-block">Breed:</span> <strong className="text-foreground">{t(selectedHorse.breed) || 'N/A'}</strong></p>
+                        <p><span className="text-muted-foreground w-24 inline-block">Current Team:</span> <strong className="text-foreground">{getHorseCareTeam(selectedHorse.id).length} members</strong></p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Team Role *</label>
-                <SearchableSelect
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  options={ROLES.map((role) => ({ value: role, label: role }))}
-                  required
-                  disabled={loading}
-                />
-                <p className="text-[10px] text-muted-foreground mt-2">Available staff types: {STAFF_ROLES[formData.role]?.join(', ')}</p>
-              </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Team Role *</label>
+                    <SearchableSelect
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      options={ROLES.map((role) => ({ value: role, label: role }))}
+                      required
+                      disabled={loading}
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-2">Available staff types: {STAFF_ROLES[formData.role]?.join(', ')}</p>
+                  </div>
 
-              <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Staff Member *</label>
-                <SearchableSelect
-                  name="staffId"
-                  value={formData.staffId}
-                  onChange={handleInputChange}
-                  options={[{ value: '', label: '-- Select Staff --' }, ...getAvailableStaff(formData.role).map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))]}
-                  required disabled={loading || !formData.role}
-                />
-              </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Staff Member *</label>
+                    <SearchableSelect
+                      name="staffId"
+                      value={formData.staffId}
+                      onChange={handleInputChange}
+                      options={[{ value: '', label: '-- Select Staff --' }, ...getAvailableStaff(formData.role).map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))]}
+                      required
+                      disabled={loading || !formData.role}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all">{loading ? 'Assigning...' : 'Assign to Team'}</button>
+                  <button type="button" onClick={() => setShowForm(false)} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                </div>
+              </form>
             </div>
-
-            <div className="flex gap-3 pt-2">
-              <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all">{loading ? 'Assigning...' : 'Assign to Team'}</button>
-              <button type="button" onClick={() => setShowForm(false)} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
 
       {/* Horses Grid */}
-      <div className="horse-care-team-toolbar flex flex-col gap-3 pt-2">
-        <div className="horse-care-team-search relative w-full">
+      <div className="horse-care-team-toolbar flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+        <div className="horse-care-team-search horse-directory-search relative w-full">
+          <Search className="horse-directory-search-icon w-4 h-4" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search horse care teams..."
-            className="w-full h-10 rounded-lg border border-border bg-surface-container-high px-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-1 focus:ring-primary outline-none"
+            className="horse-directory-search-input"
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="horse-directory-clear"
+              type="button"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
+        <SearchableSelect
+          name="teamFilter"
+          value={teamFilter}
+          onChange={(e) => setTeamFilter(e.target.value)}
+          options={HORSE_TEAM_FILTER_OPTIONS}
+          className="horse-care-team-filter shrink-0"
+          searchable={false}
+        />
       </div>
       {filteredHorses.length === 0 ? (
         <p className="text-muted-foreground py-8">No horses available</p>
@@ -391,8 +440,4 @@ const HorseCareTeamPage = () => {
 };
 
 export default HorseCareTeamPage;
-
-
-
-
 

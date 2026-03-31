@@ -12,6 +12,9 @@ import { useAuth } from '../context/AuthContext';
 import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus, Pencil, Trash2, BellRing } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -61,7 +64,6 @@ const MedicineInventoryPage = () => {
   );
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportData, setReportData] = useState(null);
-  const [downloadingCSV, setDownloadingCSV] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
@@ -233,22 +235,16 @@ const MedicineInventoryPage = () => {
     }
   };
 
-  const handleDownloadCSV = async () => {
-    try {
-      setDownloadingCSV(true);
-      const blob = await medicineInventoryService.downloadReport(reportStartDate, reportEndDate);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `medicine-inventory-report-${reportStartDate}-to-${reportEndDate}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      showMessage('Failed to download report', 'error');
-    } finally {
-      setDownloadingCSV(false);
-    }
-  };
+  const getInventoryExportRows = () => filteredInventory.map(r => ({
+    'Medicine Type': MEDICINE_LABELS[r.medicineType] || r.medicineType,
+    'Opening Stock': r.openingStock,
+    'Units Purchased': r.unitsPurchased,
+    'Total Used': r.totalUsed,
+    'Units Left': r.unitsLeft,
+    'Unit': r.unit,
+    'Notes': r.notes || '',
+    'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}`,
+  }));
 
   const filteredInventory = inventoryRecords.filter(record => {
     const medicineLabel = (MEDICINE_LABELS[record.medicineType] || record.medicineType).toLowerCase();
@@ -273,21 +269,45 @@ const MedicineInventoryPage = () => {
   });
 
   const handleDownloadExcel = () => {
-    if (!filteredInventory.length) { alert('No data to download'); return; }
-    const data = filteredInventory.map(r => ({
-      'Medicine Type': MEDICINE_LABELS[r.medicineType] || r.medicineType,
-      'Opening Stock': r.openingStock,
-      'Units Purchased': r.unitsPurchased,
-      'Total Used': r.totalUsed,
-      'Units Left': r.unitsLeft,
-      'Unit': r.unit,
-      'Notes': r.notes || '',
-      'Month/Year': `${MONTH_NAMES[r.month - 1]} ${r.year}`,
-    }));
+    const data = getInventoryExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Medicine Inventory');
     XLSX.writeFile(wb, `MedicineInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadInventoryCSV = () => {
+    const data = getInventoryExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(data, `MedicineInventory_${new Date().toISOString().slice(0,10)}.csv`);
+  };
+
+  const getReportExportRows = () => {
+    if (!reportData || Object.keys(reportData).length === 0) return [];
+    return Object.entries(reportData).map(([type, data]) => ({
+      'Medicine Type': MEDICINE_LABELS[type] || type,
+      'Opening Stock': (data.openingStock || 0).toFixed(2),
+      'Units Purchased': (data.unitsPurchased || 0).toFixed(2),
+      'Total Used': (data.totalUsed || 0).toFixed(2),
+      'Units Left': (data.unitsLeft || 0).toFixed(2),
+      'Unit': data.unit || '-',
+    }));
+  };
+
+  const handleDownloadReportCSV = () => {
+    const rows = getReportExportRows();
+    if (!rows.length) { showMessage('No report data for selected date range', 'error'); return; }
+    downloadCsvFile(rows, `medicine-inventory-report-${reportStartDate}-to-${reportEndDate}.csv`);
+  };
+
+  const handleDownloadReportExcel = () => {
+    const rows = getReportExportRows();
+    if (!rows.length) { showMessage('No report data for selected date range', 'error'); return; }
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Report');
+    XLSX.writeFile(wb, `medicine-inventory-report-${reportStartDate}-to-${reportEndDate}.xlsx`);
   };
 
   const handleSaveThreshold = async () => {
@@ -416,7 +436,16 @@ const MedicineInventoryPage = () => {
 
           {/* Add/Edit Record Form */}
           {showForm && (
-            <form onSubmit={handleSubmit} className="bg-surface-container-highest rounded-xl p-6 edge-glow space-y-4">
+            <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={handleCancel}>
+              <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+                  <h3 className="text-xl font-bold text-foreground">{editingRecord ? 'Edit Record' : 'Add Medicine Record'}</h3>
+                  <button type="button" onClick={handleCancel} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Medicine Type *</label>
@@ -487,6 +516,9 @@ const MedicineInventoryPage = () => {
                 <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
               </div>
             </form>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Table */}
@@ -505,10 +537,15 @@ const MedicineInventoryPage = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <button onClick={handleDownloadExcel} className="btn-download medicine-inventory-export h-10 px-4 sm:px-5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center justify-center gap-0 sm:gap-2">
-                  <Download className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Export</span>
-                </button>
+                <ExportDialog
+                  title="Export Medicine Inventory"
+                  options={{ xlsx: handleDownloadExcel, csv: handleDownloadInventoryCSV }}
+                  trigger={(
+                    <button className="btn-download medicine-inventory-export h-10 w-10 rounded-xl border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export medicine inventory" title="Export medicine inventory">
+                      <Download className="w-4 h-4 shrink-0" />
+                    </button>
+                  )}
+                />
               </div>
             </div>
 
@@ -630,9 +667,15 @@ const MedicineInventoryPage = () => {
                 {loading ? 'Loading...' : 'Generate Report'}
               </button>
               {reportData && Object.keys(reportData).length > 0 && (
-                <button onClick={handleDownloadCSV} disabled={downloadingCSV} className={`medicine-inventory-report-download ${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high`}>
-                  <Download className="w-4 h-4" /> {downloadingCSV ? 'Downloading...' : 'CSV'}
-                </button>
+                <ExportDialog
+                  title="Export Medicine Report"
+                  options={{ xlsx: handleDownloadReportExcel, csv: handleDownloadReportCSV }}
+                  trigger={(
+                    <button className={`medicine-inventory-report-download ${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high justify-center`} type="button" aria-label="Export medicine report" title="Export medicine report">
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
+                />
               )}
             </div>
           </div>
@@ -711,10 +754,4 @@ const MedicineInventoryPage = () => {
 };
 
 export default MedicineInventoryPage;
-
-
-
-
-
-
 

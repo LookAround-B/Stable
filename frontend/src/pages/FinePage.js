@@ -11,6 +11,9 @@ import { Check, Download, Upload, X, Zap } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import * as XLSX from 'xlsx';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor'];
@@ -368,9 +371,7 @@ const FinePage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedFines = filteredFines.slice(startIndex, endIndex);
 
-  const handleDownloadExcel = () => {
-    if (!filteredFines.length) { alert('No data to download'); return; }
-    const data = filteredFines.map(f => ({
+  const getExportRows = () => filteredFines.map(f => ({
       'Date': f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-GB') : '',
       'Issued To': f.issuedTo?.fullName || '',
       'Amount (INR)': f.amount,
@@ -379,10 +380,20 @@ const FinePage = () => {
       'Resolved By': f.resolvedBy?.fullName || '',
       'Resolution Notes': f.resolutionNotes || '',
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Fines');
     XLSX.writeFile(wb, `Fines_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(data, `Fines_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   if (!p.viewFines) return <Navigate to="/dashboard" replace />;
@@ -524,12 +535,20 @@ const FinePage = () => {
                       </button>
                     ))}
                   </div>
-                  <button
-                    onClick={handleDownloadExcel}
-                    className="h-8 px-3 lg:px-4 rounded-lg border border-black/20 dark:border-white/20 text-xs text-muted-foreground flex items-center gap-1.5 hover:bg-surface-container-high transition-colors shrink-0 ml-auto lg:ml-0"
-                  >
-                    <Download className="w-3 h-3 lg:w-4 lg:h-4" /> <span className="hidden sm:inline">Excel</span>
-                  </button>
+                  <ExportDialog
+                    title="Export Fines"
+                    options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+                    trigger={(
+                      <button
+                        className="h-8 w-8 lg:w-9 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0 ml-auto lg:ml-0"
+                        type="button"
+                        aria-label="Export fines"
+                        title="Export fines"
+                      >
+                        <Download className="w-3 h-3 lg:w-4 lg:h-4" />
+                      </button>
+                    )}
+                  />
               </div>
             </div>
 
@@ -758,5 +777,3 @@ const FinePage = () => {
 };
 
 export default FinePage;
-
-

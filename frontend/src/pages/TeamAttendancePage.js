@@ -9,6 +9,9 @@ import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -87,9 +90,7 @@ const TeamAttendancePage = () => {
 
   const isMonday = () => new Date(selectedDate).getDay() === 1;
 
-  const handleDownloadExcel = () => {
-    if (attendanceRecords.length === 0) { alert('No attendance records to download'); return; }
-    const excelData = attendanceRecords.map((record) => ({
+  const getExportRows = () => attendanceRecords.map((record) => ({
       'Date': record.date ? new Date(record.date).toLocaleDateString('en-GB') : '',
       'Employee Name': record.employee?.fullName || '-',
       'Designation': record.employee?.designation || '-',
@@ -97,11 +98,19 @@ const TeamAttendancePage = () => {
       'Remarks': record.remarks || '',
       'Marked At': record.markedAt ? new Date(record.markedAt).toLocaleString('en-GB') : '',
     }));
+  const handleDownloadExcel = () => {
+    if (attendanceRecords.length === 0) { showNoExportDataToast('No attendance records to download'); return; }
+    const excelData = getExportRows();
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     worksheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 18 }];
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
     XLSX.writeFile(workbook, `Attendance_${selectedDate}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    if (attendanceRecords.length === 0) { showNoExportDataToast('No attendance records to download'); return; }
+    downloadCsvFile(getExportRows(), `Attendance_${selectedDate}_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
   const totalPages = Math.ceil(attendanceRecords.length / rowsPerPage);
@@ -141,9 +150,16 @@ const TeamAttendancePage = () => {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg edge-glow">
-          <h3 className="text-lg font-bold text-foreground mb-5 pb-3 border-b border-border/50">{t('Quick Mark Attendance')}</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">{t('Quick Mark Attendance')}</h3>
+              <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="z-10 relative">
                 <label className={lbl}>{t('Team Member')} *</label>
@@ -191,12 +207,17 @@ const TeamAttendancePage = () => {
               </div>
             </div>
             {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider block bg-primary/10 px-3 py-1.5 rounded w-fit mt-1 border border-primary/30">⚠ Monday is weekly off (WOFF)</span>}
-            <div className="pt-2 flex gap-3">
-              <button type="submit" className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">
-                {t('Mark Attendance')}
-              </button>
+                <div className="pt-2 flex gap-3">
+                  <button type="submit" className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">
+                    {t('Mark Attendance')}
+                  </button>
+                  <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">
+                    {t('Cancel')}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
@@ -211,9 +232,15 @@ const TeamAttendancePage = () => {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
-            <button onClick={handleDownloadExcel} className="h-9 px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden sm:inline">{t('Excel')}</span>
-            </button>
+            <ExportDialog
+              title="Export Team Attendance"
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button className="btn-download team-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export team attendance" title="Export team attendance">
+                  <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                </button>
+              )}
+            />
           </div>
         </div>
 
@@ -280,7 +307,3 @@ const TeamAttendancePage = () => {
 };
 
 export default TeamAttendancePage;
-
-
-
-

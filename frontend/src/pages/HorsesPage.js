@@ -11,6 +11,9 @@ import usePermissions from '../hooks/usePermissions';
 import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',
@@ -28,6 +31,13 @@ const STATUS_STYLES = {
   Medical: { dot: '#fb7185', bg: 'rgba(251, 113, 133, 0.1)', text: '#fb7185' },
   Retired: { dot: 'rgba(161, 161, 170, 0.9)', bg: 'rgba(113, 113, 122, 0.16)', text: 'rgba(212, 212, 216, 0.9)' },
 };
+
+const HORSE_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Horses' },
+  { value: 'active', label: 'Active' },
+  { value: 'assigned', label: 'Assigned' },
+  { value: 'passport', label: 'Passport Ready' },
+];
 
 
 const getDateValue = (...values) => {
@@ -91,6 +101,7 @@ const HorsesPage = () => {
   const [supervisors, setSupervisors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [horseFilter, setHorseFilter] = useState('all');
   const [highlightId, setHighlightId] = useState(null);
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [newHorseImage, setNewHorseImage] = useState(null);
@@ -278,13 +289,32 @@ const HorsesPage = () => {
   };
 
   // Filter horses based on search term
-  const filteredHorses = horses.filter((horse) =>
-    horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredHorses = horses.filter((horse) => {
+    const matchesSearch =
+      horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (!matchesSearch) {
+      return false;
+    }
+
+    if (horseFilter === 'active') {
+      return (horse.status || '').toLowerCase() === 'active';
+    }
+
+    if (horseFilter === 'assigned') {
+      return Boolean(horse.supervisorId || horse.supervisor);
+    }
+
+    if (horseFilter === 'passport') {
+      return Boolean(horse.passportNumber);
+    }
+
+    return true;
+  });
 
   const totalHorses = horses.length;
   const activeHorses = horses.filter((horse) => (horse.status || '').toLowerCase() === 'active').length;
@@ -332,9 +362,7 @@ const HorsesPage = () => {
   const endIndex = startIndex + rowsPerPage;
   const paginatedHorses = filteredHorses.slice(startIndex, endIndex);
 
-  const handleDownloadExcel = () => {
-    if (!filteredHorses.length) { alert('No data to download'); return; }
-    const data = filteredHorses.map(h => ({
+  const getExportRows = () => filteredHorses.map(h => ({
       'Name': h.name,
       'Stable Number': h.stableNumber || '',
       'Gender': h.gender,
@@ -344,10 +372,19 @@ const HorsesPage = () => {
       'Manager': h.supervisor?.fullName || '-',
       'Passport No': h.passportNumber || '',
     }));
+
+  const handleDownloadExcel = () => {
+    if (!filteredHorses.length) { showNoExportDataToast('No data to download'); return; }
+    const data = getExportRows();
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Horses');
     XLSX.writeFile(wb, `Horses_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    if (!filteredHorses.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(getExportRows(), `Horses_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   if (!p.viewHorses) return <Navigate to="/dashboard" replace />;
@@ -432,14 +469,14 @@ const HorsesPage = () => {
       <div className="bg-surface-container-highest rounded-[18px] edge-glow overflow-hidden">
         {/* Toolbar */}
         <div className="horse-directory-toolbar flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-5 border-b border-border">
-          <div className="horse-directory-search flex-1">
+          <div className="horse-directory-search flex-1 min-w-0 md:flex-none md:w-[360px]">
             <Search className="horse-directory-search-icon w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <input
               type="text"
               placeholder={t("Search horses...")}
               value={searchTerm}
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="horse-directory-search-input h-8 sm:h-10 text-xs sm:text-sm"
+              className="horse-directory-search-input"
             />
             {searchTerm && (
               <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="horse-directory-clear">
@@ -447,13 +484,33 @@ const HorsesPage = () => {
               </button>
             )}
           </div>
-          <button
-            onClick={handleDownloadExcel}
-            className="btn-download horse-directory-export h-8 sm:h-10 px-3 sm:px-4 rounded-lg border border-border text-foreground text-xs sm:text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2 shrink-0"
-            title={t('Download horses')}
-          >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
+          <div className="horse-directory-toolbar-actions md:ml-auto">
+            <SearchableSelect
+              name="horseFilter"
+              value={horseFilter}
+              onChange={(e) => {
+                setHorseFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={HORSE_FILTER_OPTIONS}
+              className="horse-directory-filter shrink-0"
+              searchable={false}
+            />
+            <ExportDialog
+              title="Export Horses"
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button
+                  className="btn-download horse-directory-export shrink-0"
+                  title={t('Export horses')}
+                  type="button"
+                  aria-label={t('Export horses')}
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              )}
+            />
+          </div>
         </div>
 
         {filteredHorses.length === 0 ? (
@@ -530,8 +587,8 @@ const HorsesPage = () => {
 
       {/* Modal */}
       {showModal && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-          <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80 backdrop-blur-sm">
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
               <h2 className="text-lg font-bold text-foreground inline-flex items-center gap-2"><Plus className="w-5 h-5" /> {t('Add New Horse')}</h2>
               <button onClick={closeModal} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground"><X size={18} /></button>

@@ -12,7 +12,10 @@ import {
   Download, Filter, SlidersHorizontal, Lock, CheckCircle, Plus, RotateCcw,
   Bell
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const DEFAULT_PERMS = {
   viewDashboard: false,
@@ -264,6 +267,48 @@ const PermissionsPage = () => {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const getPermissionExportRows = () => {
+    if (!selectedEmployee) return [];
+
+    return [
+      ...globalPermDefs().map((perm) => ({
+        'Section': 'Global Permission',
+        'Employee': selectedEmployee.fullName,
+        'Role': selectedEmployee.designation,
+        'Permission': perm.label,
+        'Key': perm.key,
+        'Access': globalPermissions[perm.key] ? 'Enabled' : 'Disabled',
+        'Source': 'Manual',
+      })),
+      ...taskPermsList.map((perm) => ({
+        'Section': 'Task Override',
+        'Employee': selectedEmployee.fullName,
+        'Role': selectedEmployee.designation,
+        'Permission': perm.label,
+        'Key': perm.key,
+        'Access': perm.effectiveValue ? 'Enabled' : 'Disabled',
+        'Source': perm.hasPending ? 'Pending Change' : perm.hasOverride ? 'Manual Override' : 'Role Default',
+      })),
+    ];
+  };
+
+  const handleDownloadPermissionsCsv = () => {
+    const rows = getPermissionExportRows();
+    if (!rows.length) return;
+    downloadCsvFile(rows, `permissions_${selectedEmployee?.fullName || 'export'}.csv`);
+    toast.success('Permissions downloaded.');
+  };
+
+  const handleDownloadPermissionsExcel = () => {
+    const rows = getPermissionExportRows();
+    if (!rows.length) return;
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Permissions');
+    XLSX.writeFile(workbook, `permissions_${selectedEmployee?.fullName || 'export'}.xlsx`);
+    toast.success('Permissions downloaded.');
+  };
+
   const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
@@ -285,22 +330,23 @@ const PermissionsPage = () => {
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">Configure global access matrices and individual task overrides. Changes are logged in real-time.</p>
         </div>
         <div className="flex flex-row-reverse sm:flex-row gap-2 shrink-0">
-          <button 
-            type="button"
-            className="h-9 px-3 sm:px-4 rounded-lg border border-border text-foreground text-sm flex items-center gap-2 hover:bg-surface-container-high transition-colors font-bold uppercase tracking-wider ml-auto sm:ml-0"
-            onClick={() => {
-              const csv = `URL,NAME,ID\n${window.location.href},User,${user?.id || ''}`;
-              const blob = new Blob([csv], { type: 'text/csv' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `permissions_audit.csv`;
-              a.click();
-              toast.success("Metrics downloaded.");
+          <ExportDialog
+            title="Export Permissions"
+            options={{
+              xlsx: handleDownloadPermissionsExcel,
+              csv: handleDownloadPermissionsCsv,
             }}
-          >
-            <Download className="w-4 h-4" /> <span className="hidden sm:inline">EXPORT</span>
-          </button>
+            trigger={(
+              <button
+                type="button"
+                className="h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center ml-auto sm:ml-0"
+                aria-label="Export permissions"
+                title="Export permissions"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            )}
+          />
           <button
             type="button"
             onClick={handleSaveAll}

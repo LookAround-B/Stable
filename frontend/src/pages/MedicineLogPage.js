@@ -9,6 +9,9 @@ import { Download, Plus, X, Pill, Activity, CheckCircle, AlertTriangle, Search, 
 import * as XLSX from 'xlsx';
 import DateTimePicker from '../components/shared/DateTimePicker';
 import SelectField from '../components/shared/SelectField';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold';
@@ -93,9 +96,7 @@ const MedicineLogPage = () => {
     return result;
   }, [logs, filter, search, user?.id]);
 
-  const handleDownloadExcel = () => {
-    if (!logs.length) { alert('No data to download'); return; }
-    const data = logs.map(l => ({
+  const getExportRows = () => logs.map(l => ({
       'Date': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '',
       'Horse': l.horse?.name || '', 'Medicine': l.medicineName,
       'Quantity': l.quantity, 'Unit': l.unit,
@@ -103,10 +104,20 @@ const MedicineLogPage = () => {
       'Jamedar': l.jamedar?.fullName || l.administeredBy?.fullName || '',
       'Notes': l.notes || '', 'Status': l.isApproved ? 'Approved' : 'Pending',
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws, 'Medicine Log');
     XLSX.writeFile(wb, `MedicineLog_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (!data.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(data, `MedicineLog_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   const uniqueMedicines = [...new Set(logs.map(m => m.medicineName).filter(Boolean))].length;
@@ -124,9 +135,15 @@ const MedicineLogPage = () => {
           <p className="text-sm text-muted-foreground mt-1">{t('Track medicine administration records and treatment history')}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={handleDownloadExcel} className="h-9 px-3 sm:px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors">
-            <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden sm:inline">{t('Excel')}</span>
-          </button>
+          <ExportDialog
+            title="Export Medicine Logs"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label="Export medicine logs" title="Export medicine logs">
+                <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+              </button>
+            )}
+          />
           <button onClick={() => setShowForm(!showForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
             {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             <span className="hidden sm:inline">{showForm ? t('Cancel') : t('+ Add Log')}</span><span className="sm:hidden">{t('Add')}</span>
@@ -160,8 +177,15 @@ const MedicineLogPage = () => {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg edge-glow">
-          <h3 className="text-lg font-bold text-foreground mb-5 pb-3 border-b border-border/50">{t('Log Medicine Administration')}</h3>
+        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex min-h-0 w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h3 className="text-xl font-bold text-foreground">{t('Log Medicine Administration')}</h3>
+              <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="z-10">
@@ -213,6 +237,8 @@ const MedicineLogPage = () => {
               </button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
       )}
 

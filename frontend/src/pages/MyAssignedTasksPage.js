@@ -235,9 +235,11 @@ const MyAssignedTasksPage = () => {
             {t('Personal Task Console')} &nbsp;Â·&nbsp; {t('Complete and submit your assigned tasks with evidence')}
           </p>
         </div>
-        <div className="bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
-            <span className="text-lg font-bold text-primary">{completionRate}%</span>
+        <div className="bg-surface-container-highest rounded-xl px-5 py-4 edge-glow flex items-center gap-4">
+          <div className="w-[72px] h-[72px] rounded-full border-2 border-primary p-2.5 flex items-center justify-center shrink-0">
+            <div className="w-full h-full rounded-full bg-primary/8 flex items-center justify-center p-2">
+              <span className="text-lg font-bold text-primary leading-none">{completionRate}%</span>
+            </div>
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('Progress Matrix')}</p>

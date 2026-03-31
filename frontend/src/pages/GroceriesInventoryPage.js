@@ -26,8 +26,10 @@ import {
   Trash2,
   BellRing
 } from "lucide-react";
+import ExportDialog from "../components/shared/ExportDialog";
 import Pagination from "../components/Pagination";
 import DatePicker from '../components/shared/DatePicker';
+import { downloadCsvFile } from "../lib/csvExport";
 
 const MONTH_NAMES = [
   "January",
@@ -424,13 +426,7 @@ const GroceriesInventoryPage = () => {
     }
   };
 
-  const handleDownloadExcel = () => {
-    if (filteredGroceries.length === 0) {
-      showMsg("No data to export", "error");
-      return;
-    }
-
-    const data = filteredGroceries.map((record) => ({
+  const getExportRows = () => filteredGroceries.map((record) => ({
       Date: formatDate(record.purchaseDate || record.createdAt),
       "Item Name": record.name,
       Quantity: record.quantity,
@@ -443,6 +439,13 @@ const GroceriesInventoryPage = () => {
       "Added By": record.createdBy?.fullName || "",
       Status: getStatusMeta(record).label,
     }));
+
+  const handleDownloadExcel = () => {
+    const data = getExportRows();
+    if (data.length === 0) {
+      showMsg("No data to export", "error");
+      return;
+    }
 
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -466,6 +469,18 @@ const GroceriesInventoryPage = () => {
     );
   };
 
+  const handleDownloadCSV = () => {
+    const data = getExportRows();
+    if (data.length === 0) {
+      showMsg("No data to export", "error");
+      return;
+    }
+    downloadCsvFile(
+      data,
+      `GroceriesInventory_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.csv`
+    );
+  };
+
   if (!p.viewGroceriesInventory) return <Navigate to="/dashboard" replace />;
 
   return (
@@ -480,14 +495,20 @@ const GroceriesInventoryPage = () => {
           <h1 className="display-sm text-foreground">Groceries Inventory</h1>
         </div>
         <div className="flex gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={handleDownloadExcel}
-            className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hidden sm:flex items-center gap-2 hover:bg-surface-container-high transition-colors"
-          >
-            <Upload className="w-4 h-4" />
-            Export Report
-          </button>
+          <ExportDialog
+            title="Export Groceries Inventory"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button
+                type="button"
+                className="h-9 w-9 rounded-lg border border-border text-foreground hidden sm:flex items-center justify-center hover:bg-surface-container-high transition-colors"
+                aria-label="Export groceries inventory"
+                title="Export groceries inventory"
+              >
+                <Upload className="w-4 h-4" />
+              </button>
+            )}
+          />
           <button
             type="button"
             onClick={handleStartNewPurchase}
@@ -836,13 +857,20 @@ const GroceriesInventoryPage = () => {
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadExcel}
-                  className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-surface-container-high transition-colors flex sm:hidden items-center"
-                >
-                  <Upload className="w-4 h-4" />
-                </button>
+                <ExportDialog
+                  title="Export Groceries Inventory"
+                  options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+                  trigger={(
+                    <button
+                      type="button"
+                      className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-surface-container-high transition-colors flex sm:hidden items-center"
+                      aria-label="Export groceries inventory"
+                      title="Export groceries inventory"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                  )}
+                />
               </div>
             </div>
 
@@ -1182,5 +1210,3 @@ const GroceriesInventoryPage = () => {
 };
 
 export default GroceriesInventoryPage;
-
-

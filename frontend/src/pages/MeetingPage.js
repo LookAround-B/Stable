@@ -192,7 +192,7 @@ const MeetingPage = () => {
   const today = new Date()
   const calendarDays = generateCalendar()
   const filteredMeetings = getFilteredMeetings()
-  const parentRoles = ['Director', 'School Administrator', 'Stable Manager']
+  const parentRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager']
   const canCreateMeeting = user && parentRoles.includes(user.designation)
   const selectedDateMeetings = selectedDate ? getMeetingsForDate(selectedDate) : []
   const scheduledCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'scheduled').length

@@ -4,6 +4,9 @@ import { useI18n } from '../context/I18nContext';
 import { Download, Users, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import ExportDialog from '../components/shared/ExportDialog';
 
 const RoundTrackingPage = () => {
   const { t } = useI18n();
@@ -41,19 +44,27 @@ const RoundTrackingPage = () => {
     !(r.morningCompleted && r.afternoonCompleted && r.eveningCompleted)
   ).length;
 
-  const handleDownloadExcel = () => {
-    const allRows = [
+  const getExportRows = () => [
       ...roundChecks.map(rc => {
         const status = getCompletionStatus(rc.morningCompleted, rc.afternoonCompleted, rc.eveningCompleted);
         return { 'Jamedar': rc.jamedar?.fullName || '', 'Morning': rc.morningCompleted ? 'Done' : 'Pending', 'Afternoon': rc.afternoonCompleted ? 'Done' : 'Pending', 'Evening': rc.eveningCompleted ? 'Done' : 'Pending', 'Completion %': `${status.percentage}%`, 'Last Updated': rc.updatedAt ? new Date(rc.updatedAt).toLocaleTimeString('en-GB') : '', 'Status': status.percentage === 100 ? 'Complete' : status.percentage === 0 ? 'Not Started' : 'In Progress' };
       }),
       ...missingJamedars.map(j => ({ 'Jamedar': j.fullName || '', 'Morning': '-', 'Afternoon': '-', 'Evening': '-', 'Completion %': '0%', 'Last Updated': '', 'Status': 'No Update' })),
     ];
-    if (!allRows.length) { alert('No data to download'); return; }
+
+  const handleDownloadExcel = () => {
+    const allRows = getExportRows();
+    if (!allRows.length) { showNoExportDataToast('No data to download'); return; }
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(allRows);
     XLSX.utils.book_append_sheet(wb, ws, 'Round Tracking');
     XLSX.writeFile(wb, `RoundTracking_${selectedDate}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    const allRows = getExportRows();
+    if (!allRows.length) { showNoExportDataToast('No data to download'); return; }
+    downloadCsvFile(allRows, `RoundTracking_${selectedDate}.csv`);
   };
 
   const ShiftBadge = ({ done }) => done
@@ -68,7 +79,15 @@ const RoundTrackingPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Jamedar <span className="text-primary">Round Tracking</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Monitor all Jamedars\' daily round completions')}</p>
         </div>
-        <button onClick={handleDownloadExcel} className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2"><Download className="w-4 h-4" /> Excel</button>
+        <ExportDialog
+          title="Export Round Tracking"
+          options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+          trigger={(
+            <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export round tracking" title="Export round tracking">
+              <Download className="w-4 h-4" />
+            </button>
+          )}
+        />
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('✓') ? 'bg-success/15 text-success border border-success/30' : 'bg-destructive/15 text-destructive border border-destructive/30'}`}>{message}</div>}

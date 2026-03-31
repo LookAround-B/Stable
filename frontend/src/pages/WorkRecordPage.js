@@ -6,9 +6,12 @@ import SearchableSelect from '../components/SearchableSelect';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { X, Plus, Wrench, Clock, ListChecks, Download } from 'lucide-react';
+import { X, Plus, Wrench, Clock, ListChecks, Download, Search } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import * as XLSX from 'xlsx';
+import { showNoExportDataToast } from '../lib/exportToast';
+import ExportDialog from '../components/shared/ExportDialog';
+import { downloadCsvFile } from '../lib/csvExport';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px]';
@@ -144,9 +147,9 @@ const WorkRecordPage = () => {
     }
   };
 
-  const handleDownloadExcel = () => {
-    if (!workRecords.length) { alert(t('No data to download')); return; }
+  const getExportRows = () => {
     const rows = [];
+    
     workRecords.forEach(wr => {
       if (wr.entries && wr.entries.length) {
         wr.entries.forEach(entry => {
@@ -170,10 +173,22 @@ const WorkRecordPage = () => {
         });
       }
     });
+
+    return rows;
+  };
+
+  const handleDownloadExcel = () => {
+    if (!workRecords.length) { showNoExportDataToast(t('No data to download')); return; }
+    const rows = getExportRows();
     const wb = XLSX.utils.book_new();
     const wsSheet = XLSX.utils.json_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, wsSheet, 'Work Record');
     XLSX.writeFile(wb, `WorkRecord_${selectedDate}.xlsx`);
+  };
+
+  const handleDownloadCSV = () => {
+    if (!workRecords.length) { showNoExportDataToast(t('No data to download')); return; }
+    downloadCsvFile(getExportRows(), `WorkRecord_${selectedDate}.csv`);
   };
 
   const getStaffName = useCallback((id) => employees.find(e => e.id === id)?.fullName || 'Unknown', [employees]);
@@ -316,17 +331,34 @@ const WorkRecordPage = () => {
 
       {/* Toolbar */}
       <div className="work-records-toolbar flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div className="flex-1 max-w-sm w-full">
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+        <div className="relative flex-1 max-w-sm w-full">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 pl-8 pr-8 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              type="button"
+              aria-label={t('Clear search')}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
         
-        <div className="flex items-center gap-2 w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto md:ml-auto">
            <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
            <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
            <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
-           <button onClick={handleDownloadExcel} className="btn-download work-records-export h-10 px-3 md:px-4 lg:px-5 rounded-lg border border-border text-foreground text-sm font-medium flex items-center gap-2 hover:bg-surface-container-high transition-colors shrink-0">
-            <Download className="w-4 h-4 lg:w-5 lg:h-5" /> <span className="hidden md:inline">{t('Excel')}</span>
-           </button>
+           <ExportDialog
+            title="Export Work Records"
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button className="btn-download work-records-export h-10 w-10 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0" type="button" aria-label="Export work records" title="Export work records">
+                <Download className="w-5 h-5" />
+              </button>
+            )}
+           />
         </div>
       </div>
 
@@ -397,6 +429,3 @@ const WorkRecordPage = () => {
 };
 
 export default WorkRecordPage;
-
-
-
