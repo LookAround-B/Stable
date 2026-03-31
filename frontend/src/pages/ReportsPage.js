@@ -387,12 +387,12 @@ const ReportsPage = () => {
             </div>
           </div>
           <ExportDialog
-            title="Export Reports"
+            title={t("Export Reports")}
             options={{ xlsx: () => handleDownloadExcel(), csv: () => handleDownloadCSV() }}
             trigger={(
-              <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label="Export reports" title="Export reports">
+              <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label={t("Export reports")} title={t("Export reports")}>
                 <Download className="w-4 h-4 shrink-0" />
-                <span className="text-sm font-medium hidden sm:inline-block">Export</span>
+                <span className="text-sm font-medium hidden sm:inline-block">{t("Export")}</span>
               </button>
             )}
           />
@@ -420,9 +420,9 @@ const ReportsPage = () => {
                     <button
                       onClick={(e) => { e.stopPropagation(); setActiveTab(cat.id); }}
                       className="h-9 w-9 rounded-lg bg-surface-container-high flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors border border-border hover:border-primary/50"
-                      title="Export report"
+                      title={t("Export report")}
                       type="button"
-                      aria-label="Export report"
+                      aria-label={t("Export report")}
                     >
                       <Download className="w-3.5 h-3.5 shrink-0" />
                     </button>
@@ -442,8 +442,8 @@ const ReportsPage = () => {
         <div className="lg:col-span-8 bg-surface-container-highest rounded-lg p-5 edge-glow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="label-sm text-primary mb-1">PERFORMANCE MATRIX</p>
-              <h2 className="heading-md text-foreground">System-wide Efficiency Trend</h2>
+              <p className="label-sm text-primary mb-1">{t("PERFORMANCE MATRIX")}</p>
+              <h2 className="heading-md text-foreground">{t("System-wide Efficiency Trend")}</h2>
             </div>
             <div className="flex items-center gap-4 text-xs">
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-primary" /> OPTIMAL FLOW</span>
@@ -469,12 +469,12 @@ const ReportsPage = () => {
         </div>
         <div className="lg:col-span-4 space-y-4">
           <div className="bg-surface-container-highest rounded-lg p-5 edge-glow border-l-2 border-primary">
-            <p className="label-sm text-muted-foreground">GENERATED RECORDS (ALL TIME)</p>
+            <p className="label-sm text-muted-foreground">{t("GENERATED RECORDS (ALL TIME)")}</p>
             <p className="text-3xl font-bold text-foreground mono-data mt-2">{activeRecordCount * 3 + 128}</p>
             <p className="text-xs text-primary mt-2 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> CONTINUOUS GROWTH</p>
           </div>
           <div className="bg-surface-container-highest rounded-lg p-5 edge-glow border-l-2 border-success">
-            <p className="label-sm text-muted-foreground">SELECTED PERIOD DATAPOINTS</p>
+            <p className="label-sm text-muted-foreground">{t("SELECTED PERIOD DATAPOINTS")}</p>
             <p className="text-3xl font-bold text-foreground mono-data mt-2">{activeRecordCount}</p>
             <p className="text-xs text-success mt-2 flex items-center gap-1">🟢 SYSTEM IS CAPTURING</p>
           </div>

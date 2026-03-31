@@ -243,7 +243,7 @@ const MeetingPage = () => {
               <span className="text-lg font-bold text-primary">{scheduledCount}</span>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Upcoming</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("Upcoming")}</p>
               <p className="text-lg font-bold text-foreground">{t('Meeting Queue')}</p>
             </div>
           </div>
@@ -374,15 +374,15 @@ const MeetingPage = () => {
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Scheduled</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("Scheduled")}</span>
                 <span className="text-sm font-bold text-primary">{scheduledCount}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Completed</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("Completed")}</span>
                 <span className="text-sm font-bold text-success">{completedCount}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Cancelled</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t("Cancelled")}</span>
                 <span className="text-sm font-bold text-destructive">{cancelledCount}</span>
               </div>
             </div>
@@ -527,7 +527,7 @@ const MeetingPage = () => {
                             {loading ? 'Saving...' : 'Save MOM'}
                           </button>
                           {(momData.pointsDiscussed.length > 0 || momData.memberInputs.length > 0 || momData.decisions.length > 0) && (
-                            <button onClick={handleGenerateGmail} className="py-2.5 px-4 rounded-lg border border-border text-foreground text-sm font-semibold hover:bg-surface-container-high transition-colors">Send to Gmail</button>
+                            <button onClick={handleGenerateGmail} className="py-2.5 px-4 rounded-lg border border-border text-foreground text-sm font-semibold hover:bg-surface-container-high transition-colors">{t("Send to Gmail")}</button>
                           )}
                         </div>
                       </div>
@@ -557,25 +557,25 @@ const MeetingPage = () => {
             <div className="p-4 sm:p-6 overflow-y-auto min-h-0 flex-1">
             <form onSubmit={handleCreateMeeting} className="space-y-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Meeting Title *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Meeting Title *")}</label>
                 <input type="text" required value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g., Quarterly Review" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date *")}</label>
                   <DatePicker value={formData.meetingDate} onChange={(val) => setFormData(prev => ({ ...prev, meetingDate: val }))} required />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Time</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Time")}</label>
                   <TimePicker value={formData.meetingTime} onChange={(val) => setFormData(prev => ({ ...prev, meetingTime: val }))} />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Location</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Location")}</label>
                 <input type="text" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="e.g., Conference Room A" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Description</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Description")}</label>
                 <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Meeting purpose and agenda" rows={3} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div>
@@ -596,7 +596,7 @@ const MeetingPage = () => {
                 </div>
               </div>
               <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
-                <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">Cancel</button>
+                <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
                 <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
                   {loading ? 'Creating...' : 'Create Meeting'}
                 </button>

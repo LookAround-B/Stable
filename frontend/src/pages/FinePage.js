@@ -404,21 +404,21 @@ const FinePage = () => {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">FINANCE / <span className="text-primary">FINE SYSTEM</span></p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">FINANCE / <span className="text-primary">{t("FINE SYSTEM")}</span></p>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-1">{t('Internal Compliance')} <span className="text-primary">&amp;</span> {t('Fines')}</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t('Manage facility-wide disciplinary actions and financial deductions.')}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:flex gap-3 shrink-0">
           <div className="bg-surface-container-highest rounded-lg p-4 edge-glow text-center min-w-[120px]">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">MONTHLY VOLUME</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("MONTHLY VOLUME")}</p>
             <p className="text-xl sm:text-2xl font-bold text-foreground mono-data mt-1">₹{fines.reduce((s, f) => s + parseFloat(f.amount || 0), 0).toLocaleString()}</p>
             <span className="text-xs text-primary">{fines.length} {t('records')}</span>
           </div>
           <div className="bg-surface-container-highest rounded-lg p-4 edge-glow text-center min-w-[100px]">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">PENDING</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("PENDING")}</p>
             <p className="text-xl sm:text-2xl font-bold text-foreground mono-data mt-1">{fines.filter(f => f.status === 'Open').length}</p>
-            <span className="text-xs text-primary">ACTIONS</span>
+            <span className="text-xs text-primary">{t("ACTIONS")}</span>
           </div>
         </div>
       </div>
@@ -437,7 +437,7 @@ const FinePage = () => {
           <div className="lg:col-span-4 order-2 lg:order-1">
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
-                <h2 className="text-base font-bold text-foreground uppercase tracking-wider">Issue Enforcement</h2>
+                <h2 className="text-base font-bold text-foreground uppercase tracking-wider">{t("Issue Enforcement")}</h2>
               </div>
               <form onSubmit={handleSubmitForm} className="space-y-4">
                 <div>
@@ -446,7 +446,7 @@ const FinePage = () => {
                     name="issuedToId"
                     value={formData.issuedToId}
                     onChange={handleFormChange}
-                    placeholder="Select Employee"
+                    placeholder={t("Select Employee")}
                     required
                     options={[
                       { value: '', label: 'Select Employee' },
@@ -536,14 +536,14 @@ const FinePage = () => {
                     ))}
                   </div>
                   <ExportDialog
-                    title="Export Fines"
+                    title={t("Export Fines")}
                     options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
                     trigger={(
                       <button
                         className="h-8 w-8 lg:w-9 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0 ml-auto lg:ml-0"
                         type="button"
-                        aria-label="Export fines"
-                        title="Export fines"
+                        aria-label={t("Export fines")}
+                        title={t("Export fines")}
                       >
                         <Download className="w-3.5 h-3.5 shrink-0" />
                       </button>
@@ -733,7 +733,7 @@ const FinePage = () => {
                     { value: 'Resolved', label: 'Resolved' },
                     { value: 'Dismissed', label: 'Dismissed' },
                   ]}
-                  placeholder="Select status..."
+                  placeholder={t("Select status...")}
                   required
                 />
               </div>
@@ -743,7 +743,7 @@ const FinePage = () => {
                   name="resolutionNotes"
                   value={resolveData.resolutionNotes}
                   onChange={handleResolveDataChange}
-                  placeholder="Add any notes about the resolution..."
+                  placeholder={t("Add any notes about the resolution...")}
                   maxLength="500"
                   rows="3"
                   className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
@@ -768,8 +768,8 @@ const FinePage = () => {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
         title="Delete Fine"
-        message="Are you sure you want to delete this fine?"
-        confirmText="Delete"
+        message={t("Are you sure you want to delete this fine?")}
+        confirmText={t("Delete")}
         confirmVariant="danger"
       />
     </div>

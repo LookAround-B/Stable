@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import expenseService from '../services/expenseService';
 import { TableSkeleton } from '../components/Skeleton';
 import Pagination from '../components/Pagination';
@@ -15,6 +16,7 @@ import ExportDialog from '../components/shared/ExportDialog';
 
 const ExpensePage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const p = usePermissions();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -578,9 +580,9 @@ const ExpensePage = () => {
           <div className="lovable-header-kicker mb-2">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>FINANCIAL INTELLIGENCE DASHBOARD</span>
+            <span>{t("FINANCIAL INTELLIGENCE DASHBOARD")}</span>
           </div>
-          <h1 className="display-sm text-foreground mt-1">Expense Tracking</h1>
+          <h1 className="display-sm text-foreground mt-1">{t("Expense Tracking")}</h1>
         </div>
         {isAccountsUser && (
           <div className="flex flex-wrap gap-2 shrink-0 self-end sm:self-auto">
@@ -632,7 +634,7 @@ const ExpensePage = () => {
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
-          <span className="label-sm text-muted-foreground">MONTHLY TOTAL SPEND</span>
+          <span className="label-sm text-muted-foreground">{t("MONTHLY TOTAL SPEND")}</span>
           <div className="flex items-end gap-2 mt-2">
             <p className="text-2xl font-bold text-foreground mono-data">{formatCurrency(totalSpend)}</p>
             <span className="text-xs text-primary font-medium mb-1">{visibleExpenses.length} entries</span>
@@ -642,17 +644,17 @@ const ExpensePage = () => {
           </div>
         </div>
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
-          <span className="label-sm text-muted-foreground">PRIMARY COST CENTER</span>
+          <span className="label-sm text-muted-foreground">{t("PRIMARY COST CENTER")}</span>
           <p className="text-lg font-bold text-foreground mt-2">{topCategory === 'No Data' ? 'NO ACTIVE DATA' : topCategory.toUpperCase()}</p>
-          <p className="text-xs text-primary mt-1">Live backend aggregation</p>
+          <p className="text-xs text-primary mt-1">{t("Live backend aggregation")}</p>
         </div>
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
-          <span className="label-sm text-muted-foreground">AVERAGE TICKET</span>
+          <span className="label-sm text-muted-foreground">{t("AVERAGE TICKET")}</span>
           <p className="text-2xl font-bold text-foreground mono-data mt-2">{formatCurrency(averageSpend)}</p>
-          <p className="text-xs text-muted-foreground mt-1">Per registered transaction</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("Per registered transaction")}</p>
         </div>
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
-          <span className="label-sm text-muted-foreground">LIVE REGISTRY</span>
+          <span className="label-sm text-muted-foreground">{t("LIVE REGISTRY")}</span>
           <div className="flex items-center justify-between mt-2">
             <p className="text-2xl font-bold text-foreground mono-data">{visibleExpenses.length}</p>
             <TrendingUp className="w-6 h-6 text-primary/40" />
@@ -717,15 +719,15 @@ const ExpensePage = () => {
             size="sm"
           />
           <ExportDialog
-            title="Export Expenses"
+            title={t("Export Expenses")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button
                 type="button"
                 disabled={!visibleExpenses.length}
                 className="h-8 w-8 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
-                aria-label="Export expenses"
-                title="Export expenses"
+                aria-label={t("Export expenses")}
+                title={t("Export expenses")}
               >
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
@@ -751,8 +753,8 @@ const ExpensePage = () => {
           <div className="bg-surface-container-highest rounded-lg edge-glow overflow-hidden min-w-0">
             <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-border">
               <div>
-                <h2 className="heading-md text-foreground uppercase tracking-wider">Expense Ledger</h2>
-                <p className="text-xs text-muted-foreground mt-1">Live entries from your current expense API.</p>
+                <h2 className="heading-md text-foreground uppercase tracking-wider">{t("Expense Ledger")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{t("Live entries from your current expense API.")}</p>
               </div>
               <span className="text-xs text-primary font-medium">{visibleExpenses.length} rows</span>
             </div>
@@ -787,13 +789,13 @@ const ExpensePage = () => {
                   <table className="w-full text-sm min-w-[860px]">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="px-5 py-3 text-left label-sm text-muted-foreground">DATE</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">CATEGORY</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">DESCRIPTION</th>
-                        <th className="px-3 py-3 text-right label-sm text-muted-foreground">AMOUNT</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">ASSET</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">HANDLER</th>
-                        {isAccountsUser && <th className="px-3 py-3 text-right label-sm text-muted-foreground">ACTIONS</th>}
+                        <th className="px-5 py-3 text-left label-sm text-muted-foreground">{t("DATE")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("CATEGORY")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("DESCRIPTION")}</th>
+                        <th className="px-3 py-3 text-right label-sm text-muted-foreground">{t("AMOUNT")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("ASSET")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("HANDLER")}</th>
+                        {isAccountsUser && <th className="px-3 py-3 text-right label-sm text-muted-foreground">{t("ACTIONS")}</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -882,19 +884,19 @@ const ExpensePage = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">EXPENSE TYPE</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("EXPENSE TYPE")}</label>
                   <SearchableSelect
                     name="type"
                     value={formData.type}
                     onChange={handleFormChange}
                     options={EXPENSE_TYPES.map((type) => ({ value: type, label: type }))}
-                    placeholder="Select expense type..."
+                    placeholder={t("Select expense type...")}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="label-sm text-primary block mb-1.5">ENTRY DESCRIPTION</label>
+                  <label className="label-sm text-primary block mb-1.5">{t("ENTRY DESCRIPTION")}</label>
                   <textarea
                     name="description"
                     value={formData.description}
@@ -908,7 +910,7 @@ const ExpensePage = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label-sm text-primary block mb-1.5">AMOUNT (INR)</label>
+                    <label className="label-sm text-primary block mb-1.5">{t("AMOUNT (INR)")}</label>
                     <input
                       type="number"
                       name="amount"
@@ -922,7 +924,7 @@ const ExpensePage = () => {
                     />
                   </div>
                   <div>
-                    <label className="label-sm text-primary block mb-1.5">ENTRY DATE</label>
+                    <label className="label-sm text-primary block mb-1.5">{t("ENTRY DATE")}</label>
                     <DatePicker
                       value={formData.date}
                       onChange={(val) => handleFormChange({ target: { name: 'date', value: val } })}
@@ -933,7 +935,7 @@ const ExpensePage = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="label-sm text-muted-foreground block mb-1.5">ASSET ATTRIBUTION</label>
+                    <label className="label-sm text-muted-foreground block mb-1.5">{t("ASSET ATTRIBUTION")}</label>
                     <SearchableSelect
                       name="horseId"
                       value={formData.horseId}
@@ -943,7 +945,7 @@ const ExpensePage = () => {
                     />
                   </div>
                   <div>
-                    <label className="label-sm text-muted-foreground block mb-1.5">HANDLER</label>
+                    <label className="label-sm text-muted-foreground block mb-1.5">{t("HANDLER")}</label>
                     <SearchableSelect
                       name="employeeId"
                       value={formData.employeeId}
@@ -955,10 +957,10 @@ const ExpensePage = () => {
                 </div>
 
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">PROOF OF PURCHASE</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("PROOF OF PURCHASE")}</label>
                   <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
                     <Upload className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
-                    <p className="text-xs text-muted-foreground">Drop or click to attach files (max 5MB each)</p>
+                    <p className="text-xs text-muted-foreground">{t("Drop or click to attach files (max 5MB each)")}</p>
                     <input
                       type="file"
                       multiple
@@ -1019,7 +1021,7 @@ const ExpensePage = () => {
 
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
-                <h2 className="heading-md text-foreground uppercase tracking-wider">Live Transaction Stream</h2>
+                <h2 className="heading-md text-foreground uppercase tracking-wider">{t("Live Transaction Stream")}</h2>
               </div>
               <div className="space-y-3">
                 {latestTransactions.length ? (
@@ -1038,7 +1040,7 @@ const ExpensePage = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">No transactions available for the current filters.</p>
+                  <p className="text-sm text-muted-foreground">{t(t("No transactions available for the current filters."))}</p>
                 )}
               </div>
             </div>
@@ -1051,8 +1053,8 @@ const ExpensePage = () => {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
         title="Delete Expense"
-        message="Are you sure you want to delete this expense?"
-        confirmText="Delete"
+        message={t("Are you sure you want to delete this expense?")}
+        confirmText={t("Delete")}
         confirmVariant="danger"
       />
     </div>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SplashScreen from '../components/SplashScreen';
+import { isAuthenticated } from '../services/authService';
 
 /**
  * SplashPage — Shows the EFM splash animation.
- * Always plays when visiting '/' and then navigates to /login.
+ * If already logged in, redirects to /dashboard.
+ * Otherwise plays splash and navigates to /login.
  */
 export default function SplashPage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -12,7 +14,11 @@ export default function SplashPage() {
 
   const handleSplashFinish = () => {
     setShowSplash(false);
-    navigate('/login', { replace: true });
+    if (isAuthenticated()) {
+      navigate('/dashboard', { replace: true });
+    } else {
+      navigate('/login', { replace: true });
+    }
   };
 
   if (!showSplash) return null;

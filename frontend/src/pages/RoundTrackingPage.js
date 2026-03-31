@@ -76,14 +76,14 @@ const RoundTrackingPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Jamedar <span className="text-primary">Round Tracking</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Jamedar <span className="text-primary">{t("Round Tracking")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Monitor all Jamedars\' daily round completions')}</p>
         </div>
         <ExportDialog
-          title="Export Round Tracking"
+          title={t("Export Round Tracking")}
           options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
           trigger={(
-            <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export round tracking" title="Export round tracking">
+            <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export round tracking")} title={t("Export round tracking")}>
               <Download className="w-4 h-4" />
             </button>
           )}
@@ -113,7 +113,7 @@ const RoundTrackingPage = () => {
       {/* Date Selector */}
       <div className="flex items-end gap-4">
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Select Date</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Select Date")}</label>
           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} disabled={loading} />
         </div>
         <p className="text-sm text-muted-foreground pb-2">{formatDate(selectedDate)}</p>

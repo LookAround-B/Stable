@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ReactDOM from "react-dom";
 import * as XLSX from "xlsx";
 import { TableSkeleton } from '../components/Skeleton';
 import housekeepingInventoryService from "../services/housekeepingInventoryService";
@@ -159,11 +160,11 @@ const HousekeepingInventoryPage = () => {
       {/* ── Header ── */}
       <div className="housekeeping-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Housekeeping <span className="text-primary">Inventory</span></h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Housekeeping")} <span className="text-primary">{t("Inventory")}</span></h1>
             <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
           </div>
           <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 w-fit px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
-            {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+            {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
           </button>
       </div>
 
@@ -176,108 +177,107 @@ const HousekeepingInventoryPage = () => {
 
       {/* ── KPI Cards ── */}
       <div className="housekeeping-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Across all categories" />
-        <OperationalMetricCard label="LOW STOCK" value={String(lowStockItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub="Needs reorder" subColor="text-warning" />
+        <OperationalMetricCard label={t("TOTAL ITEMS")} value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Across all categories")} />
+        <OperationalMetricCard label={t("LOW STOCK")} value={String(lowStockItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub={t("Needs reorder")} subColor="text-warning" />
         <div className="housekeeping-inventory-kpi-card--wide-mobile col-span-2 sm:col-span-1">
-          <OperationalMetricCard label="EXPIRED" value={String(expiredItems.length).padStart(2, '0')} icon={Sparkles} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Past expiry date" subColor="text-destructive" />
+          <OperationalMetricCard label={t("EXPIRED")} value={String(expiredItems.length).padStart(2, '0')} icon={Sparkles} colorClass="text-destructive" bgClass="bg-destructive/10" sub={t("Past expiry date")} subColor="text-destructive" />
         </div>
       </div>
 
       {/* ── Low Stock Alert ── */}
       {lowStockItems.length > 0 && (
         <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Low Stock Alert:</strong> {lowStockItems.map(i => `${i.itemName} (${i.quantity} ${i.unitType})`).join(', ')}
+          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>{t("Low Stock Alert:")}</strong> {lowStockItems.map(i => `${i.itemName} (${i.quantity} ${i.unitType})`).join(', ')}
         </div>
       )}
 
       {/* ── Form ── */}
-      {showForm && (
-        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={resetForm}>
-          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+      {showForm && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={resetForm}>
+          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">{editingId ? "Edit Item" : "Add Item"}</h3>
+              <h3 className="text-xl font-bold text-foreground">{editingId ? t("Edit Item") : t("Add Item")}</h3>
               <button type="button" onClick={resetForm} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col min-h-0">
+              <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Item Name *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Item Name *")}</label>
                 <input type="text" name="itemName" value={formData.itemName} onChange={handleInputChange} required maxLength={100} placeholder="e.g., Floor Cleaner" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category *</label>
-                <SearchableSelect name="category" value={formData.category} onChange={handleInputChange} options={CATEGORIES.map(c => ({ value: c, label: c }))} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Category *")}</label>
+                <SearchableSelect name="category" value={formData.category} onChange={handleInputChange} options={CATEGORIES.map(c => ({ value: c, label: t(c) }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Quantity</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Quantity")}</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} min="0" step="0.01" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit Type</label>
-                <SearchableSelect name="unitType" value={formData.unitType} onChange={handleInputChange} options={UNIT_TYPES.map(u => ({ value: u, label: u }))} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Unit Type")}</label>
+                <SearchableSelect name="unitType" value={formData.unitType} onChange={handleInputChange} options={UNIT_TYPES.map(u => ({ value: u, label: t(u) }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Min Stock Level</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Min Stock Level")}</label>
                 <input type="number" name="minimumStockLevel" value={formData.minimumStockLevel} onChange={handleInputChange} min="0" step="0.01" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Usage Area</label>
-                <SearchableSelect name="usageArea" value={formData.usageArea} onChange={handleInputChange} options={[{ value: '', label: '-- None --' }, ...USAGE_AREAS.map(a => ({ value: a, label: a }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Usage Area")}</label>
+                <SearchableSelect name="usageArea" value={formData.usageArea} onChange={handleInputChange} options={[{ value: '', label: t('-- None --') }, ...USAGE_AREAS.map(a => ({ value: a, label: a }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Storage Location</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Storage Location")}</label>
                 <input type="text" name="storageLocation" value={formData.storageLocation} onChange={handleInputChange} maxLength={200} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Supplier Name</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Supplier Name")}</label>
                 <input type="text" name="supplierName" value={formData.supplierName} onChange={handleInputChange} maxLength={200} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Cost per Unit (₹)</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Cost per Unit (₹)")}</label>
                 <input type="number" name="costPerUnit" value={formData.costPerUnit} onChange={handleInputChange} min="0" step="0.01" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Consumption Rate</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Consumption Rate")}</label>
                 <input type="text" name="consumptionRate" value={formData.consumptionRate} onChange={handleInputChange} placeholder="e.g., 2L/week" maxLength={100} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purchase Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Purchase Date")}</label>
                 <DatePicker value={formData.purchaseDate} onChange={(val) => setFormData(prev => ({ ...prev, purchaseDate: val }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Expiry Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Expiry Date")}</label>
                 <DatePicker value={formData.expiryDate} onChange={(val) => setFormData(prev => ({ ...prev, expiryDate: val }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Restocked</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Last Restocked")}</label>
                 <DatePicker value={formData.lastRestockedDate} onChange={(val) => setFormData(prev => ({ ...prev, lastRestockedDate: val }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assigned Staff</label>
-                <SearchableSelect name="assignedStaffId" value={formData.assignedStaffId} onChange={handleInputChange} options={[{ value: '', label: '-- None --' }, ...employees.map(e => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Assigned Staff")}</label>
+                <SearchableSelect name="assignedStaffId" value={formData.assignedStaffId} onChange={handleInputChange} options={[{ value: '', label: t('-- None --') }, ...employees.map(e => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]} />
               </div>
               <div className="flex items-center gap-2 pt-6">
                 <input type="checkbox" name="reorderAlert" checked={formData.reorderAlert} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
-                <label className="text-sm text-foreground">Enable Reorder Alert</label>
+                <label className="text-sm text-foreground">{t("Enable Reorder Alert")}</label>
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
               <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows="2" maxLength={500} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none resize-none" />
             </div>
-            <div className="flex gap-3">
-              <button type="submit" className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{editingId ? "Save Changes" : "Add Item"}</button>
-              <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={resetForm}>Cancel</button>
-            </div>
+          </div>
           </form>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors" onClick={resetForm}>{t("Cancel")}</button>
+              <button type="button" onClick={handleSubmit} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">{editingId ? t("Save Changes") : t("Add Item")}</button>
             </div>
           </div>
         </div>
-      )}
-
+      , document.body)}
       {/* ── Table Container (EFM Replica) ── */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         {/* Toolbar */}
@@ -294,12 +294,12 @@ const HousekeepingInventoryPage = () => {
           <div className="flex items-center gap-2 shrink-0 sm:ml-0 mx-auto sm:mx-0">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} items</span>
             <ExportDialog
-              title="Export Housekeeping Inventory"
+              title={t("Export Housekeeping Inventory")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
-                <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label="Export housekeeping inventory" title="Export housekeeping inventory">
+                <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label={t("Export housekeeping inventory")} title={t("Export housekeeping inventory")}>
                   <Download className="w-4 h-4 shrink-0" />
-                    <span className="text-sm font-medium">Export</span>
+                    <span className="text-sm font-medium">{t("Export")}</span>
                 </button>
               )}
             />
@@ -308,14 +308,14 @@ const HousekeepingInventoryPage = () => {
 
         {/* Table */}
         {loading ? <div className="p-4"><TableSkeleton cols={8} rows={5} /></div> : items.length === 0 ? (
-          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : "No items found."}</p>
+          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : t(t(t("No items found.")))}</p>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {['ITEM NAME', 'CATEGORY', 'QTY', 'UNIT', 'AREA', 'EXPIRY', 'STATUS', ''].map(h => (
+                    {[t('ITEM NAME'), t('CATEGORY'), t('QTY'), t('UNIT'), t('AREA'), t('EXPIRY'), t('STATUS'), ''].map(h => (
                       <th key={h || 'actions'} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
                     ))}
                   </tr>
@@ -349,19 +349,19 @@ const HousekeepingInventoryPage = () => {
                         </td>
                         <td className="px-6 py-4">
                           {isExpired ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-destructive"><span className="w-1.5 h-1.5 rounded-full bg-destructive" /> EXPIRED</span>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-destructive"><span className="w-1.5 h-1.5 rounded-full bg-destructive" /> {t("EXPIRED")}</span>
                           ) : isLowStock ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-warning"><span className="w-1.5 h-1.5 rounded-full bg-warning" /> LOW STOCK</span>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-warning"><span className="w-1.5 h-1.5 rounded-full bg-warning" /> {t("LOW STOCK")}</span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-success"><span className="w-1.5 h-1.5 rounded-full bg-success" /> OK</span>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase text-success"><span className="w-1.5 h-1.5 rounded-full bg-success" /> {t("OK")}</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-1">
-                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit">
+                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title="Delete">
+                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -379,7 +379,7 @@ const HousekeepingInventoryPage = () => {
             <div className="flex items-center justify-between px-3 sm:px-6 py-3 border-t border-border">
               <div className="flex gap-2">
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
-                  <ChevronLeft className="w-3 h-3" /> Previous
+                  <ChevronLeft className="w-3 h-3" /> {t("Previous")}
                 </button>
                 <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage >= totalPages} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
                   Next <ChevronRight className="w-3 h-3" />
@@ -397,7 +397,7 @@ const HousekeepingInventoryPage = () => {
 
       <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
-        title="Delete Item" message="Delete this housekeeping item?" confirmText="Delete" confirmVariant="danger" />
+        title={t("Delete Item")} message={t("Delete this housekeeping item?")} confirmText={t("Delete")} confirmVariant="danger" />
     </div>
   );
 };

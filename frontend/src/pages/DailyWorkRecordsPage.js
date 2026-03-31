@@ -125,8 +125,8 @@ const DailyWorkRecordsPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><ClipboardList className="w-7 h-7 inline-block mr-2 text-primary" />{t('Daily Work')} <span className="text-primary">Records (EIRS)</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Equine Individual Record Sheets</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight"><ClipboardList className="w-7 h-7 inline-block mr-2 text-primary" />{t('Daily Work')} <span className="text-primary">{t("Records (EIRS)")}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("Equine Individual Record Sheets")}</p>
         </div>
       </div>
 
@@ -164,10 +164,10 @@ const DailyWorkRecordsPage = () => {
         </div>
         <div className="w-full md:w-auto md:ml-auto flex justify-end">
           <ExportDialog
-            title="Export Daily Work Records"
+            title={t("Export Daily Work Records")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button disabled={loading} className="btn-download daily-work-records-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export daily work records" title="Export daily work records">
+              <button disabled={loading} className="btn-download daily-work-records-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export daily work records")} title={t("Export daily work records")}>
                 <Download className="w-5 h-5" />
               </button>
             )}
@@ -194,33 +194,33 @@ const DailyWorkRecordsPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date *")}</label>
                 <DatePicker value={formData.date} onChange={(val) => setFormData(prev => ({ ...prev, date: val }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
-                <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder="Select horse" required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
+                <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder={t("Select horse")} required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Rider/Student *</label>
-                <SearchableSelect name="riderId" value={formData.riderId} onChange={handleInputChange} placeholder="Select rider" required options={[{ value: '', label: 'Select rider' }, ...employees.filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation)).map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Rider/Student *")}</label>
+                <SearchableSelect name="riderId" value={formData.riderId} onChange={handleInputChange} placeholder={t("Select rider")} required options={[{ value: '', label: 'Select rider' }, ...employees.filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation)).map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Work Type *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Work Type *")}</label>
                 <SearchableSelect name="workType" value={formData.workType} onChange={handleInputChange} required options={workTypes.map(type => ({ value: type, label: type }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Duration (min) *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Duration (min) *")}</label>
                 <input type="number" name="duration" value={formData.duration} onChange={handleInputChange} placeholder="45" min="1" required className={inputCls} />
               </div>
               <div className="sm:col-span-2 lg:col-span-3">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
-                <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder="Additional session notes" rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
+                <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder={t("Additional session notes")} rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
             </div>
                 <div className="flex gap-3">
                   <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
-                  <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                  <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>
             </div>
@@ -244,11 +244,11 @@ const DailyWorkRecordsPage = () => {
             <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr className="border-b border-border/50">
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Horse</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Rider</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Work Category</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Duration</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Remarks</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Horse")}</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Rider")}</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Work Category")}</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Duration")}</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Remarks")}</th>
                   {canCreateRecords && <th className="px-5 py-3 w-24"></th>}
                 </tr>
               </thead>
@@ -273,10 +273,10 @@ const DailyWorkRecordsPage = () => {
                     {canCreateRecords && (
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-1.5">
-                          <button onClick={() => handleEdit(record)} title="Edit" className="p-1.5 rounded text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50">
+                          <button onClick={() => handleEdit(record)} title={t("Edit")} className="p-1.5 rounded text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50">
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => handleDelete(record.id)} title="Delete" className="p-1.5 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50">
+                          <button onClick={() => handleDelete(record.id)} title={t("Delete")} className="p-1.5 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors disabled:opacity-50">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -290,7 +290,7 @@ const DailyWorkRecordsPage = () => {
         </div>
       )}
 
-      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Record" message="Are you sure you want to delete this record?" confirmText="Delete" confirmVariant="danger" />
+      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Record" message={t("Are you sure you want to delete this record?")} confirmText={t("Delete")} confirmVariant="danger" />
     </div>
   );
 };

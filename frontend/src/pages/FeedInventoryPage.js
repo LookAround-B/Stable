@@ -195,7 +195,7 @@ const FeedInventoryPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Feed <span className="text-primary">Inventory</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Feed <span className="text-primary">{t("Inventory")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Feed Inventory Management')}</p>
         </div>
       </div>
@@ -219,28 +219,28 @@ const FeedInventoryPage = () => {
           <div className="feed-inventory-controls flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
             <div className="feed-inventory-control-grid flex items-end gap-3 w-full sm:w-auto">
               <div className="flex-1 min-w-[140px]">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Month</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Month")}</label>
                 <SearchableSelect
                   value={selectedMonth.toString()}
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
                   options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
-                  placeholder="Select month..."
+                  placeholder={t("Select month...")}
                 />
               </div>
               <div className="flex-1 min-w-[120px]">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Year</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Year")}</label>
                 <SearchableSelect
                   value={selectedYear.toString()}
                   onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
                   options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))}
-                  placeholder="Select year..."
+                  placeholder={t("Select year...")}
                   searchable={false}
                 />
               </div>
             </div>
             <div className="feed-inventory-actions flex gap-2 md:ml-auto w-full sm:w-auto">
               <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="feed-inventory-add-btn flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
-                {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Entry</>}
+                {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Entry")}</>}
               </button>
               <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="feed-inventory-recalc-btn h-10 px-4 rounded-lg border border-primary/35 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.14)] text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
                 <RotateCw className="w-4 h-4" /> Recalculate
@@ -263,30 +263,30 @@ const FeedInventoryPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {!editingRecord && (
                         <div>
-                          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Feed Type *</label>
-                          <SearchableSelect name="feedType" value={formData.feedType} onChange={(e) => setFormData({ ...formData, feedType: e.target.value })} options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))} placeholder="Select feed type..." required />
+                          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Feed Type *")}</label>
+                          <SearchableSelect name="feedType" value={formData.feedType} onChange={(e) => setFormData({ ...formData, feedType: e.target.value })} options={availableFeedTypes.map((ft) => ({ value: ft, label: FEED_LABELS[ft] }))} placeholder={t("Select feed type...")} required />
                         </div>
                       )}
                       <div>
-                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Opening Stock</label>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Opening Stock")}</label>
                         <input type="number" step="0.01" min="0" value={formData.openingStock} onChange={(e) => setFormData({ ...formData, openingStock: e.target.value })} placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Units Brought *</label>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Units Brought *")}</label>
                         <input type="number" step="0.01" min="0" value={formData.unitsBrought} onChange={(e) => setFormData({ ...formData, unitsBrought: e.target.value })} required placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Unit")}</label>
                         <SearchableSelect name="unit" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} options={[{ value: 'kg', label: 'Kilograms (kg)' }, { value: 'liters', label: 'Liters' }, { value: 'packets', label: 'Packets' }, { value: 'bags', label: 'Bags' }, { value: 'units', label: 'Units' }]} />
                       </div>
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
                       <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                     </div>
                     <div className="flex gap-3">
                       <button type="submit" disabled={loading} className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{loading ? 'Saving...' : editingRecord ? 'Save Changes' : 'Create Entry'}</button>
-                      <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                      <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                     </div>
                   </form>
                 </div>
@@ -298,7 +298,7 @@ const FeedInventoryPage = () => {
           {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
             <div className="rounded-xl p-4 border border-warning/30 bg-warning/10 flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
-              <p className="text-sm text-foreground font-medium"><strong>Low stock alert:</strong> One or more feed inventory items are below their configured threshold.</p>
+              <p className="text-sm text-foreground font-medium"><strong>{t("Low stock alert:")}</strong> One or more feed inventory items are below their configured threshold.</p>
             </div>
           )}
 
@@ -314,27 +314,27 @@ const FeedInventoryPage = () => {
                       type="text"
                       value={searchTerm}
                       onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                      placeholder="Search feed type..."
+                      placeholder={t("Search feed type...")}
                       className="h-10 pl-10 pr-3 w-52 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                     />
                   </div>
                   <button
                     onClick={() => setShowTableSearch((prev) => !prev)}
                     className={`p-2 rounded-lg transition-colors sm:hidden ${showTableSearch ? 'bg-primary/15 text-primary' : 'bg-surface-container-high text-muted-foreground hover:text-foreground'}`}
-                    aria-label="Toggle search"
+                    aria-label={t("Toggle search")}
                     type="button"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
                   </button>
                   {inventoryRecords.length > 0 && (
                     <ExportDialog
-                      title="Export Feed Inventory"
+                      title={t("Export Feed Inventory")}
                       options={{ xlsx: handleDownloadExcel, csv: handleDownloadInventoryCSV }}
                       trigger={(
                         <button
                           className="feed-inventory-mobile-export btn-download p-2 rounded-lg border border-border text-foreground transition-colors flex items-center justify-center sm:hidden"
-                          aria-label="Export feed inventory"
-                          title="Export feed inventory"
+                          aria-label={t("Export feed inventory")}
+                          title={t("Export feed inventory")}
                           type="button"
                         >
                           <Download className="w-4 h-4 shrink-0" />
@@ -353,7 +353,7 @@ const FeedInventoryPage = () => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    placeholder="Search feed type..."
+                    placeholder={t("Search feed type...")}
                     className="h-10 pl-10 pr-3 w-full rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                   />
                 </div>
@@ -365,7 +365,7 @@ const FeedInventoryPage = () => {
             ) : filteredInventoryRecords.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 {searchTerm ? (
-                  <p>No feed inventory records match your search.</p>
+                  <p>{t("No feed inventory records match your search.")}</p>
                 ) : (
                   <>
                     <p>No inventory records for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.</p>
@@ -455,11 +455,11 @@ const FeedInventoryPage = () => {
           <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
             <div className="flex flex-wrap sm:flex-nowrap items-end gap-3 w-full sm:w-auto">
               <div className="w-full sm:w-auto">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Date")}</label>
                 <DatePicker value={reportStartDate} onChange={(val) => setReportStartDate(val)} />
               </div>
               <div className="w-full sm:w-auto">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Date")}</label>
                 <DatePicker value={reportEndDate} onChange={(val) => setReportEndDate(val)} />
               </div>
             </div>
@@ -467,10 +467,10 @@ const FeedInventoryPage = () => {
               <button onClick={loadReport} disabled={loading} className="feed-inventory-report-generate flex-1 sm:flex-none h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all disabled:opacity-50 min-w-[150px]">{loading ? 'Loading...' : 'Generate'}</button>
               {reportData && (
                 <ExportDialog
-                  title="Export Feed Report"
+                  title={t("Export Feed Report")}
                   options={{ xlsx: handleDownloadReportExcel, csv: handleDownloadReportCSV }}
                   trigger={(
-                    <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container transition-colors flex items-center justify-center" type="button" aria-label="Export feed report" title="Export feed report">
+                    <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container transition-colors flex items-center justify-center" type="button" aria-label={t("Export feed report")} title={t("Export feed report")}>
                       <Download className="w-4 h-4" />
                     </button>
                   )}
@@ -496,14 +496,14 @@ const FeedInventoryPage = () => {
 
               {/* Horse-wise Consumption */}
               <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-                <div className="px-5 py-4 border-b border-border"><h3 className="text-sm font-bold text-foreground">Horse-wise Consumption</h3></div>
+                <div className="px-5 py-4 border-b border-border"><h3 className="text-sm font-bold text-foreground">{t("Horse-wise Consumption")}</h3></div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">HORSE</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">STABLE</th>
-                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">DAYS</th>
+                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t("HORSE")}</th>
+                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t("STABLE")}</th>
+                        <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t("DAYS")}</th>
                         {FEED_TYPES.filter((ft) => reportData.totalConsumption[ft] > 0).map((ft) => (
                           <th key={ft} className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground whitespace-nowrap">{FEED_LABELS[ft]}</th>
                         ))}
@@ -555,8 +555,8 @@ const FeedInventoryPage = () => {
                 Notify admin when below threshold
               </label>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleSaveThreshold} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">Save Alert</button>
-                <button onClick={() => setThresholdModal(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                <button onClick={handleSaveThreshold} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{t("Save Alert")}</button>
+                <button onClick={() => setThresholdModal(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </div>
           </div>

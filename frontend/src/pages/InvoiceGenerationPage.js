@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
@@ -20,6 +21,7 @@ const esc = (str) => {
 
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const p = usePermissions();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -159,25 +161,25 @@ const InvoiceGenerationPage = () => {
         </style>
       </head>
       <body>
-        <h1>EIRS Invoice</h1>
+        <h1>{t("EIRS Invoice")}</h1>
         
         <div class="header-info">
-          <p><strong>Instructor:</strong> ${esc(invoiceData.instructor.fullName)}</p>
-          <p><strong>Invoice ID:</strong> ${esc(invoiceData.invoiceId)}</p>
-          <p><strong>Period:</strong> ${esc(new Date(invoiceData.periodStart).toLocaleDateString())} to ${esc(new Date(invoiceData.periodEnd).toLocaleDateString())}</p>
-          <p><strong>Generated:</strong> ${esc(new Date(invoiceData.generatedDate).toLocaleString())}</p>
+          <p><strong>{t("Instructor:")}</strong> ${esc(invoiceData.instructor.fullName)}</p>
+          <p><strong>{t("Invoice ID:")}</strong> ${esc(invoiceData.invoiceId)}</p>
+          <p><strong>{t("Period:")}</strong> ${esc(new Date(invoiceData.periodStart).toLocaleDateString())} to ${esc(new Date(invoiceData.periodEnd).toLocaleDateString())}</p>
+          <p><strong>{t("Generated:")}</strong> ${esc(new Date(invoiceData.generatedDate).toLocaleString())}</p>
         </div>
 
-        <h2>Work Sessions</h2>
+        <h2>{t("Work Sessions")}</h2>
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Horse</th>
-              <th>Rider</th>
-              <th>Type</th>
+              <th>{t("Date")}</th>
+              <th>{t("Horse")}</th>
+              <th>{t("Rider")}</th>
+              <th>{t("Type")}</th>
               <th>Duration (min)</th>
-              <th>Notes</th>
+              <th>{t("Notes")}</th>
             </tr>
           </thead>
           <tbody>
@@ -185,14 +187,14 @@ const InvoiceGenerationPage = () => {
           </tbody>
         </table>
 
-        <h2>Summary by Work Type</h2>
+        <h2>{t("Summary by Work Type")}</h2>
         <table>
           <thead>
             <tr>
-              <th>Work Type</th>
-              <th>Sessions</th>
-              <th>Total Duration</th>
-              <th>Total Hours</th>
+              <th>{t("Work Type")}</th>
+              <th>{t("Sessions")}</th>
+              <th>{t("Total Duration")}</th>
+              <th>{t("Total Hours")}</th>
             </tr>
           </thead>
           <tbody>
@@ -202,19 +204,19 @@ const InvoiceGenerationPage = () => {
 
         <div class="summary">
           <div class="summary-stat">
-            <strong>Total Sessions:</strong> ${esc(invoiceData.summary.totalSessions)}
+            <strong>{t("Total Sessions:")}</strong> ${esc(invoiceData.summary.totalSessions)}
           </div>
           <div class="summary-stat">
-            <strong>Total Duration:</strong> ${esc(invoiceData.summary.totalDuration)} minutes
+            <strong>{t("Total Duration:")}</strong> ${esc(invoiceData.summary.totalDuration)} minutes
           </div>
           <div class="summary-stat">
-            <strong>Total Hours:</strong> ${esc(invoiceData.summary.totalHours)}
+            <strong>{t("Total Hours:")}</strong> ${esc(invoiceData.summary.totalHours)}
           </div>
         </div>
 
         <div class="footer">
-          <p>This is an automated invoice generated from the EIRS system.</p>
-          <p>For queries, contact the administration.</p>
+          <p>{t("This is an automated invoice generated from the EIRS system.")}</p>
+          <p>{t("For queries, contact the administration.")}</p>
         </div>
       </body>
       </html>
@@ -230,9 +232,9 @@ const InvoiceGenerationPage = () => {
           <div className="lovable-header-kicker mb-2">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>FINANCIAL CONTROL CENTER</span>
+            <span>{t("FINANCIAL CONTROL CENTER")}</span>
           </div>
-          <h1 className="display-sm text-foreground mt-1">Invoice Generation</h1>
+          <h1 className="display-sm text-foreground mt-1">{t("Invoice Generation")}</h1>
         </div>
       </div>
 
@@ -253,13 +255,13 @@ const InvoiceGenerationPage = () => {
           <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
             <div className="flex items-center gap-2 mb-5">
               <SlidersHorizontal className="w-4 h-4 text-primary" />
-              <h2 className="heading-md text-foreground">Parameters</h2>
+              <h2 className="heading-md text-foreground">{t("Parameters")}</h2>
             </div>
 
             <form onSubmit={handleGenerateInvoice} className="space-y-4">
               {user?.designation !== 'Instructor' && (
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">SELECT INSTRUCTOR</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("SELECT INSTRUCTOR")}</label>
                   <SearchableSelect
                     id="instructorId"
                     value={filters.instructorId}
@@ -269,7 +271,7 @@ const InvoiceGenerationPage = () => {
                         instructorId: e.target.value,
                       }))
                     }
-                    placeholder="Select instructor..."
+                    placeholder={t("Select instructor...")}
                     options={[
                       { value: '', label: 'All Instructors' },
                       ...instructors.map((i) => ({ value: i.id, label: i.fullName })),
@@ -279,7 +281,7 @@ const InvoiceGenerationPage = () => {
               )}
 
               <div>
-                <label className="label-sm text-muted-foreground block mb-2">DATE RANGE</label>
+                <label className="label-sm text-muted-foreground block mb-2">{t("DATE RANGE")}</label>
                 <div className="grid grid-cols-2 gap-3">
                   <DatePicker
                     value={filters.startDate}
@@ -317,7 +319,7 @@ const InvoiceGenerationPage = () => {
           </div>
 
           <div className="bg-surface-container-highest rounded-lg p-5 edge-glow border-l-2 border-primary">
-            <p className="label-sm text-primary mb-1">ESTIMATED TOTAL HOURS</p>
+            <p className="label-sm text-primary mb-1">{t("ESTIMATED TOTAL HOURS")}</p>
             <div className="flex items-end justify-between">
               <p className="text-3xl font-bold text-foreground mono-data">
                 {invoice ? invoice.summary.totalHours.toFixed(2) : '0.00'}
@@ -355,7 +357,7 @@ const InvoiceGenerationPage = () => {
               <div className="p-4 sm:p-8 space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-foreground tracking-wider">THE NEON STABLE</h2>
+                    <h2 className="text-xl font-bold text-foreground tracking-wider">{t("THE NEON STABLE")}</h2>
                     <p className="text-xs text-muted-foreground mt-1">
                       EIRS Operations Ledger
                       <br />
@@ -365,7 +367,7 @@ const InvoiceGenerationPage = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-4xl font-bold text-surface-container-high/50 tracking-widest">INVOICE</p>
+                    <p className="text-4xl font-bold text-surface-container-high/50 tracking-widest">{t("INVOICE")}</p>
                     <div className="text-xs text-muted-foreground mt-2 space-y-0.5 mono-data">
                       <p>NO: <span className="text-foreground font-medium">{invoice.invoiceId}</span></p>
                       <p>DATE: <span className="text-foreground font-medium">{new Date(invoice.generatedDate).toLocaleDateString('en-GB')}</span></p>
@@ -378,7 +380,7 @@ const InvoiceGenerationPage = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <p className="label-sm text-primary mb-1">INSTRUCTOR ENTITY</p>
+                    <p className="label-sm text-primary mb-1">{t("INSTRUCTOR ENTITY")}</p>
                     <p className="font-semibold text-foreground">{invoice.instructor.fullName}</p>
                     <p className="text-xs text-muted-foreground mono-data mt-1">
                       ROLE: {invoice.instructor.designation}
@@ -387,8 +389,8 @@ const InvoiceGenerationPage = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="label-sm text-primary mb-1">PAYMENT CHANNEL</p>
-                    <p className="font-semibold text-foreground">Stable Ops Ledger</p>
+                    <p className="label-sm text-primary mb-1">{t("PAYMENT CHANNEL")}</p>
+                    <p className="font-semibold text-foreground">{t("Stable Ops Ledger")}</p>
                     <p className="text-xs text-muted-foreground mono-data mt-1">
                       VERIFIED BY EIRS
                       <br />
@@ -401,10 +403,10 @@ const InvoiceGenerationPage = () => {
                   <table className="w-full text-sm min-w-[420px]">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="py-2 text-left label-sm text-muted-foreground">SESSION DESCRIPTION</th>
-                        <th className="py-2 text-right label-sm text-muted-foreground">HRS</th>
-                        <th className="py-2 text-right label-sm text-muted-foreground">TYPE</th>
-                        <th className="py-2 text-right label-sm text-muted-foreground">RIDER / HORSE</th>
+                        <th className="py-2 text-left label-sm text-muted-foreground">{t("SESSION DESCRIPTION")}</th>
+                        <th className="py-2 text-right label-sm text-muted-foreground">{t("HRS")}</th>
+                        <th className="py-2 text-right label-sm text-muted-foreground">{t("TYPE")}</th>
+                        <th className="py-2 text-right label-sm text-muted-foreground">{t("RIDER / HORSE")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -433,15 +435,15 @@ const InvoiceGenerationPage = () => {
 
                 <div className="border-t border-border pt-4 space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Total Sessions</span>
+                    <span>{t("Total Sessions")}</span>
                     <span className="mono-data">{invoice.summary.totalSessions}</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Total Duration</span>
+                    <span>{t("Total Duration")}</span>
                     <span className="mono-data">{invoice.summary.totalDuration} min</span>
                   </div>
                   <div className="border-t border-border pt-2 flex justify-between">
-                    <span className="text-primary font-bold">TOTAL HOURS</span>
+                    <span className="text-primary font-bold">{t("TOTAL HOURS")}</span>
                     <span className="text-xl mono-data font-bold text-foreground">
                       {invoice.summary.totalHours.toFixed(2)}
                     </span>
@@ -453,9 +455,9 @@ const InvoiceGenerationPage = () => {
                     <table className="w-full text-sm min-w-[280px]">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="py-2 text-left label-sm text-muted-foreground">WORK TYPE</th>
-                          <th className="py-2 text-right label-sm text-muted-foreground">SESSIONS</th>
-                          <th className="py-2 text-right label-sm text-muted-foreground">HOURS</th>
+                          <th className="py-2 text-left label-sm text-muted-foreground">{t("WORK TYPE")}</th>
+                          <th className="py-2 text-right label-sm text-muted-foreground">{t("SESSIONS")}</th>
+                          <th className="py-2 text-right label-sm text-muted-foreground">{t("HOURS")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -473,7 +475,7 @@ const InvoiceGenerationPage = () => {
                     <p className="text-[10px] text-muted-foreground max-w-[300px]">
                       All invoice values on this page are derived from verified EIRS work logs. No mock rate or payment data is introduced into the preview.
                     </p>
-                    <p className="label-sm text-muted-foreground mt-4">AUTHORIZED DIGITALLY</p>
+                    <p className="label-sm text-muted-foreground mt-4">{t("AUTHORIZED DIGITALLY")}</p>
                   </div>
                 </div>
               </div>

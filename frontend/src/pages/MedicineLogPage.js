@@ -136,10 +136,10 @@ const MedicineLogPage = () => {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <ExportDialog
-            title="Export Medicine Logs"
+            title={t("Export Medicine Logs")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label="Export medicine logs" title="Export medicine logs">
+              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label={t("Export medicine logs")} title={t("Export medicine logs")}>
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}

@@ -325,13 +325,13 @@ const PermissionsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <p className="label-sm text-muted-foreground text-[10px] truncate uppercase tracking-widest">ORGANIZATION &gt; SYSTEM SETTINGS &gt; <span className="text-primary">PERMISSIONS MATRIX</span></p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-2">System <span className="text-primary">Permissions</span></h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-lg">Configure global access matrices and individual task overrides. Changes are logged in real-time.</p>
+          <p className="label-sm text-muted-foreground text-[10px] truncate uppercase tracking-widest">ORGANIZATION &gt; SYSTEM SETTINGS &gt; <span className="text-primary">{t("PERMISSIONS MATRIX")}</span></p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mt-2">System <span className="text-primary">{t("Permissions")}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t("Configure global access matrices and individual task overrides. Changes are logged in real-time.")}</p>
         </div>
         <div className="flex flex-row-reverse sm:flex-row gap-2 shrink-0">
           <ExportDialog
-            title="Export Permissions"
+            title={t("Export Permissions")}
             options={{
               xlsx: handleDownloadPermissionsExcel,
               csv: handleDownloadPermissionsCsv,
@@ -340,8 +340,8 @@ const PermissionsPage = () => {
               <button
                 type="button"
                 className="h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center ml-auto sm:ml-0"
-                aria-label="Export permissions"
-                title="Export permissions"
+                aria-label={t("Export permissions")}
+                title={t("Export permissions")}
               >
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
@@ -401,7 +401,7 @@ const PermissionsPage = () => {
                             <button
                               key={emp.id}
                               onClick={() => selectEmployee(emp)}
-                              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors border-l-2 ${isSel ? 'bg-surface-container-high border-primary bg-primary/5' : 'border-transparent hover:bg-surface-container-high/50'}`}
+                              className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors border-l-2 ${isSel ? ' border-primary bg-primary/5' : 'border-transparent hover:bg-surface-container-high/50'}`}
                             >
                               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-[10px] font-bold shrink-0 shadow-lg">
                                 {getInitials(emp.fullName)}
@@ -427,10 +427,10 @@ const PermissionsPage = () => {
           <div className="bg-surface-container-highest rounded-lg p-4 edge-glow">
             <p className="label-sm text-muted-foreground mb-3 tracking-widest uppercase">{t('STATUS LEGEND')}</p>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" /> <span className="text-foreground tracking-wide font-medium">ROLE DEFAULT / INHERITED</span></div>
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> <span className="text-foreground tracking-wide font-medium">MANUAL OVERRIDE (DENIED)</span></div>
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]" /> <span className="text-foreground tracking-wide font-medium">MANUAL OVERRIDE (GRANTED)</span></div>
-              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse" /> <span className="text-foreground tracking-wide font-medium">UNSAVED PENDING CHANGE</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" /> <span className="text-foreground tracking-wide font-medium">{t("ROLE DEFAULT / INHERITED")}</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.5)]" /> <span className="text-foreground tracking-wide font-medium">{t("MANUAL OVERRIDE (DENIED)")}</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]" /> <span className="text-foreground tracking-wide font-medium">{t("MANUAL OVERRIDE (GRANTED)")}</span></div>
+              <div className="flex items-center gap-2 text-xs"><span className="w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)] animate-pulse" /> <span className="text-foreground tracking-wide font-medium">{t("UNSAVED PENDING CHANGE")}</span></div>
             </div>
           </div>
         </div>
@@ -455,7 +455,7 @@ const PermissionsPage = () => {
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><Shield className="w-4 h-4 text-primary" /></div>
-                <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">Global Permissions</h3>
+                <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">{t("Global Permissions")}</h3>
               </div>
               <div className="space-y-1">
                 {globalPermDefs().map((p) => {
@@ -492,7 +492,7 @@ const PermissionsPage = () => {
                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
                  <div className="flex items-center gap-2">
                    <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><ActionIcon className="w-4 h-4 text-primary" /></div>
-                   <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">Operational Task Overrides</h3>
+                   <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">{t("Operational Task Overrides")}</h3>
                  </div>
                  <div className="flex items-center gap-2 flex-wrap">
                    <span className="text-[10px] text-muted-foreground bg-surface-container-high px-3 py-1.5 rounded tracking-wider uppercase">TARGET: {selectedEmployee.fullName}</span>
@@ -574,14 +574,14 @@ const PermissionsPage = () => {
                  {/* Append Task Node */}
                  {/* <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors min-h-[160px]">
                    <Plus className="w-6 h-6 text-muted-foreground mb-2" />
-                   <p className="label-sm text-muted-foreground">APPEND TASK NODE</p>
+                   <p className="label-sm text-muted-foreground">{t("APPEND TASK NODE")}</p>
                  </div> */}
                  {/* Empty State */}
                  {taskPermsList.length === 0 && !taskLoading && (
                    <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center min-h-[160px] bg-surface-container/50">
                      <AlertTriangle className="w-6 h-6 text-muted-foreground mb-2" />
-                     <p className="label-sm text-foreground uppercase tracking-widest font-bold">NO TASKS DEFINED</p>
-                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">This user role possesses zero default behaviors.</p>
+                     <p className="label-sm text-foreground uppercase tracking-widest font-bold">{t("NO TASKS DEFINED")}</p>
+                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">{t("This user role possesses zero default behaviors.")}</p>
                    </div>
                  )}
                </div>
@@ -591,7 +591,7 @@ const PermissionsPage = () => {
         ) : (
           <div className="lg:col-span-9 flex flex-col items-center justify-center text-center py-20 px-4 bg-surface-container-highest rounded-lg border border-border edge-glow min-h-[500px]">
              <Shield className="w-16 h-16 text-muted-foreground/30 mb-5" />
-             <h3 className="text-xl font-bold text-foreground mb-2 uppercase tracking-widest">Select an Employee Target</h3>
+             <h3 className="text-xl font-bold text-foreground mb-2 uppercase tracking-widest">{t("Select an Employee Target")}</h3>
              <p className="text-sm text-muted-foreground max-w-sm">Choose an employee from the directory sidebar to visualize and alter global interface restrictions and specific operational task overrides.</p>
           </div>
         )}

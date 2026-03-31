@@ -954,35 +954,35 @@ const TasksPage = () => {
               <div className="p-4 sm:p-6 overflow-y-auto">
                 <form id="create-task-form" onSubmit={handleCreateTask} className="space-y-4">
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Task Name *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Name *")}</label>
                     <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Morning Feed, Groom Shadow" required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Description</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Description")}</label>
                     <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Task details and instructions" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Task Type *</label>
-                      <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder="Select task type..." required />
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Type *")}</label>
+                      <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder={t("Select task type...")} required />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Priority</label>
-                      <SearchableSelect name="priority" value={formData.priority} onChange={handleInputChange} options={[{ value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' }, { value: 'High', label: 'High' }, { value: 'Urgent', label: 'Urgent' }]} placeholder="Select priority..." />
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Priority")}</label>
+                      <SearchableSelect name="priority" value={formData.priority} onChange={handleInputChange} options={[{ value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' }, { value: 'High', label: 'High' }, { value: 'Urgent', label: 'Urgent' }]} placeholder={t("Select priority...")} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse</label>
-                      <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder="Select a horse (optional)" options={[{ value: '', label: 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
+                      <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder={t("Select a horse (optional)")} options={[{ value: '', label: 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Assign To *</label>
-                      <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder="Select employee" required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Assign To *")}</label>
+                      <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder={t("Select employee")} required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Scheduled Date & Time *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Scheduled Date & Time *")}</label>
                     <DateTimePicker value={formData.scheduledTime} onChange={(val) => handleInputChange({ target: { name: 'scheduledTime', value: val } })} required />
                   </div>
                   <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
@@ -992,7 +992,7 @@ const TasksPage = () => {
                 </form>
               </div>
               <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
-                <button type="button" onClick={() => setShowCreateForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">Cancel</button>
+                <button type="button" onClick={() => setShowCreateForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
                 <button type="submit" form="create-task-form" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? 'Creating...' : 'Create Task'}</button>
               </div>
             </div>
@@ -1017,17 +1017,17 @@ const TasksPage = () => {
                 <input type="file" id={`photo-${selectedTask.id}`} accept="image/*" onChange={handlePhotoUpload} disabled={loading} className="hidden" />
                 <label htmlFor={`photo-${selectedTask.id}`} className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors bg-surface-container-high">
                   <Camera className="w-5 h-5 text-primary" />
-                  <div><p className="text-sm font-medium text-foreground">{completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}</p><p className="text-xs text-muted-foreground">JPG, PNG (Max 5MB)</p></div>
+                  <div><p className="text-sm font-medium text-foreground">{completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}</p><p className="text-xs text-muted-foreground">{t("JPG, PNG (Max 5MB)")}</p></div>
                 </label>
                 {completionData.photoUrl && <img src={completionData.photoUrl} alt="Task evidence" className="mt-3 max-w-[150px] max-h-[150px] rounded-lg border border-border" />}
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Completion Notes</label>
-                <textarea placeholder="Add any notes about task completion..." value={completionData.notes} onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Completion Notes")}</label>
+                <textarea placeholder={t("Add any notes about task completion...")} value={completionData.notes} onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => handleCompleteTask(selectedTask.id)} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Submitting...' : 'Submit for Approval'}</button>
-                <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </div>
           </div>
@@ -1038,12 +1038,12 @@ const TasksPage = () => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewingTaskId(null)}>
           <div className="bg-surface-container-highest border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center px-6 py-4 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">Task Evidence Review</h3>
+              <h3 className="text-xl font-bold text-foreground">{t("Task Evidence Review")}</h3>
               <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setViewingTaskId(null)}><X size={18} /></button>
             </div>
             <div className="p-6 space-y-5">
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">Task Information</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t("Task Information")}</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {[
                     ['Task Name', reviewingTask.name],
@@ -1055,32 +1055,32 @@ const TasksPage = () => {
                     <div key={label}><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</p><p className="text-foreground font-medium mt-0.5">{val}</p></div>
                   ))}
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Status</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{t("Status")}</p>
                     <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getStatusColor(reviewingTask.status) + '22', color: getStatusColor(reviewingTask.status), borderColor: getStatusColor(reviewingTask.status) + '44' }}>{t(reviewingTask.status)}</span>
                   </div>
                 </div>
               </div>
               {getTaskEvidenceImage(reviewingTask) && (
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">Evidence Photo</p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t("Evidence Photo")}</p>
                   <img src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`} alt="Task evidence" className="w-full max-h-[300px] object-contain rounded-lg border border-border cursor-pointer" onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
                 </div>
               )}
               {(reviewingTask.completionNotes || reviewingTask.description) && (
                 <div className="p-3 rounded-lg bg-surface-container-high">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Completion Notes</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Notes")}</p>
                   <p className="text-sm text-foreground mt-1">{reviewingTask.completionNotes || reviewingTask.description}</p>
                 </div>
               )}
               {reviewingTask.completedTime && (
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Completion Time</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Time")}</p>
                   <p className="text-sm text-foreground mt-0.5 mono-data">{new Date(reviewingTask.completedTime).toLocaleString()}</p>
                 </div>
               )}
             </div>
             <div className="px-6 py-4 border-t border-border">
-              <button onClick={() => setViewingTaskId(null)} className="w-full h-10 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Close</button>
+              <button onClick={() => setViewingTaskId(null)} className="w-full h-10 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Close")}</button>
             </div>
           </div>
         </div>

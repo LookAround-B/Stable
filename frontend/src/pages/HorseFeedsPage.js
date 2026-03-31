@@ -151,7 +151,7 @@ const HorseFeedsPage = () => {
       <div className="horse-feeds-header-row space-y-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">Feeds</span></h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">{t("Feeds")}</span></h1>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <button onClick={() => setShowForm(!showForm)} className="horse-feeds-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
@@ -184,27 +184,27 @@ const HorseFeedsPage = () => {
       {/* Date Filters + Search */}
       <div className="horse-feeds-toolbar flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
         <div className="horse-feeds-search relative flex-1 max-w-xs">
-          <input type="text" placeholder="Search horse name..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="h-10 w-full px-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+          <input type="text" placeholder={t("Search horse name...")} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="h-10 w-full px-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
         </div>
         <div className="horse-feeds-toolbar-actions flex flex-col sm:flex-row sm:items-end gap-3">
           <div className="horse-feeds-date-range flex items-center gap-3">
             <div>
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">From</label>
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("From")}</label>
               <div className="relative">
                 <DatePicker value={fromDate} onChange={(val) => setFromDate(val)} />
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">To</label>
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("To")}</label>
               <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
             </div>
           </div>
           {summaryDataArray.length > 0 && (
             <ExportDialog
-              title="Export Horse Feeds"
+              title={t("Export Horse Feeds")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
-                <button className="btn-download horse-feeds-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export horse feeds" title="Export horse feeds">
+                <button className="btn-download horse-feeds-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export horse feeds")} title={t("Export horse feeds")}>
                   <Download className="w-4 h-4 shrink-0" />
                 </button>
               )}
@@ -227,11 +227,11 @@ const HorseFeedsPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
-                    <SearchableSelect id="horseId" name="horseId" value={formData.horseId} onChange={handleFormChange} placeholder="Select a horse" required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (${h.stableNumber || 'No Stable #'})` }))]} />
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
+                    <SearchableSelect id="horseId" name="horseId" value={formData.horseId} onChange={handleFormChange} placeholder={t("Select a horse")} required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (${h.stableNumber || 'No Stable #'})` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date *")}</label>
                     <DatePicker value={formData.date} onChange={(val) => handleFormChange({ target: { name: 'date', value: val } })} required />
                   </div>
                 </div>
@@ -244,12 +244,12 @@ const HorseFeedsPage = () => {
                   ))}
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes (Optional)</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes (Optional)")}</label>
                   <textarea id="notes" name="notes" value={formData.notes} onChange={handleFormChange} placeholder="Any additional notes" rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                 </div>
                 <div className="flex gap-3">
                   <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Record'}</button>
-                  <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                  <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>
             </div>

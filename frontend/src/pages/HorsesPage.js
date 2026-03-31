@@ -399,10 +399,10 @@ const HorsesPage = () => {
             <div className="lovable-header-kicker mb-2">
               <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
               <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-              <span>FLEET MANAGEMENT</span>
+              <span>{t("FLEET MANAGEMENT")}</span>
             </div>
             <div className="horses-header-row flex items-end justify-between gap-3">
-              <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Horses</h1>
+              <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">{t("Horses")}</h1>
               {canAddHorse && (
                 <button onClick={() => setShowModal(true)} className="horses-header-add-btn inline-flex items-center gap-2 h-8 px-3 rounded-lg bg-primary text-primary-foreground text-xs sm:text-sm font-medium hover:brightness-110 transition-all sm:h-10 sm:px-5 w-fit whitespace-nowrap shrink-0">
                   <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Add New Horse
@@ -498,7 +498,7 @@ const HorsesPage = () => {
               searchable={false}
             />
             <ExportDialog
-              title="Export Horses"
+              title={t("Export Horses")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
                 <button
@@ -522,10 +522,10 @@ const HorsesPage = () => {
               <table className="horses-table w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Horse Details</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Breed</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Manager</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Horse Details")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Breed")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Status")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">{t("Manager")}</th>
                       <th className="px-4 sm:px-6 py-3 text-right"></th>
                   </tr>
                 </thead>

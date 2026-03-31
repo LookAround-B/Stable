@@ -302,7 +302,7 @@ const RoleTooltip = ({ active, payload }) => {
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const [metrics, setMetrics] = useState({
     totalHorses: 0,
     totalStaff: 0,
@@ -530,7 +530,7 @@ const DashboardPage = () => {
 
         <div className="dashboard-lovable-chart-grid">
           <ChartPanel title="Staff by Department">
-            {teamByDepartment.length === 0 ? <EmptyState label="No department data available" /> : (
+            {teamByDepartment.length === 0 ? <EmptyState label={t(t("No department data available"))} /> : (
               <div className="dashboard-lovable-split">
                 <div className="dashboard-lovable-donut-wrap">
                 <ResponsiveContainer width="100%" height={180} minWidth={0} minHeight={180}>
@@ -553,7 +553,7 @@ const DashboardPage = () => {
                 </ResponsiveContainer>
                 <div className="dashboard-lovable-donut-center">
                   <p>{departmentTotal ? '100%' : '0%'}</p>
-                  <span>Allocated</span>
+                  <span>{t("Allocated")}</span>
                 </div>
               </div>
               <div className="dashboard-lovable-progress-list">
@@ -577,7 +577,7 @@ const DashboardPage = () => {
           </ChartPanel>
 
           <ChartPanel title="Staff by Role">
-            {teamByRole.length === 0 ? <EmptyState label="No role data available" /> : (
+            {teamByRole.length === 0 ? <EmptyState label={t(t("No role data available"))} /> : (
               <ResponsiveContainer width="100%" height={240} minWidth={0} minHeight={240}>
                 <BarChart data={teamByRole} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
                   <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--lovable-text-soft, var(--dashboard-tooltip-text))' }} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -594,7 +594,7 @@ const DashboardPage = () => {
 
       <div className="dashboard-lovable-chart-grid">
         <ChartPanel title="Horses by Gender">
-          {horsesByGender.length === 0 ? <EmptyState label="No horse data available" /> : (
+          {horsesByGender.length === 0 ? <EmptyState label={t(t("No horse data available"))} /> : (
             <div className="dashboard-lovable-split dashboard-lovable-split--compact">
               <div className="dashboard-lovable-donut-wrap dashboard-lovable-donut-wrap--small">
                 <ResponsiveContainer width="100%" height={160} minWidth={0} minHeight={160}>
@@ -640,7 +640,7 @@ const DashboardPage = () => {
         </ChartPanel>
 
         <ChartPanel title="Transactions by Department">
-          {transactionsByDepartment.length === 0 ? <EmptyState label="No transaction data available" /> : (
+          {transactionsByDepartment.length === 0 ? <EmptyState label={t(t("No transaction data available"))} /> : (
             <div className="dashboard-lovable-transaction-list">
               {transactionsByDepartment.map((item) => {
                 const percent = maxTransactionValue ? (item.value / maxTransactionValue) * 100 : 0;

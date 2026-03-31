@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
@@ -142,16 +143,16 @@ const TeamAttendancePage = () => {
 
       {/* KPI Cards (EFM matched) */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
-        <OperationalMetricCard label="TEAM MEMBERS" value={String(teamMembers.length).padStart(2, '0')} icon={Users} colorClass="text-primary" bgClass="bg-primary/10" sub="Total assigned staff" hideSub />
-        <OperationalMetricCard label="TOTAL MARKED" value={String(attendanceRecords.length).padStart(2, '0')} icon={CalendarCheck} colorClass="text-primary" bgClass="bg-primary/10" sub="Records saved today" subColor="text-primary" hideSub />
-        <OperationalMetricCard label="PRESENT" value={String(presentCount).padStart(2, '0')} icon={CheckCircle2} colorClass="text-success" bgClass="bg-success/10" sub="Currently on shift" subColor="text-success" valueClass="text-3xl font-bold text-success mt-1 mono-data relative z-10" hideSub />
-        <OperationalMetricCard label="ABSENT / LEAVE" value={String(absentCount).padStart(2, '0')} icon={XCircle} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Unavailable staff" subColor="text-destructive" valueClass="text-3xl font-bold text-destructive mt-1 mono-data relative z-10" hideSub />
+        <OperationalMetricCard label={t("TEAM MEMBERS")} value={String(teamMembers.length).padStart(2, '0')} icon={Users} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Total assigned staff")} hideSub />
+        <OperationalMetricCard label={t("TOTAL MARKED")} value={String(attendanceRecords.length).padStart(2, '0')} icon={CalendarCheck} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Records saved today")} subColor="text-primary" hideSub />
+        <OperationalMetricCard label={t("PRESENT")} value={String(presentCount).padStart(2, '0')} icon={CheckCircle2} colorClass="text-success" bgClass="bg-success/10" sub={t("Currently on shift")} subColor="text-success" valueClass="text-3xl font-bold text-success mt-1 mono-data relative z-10" hideSub />
+        <OperationalMetricCard label={t("ABSENT / LEAVE")} value={String(absentCount).padStart(2, '0')} icon={XCircle} colorClass="text-destructive" bgClass="bg-destructive/10" sub={t("Unavailable staff")} subColor="text-destructive" valueClass="text-3xl font-bold text-destructive mt-1 mono-data relative z-10" hideSub />
       </div>
 
       {/* Form */}
-      {showForm && (
-        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
-          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+      {showForm && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowForm(false)}>
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-5xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <h3 className="text-xl font-bold text-foreground">{t('Quick Mark Attendance')}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
@@ -188,7 +189,7 @@ const TeamAttendancePage = () => {
                     { value: 'WOFF', label: t('Weekly Off') },
                     { value: 'Half Day', label: t('Half Day') },
                   ]}
-                  placeholder="Select status..."
+                  placeholder={t("Select status...")}
                   searchable={false}
                   required
                 />
@@ -207,19 +208,19 @@ const TeamAttendancePage = () => {
               </div>
             </div>
             {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider block bg-primary/10 px-3 py-1.5 rounded w-fit mt-1 border border-primary/30">⚠ Monday is weekly off (WOFF)</span>}
-                <div className="pt-2 flex gap-3">
-                  <button type="submit" className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">
-                    {t('Mark Attendance')}
-                  </button>
-                  <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">
-                    {t('Cancel')}
-                  </button>
-                </div>
               </form>
+            </div>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">
+                {t('Cancel')}
+              </button>
+              <button onClick={handleSubmit} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">
+                {t('Mark Attendance')}
+              </button>
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Table Container */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
@@ -233,10 +234,10 @@ const TeamAttendancePage = () => {
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
             <ExportDialog
-              title="Export Team Attendance"
+              title={t("Export Team Attendance")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
-                <button className="btn-download team-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export team attendance" title="Export team attendance">
+                <button className="btn-download team-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export team attendance")} title={t("Export team attendance")}>
                   <Download className="w-4 h-4 lg:w-5 lg:h-5" />
                 </button>
               )}

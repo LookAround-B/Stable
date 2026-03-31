@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createProfile, setToken } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '../context/I18nContext';
 import { User, Camera } from 'lucide-react';
 import SelectField from '../components/shared/SelectField';
 
@@ -10,6 +11,7 @@ const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border
 const lbl = 'text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5';
 
 const ProfileSetupPage = () => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     fullName: '', phoneNumber: '', designation: 'Groomer', profileImage: null,
   });
@@ -51,17 +53,17 @@ const ProfileSetupPage = () => {
             <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <User className="w-7 h-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">Complete Your Profile</h1>
-            <p className="text-sm text-muted-foreground mt-2">Set up your account details to continue</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">{t("Complete Your Profile")}</h1>
+            <p className="text-sm text-muted-foreground mt-2">{t("Set up your account details to continue")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="fullName" className={lbl}>Full Name *</label>
+              <label htmlFor="fullName" className={lbl}>{t("Full Name *")}</label>
               <input
                 id="fullName" type="text" name="fullName" value={formData.fullName}
                 onChange={handleInputChange} pattern="[A-Za-z\s]*"
-                placeholder="Enter your full name (letters and spaces only)"
+                placeholder={t("Enter your full name (letters and spaces only)")}
                 required disabled={loading}
                 title="Name should only contain letters and spaces"
                 className={inp}
@@ -69,11 +71,11 @@ const ProfileSetupPage = () => {
             </div>
 
             <div>
-              <label htmlFor="phoneNumber" className={lbl}>Phone Number *</label>
+              <label htmlFor="phoneNumber" className={lbl}>{t("Phone Number *")}</label>
               <input
                 id="phoneNumber" type="tel" name="phoneNumber" value={formData.phoneNumber}
                 onChange={handleInputChange} inputMode="numeric" maxLength="10"
-                pattern="[0-9]*" placeholder="Enter 10-digit phone number"
+                pattern="[0-9]*" placeholder={t("Enter 10-digit phone number")}
                 required disabled={loading}
                 title="Phone number should contain only 10 digits"
                 className={inp}
@@ -81,7 +83,7 @@ const ProfileSetupPage = () => {
             </div>
 
             <div>
-              <label htmlFor="designation" className={lbl}>Role/Designation *</label>
+              <label htmlFor="designation" className={lbl}>{t("Role/Designation *")}</label>
               <SelectField
                 value={formData.designation}
                 onChange={(val) => handleInputChange({ target: { name: 'designation', value: val } })}
@@ -91,7 +93,7 @@ const ProfileSetupPage = () => {
             </div>
 
             <div>
-              <label htmlFor="profileImage" className={lbl}>Profile Picture</label>
+              <label htmlFor="profileImage" className={lbl}>{t("Profile Picture")}</label>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg border-2 border-dashed border-border bg-surface-container-high flex items-center justify-center cursor-pointer hover:border-primary transition-colors shrink-0 overflow-hidden" onClick={() => document.getElementById('profileImage').click()}>
                   <Camera className="w-5 h-5 text-muted-foreground" />

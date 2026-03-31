@@ -356,7 +356,7 @@ const MedicineInventoryPage = () => {
       <div className="medicine-inventory-header-row space-y-2">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">Inventory</span></h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">{t("Inventory")}</span></h1>
           </div>
           <div className="flex gap-2 shrink-0">
             <button
@@ -365,8 +365,8 @@ const MedicineInventoryPage = () => {
               className="medicine-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span className="sm:hidden">Add</span>
-              <span className="hidden sm:inline">Add Record</span>
+              <span className="sm:hidden">{t("Add")}</span>
+              <span className="hidden sm:inline">{t("Add Record")}</span>
             </button>
           </div>
         </div>
@@ -401,7 +401,7 @@ const MedicineInventoryPage = () => {
       {/* ── Low Stock Warning ── */}
       {inventoryRecords.some(r => r.threshold !== null && r.threshold !== undefined && r.notifyAdmin && r.unitsLeft < r.threshold) && (
         <div className="px-4 py-3 rounded-lg text-sm font-medium bg-warning/15 text-warning border border-warning/30 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" /> <strong>Low stock alert:</strong> One or more medicine inventory items are below their configured threshold.
+          <AlertTriangle className="w-4 h-4" /> <strong>{t("Low stock alert:")}</strong> One or more medicine inventory items are below their configured threshold.
         </div>
       )}
 
@@ -422,7 +422,7 @@ const MedicineInventoryPage = () => {
                 value={selectedMonth.toString()}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
                 options={MONTH_NAMES.map((month, idx) => ({ value: (idx + 1).toString(), label: month }))}
-                placeholder="Select month..."
+                placeholder={t("Select month...")}
               />
             </div>
             <div className="w-32">
@@ -430,7 +430,7 @@ const MedicineInventoryPage = () => {
                 value={selectedYear.toString()}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 options={[2023, 2024, 2025, 2026, 2027].map((year) => ({ value: year.toString(), label: year.toString() }))}
-                placeholder="Select year..."
+                placeholder={t("Select year...")}
               />
             </div>
           </div>
@@ -449,7 +449,7 @@ const MedicineInventoryPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Medicine Type *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Medicine Type *")}</label>
                   <SearchableSelect
                     name="medicineType"
                     value={formData.medicineType}
@@ -458,13 +458,13 @@ const MedicineInventoryPage = () => {
                       setFormData((prev) => ({ ...prev, [name]: value }));
                     }}
                     options={medicineTypeOptions}
-                    placeholder="Select medicine type..."
+                    placeholder={t("Select medicine type...")}
                     disabled={editingRecord !== null}
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Unit")}</label>
                   <SearchableSelect
                     name="unit"
                     value={formData.unit}
@@ -485,12 +485,12 @@ const MedicineInventoryPage = () => {
               </div>
               {formData.medicineType === OTHER_MEDICINE_VALUE && !editingRecord && (
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Other Medicine Type *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Other Medicine Type *")}</label>
                   <input
                     type="text"
                     value={customMedicineType}
                     onChange={(e) => setCustomMedicineType(e.target.value)}
-                    placeholder="Enter medicine type..."
+                    placeholder={t("Enter medicine type...")}
                     className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none"
                     required
                   />
@@ -498,23 +498,23 @@ const MedicineInventoryPage = () => {
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Opening Stock</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Opening Stock")}</label>
                   <input type="number" name="openingStock" value={formData.openingStock} onChange={(e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); }} min="0" step="0.01" placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Units Purchased</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Units Purchased")}</label>
                   <input type="number" name="unitsPurchased" value={formData.unitsPurchased} onChange={(e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); }} min="0" step="0.01" placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
-                <textarea name="notes" value={formData.notes} onChange={(e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); }} placeholder="Additional notes..." rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
+                <textarea name="notes" value={formData.notes} onChange={(e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); }} placeholder={t("Additional notes...")} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3">
                 <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">
                   {loading ? 'Saving...' : editingRecord ? 'Update Record' : 'Create Record'}
                 </button>
-                <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </form>
                 </div>
@@ -539,10 +539,10 @@ const MedicineInventoryPage = () => {
               </div>
               <div className="flex justify-end">
                 <ExportDialog
-                  title="Export Medicine Inventory"
+                  title={t("Export Medicine Inventory")}
                   options={{ xlsx: handleDownloadExcel, csv: handleDownloadInventoryCSV }}
                   trigger={(
-                    <button className="btn-download medicine-inventory-export h-10 w-10 rounded-xl border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export medicine inventory" title="Export medicine inventory">
+                    <button className="btn-download medicine-inventory-export h-10 w-10 rounded-xl border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export medicine inventory")} title={t("Export medicine inventory")}>
                       <Download className="w-4 h-4 shrink-0" />
                     </button>
                   )}
@@ -603,10 +603,10 @@ const MedicineInventoryPage = () => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex gap-1.5">
-                                <button onClick={() => handleEdit(record)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary disabled:opacity-50" title="Edit">
+                                <button onClick={() => handleEdit(record)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary disabled:opacity-50" title={t("Edit")}>
                                   <Pencil className="w-3.5 h-3.5" />
                                 </button>
-                                <button onClick={() => handleDelete(record.id)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive disabled:opacity-50" title="Delete">
+                                <button onClick={() => handleDelete(record.id)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive disabled:opacity-50" title={t("Delete")}>
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                                 {isAdmin && (
@@ -657,11 +657,11 @@ const MedicineInventoryPage = () => {
           <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
             <div className="medicine-inventory-report-controls flex flex-wrap items-end gap-4">
               <div className="flex-1 min-w-[180px]">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Start Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Date")}</label>
                 <DatePicker value={reportStartDate} onChange={(val) => setReportStartDate(val)} />
               </div>
               <div className="flex-1 min-w-[180px]">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">End Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Date")}</label>
                 <DatePicker value={reportEndDate} onChange={(val) => setReportEndDate(val)} />
               </div>
               <button onClick={handleLoadReport} disabled={loading} className={`medicine-inventory-report-generate ${reportButtonClass} bg-primary text-primary-foreground hover:brightness-110`}>
@@ -669,10 +669,10 @@ const MedicineInventoryPage = () => {
               </button>
               {reportData && Object.keys(reportData).length > 0 && (
                 <ExportDialog
-                  title="Export Medicine Report"
+                  title={t("Export Medicine Report")}
                   options={{ xlsx: handleDownloadReportExcel, csv: handleDownloadReportCSV }}
                   trigger={(
-                    <button className={`medicine-inventory-report-download ${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high justify-center`} type="button" aria-label="Export medicine report" title="Export medicine report">
+                    <button className={`medicine-inventory-report-download ${reportButtonClass} border border-border text-foreground hover:bg-surface-container-high justify-center`} type="button" aria-label={t("Export medicine report")} title={t("Export medicine report")}>
                       <Download className="w-4 h-4" />
                     </button>
                   )}
@@ -684,7 +684,7 @@ const MedicineInventoryPage = () => {
           {reportData && Object.keys(reportData).length > 0 ? (
             <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
               <div className="px-6 py-4 border-b border-border">
-                <h3 className="text-lg font-bold text-foreground">Medicine Inventory Report</h3>
+                <h3 className="text-lg font-bold text-foreground">{t("Medicine Inventory Report")}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5 mono-data">{reportStartDate} to {reportEndDate}</p>
               </div>
               <div className="overflow-x-auto">
@@ -712,7 +712,7 @@ const MedicineInventoryPage = () => {
               </div>
             </div>
           ) : (
-            !loading && reportData && <p className="text-center py-8 text-sm text-muted-foreground">No data for selected date range</p>
+            !loading && reportData && <p className="text-center py-8 text-sm text-muted-foreground">{t("No data for selected date range")}</p>
           )}
         </div>
       )}
@@ -722,8 +722,8 @@ const MedicineInventoryPage = () => {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
         title="Delete Record"
-        message="Are you sure you want to delete this record?"
-        confirmText="Delete"
+        message={t("Are you sure you want to delete this record?")}
+        confirmText={t("Delete")}
         confirmVariant="danger"
       />
 
@@ -731,7 +731,7 @@ const MedicineInventoryPage = () => {
       {thresholdModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-surface-container-highest rounded-xl border border-border p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold text-foreground">Set Threshold Alert</h3>
+            <h3 className="text-lg font-bold text-foreground">{t("Set Threshold Alert")}</h3>
             <p className="text-sm text-muted-foreground mt-0.5">{MEDICINE_LABELS[thresholdModal.record.medicineType]}</p>
             <div className="mt-4 space-y-4">
               <div>
@@ -743,8 +743,8 @@ const MedicineInventoryPage = () => {
                 Notify admin when below threshold
               </label>
               <div className="flex gap-2 justify-end pt-2">
-                <button onClick={() => setThresholdModal(null)} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
-                <button onClick={handleSaveThreshold} disabled={loading} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">Save</button>
+                <button onClick={() => setThresholdModal(null)} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
+                <button onClick={handleSaveThreshold} disabled={loading} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{t("Save")}</button>
               </div>
             </div>
           </div>

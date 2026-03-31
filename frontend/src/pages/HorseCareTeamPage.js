@@ -254,7 +254,7 @@ const HorseCareTeamPage = () => {
       {/* Header */}
       <div className="horse-care-team-header-row flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Horse <span className="text-primary">Care Team</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Horse <span className="text-primary">{t("Care Team")}</span></h1>
         </div>
         <div className="flex shrink-0">
           <button 
@@ -262,12 +262,12 @@ const HorseCareTeamPage = () => {
             className="horse-care-team-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
           >
             {showForm ? (
-              <><X className="w-4 h-4" /> Cancel</>
+              <><X className="w-4 h-4" /> {t("Cancel")}</>
             ) : (
               <>
                 <Plus className="w-4 h-4" />
-                <span className="sm:hidden">Member</span>
-                <span className="hidden sm:inline">Assign Member</span>
+                <span className="sm:hidden">{t("Member")}</span>
+                <span className="hidden sm:inline">{t("Assign Member")}</span>
               </>
             )}
           </button>
@@ -282,10 +282,10 @@ const HorseCareTeamPage = () => {
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
-        <OperationalMetricCard label="ALL HORSES" value={String(totalHorses).padStart(2, '0')} icon={Star} colorClass="text-primary" bgClass="bg-primary/10" sub="Tracked care roster" hideSub />
-        <OperationalMetricCard label="WITH TEAM" value={String(horsesWithTeams).padStart(2, '0')} icon={Shield} colorClass="text-success" bgClass="bg-success/10" sub="Assigned care teams" subColor="text-success" hideSub />
-        <OperationalMetricCard label="TEAM MEMBERS" value={String(careTeams.length).padStart(2, '0')} icon={Users} colorClass="text-primary" bgClass="bg-primary/10" sub="Total linked staff" hideSub />
-        <OperationalMetricCard label="UNASSIGNED" value={String(unassignedHorses).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub={unassignedHorses > 0 ? 'Requires team assignment' : 'All horses covered'} subColor={unassignedHorses > 0 ? 'text-warning' : 'text-success'} hideSub />
+        <OperationalMetricCard label={t("ALL HORSES")} value={String(totalHorses).padStart(2, '0')} icon={Star} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Tracked care roster")} hideSub />
+        <OperationalMetricCard label={t("WITH TEAM")} value={String(horsesWithTeams).padStart(2, '0')} icon={Shield} colorClass="text-success" bgClass="bg-success/10" sub={t("Assigned care teams")} subColor="text-success" hideSub />
+        <OperationalMetricCard label={t("TEAM MEMBERS")} value={String(careTeams.length).padStart(2, '0')} icon={Users} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Total linked staff")} hideSub />
+        <OperationalMetricCard label={t("UNASSIGNED")} value={String(unassignedHorses).padStart(2, '0')} icon={AlertTriangle} colorClass="text-warning" bgClass="bg-warning/10" sub={unassignedHorses > 0 ? 'Requires team assignment' : 'All horses covered'} subColor={unassignedHorses > 0 ? 'text-warning' : 'text-success'} hideSub />
       </div>
 
       {/* Assignment Form */}
@@ -293,7 +293,7 @@ const HorseCareTeamPage = () => {
         <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
           <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">Assign Care Team Member</h3>
+              <h3 className="text-xl font-bold text-foreground">{t("Assign Care Team Member")}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -303,7 +303,7 @@ const HorseCareTeamPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
                       <SearchableSelect
                         name="horseId"
                         value={formData.horseId}
@@ -326,7 +326,7 @@ const HorseCareTeamPage = () => {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Team Role *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Team Role *")}</label>
                     <SearchableSelect
                       name="role"
                       value={formData.role}
@@ -339,7 +339,7 @@ const HorseCareTeamPage = () => {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Staff Member *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Staff Member *")}</label>
                     <SearchableSelect
                       name="staffId"
                       value={formData.staffId}
@@ -353,7 +353,7 @@ const HorseCareTeamPage = () => {
 
                 <div className="flex gap-3 pt-2">
                   <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all">{loading ? 'Assigning...' : 'Assign to Team'}</button>
-                  <button type="button" onClick={() => setShowForm(false)} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                  <button type="button" onClick={() => setShowForm(false)} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>
             </div>
@@ -369,7 +369,7 @@ const HorseCareTeamPage = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search horse care teams..."
+            placeholder={t("Search horse care teams...")}
             className="horse-directory-search-input"
           />
           {searchTerm && (
@@ -377,7 +377,7 @@ const HorseCareTeamPage = () => {
               onClick={() => setSearchTerm('')}
               className="horse-directory-clear"
               type="button"
-              aria-label="Clear search"
+              aria-label={t("Clear search")}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -393,7 +393,7 @@ const HorseCareTeamPage = () => {
         />
       </div>
       {filteredHorses.length === 0 ? (
-        <p className="text-muted-foreground py-8">No horses available</p>
+        <p className="text-muted-foreground py-8">{t(t("No horses available"))}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredHorses.map((horse) => {
@@ -405,8 +405,8 @@ const HorseCareTeamPage = () => {
                     <h3 className="text-lg font-bold text-foreground">{horse.name}</h3>
                     <p className="text-xs text-muted-foreground">{horse.registrationNumber || horse.stableNumber || 'No ID'}</p>
                   </div>
-                  {team.length === 0 && <span className="px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase bg-warning/15 text-warning border border-warning/30">Needs Team</span>}
-                  {team.length > 0 && <span className="px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase bg-success/15 text-success border border-success/30"><CheckCircle className="w-3 h-3 inline mr-1 -mt-0.5"/>Ready</span>}
+                  {team.length === 0 && <span className="px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase bg-warning/15 text-warning border border-warning/30">{t("Needs Team")}</span>}
+                  {team.length > 0 && <span className="px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase bg-success/15 text-success border border-success/30"><CheckCircle className="w-3 h-3 inline mr-1 -mt-0.5"/>{t("Ready")}</span>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-xs mb-4 pb-4 border-b border-border/50 flex-1">
@@ -418,7 +418,7 @@ const HorseCareTeamPage = () => {
                 <div>
                   <h4 className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase mb-3">Care Team Members ({team.length})</h4>
                   {team.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">No team assigned yet</p>
+                    <p className="text-xs text-muted-foreground italic">{t("No team assigned yet")}</p>
                   ) : (
                     <div className="space-y-2">
                       {team.map((member) => (

@@ -175,10 +175,10 @@ const AttendancePage = () => {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <ExportDialog
-            title="Export Attendance"
+            title={t("Export Attendance")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label="Export attendance" title="Export attendance">
+              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label={t("Export attendance")} title={t("Export attendance")}>
                 <Download className="w-4 h-4 lg:w-5 lg:h-5" />
               </button>
             )}
@@ -298,7 +298,7 @@ const AttendancePage = () => {
                    value={formData.notes}
                    onChange={handleInputChange}
                    disabled={loading}
-                   placeholder="Additional notes (optional)"
+                   placeholder={t("Additional notes (optional)")}
                    rows={2}
                    className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
                  />

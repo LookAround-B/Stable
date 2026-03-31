@@ -249,7 +249,7 @@ const WorkRecordPage = () => {
                  <SearchableSelect
                     value={newWorkRecord.staffId}
                     onChange={(e) => setNewWorkRecord({...newWorkRecord, staffId: e.target.value})}
-                    placeholder="Select Staff"
+                    placeholder={t("Select Staff")}
                     options={[
                       { value: '', label: 'Select Staff' },
                       ...getStaffByCategory(selectedCategory).map(s => ({ value: s.id, label: s.fullName }))
@@ -324,9 +324,9 @@ const WorkRecordPage = () => {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <OperationalMetricCard label={t('Staff on Record')} value={String(filteredRecords.length).padStart(2, '0')} icon={Wrench} colorClass="text-primary" bgClass="bg-primary/10" sub="Visible staff records" />
-        <OperationalMetricCard label={t('Total Hours')} value={`${totalHours} hrs`} icon={Clock} colorClass="text-success" bgClass="bg-success/10" sub="Logged working hours" subColor="text-success" valueClass="text-3xl font-bold text-foreground mt-1 relative z-10" />
-        <OperationalMetricCard label={t('Tasks Completed')} value={String(totalTasks).padStart(2, '0')} icon={ListChecks} colorClass="text-primary" bgClass="bg-primary/10" sub="Task entries submitted" />
+        <OperationalMetricCard label={t('Staff on Record')} value={String(filteredRecords.length).padStart(2, '0')} icon={Wrench} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Visible staff records")} />
+        <OperationalMetricCard label={t('Total Hours')} value={`${totalHours} hrs`} icon={Clock} colorClass="text-success" bgClass="bg-success/10" sub={t("Logged working hours")} subColor="text-success" valueClass="text-3xl font-bold text-foreground mt-1 relative z-10" />
+        <OperationalMetricCard label={t('Tasks Completed')} value={String(totalTasks).padStart(2, '0')} icon={ListChecks} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Task entries submitted")} />
       </div>
 
       {/* Toolbar */}
@@ -351,10 +351,10 @@ const WorkRecordPage = () => {
            <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
            <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
            <ExportDialog
-            title="Export Work Records"
+            title={t("Export Work Records")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="btn-download work-records-export h-10 w-10 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0" type="button" aria-label="Export work records" title="Export work records">
+              <button className="btn-download work-records-export h-10 w-10 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0" type="button" aria-label={t("Export work records")} title={t("Export work records")}>
                 <Download className="w-5 h-5" />
               </button>
             )}
@@ -414,7 +414,7 @@ const WorkRecordPage = () => {
                    {wr.remarks && (
                      <div className="mt-4 pl-3">
                         <p className="text-xs text-muted-foreground bg-surface-container-high p-3 rounded-lg border border-border/50 mt-1">
-                          <span className="font-semibold text-foreground uppercase text-[10px] tracking-widest block mb-1">Overall Remarks</span>
+                          <span className="font-semibold text-foreground uppercase text-[10px] tracking-widest block mb-1">{t("Overall Remarks")}</span>
                           {wr.remarks}
                         </p>
                      </div>

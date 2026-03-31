@@ -241,8 +241,8 @@ const GateAttendancePage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Gate')} <span className="text-primary">Attendance</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Log staff entry/exit and visitor visits</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Gate')} <span className="text-primary">{t("Attendance")}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("Log staff entry/exit and visitor visits")}</p>
         </div>
       </div>
 
@@ -272,13 +272,13 @@ const GateAttendancePage = () => {
         </div>
         <div className="gate-attendance-action-row grid grid-cols-2 gap-3">
           <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
-            {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
+            {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
           </button>
           <ExportDialog
-            title="Export Gate Attendance"
+            title={t("Export Gate Attendance")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button title="Export gate attendance" className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto" type="button" aria-label="Export gate attendance">
+              <button title={t("Export gate attendance")} className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto" type="button" aria-label={t("Export gate attendance")}>
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
@@ -292,27 +292,27 @@ const GateAttendancePage = () => {
 
           {showStaffForm && (
             <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-              <h3 className="text-lg font-bold text-foreground mb-4">Log Staff Entry/Exit</h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">{t("Log Staff Entry/Exit")}</h3>
               <form onSubmit={handleStaffSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Employee *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Employee *")}</label>
                     <SearchableSelect id="employeeId" value={staffForm.employeeId} onChange={(e) => setStaffForm({ ...staffForm, employeeId: e.target.value })} placeholder="-- Select Employee --" required disabled={loading} options={[{ value: '', label: '-- Select Employee --' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Entry Time *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Entry Time *")}</label>
                     <DateTimePicker value={staffForm.entryTime} onChange={(val) => setStaffForm({ ...staffForm, entryTime: val })} required disabled={loading} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Exit Time</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Exit Time")}</label>
                     <DateTimePicker value={staffForm.exitTime} onChange={(val) => setStaffForm({ ...staffForm, exitTime: val })} disabled={loading} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shift *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Shift *")}</label>
                     <SearchableSelect value={staffForm.shift} onChange={(e) => setStaffForm({ ...staffForm, shift: e.target.value })} required disabled={loading} options={SHIFTS.map(s => ({ value: s, label: s }))} />
                   </div>
                   <div className="sm:col-span-2 lg:col-span-3">
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
                     <input type="text" value={staffForm.notes} onChange={(e) => setStaffForm({ ...staffForm, notes: e.target.value })} disabled={loading} placeholder="Any additional notes" className={inputCls} />
                   </div>
                 </div>
@@ -329,36 +329,36 @@ const GateAttendancePage = () => {
 
           {showVisitorForm && (
             <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
-              <h3 className="text-lg font-bold text-foreground mb-4">Log Visitor</h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">{t("Log Visitor")}</h3>
               <form onSubmit={handleVisitorSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Visitor Name</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Visitor Name")}</label>
                     <input type="text" value={visitorForm.visitorName} onChange={(e) => setVisitorForm({ ...visitorForm, visitorName: e.target.value })} disabled={loading} placeholder="Full name (optional)" maxLength="100" className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Number of Visitors *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Number of Visitors *")}</label>
                     <input type="number" min="1" max="50" value={visitorForm.visitorCount} onChange={(e) => setVisitorForm({ ...visitorForm, visitorCount: e.target.value })} required disabled={loading} className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Purpose *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Purpose *")}</label>
                     <input type="text" value={visitorForm.purpose} onChange={(e) => setVisitorForm({ ...visitorForm, purpose: e.target.value })} required disabled={loading} placeholder="e.g., Veterinary Checkup" maxLength="150" className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Contact *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Contact *")}</label>
                     <input type="tel" value={visitorForm.contact} onChange={(e) => setVisitorForm({ ...visitorForm, contact: e.target.value })} required disabled={loading} placeholder="Phone" maxLength="20" className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Entry Time *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Entry Time *")}</label>
                     <DateTimePicker value={visitorForm.entryTime} onChange={(val) => setVisitorForm({ ...visitorForm, entryTime: val })} required disabled={loading} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Exit Time</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Exit Time")}</label>
                     <DateTimePicker value={visitorForm.exitTime} onChange={(val) => setVisitorForm({ ...visitorForm, exitTime: val })} disabled={loading} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
-                    <input type="text" value={visitorForm.notes} onChange={(e) => setVisitorForm({ ...visitorForm, notes: e.target.value })} disabled={loading} placeholder="Additional notes" maxLength="250" className={inputCls} />
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
+                    <input type="text" value={visitorForm.notes} onChange={(e) => setVisitorForm({ ...visitorForm, notes: e.target.value })} disabled={loading} placeholder={t("Additional notes")} maxLength="250" className={inputCls} />
                   </div>
                 </div>
                 <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Logging...' : 'Log Visitor'}</button>

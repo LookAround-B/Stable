@@ -509,14 +509,14 @@ const EmployeesPage = () => {
       <div className="employees-header-row">
         <div className="min-w-0">
           <div className="employees-title-row flex items-end justify-between gap-3 w-full">
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Team</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">{t("Team")}</h1>
             {canAddEmployee && (
               <button onClick={() => setShowModal(true)} className="employees-header-add-btn inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap shrink-0">
                 <Plus className="w-4 h-4" /> Add New Employee
               </button>
             )}
           </div>
-          <p className="text-muted-foreground mt-2 text-sm">Manage staff roles, supervisors, and contact details.</p>
+          <p className="text-muted-foreground mt-2 text-sm">{t("Manage staff roles, supervisors, and contact details.")}</p>
         </div>
       </div>
 
@@ -608,7 +608,7 @@ const EmployeesPage = () => {
               placeholder={t('All Roles')}
             />
             <ExportDialog
-              title="Export Employees"
+              title={t("Export Employees")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
                 <button
@@ -632,11 +632,11 @@ const EmployeesPage = () => {
               <table className="employees-table w-full text-sm min-w-[700px]">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Role</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Supervisor</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Contact</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Name")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Role")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">{t("Supervisor")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Status")}</th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">{t("Contact")}</th>
                     {(canAddEmployee || canDeleteEmployee) && <th className="px-4 sm:px-6 py-3 w-32"></th>}
                   </tr>
                 </thead>
@@ -759,7 +759,7 @@ const EmployeesPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Designation/Role *')}</label>
-                    <SearchableSelect name="designation" value={formData.designation} onChange={handleInputChange} options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))} placeholder="Select designation..." disabled={loading} required />
+                    <SearchableSelect name="designation" value={formData.designation} onChange={handleInputChange} options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))} placeholder={t("Select designation...")} disabled={loading} required />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Phone Number')}</label>

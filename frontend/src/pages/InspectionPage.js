@@ -146,12 +146,12 @@ const InspectionPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Jamedar Inspection')} <span className="text-foreground sm:text-primary">Rounds</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Report and track facility inspection issues</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Jamedar Inspection')} <span className="text-foreground sm:text-primary">{t("Rounds")}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("Report and track facility inspection issues")}</p>
         </div>
         {isJamedar && (
           <button onClick={() => setShowForm(!showForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Inspection</>}
+            {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> Add Inspection</>}
           </button>
         )}
       </div>
@@ -173,27 +173,27 @@ const InspectionPage = () => {
       {/* Filters */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Round</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Round")}</label>
           <SearchableSelect name="round" value={filters.round} onChange={handleFilterChange} options={[{ value: '', label: 'All Rounds' }, ...ROUNDS.map(r => ({ value: r, label: r }))]} placeholder="All..." searchable={false} />
         </div>
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
           <SearchableSelect name="horseId" value={filters.horseId} onChange={handleFilterChange} options={[{ value: '', label: 'All Horses' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} placeholder="All..." />
         </div>
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Severity</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Severity")}</label>
           <SearchableSelect name="severityLevel" value={filters.severityLevel} onChange={handleFilterChange} options={[{ value: '', label: 'All' }, ...SEVERITY_LEVELS.map(l => ({ value: l, label: l }))]} placeholder="All..." searchable={false} />
         </div>
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Area</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Area")}</label>
           <SearchableSelect name="area" value={filters.area} onChange={handleFilterChange} options={[{ value: '', label: 'All Areas' }, ...FACILITY_AREAS.map(a => ({ value: a, label: a }))]} placeholder="All..." />
         </div>
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">From</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("From")}</label>
           <DatePicker value={filters.startDate} onChange={(val) => handleFilterChange({ target: { name: 'startDate', value: val } })} size="sm" />
         </div>
         <div>
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">To</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("To")}</label>
           <DatePicker value={filters.endDate} onChange={(val) => handleFilterChange({ target: { name: 'endDate', value: val } })} size="sm" />
         </div>
       </div>
@@ -212,15 +212,15 @@ const InspectionPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Round *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Round *")}</label>
                 <SearchableSelect name="round" value={formData.round} onChange={handleFormChange} options={ROUNDS.map(r => ({ value: r, label: r }))} required />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Severity *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Severity *")}</label>
                 <SearchableSelect name="severityLevel" value={formData.severityLevel} onChange={handleFormChange} options={SEVERITY_LEVELS.map(l => ({ value: l, label: l }))} required />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
                 <SearchableSelect name="horseId" value={formData.horseId} onChange={handleFormChange} options={[{ value: '', label: 'Select Horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
               </div>
               <div>
@@ -228,7 +228,7 @@ const InspectionPage = () => {
                 <input type="text" name="location" value={formData.location} onChange={handleFormChange} maxLength="100" placeholder="Location of issue" required className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Area</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Area")}</label>
                 <SearchableSelect name="area" value={formData.area} onChange={handleFormChange} options={[{ value: '', label: 'Select Area' }, ...FACILITY_AREAS.map(a => ({ value: a, label: a }))]} />
               </div>
             </div>
@@ -241,7 +241,7 @@ const InspectionPage = () => {
               <div className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'}`}
                 onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => imgDropRef.current?.click()}>
                 <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Drag & drop images or click to browse</p>
+                <p className="text-sm text-muted-foreground">{t("Drag & drop images or click to browse")}</p>
                 <p className="text-xs text-muted-foreground/50 mt-1">{formData.images.length}/8 added</p>
               </div>
               <input ref={imgDropRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => { handleFilesAdded(e.target.files); e.target.value = ''; }} />
@@ -258,7 +258,7 @@ const InspectionPage = () => {
             </div>
             <div className="flex gap-3">
               <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Submitting...' : editingInspection ? 'Update' : 'Submit'}</button>
-              <button type="button" onClick={closeForm} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+              <button type="button" onClick={closeForm} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
             </div>
           </form>
             </div>
@@ -272,16 +272,16 @@ const InspectionPage = () => {
         <div className="flex gap-2">
           {inspections.length > 0 && (
             <ExportDialog
-              title="Export Inspections"
+              title={t("Export Inspections")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
-                <button className="h-8 w-8 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export inspections" title="Export inspections">
+                <button className="h-8 w-8 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export inspections")} title={t("Export inspections")}>
                   <Download className="w-3 h-3" />
                 </button>
               )}
             />
           )}
-          {Object.values(filters).some(v => v) && <button onClick={() => setFilters({ round: '', horseId: '', severityLevel: '', area: '', startDate: '', endDate: '' })} className="h-8 px-3 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:bg-surface-container-high transition-colors">Clear Filters</button>}
+          {Object.values(filters).some(v => v) && <button onClick={() => setFilters({ round: '', horseId: '', severityLevel: '', area: '', startDate: '', endDate: '' })} className="h-8 px-3 rounded-lg border border-border text-muted-foreground text-xs font-medium hover:bg-surface-container-high transition-colors">{t("Clear Filters")}</button>}
         </div>
       </div>
 
@@ -394,10 +394,10 @@ const InspectionPage = () => {
                 ))}
               </div>
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Description</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t("Description")}</p>
                 <p className="mt-0.5 text-sm text-foreground">{viewingInspection.description}</p>
               </div>
-              {viewingInspection.comments && <div><p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Comments</p><p className="mt-0.5 text-sm text-foreground">{viewingInspection.comments}</p></div>}
+              {viewingInspection.comments && <div><p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t("Comments")}</p><p className="mt-0.5 text-sm text-foreground">{viewingInspection.comments}</p></div>}
               {viewingInspection.resolvedBy && (
                 <div className="p-3 rounded-lg bg-success/5 border border-success/20 text-sm space-y-1">
                   <p><span className="font-medium">Resolved By:</span> {viewingInspection.resolvedBy.fullName} ({t(viewingInspection.resolvedBy.designation)})</p>
@@ -409,7 +409,7 @@ const InspectionPage = () => {
             <div className="p-5 border-t border-border flex gap-2 justify-end">
               {isJamedar && viewingInspection.jamedarId === user?.id && <button onClick={() => { handleEdit(viewingInspection); setViewingInspection(null); }} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-1"><Pencil className="w-3.5 h-3.5" /> Edit</button>}
               {canViewAll && viewingInspection.status === 'Open' && <button onClick={() => { setResolvingInspection(viewingInspection); setResolveData({ comments: '', resolutionNotes: '' }); setViewingInspection(null); }} className="h-9 px-4 rounded-lg bg-success/15 border border-success/30 text-success text-sm font-medium hover:bg-success/25 transition-colors flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Resolve</button>}
-              <button onClick={() => setViewingInspection(null)} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Close</button>
+              <button onClick={() => setViewingInspection(null)} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Close")}</button>
             </div>
           </div>
         </div>
@@ -420,7 +420,7 @@ const InspectionPage = () => {
         <div className="fixed inset-0 bg-background/95 backdrop-blur-md z-[60] flex items-center justify-center p-4" onClick={() => setFullScreenImage(null)}>
           <button onClick={() => setFullScreenImage(null)} className="absolute top-4 right-4 p-2 rounded-lg bg-surface-container-high text-foreground hover:bg-surface-container-highest transition-colors"><X className="w-5 h-5" /></button>
           <img src={fullScreenImage} alt="Full Screen" className="max-w-full max-h-[90vh] rounded-lg object-contain" onClick={e => e.stopPropagation()} />
-          <p className="absolute bottom-6 text-xs text-muted-foreground">Click anywhere or ESC to close</p>
+          <p className="absolute bottom-6 text-xs text-muted-foreground">{t("Click anywhere or ESC to close")}</p>
         </div>
       )}
 
@@ -435,7 +435,7 @@ const InspectionPage = () => {
             <form onSubmit={handleResolve} className="space-y-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Comments <span className="text-muted-foreground/50">({resolveData.comments.length}/500)</span></label>
-                <textarea name="comments" value={resolveData.comments} onChange={(e) => setResolveData(prev => ({ ...prev, comments: e.target.value }))} placeholder="Add comments..." maxLength="500" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <textarea name="comments" value={resolveData.comments} onChange={(e) => setResolveData(prev => ({ ...prev, comments: e.target.value }))} placeholder={t("Add comments...")} maxLength="500" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Resolution Notes <span className="text-muted-foreground/50">({resolveData.resolutionNotes.length}/500)</span></label>
@@ -443,14 +443,14 @@ const InspectionPage = () => {
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-success to-success/80 text-success-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Processing...' : 'Resolve'}</button>
-                <button type="button" onClick={() => setResolvingInspection(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                <button type="button" onClick={() => setResolvingInspection(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Inspection" message="Are you sure you want to delete this inspection?" confirmText="Delete" confirmVariant="danger" />
+      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Inspection" message={t("Are you sure you want to delete this inspection?")} confirmText={t("Delete")} confirmVariant="danger" />
     </div>
   );
 };

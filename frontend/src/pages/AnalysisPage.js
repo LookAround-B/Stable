@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useI18n } from '../context/I18nContext';
 import {
   CheckSquare,
   Cog,
@@ -346,6 +347,7 @@ const EmptyState = ({ label }) => <div className="analysis-empty">{label}</div>;
 
 function AnalysisPage() {
   const permissions = usePermissions();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     metrics: { totalHorses: 0, activeStaff: 0, taskCompletion: 0, operationalScore: 0 },
@@ -571,23 +573,23 @@ function AnalysisPage() {
           <div className="lovable-header-kicker">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>Intelligence Center</span>
+            <span>{t("Intelligence Center")}</span>
           </div>
-          <h1 className="analysis-title">Analysis</h1>
-          <p className="info-text">Operational intelligence across horses, staff, tasks, and expenses.</p>
+          <h1 className="analysis-title">{t("Analysis")}</h1>
+          <p className="info-text">{t("Operational intelligence across horses, staff, tasks, and expenses.")}</p>
         </div>
       </div>
 
         <div className="analysis-kpi-grid">
-          <KpiTile icon={HorseIcon} watermarkIcon={HorseIcon} label="Total Horses" value={data.metrics.totalHorses} colorClass="primary" sparkData={data.kpiSparks.horses} />
-          <KpiTile icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} label="Active Staff" value={data.metrics.activeStaff} colorClass="success" sparkData={data.kpiSparks.staff} />
-          <KpiTile icon={CheckSquare} watermarkIcon={CheckSquare} label="Task Completion" value={`${data.metrics.taskCompletion}%`} colorClass="primary" sparkData={data.kpiSparks.taskCompletion} />
-          <KpiTile icon={Cog} watermarkIcon={Cog} label="Operational Score" value={data.metrics.operationalScore} colorClass="success" sparkData={data.kpiSparks.operationalScore} />
+          <KpiTile icon={HorseIcon} watermarkIcon={HorseIcon} label={t("Total Horses")} value={data.metrics.totalHorses} colorClass="primary" sparkData={data.kpiSparks.horses} />
+          <KpiTile icon={EmployeeFaceIcon} watermarkIcon={EmployeeFaceIcon} label={t("Active Staff")} value={data.metrics.activeStaff} colorClass="success" sparkData={data.kpiSparks.staff} />
+          <KpiTile icon={CheckSquare} watermarkIcon={CheckSquare} label={t("Task Completion")} value={`${data.metrics.taskCompletion}%`} colorClass="primary" sparkData={data.kpiSparks.taskCompletion} />
+          <KpiTile icon={Cog} watermarkIcon={Cog} label={t("Operational Score")} value={data.metrics.operationalScore} colorClass="success" sparkData={data.kpiSparks.operationalScore} />
         </div>
 
       <div className="analysis-chart-grid">
         <ChartCard title="Facility Growth Trend" subtitle="Monthly overview" className="analysis-chart-card--wide">
-          {data.monthlyTrend.length === 0 ? <EmptyState label="No monthly trend data available" /> : (
+          {data.monthlyTrend.length === 0 ? <EmptyState label={t("No monthly trend data available")} /> : (
             <ResponsiveContainer width="100%" height={260} minWidth={0} minHeight={260}>
               <AreaChart data={data.monthlyTrend} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
                 <defs>
@@ -627,7 +629,7 @@ function AnalysisPage() {
         </ChartCard>
 
         <ChartCard title="Staff by Role" subtitle="Distribution">
-          {data.teamByRole.length === 0 ? <EmptyState label="No role data available" /> : (
+          {data.teamByRole.length === 0 ? <EmptyState label={t(t("No role data available"))} /> : (
             <ResponsiveContainer width="100%" height={240} minWidth={0} minHeight={240}>
               <BarChart data={data.teamByRole} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
                 <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--lovable-text-soft)' }} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -642,7 +644,7 @@ function AnalysisPage() {
         </ChartCard>
 
         <ChartCard title="Task Status" subtitle="Current breakdown">
-          {data.taskStatus.length === 0 ? <EmptyState label="No task data available" /> : (
+          {data.taskStatus.length === 0 ? <EmptyState label={t(t("No task data available"))} /> : (
             <>
               <div className="analysis-donut-wrap">
                 <ResponsiveContainer width="100%" height={200} minWidth={0} minHeight={200}>
@@ -655,7 +657,7 @@ function AnalysisPage() {
                 </ResponsiveContainer>
                 <div className="analysis-donut-center">
                   <strong>{taskTotal}</strong>
-                  <span>Tasks</span>
+                  <span>{t("Tasks")}</span>
                 </div>
               </div>
               <div className="analysis-inline-legend">
@@ -671,7 +673,7 @@ function AnalysisPage() {
         </ChartCard>
 
         <ChartCard title="Horses by Coat" subtitle="Color distribution">
-          {data.horseCoats.length === 0 ? <EmptyState label="No horse coat data available" /> : (
+          {data.horseCoats.length === 0 ? <EmptyState label={t("No horse coat data available")} /> : (
             <ResponsiveContainer width="100%" height={220} minWidth={0} minHeight={220}>
               <PieChart>
                 <Pie data={data.horseCoats} dataKey="value" nameKey="name" cx="50%" cy="48%" outerRadius={72} strokeWidth={2} stroke="var(--analysis-pie-stroke)">
@@ -685,7 +687,7 @@ function AnalysisPage() {
         </ChartCard>
 
         <ChartCard title="Department Allocation" subtitle="Team distribution" className="analysis-chart-card--half">
-          {data.teamByDepartment.length === 0 ? <EmptyState label="No department data available" /> : (
+          {data.teamByDepartment.length === 0 ? <EmptyState label={t(t("No department data available"))} /> : (
             <div className="analysis-split">
               <div className="analysis-donut-wrap analysis-donut-wrap--side">
                 <ResponsiveContainer width="100%" height={220} minWidth={0} minHeight={220}>
@@ -698,7 +700,7 @@ function AnalysisPage() {
                 </ResponsiveContainer>
                 <div className="analysis-donut-center">
                   <strong>{departmentTotal}</strong>
-                  <span>Staff</span>
+                  <span>{t("Staff")}</span>
                 </div>
               </div>
               <div className="analysis-legend-stack analysis-legend-stack--compact">
@@ -717,7 +719,7 @@ function AnalysisPage() {
         </ChartCard>
 
         <ChartCard title="Financial Overview" subtitle="Expenses by department" className="analysis-chart-card--half">
-          {data.transactionsByDepartment.length === 0 ? <EmptyState label="No expense data available" /> : (
+          {data.transactionsByDepartment.length === 0 ? <EmptyState label={t(t("No expense data available"))} /> : (
             <div className="analysis-financial-list">
               {data.transactionsByDepartment.map((entry) => {
                 const percent = transactionMax ? (entry.value / transactionMax) * 100 : 0;
@@ -740,7 +742,7 @@ function AnalysisPage() {
 
       <div className="analysis-chart-grid analysis-chart-grid--bottom">
         <ChartCard title="Horse Inventory by Gender" subtitle="Live backend distribution" className="analysis-chart-card--half">
-          {data.horsesByGender.length === 0 ? <EmptyState label="No gender data available" /> : (
+          {data.horsesByGender.length === 0 ? <EmptyState label={t(t("No gender data available"))} /> : (
             <div className="analysis-split">
               <ResponsiveContainer width="100%" height={220} minWidth={0} minHeight={220}>
                 <PieChart>
@@ -766,7 +768,7 @@ function AnalysisPage() {
         </ChartCard>
 
         <ChartCard title="Health Record Mix" subtitle="Current medical workload" className="analysis-chart-card--half">
-          {data.healthMix.length === 0 ? <EmptyState label="No health record data available" /> : (
+          {data.healthMix.length === 0 ? <EmptyState label={t("No health record data available")} /> : (
             <div className="analysis-financial-list">
               {data.healthMix.map((entry) => {
                 const maxValue = Math.max(...data.healthMix.map((item) => item.value), 0);

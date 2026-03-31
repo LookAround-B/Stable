@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
@@ -24,6 +25,7 @@ const getLocalDateTimeString = () => {
 
 const FarrierShoeingPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const p = usePermissions();
   const [activeTab, setActiveTab] = useState('completed');
   const [loading, setLoading] = useState(false);
@@ -185,7 +187,7 @@ const FarrierShoeingPage = () => {
     <div className="farrier-shoeing-page space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Farrier <span className="text-primary">Shoeing</span></h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Farrier <span className="text-primary">{t("Shoeing")}</span></h1>
         <p className="text-sm text-muted-foreground mt-1">Manage horse shoeing schedule every {SHOEING_INTERVAL_DAYS} days</p>
       </div>
 
@@ -231,7 +233,7 @@ const FarrierShoeingPage = () => {
         </div>
         {activeTab === 'completed' && (
           <button onClick={() => setShowForm(!showForm)} disabled={loading} className="farrier-shoeing-record-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Record Shoeing</>}
+            {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> Record Shoeing</>}
           </button>
         )}
       </div>
@@ -241,7 +243,7 @@ const FarrierShoeingPage = () => {
         <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
           <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">New Shoeing Record</h3>
+              <h3 className="text-xl font-bold text-foreground">{t("New Shoeing Record")}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -250,29 +252,29 @@ const FarrierShoeingPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
-                    <SearchableSelect value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder="Search horse..." options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
+                    <SearchableSelect value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder={t("Search horse...")} options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Farrier *</label>
-                    <SearchableSelect value={formData.farrierId} onChange={(e) => setFormData((prev) => ({ ...prev, farrierId: e.target.value }))} placeholder="Search farrier..." options={[{ value: '', label: 'Select Farrier' }, ...farriers.map((f) => ({ value: f.id, label: `${f.fullName} (${f.designation})` }))]} />
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Farrier *")}</label>
+                    <SearchableSelect value={formData.farrierId} onChange={(e) => setFormData((prev) => ({ ...prev, farrierId: e.target.value }))} placeholder={t("Search farrier...")} options={[{ value: '', label: 'Select Farrier' }, ...farriers.map((f) => ({ value: f.id, label: `${f.fullName} (${f.designation})` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Shoeing Date & Time *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Shoeing Date & Time *")}</label>
                     <input type="datetime-local" value={formData.shoeingDate} onChange={(e) => setFormData((prev) => ({ ...prev, shoeingDate: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Due (auto)</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Next Due (auto)")}</label>
                     <input type="text" value={calculateNextDue(formData.shoeingDate)} disabled className="w-full h-10 px-3 rounded-lg bg-muted border border-border text-muted-foreground text-sm" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
                   <textarea value={formData.notes} onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))} placeholder="Any notes about the shoeing..." rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                 </div>
                 <div className="flex gap-3">
                   <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Shoeing Record'}</button>
-                  <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                  <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>
             </div>
@@ -288,16 +290,16 @@ const FarrierShoeingPage = () => {
               <div className="farrier-shoeing-search-wrap relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                 <input
-                  placeholder="Search horses or farrier..."
+                  placeholder={t("Search horses or farrier...")}
                   className="h-10 pl-9 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
               <div className="farrier-shoeing-toolbar-actions flex items-center gap-2 shrink-0">
                 <ExportDialog
-                  title="Export Farrier Shoeing"
+                  title={t("Export Farrier Shoeing")}
                   options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
                   trigger={(
-                    <button className="btn-download farrier-shoeing-export h-10 w-11 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export farrier shoeing" title="Export farrier shoeing">
+                    <button className="btn-download farrier-shoeing-export h-10 w-11 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export farrier shoeing")} title={t("Export farrier shoeing")}>
                       <Download className="w-5 h-5 shrink-0" />
                     </button>
                   )}
@@ -356,16 +358,16 @@ const FarrierShoeingPage = () => {
               <div className="farrier-shoeing-search-wrap relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                 <input
-                  placeholder="Search horses or farrier..."
+                  placeholder={t("Search horses or farrier...")}
                   className="h-10 pl-9 pr-8 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
               <div className="farrier-shoeing-toolbar-actions flex items-center gap-2 shrink-0">
                 <ExportDialog
-                  title="Export Farrier Shoeing"
+                  title={t("Export Farrier Shoeing")}
                   options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
                   trigger={(
-                    <button className="btn-download farrier-shoeing-export h-10 w-11 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export farrier shoeing" title="Export farrier shoeing">
+                    <button className="btn-download farrier-shoeing-export h-10 w-11 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export farrier shoeing")} title={t("Export farrier shoeing")}>
                       <Download className="w-5 h-5 shrink-0" />
                     </button>
                   )}
@@ -387,7 +389,7 @@ const FarrierShoeingPage = () => {
                       <tr key={idx} className="border-b border-border/50 hover:bg-surface-container-high transition-colors">
                         <td className="px-4 py-3 font-medium text-foreground">{item.horse?.name || 'Unknown'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{item.horse?.stableNumber || 'N/A'}</td>
-                        <td className="px-4 py-3">{item.neverShoed ? <span className="text-destructive font-semibold text-xs">Never Shoed</span> : <span className="text-muted-foreground mono-data">{new Date(item.lastShoeingDate).toLocaleDateString('en-GB')}</span>}</td>
+                        <td className="px-4 py-3">{item.neverShoed ? <span className="text-destructive font-semibold text-xs">{t("Never Shoed")}</span> : <span className="text-muted-foreground mono-data">{new Date(item.lastShoeingDate).toLocaleDateString('en-GB')}</span>}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{item.nextDueDate ? new Date(item.nextDueDate).toLocaleDateString('en-GB') : 'N/A'}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-destructive/30 text-destructive bg-destructive/10">
@@ -419,7 +421,7 @@ const FarrierShoeingPage = () => {
         </>
       )}
 
-      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Record" message="Are you sure you want to delete this shoeing record?" confirmText="Delete" confirmVariant="danger" />
+      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Record" message={t("Are you sure you want to delete this shoeing record?")} confirmText={t("Delete")} confirmVariant="danger" />
     </div>
   );
 };

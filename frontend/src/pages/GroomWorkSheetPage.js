@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
@@ -108,12 +109,12 @@ const GroomWorkSheetPage = () => {
       {/* Header */}
       <div className="groom-worksheet-header-row flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight whitespace-nowrap"><ClipboardCheck className="w-5 h-5 sm:w-7 sm:h-7 inline-block mr-1.5 sm:mr-2 text-primary" />{t('Groom')} <span className="text-primary">Work Sheet</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Track groom activities, horse care hours, and supplies used daily.</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight whitespace-nowrap"><ClipboardCheck className="w-5 h-5 sm:w-7 sm:h-7 inline-block mr-1.5 sm:mr-2 text-primary" />{t('Groom')} <span className="text-primary">{t("Work Sheet")}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("Track groom activities, horse care hours, and supplies used daily.")}</p>
         </div>
         {canCreateWorksheet && (
           <button onClick={() => setShowAddForm(!showAddForm)} className="groom-worksheet-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-            {showAddForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> New Worksheet</>}
+            {showAddForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> New Worksheet</>}
           </button>
         )}
       </div>
@@ -123,30 +124,30 @@ const GroomWorkSheetPage = () => {
       {/* Controls */}
       <div className="groom-worksheet-toolbar flex flex-col md:flex-row items-stretch md:items-end gap-4">
         <div className="groom-worksheet-date-field">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date")}</label>
           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
         </div>
         <div className="groom-worksheet-filter-field">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Groom Filter</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Groom Filter")}</label>
           <SearchableSelect size="sm" value={filterGroomId} onChange={(e) => setFilterGroomId(e.target.value)} placeholder="All Grooms" options={[{ value: 'all', label: 'All Grooms' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
         </div>
         <ExportDialog
-          title="Export Groom Worksheet"
+          title={t("Export Groom Worksheet")}
           options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
           trigger={(
-            <button disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed mx-auto md:mx-0 md:ml-auto" type="button" aria-label="Export groom worksheet" title="Export groom worksheet">
-              <Download className="w-4 h-4" />
+            <button disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed mx-auto md:mx-0 md:ml-auto" type="button" aria-label={t("Export groom worksheet")} title={t("Export groom worksheet")}>
+              <Download className="w-3.5 h-3.5 shrink-0" />
             </button>
           )}
         />
       </div>
 
       {/* Add Worksheet Form */}
-      {showAddForm && canCreateWorksheet && (
-        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowAddForm(false)}>
-          <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+      {showAddForm && canCreateWorksheet && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowAddForm(false)}>
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-4xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">Create New Work Sheet</h3>
+              <h3 className="text-xl font-bold text-foreground">{t("Create New Work Sheet")}</h3>
               <button type="button" onClick={() => setShowAddForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -155,11 +156,11 @@ const GroomWorkSheetPage = () => {
           <form onSubmit={handleSubmitWorksheet} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Groom</label>
-                <SearchableSelect value={newWorksheet.groomId} onChange={(e) => setNewWorksheet({ ...newWorksheet, groomId: e.target.value })} placeholder="Select Groom" disabled={user?.designation === 'Groom'} options={[{ value: '', label: 'Select Groom' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Groom")}</label>
+                <SearchableSelect value={newWorksheet.groomId} onChange={(e) => setNewWorksheet({ ...newWorksheet, groomId: e.target.value })} placeholder={t("Select Groom")} disabled={user?.designation === 'Groom'} options={[{ value: '', label: 'Select Groom' }, ...getGroomers().map(g => ({ value: g.id, label: g.fullName }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Overall Remarks</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Overall Remarks")}</label>
                 <textarea value={newWorksheet.remarks} onChange={(e) => setNewWorksheet({ ...newWorksheet, remarks: e.target.value })} placeholder="General notes for the day..." rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
             </div>
@@ -176,51 +177,53 @@ const GroomWorkSheetPage = () => {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="col-span-2 sm:col-span-1">
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">Horse</label>
-                      <SearchableSelect value={entry.horseId} onChange={(e) => handleEntryChange(index, 'horseId', e.target.value)} placeholder="Select Horse" options={[{ value: '', label: 'Select Horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Horse")}</label>
+                      <SearchableSelect value={entry.horseId} onChange={(e) => handleEntryChange(index, 'horseId', e.target.value)} placeholder={t("Select Horse")} options={[{ value: '', label: 'Select Horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">AM Hours</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("AM Hours")}</label>
                       <input type="number" step="0.5" min="0" value={entry.amHours} onChange={(e) => handleEntryChange(index, 'amHours', e.target.value)} className={inputCls} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">PM Hours</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("PM Hours")}</label>
                       <input type="number" step="0.5" min="0" value={entry.pmHours} onChange={(e) => handleEntryChange(index, 'pmHours', e.target.value)} className={inputCls} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">Total</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Total")}</label>
                       <input type="number" value={entry.wholeDayHours} disabled className="w-full h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground/60 text-sm" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">Woodchips (B)</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Woodchips (B)")}</label>
                       <input type="number" step="0.5" min="0" value={entry.woodchipsUsed} onChange={(e) => handleEntryChange(index, 'woodchipsUsed', e.target.value)} className={inputCls} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">Bichali (kg)</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Bichali (kg)")}</label>
                       <input type="number" step="0.5" min="0" value={entry.bichaliUsed} onChange={(e) => handleEntryChange(index, 'bichaliUsed', e.target.value)} className={inputCls} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">Boo Sa (bags)</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Boo Sa (bags)")}</label>
                       <input type="number" step="1" min="0" value={entry.booSaUsed} onChange={(e) => handleEntryChange(index, 'booSaUsed', e.target.value)} className={inputCls} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">Remarks</label>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Remarks")}</label>
                       <input type="text" value={entry.remarks} onChange={(e) => handleEntryChange(index, 'remarks', e.target.value)} placeholder="Notes..." className={inputCls} />
                     </div>
                   </div>
                 </div>
               ))}
-              <button type="button" onClick={handleAddEntry} className="h-9 px-4 rounded-lg border border-dashed border-primary/40 text-primary text-sm font-medium hover:bg-primary/5 transition-colors"><Plus className="w-4 h-4 inline mr-1" />Add Horse</button>
+              <button type="button" onClick={handleAddEntry} className="h-9 px-4 rounded-lg border border-dashed border-primary/40 text-primary text-sm font-medium hover:bg-primary/5 transition-colors"><Plus className="w-4 h-4 inline mr-1" />{t("Add Horse")}</button>
             </div>
-
-            <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Creating...' : 'Create Worksheet'}</button>
           </form>
+            </div>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
+              <button onClick={handleSubmitWorksheet} disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">{loading ? 'Creating...' : 'Create Worksheet'}</button>
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Worksheets List */}
       {worksheets.length === 0 ? (

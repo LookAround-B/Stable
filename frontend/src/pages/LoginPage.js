@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { loginWithEmail, loginWithGoogle, setToken } from '../services/authService';
+import React, { useState, useEffect } from 'react';
+import { loginWithEmail, loginWithGoogle, setToken, isAuthenticated } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -28,6 +28,13 @@ const LoginPage = () => {
 
   const navigate  = useNavigate();
   const { login } = useAuth();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   /* ── Email/Password ────────────────────────────────────── */
   const handleSubmit = async (e) => {

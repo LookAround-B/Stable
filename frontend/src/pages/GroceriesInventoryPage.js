@@ -490,20 +490,20 @@ const GroceriesInventoryPage = () => {
           <div className="lovable-header-kicker mb-2">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>SUPPLY CHAIN INTELLIGENCE</span>
+            <span>{t("SUPPLY CHAIN INTELLIGENCE")}</span>
           </div>
-          <h1 className="display-sm text-foreground">Groceries Inventory</h1>
+          <h1 className="display-sm text-foreground">{t("Groceries Inventory")}</h1>
         </div>
         <div className="flex gap-3 shrink-0">
           <ExportDialog
-            title="Export Groceries Inventory"
+            title={t("Export Groceries Inventory")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button
                 type="button"
                 className="h-9 w-9 rounded-lg border border-border text-foreground hidden sm:flex items-center justify-center hover:bg-surface-container-high transition-colors"
-                aria-label="Export groceries inventory"
-                title="Export groceries inventory"
+                aria-label={t("Export groceries inventory")}
+                title={t("Export groceries inventory")}
               >
                 <Upload className="w-4 h-4" />
               </button>
@@ -535,7 +535,7 @@ const GroceriesInventoryPage = () => {
       <div className="groceries-kpi-grid grid grid-cols-2 lg:grid-cols-2 gap-4">
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
           <div className="flex items-center justify-between mb-3">
-            <span className="label-sm text-muted-foreground">TOTAL SKU ITEMS</span>
+            <span className="label-sm text-muted-foreground">{t("TOTAL SKU ITEMS")}</span>
             <Package className="w-5 h-5 text-muted-foreground/50" />
           </div>
           <p className="display-sm text-foreground mono-data">{filteredGroceries.length.toLocaleString()}</p>
@@ -547,7 +547,7 @@ const GroceriesInventoryPage = () => {
 
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
           <div className="flex items-center justify-between mb-3">
-            <span className="label-sm text-muted-foreground">INVENTORY VALUE</span>
+            <span className="label-sm text-muted-foreground">{t("INVENTORY VALUE")}</span>
             <IndianRupee className="w-5 h-5 text-muted-foreground/50" />
           </div>
           <p className="display-sm text-foreground mono-data">{formatCurrency(totalValue)}</p>
@@ -559,7 +559,7 @@ const GroceriesInventoryPage = () => {
 
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
           <div className="flex items-center justify-between mb-3">
-            <span className="label-sm text-muted-foreground">LOW STOCK ALERTS</span>
+            <span className="label-sm text-muted-foreground">{t("LOW STOCK ALERTS")}</span>
             <AlertTriangle className="w-5 h-5 text-warning/60" />
           </div>
           <p className="display-sm text-warning mono-data">{lowStockItems.length}</p>
@@ -571,7 +571,7 @@ const GroceriesInventoryPage = () => {
 
         <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
           <div className="flex items-center justify-between mb-3">
-            <span className="label-sm text-muted-foreground">NEAR EXPIRY (7D)</span>
+            <span className="label-sm text-muted-foreground">{t("NEAR EXPIRY (7D)")}</span>
             <Clock className="w-5 h-5 text-muted-foreground/50" />
           </div>
           <p className="display-sm text-foreground mono-data">{nearExpiryCount}</p>
@@ -586,12 +586,12 @@ const GroceriesInventoryPage = () => {
         <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
           <div ref={formCardRef} className="bg-surface-container-highest rounded-lg p-5 edge-glow">
             <div className="flex items-center gap-2 mb-5">
-              <h2 className="heading-md text-foreground">STOCK REGISTRATION</h2>
+              <h2 className="heading-md text-foreground">{t("STOCK REGISTRATION")}</h2>
             </div>
 
             {!editingId && (
               <div className="mb-5">
-                <p className="label-sm text-muted-foreground mb-2">ENTRY MODE</p>
+                <p className="label-sm text-muted-foreground mb-2">{t("ENTRY MODE")}</p>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -630,7 +630,7 @@ const GroceriesInventoryPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {formMode === "select" && !editingId && itemSuggestions.length > 0 && (
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">ITEM DESIGNATION</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("ITEM DESIGNATION")}</label>
                   <SearchableSelect
                     value={formData.name}
                     onChange={(e) => {
@@ -652,7 +652,7 @@ const GroceriesInventoryPage = () => {
                         label: `${item.name} (${item.unit})`,
                       })),
                     ]}
-                    placeholder="Search and select item..."
+                    placeholder={t("Search and select item...")}
                   />
                   <p className="text-[10px] text-muted-foreground mt-2">
                     Unit will be pre-filled from previous entries.
@@ -662,7 +662,7 @@ const GroceriesInventoryPage = () => {
 
               {(formMode === "new" || editingId) && (
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">ITEM DESIGNATION</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("ITEM DESIGNATION")}</label>
                   <input
                     type="text"
                     name="name"
@@ -678,7 +678,7 @@ const GroceriesInventoryPage = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">QUANTITY</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("QUANTITY")}</label>
                   <input
                     type="number"
                     name="quantity"
@@ -692,19 +692,19 @@ const GroceriesInventoryPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">UNIT</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("UNIT")}</label>
                   <SearchableSelect
                     name="unit"
                     value={formData.unit}
                     onChange={handleInputChange}
                     options={UNIT_OPTIONS.map((unit) => ({ value: unit, label: unit }))}
-                    placeholder="Select unit..."
+                    placeholder={t("Select unit...")}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="label-sm text-muted-foreground block mb-1.5">UNIT PRICE (INR)</label>
+                <label className="label-sm text-muted-foreground block mb-1.5">{t("UNIT PRICE (INR)")}</label>
                 <input
                   type="number"
                   name="price"
@@ -719,14 +719,14 @@ const GroceriesInventoryPage = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">PURCHASE DATE</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("PURCHASE DATE")}</label>
                   <DatePicker
                     value={formData.purchaseDate}
                     onChange={(val) => handleInputChange({ target: { name: 'purchaseDate', value: val } })}
                   />
                 </div>
                 <div>
-                  <label className="label-sm text-muted-foreground block mb-1.5">EXPIRY DATE</label>
+                  <label className="label-sm text-muted-foreground block mb-1.5">{t("EXPIRY DATE")}</label>
                   <DatePicker
                     value={formData.expiryDate}
                     onChange={(val) => handleInputChange({ target: { name: 'expiryDate', value: val } })}
@@ -735,7 +735,7 @@ const GroceriesInventoryPage = () => {
               </div>
 
               <div>
-                <label className="label-sm text-muted-foreground block mb-1.5">ASSIGNED TO</label>
+                <label className="label-sm text-muted-foreground block mb-1.5">{t("ASSIGNED TO")}</label>
                 <SearchableSelect
                   name="employeeId"
                   value={formData.employeeId}
@@ -747,12 +747,12 @@ const GroceriesInventoryPage = () => {
                       label: `${employee.fullName} (${t(employee.designation)})`,
                     })),
                   ]}
-                  placeholder="Select employee..."
+                  placeholder={t("Select employee...")}
                 />
               </div>
 
               <div>
-                <label className="label-sm text-muted-foreground block mb-1.5">NOTES</label>
+                <label className="label-sm text-muted-foreground block mb-1.5">{t("NOTES")}</label>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -788,7 +788,7 @@ const GroceriesInventoryPage = () => {
             <div className="h-32 bg-gradient-to-br from-primary/20 to-primary-container relative">
               <div className="absolute inset-0 bg-gradient-to-t from-surface-container-highest/90 to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
-                <p className="label-sm text-primary">INVENTORY STATUS</p>
+                <p className="label-sm text-primary">{t("INVENTORY STATUS")}</p>
                 <h3 className="heading-md text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear}</h3>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <span className="px-2 py-0.5 rounded bg-success/20 text-success text-[10px] font-medium flex items-center gap-1">
@@ -829,7 +829,7 @@ const GroceriesInventoryPage = () => {
                       setSearch(e.target.value);
                       setCurrentPage(1);
                     }}
-                    placeholder="Search items..."
+                    placeholder={t("Search items...")}
                     className="h-8 pl-8 pr-8 w-44 rounded-lg bg-surface-container-high text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                   />
                   {search && (
@@ -857,14 +857,14 @@ const GroceriesInventoryPage = () => {
                   <SlidersHorizontal className="w-4 h-4" />
                 </button>
                 <ExportDialog
-                  title="Export Groceries Inventory"
+                  title={t("Export Groceries Inventory")}
                   options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
                   trigger={(
                     <button
                       type="button"
                       className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-surface-container-high transition-colors flex sm:hidden items-center"
-                      aria-label="Export groceries inventory"
-                      title="Export groceries inventory"
+                      aria-label={t("Export groceries inventory")}
+                      title={t("Export groceries inventory")}
                     >
                       <Upload className="w-4 h-4" />
                     </button>
@@ -946,13 +946,13 @@ const GroceriesInventoryPage = () => {
                   <table className="w-full text-sm min-w-[760px]">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="px-5 py-3 text-left label-sm text-muted-foreground">ITEM NAME</th>
-                        <th className="px-3 py-3 text-center label-sm text-muted-foreground">QTY</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">UNIT</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">PRICE</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">PURCHASE</th>
-                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">EXPIRY</th>
-                        <th className="px-3 py-3 text-right label-sm text-muted-foreground">STATUS</th>
+                        <th className="px-5 py-3 text-left label-sm text-muted-foreground">{t("ITEM NAME")}</th>
+                        <th className="px-3 py-3 text-center label-sm text-muted-foreground">{t("QTY")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("UNIT")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("PRICE")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("PURCHASE")}</th>
+                        <th className="px-3 py-3 text-left label-sm text-muted-foreground">{t("EXPIRY")}</th>
+                        <th className="px-3 py-3 text-right label-sm text-muted-foreground">{t("STATUS")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -994,7 +994,7 @@ const GroceriesInventoryPage = () => {
                                       type="button"
                                       className="p-1 rounded text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                                       onClick={() => handleEdit(record)}
-                                      title="Edit"
+                                      title={t("Edit")}
                                     >
                                       <Pencil className="w-3.5 h-3.5" />
                                     </button>
@@ -1002,7 +1002,7 @@ const GroceriesInventoryPage = () => {
                                       type="button"
                                       className="p-1 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                                       onClick={() => handleDelete(record.id)}
-                                      title="Delete"
+                                      title={t("Delete")}
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1123,7 +1123,7 @@ const GroceriesInventoryPage = () => {
               <div className="w-12 h-12 rounded-lg bg-primary/15 flex items-center justify-center mb-3">
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="heading-md text-foreground">Inventory Signals</h3>
+              <h3 className="heading-md text-foreground">{t("Inventory Signals")}</h3>
               <p className="text-xs text-muted-foreground mt-2 max-w-[260px]">
                 {signalsCopy}
               </p>
@@ -1144,15 +1144,15 @@ const GroceriesInventoryPage = () => {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
         title="Delete Entry"
-        message="Delete this grocery entry?"
-        confirmText="Delete"
+        message={t("Delete this grocery entry?")}
+        confirmText={t("Delete")}
         confirmVariant="danger"
       />
 
       {thresholdModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-surface-container-highest rounded-xl p-6 w-[340px] edge-glow border border-border">
-            <h3 className="text-lg font-bold text-foreground mb-1">Set Threshold Alert</h3>
+            <h3 className="text-lg font-bold text-foreground mb-1">{t("Set Threshold Alert")}</h3>
             <p className="text-xs text-muted-foreground mb-4">{thresholdModal.record.name}</p>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">
               Threshold quantity ({thresholdModal.record.unit})

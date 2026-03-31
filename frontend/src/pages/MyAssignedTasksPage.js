@@ -230,7 +230,7 @@ const MyAssignedTasksPage = () => {
       {/* â”€â”€ Header â”€â”€ */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">My Assigned <span className="text-primary">Tasks</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">My Assigned <span className="text-primary">{t("Tasks")}</span></h1>
           <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
             {t('Personal Task Console')} &nbsp;Â·&nbsp; {t('Complete and submit your assigned tasks with evidence')}
           </p>
@@ -360,7 +360,7 @@ const MyAssignedTasksPage = () => {
 
                         {task.completionNotes && (
                           <div className="mt-3 p-3 rounded-lg bg-surface-container-highest">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Completion Notes</p>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Notes")}</p>
                             <p className="text-sm text-foreground mt-1">{task.completionNotes}</p>
                           </div>
                         )}
@@ -376,9 +376,9 @@ const MyAssignedTasksPage = () => {
                               Submit Completion <Check className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          {task.status === 'Approved' && <span className="text-xs text-success font-semibold">Approved</span>}
-                          {task.status === 'Rejected' && <span className="text-xs text-destructive font-semibold">Rejected</span>}
-                          {task.status === 'Pending Review' && <span className="text-xs text-warning font-semibold">Awaiting Review</span>}
+                          {task.status === 'Approved' && <span className="text-xs text-success font-semibold">{t("Approved")}</span>}
+                          {task.status === 'Rejected' && <span className="text-xs text-destructive font-semibold">{t("Rejected")}</span>}
+                          {task.status === 'Pending Review' && <span className="text-xs text-warning font-semibold">{t("Awaiting Review")}</span>}
                         </div>
                       </div>
                     </div>
@@ -469,7 +469,7 @@ const MyAssignedTasksPage = () => {
                     <Camera className="w-5 h-5 text-primary" />
                     <div>
                       <p className="text-sm font-medium text-foreground">{submissionData.proofImage ? 'Change Photo' : 'Click to Upload'}</p>
-                      <p className="text-xs text-muted-foreground">Required for this task - JPG, PNG</p>
+                      <p className="text-xs text-muted-foreground">{t("Required for this task - JPG, PNG")}</p>
                     </div>
                   </label>
                   {submissionData.proofImage && (
@@ -483,18 +483,18 @@ const MyAssignedTasksPage = () => {
                           setFullscreenImage(getTaskImageSrc(submissionData.proofImage));
                         }}
                       />
-                      <span className="text-xs text-success font-medium">Photo uploaded</span>
+                      <span className="text-xs text-success font-medium">{t("Photo uploaded")}</span>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="rounded-lg border border-border bg-surface-container-high px-4 py-3">
-                  <p className="text-sm font-medium text-foreground">Photo evidence is not required for this task</p>
-                  <p className="mt-1 text-xs text-muted-foreground">You can submit completion notes directly.</p>
+                  <p className="text-sm font-medium text-foreground">{t("Photo evidence is not required for this task")}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("You can submit completion notes directly.")}</p>
                 </div>
               )}
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Completion Notes (Optional)</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Completion Notes (Optional)")}</label>
                 <textarea value={submissionData.completionNotes} onChange={(e) => setSubmissionData((prev) => ({ ...prev, completionNotes: e.target.value }))} placeholder="Any notes about task completion..." rows="4" disabled={loading} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
@@ -504,7 +504,7 @@ const MyAssignedTasksPage = () => {
                   disabled={loading || (activeSubmissionTask?.requiredProof && !submissionData.proofImage)}
                   className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50"
                 >{loading ? 'Submitting...' : 'Submit Completion'}</button>
-                <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </div>
           </div>

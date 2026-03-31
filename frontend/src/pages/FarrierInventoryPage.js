@@ -136,11 +136,11 @@ const FarrierInventoryPage = () => {
       {/* ── Header ── */}
       <div className="farrier-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Farrier <span className="text-primary">Inventory</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Farrier")} <span className="text-primary">{t("Inventory")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Track farrier tools, horseshoes & service records')}</p>
         </div>
         <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="farrier-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-          {showForm && !editingId ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
+          {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
         </button>
       </div>
 
@@ -148,16 +148,16 @@ const FarrierInventoryPage = () => {
 
       {/* ── KPI Cards ── */}
       <div className="farrier-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <OperationalMetricCard label="TOTAL ITEMS" value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub="Across all categories" subColor="text-success" />
-        <OperationalMetricCard label="SERVICE OVERDUE" value={String(overdueSvc.length).padStart(2, '0')} icon={Wrench} colorClass="text-warning" bgClass="bg-warning/10" sub="Tools needing service" subColor="text-warning" />
+        <OperationalMetricCard label={t("TOTAL ITEMS")} value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Across all categories")} subColor="text-success" />
+        <OperationalMetricCard label={t("SERVICE OVERDUE")} value={String(overdueSvc.length).padStart(2, '0')} icon={Wrench} colorClass="text-warning" bgClass="bg-warning/10" sub={t("Tools needing service")} subColor="text-warning" />
         <div className="farrier-inventory-kpi-card--wide-mobile">
-          <OperationalMetricCard label="DAMAGED" value={String(damagedItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-destructive" bgClass="bg-destructive/10" sub="Items flagged for repair" subColor="text-destructive" />
+          <OperationalMetricCard label={t("DAMAGED")} value={String(damagedItems.length).padStart(2, '0')} icon={AlertTriangle} colorClass="text-destructive" bgClass="bg-destructive/10" sub={t("Items flagged for repair")} subColor="text-destructive" />
         </div>
       </div>
 
       {overdueSvc.length > 0 && (
         <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>Service Overdue:</strong> {overdueSvc.map(i => i.itemName).join(', ')}
+          <AlertTriangle className="w-4 h-4 shrink-0" /> <strong>{t("Service Overdue:")}</strong> {overdueSvc.map(i => i.itemName).join(', ')}
         </div>
       )}
 
@@ -166,7 +166,7 @@ const FarrierInventoryPage = () => {
         <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 px-4 pb-4 pt-[72px] sm:p-6" onClick={resetForm}>
           <div className="my-auto flex min-h-0 w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">{editingId ? "Edit Farrier Item" : "Add Farrier Item"}</h3>
+              <h3 className="text-xl font-bold text-foreground">{editingId ? t("Edit Farrier Item") : t("Add Farrier Item")}</h3>
               <button type="button" onClick={resetForm} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -175,71 +175,71 @@ const FarrierInventoryPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Item Name *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Item Name *")}</label>
                 <input type="text" name="itemName" value={formData.itemName} onChange={handleInputChange} required maxLength={100} placeholder="e.g., Front Horseshoe Set" className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Category *</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Category *")}</label>
                 <SearchableSelect name="category" value={formData.category} onChange={handleInputChange} options={CATEGORIES.map(c => ({ value: c, label: c }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse</label>
-                <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} options={[{ value: '', label: '-- None --' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (#${h.stableNumber || ''})` }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
+                <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} options={[{ value: '', label: t('-- None --') }, ...horses.map(h => ({ value: h.id, label: `${h.name} (#${h.stableNumber || ''})` }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Quantity</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Quantity")}</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} min="0" className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Size / Type</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Size / Type")}</label>
                 <input type="text" name="sizeType" value={formData.sizeType} onChange={handleInputChange} maxLength={50} placeholder="e.g., Size 2, Front" className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Material</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Material")}</label>
                 <input type="text" name="material" value={formData.material} onChange={handleInputChange} maxLength={100} placeholder="e.g., Steel" className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Condition</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Condition")}</label>
                 <SearchableSelect name="condition" value={formData.condition} onChange={handleInputChange} options={CONDITIONS.map(c => ({ value: c, label: c }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Farrier</label>
-                <SearchableSelect name="farrierId" value={formData.farrierId} onChange={handleInputChange} options={[{ value: '', label: '-- None --' }, ...employees.filter(e => e.designation === 'Farrier' || e.designation === 'Stable Manager').map(e => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Farrier")}</label>
+                <SearchableSelect name="farrierId" value={formData.farrierId} onChange={handleInputChange} options={[{ value: '', label: t('-- None --') }, ...employees.filter(e => e.designation === 'Farrier' || e.designation === 'Stable Manager').map(e => ({ value: e.id, label: `${e.fullName} (${t(e.designation)})` }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Supplier</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Supplier")}</label>
                 <input type="text" name="supplier" value={formData.supplier} onChange={handleInputChange} maxLength={200} className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Cost (INR)</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Cost (INR)")}</label>
                 <input type="number" name="costTracking" value={formData.costTracking} onChange={handleInputChange} min="0" step="0.01" className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Replacement Cycle</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Replacement Cycle")}</label>
                 <input type="text" name="replacementCycle" value={formData.replacementCycle} onChange={handleInputChange} placeholder="e.g., Every 6 weeks" maxLength={100} className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Last Used Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Last Used Date")}</label>
                 <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Service Date</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Service Date")}</label>
                 <input type="date" name="serviceDate" value={formData.serviceDate} onChange={handleInputChange} className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Next Service Due</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Next Service Due")}</label>
                 <input type="date" name="nextServiceDue" value={formData.nextServiceDue} onChange={handleInputChange} className={inputCls} />
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+              <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
               <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows="2" maxLength={500} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm resize-none focus:ring-1 focus:ring-primary outline-none" />
             </div>
-                <div className="flex gap-3">
-                  <button type="submit" className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{editingId ? "Save Changes" : "Add Item"}</button>
-                  <button type="button" onClick={resetForm} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
-                </div>
-              </form>
+          </form>
+            </div>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={resetForm} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
+              <button type="button" onClick={handleSubmit} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">{editingId ? t("Save Changes") : t("Add Item")}</button>
             </div>
           </div>
         </div>
@@ -261,14 +261,14 @@ const FarrierInventoryPage = () => {
           </div>
           <div className="farrier-inventory-toolbar-actions flex items-center gap-2 shrink-0">
             <ExportDialog
-              title="Export Farrier Inventory"
+              title={t("Export Farrier Inventory")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
                 <button
                   className="btn-download farrier-inventory-export flex items-center justify-center h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors"
                   type="button"
-                  aria-label="Export farrier inventory"
-                  title="Export farrier inventory"
+                  aria-label={t("Export farrier inventory")}
+                  title={t("Export farrier inventory")}
                 >
                   <Download className="w-5 h-5 shrink-0" />
                 </button>
@@ -282,7 +282,7 @@ const FarrierInventoryPage = () => {
 
         {/* Table */}
         {loading ? <div className="p-4"><TableSkeleton cols={10} rows={5} /></div> : filteredItems.length === 0 ? (
-          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : "No items found."}</p>
+          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No items matching "${search}"` : t(t("No items found."))}</p>
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -328,10 +328,10 @@ const FarrierInventoryPage = () => {
                         <td className="px-6 py-4 text-sm text-foreground mono-data">{item.costTracking ? `₹${parseFloat(item.costTracking).toFixed(2)}` : "-"}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-1">
-                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit">
+                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title="Delete">
+                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -349,7 +349,7 @@ const FarrierInventoryPage = () => {
             <div className="flex items-center justify-between px-3 sm:px-6 py-3 border-t border-border">
               <div className="flex gap-2">
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
-                  <ChevronLeft className="w-3 h-3" /> Previous
+                  <ChevronLeft className="w-3 h-3" /> {t("Previous")}
                 </button>
                 <button onClick={() => setCurrentPage(p => Math.min(totalPages || 1, p + 1))} disabled={currentPage >= totalPages} className="px-3 py-1.5 rounded-lg border border-border text-xs text-foreground font-medium disabled:opacity-30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
                   Next <ChevronRight className="w-3 h-3" />
@@ -365,7 +365,7 @@ const FarrierInventoryPage = () => {
         )}
       </div>
 
-      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title="Delete Item" message="Delete this farrier inventory item?" confirmText="Delete" confirmVariant="danger" />
+      <ConfirmModal isOpen={confirmModal.isOpen} onConfirm={confirmDelete} onCancel={() => setConfirmModal({ isOpen: false, id: null })} title={t("Delete Item")} message={t("Delete this farrier inventory item?")} confirmText={t("Delete")} confirmVariant="danger" />
     </div>
   );
 };

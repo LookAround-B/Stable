@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import { logout } from '../services/authService';
 import apiClient from '../services/apiClient';
 import SelectField from '../components/shared/SelectField';
 
 const PendingApprovalPage = () => {
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
@@ -58,7 +60,7 @@ const PendingApprovalPage = () => {
             {/* Branding */}
             <div className="lp-brand">
               <div className="lp-monogram">EFM</div>
-              <p className="lp-subtitle">Equestrian Facility Management</p>
+              <p className="lp-subtitle">{t("Equestrian Facility Management")}</p>
             </div>
 
             {!submitted ? (
@@ -68,7 +70,7 @@ const PendingApprovalPage = () => {
 
                 <form onSubmit={handleSubmit}>
                   <div className="lp-field">
-                    <label className="lp-label">Full Name</label>
+                    <label className="lp-label">{t("Full Name")}</label>
                     <input
                       className="lp-input"
                       type="text"
@@ -76,13 +78,13 @@ const PendingApprovalPage = () => {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       pattern="[A-Za-z\s]*"
-                      placeholder="Enter your full name"
+                      placeholder={t("Enter your full name")}
                       required
                     />
                   </div>
 
                   <div className="lp-field">
-                    <label className="lp-label">Mobile Number</label>
+                    <label className="lp-label">{t("Mobile Number")}</label>
                     <input
                       className="lp-input"
                       type="tel"
@@ -98,7 +100,7 @@ const PendingApprovalPage = () => {
                   </div>
 
                   <div className="lp-field">
-                    <label className="lp-label">Your Role</label>
+                    <label className="lp-label">{t("Your Role")}</label>
                     <SelectField
                       value={formData.designation}
                       onChange={(val) => handleInputChange({ target: { name: 'designation', value: val } })}
@@ -116,35 +118,35 @@ const PendingApprovalPage = () => {
             ) : (
               <div className="pa-success">
                 <div className="pa-success-icon">&#10003;</div>
-                <h2 className="pa-success-title">Profile Submitted</h2>
-                <p className="pa-success-text">Your details have been sent to the admin team for review. You will gain access once approved.</p>
+                <h2 className="pa-success-title">{t("Profile Submitted")}</h2>
+                <p className="pa-success-text">{t("Your details have been sent to the admin team for review. You will gain access once approved.")}</p>
 
                 <div className="pa-info-grid">
                   <div className="pa-info-row">
-                    <span className="pa-info-label">Email</span>
+                    <span className="pa-info-label">{t("Email")}</span>
                     <span className="pa-info-value">{user?.email}</span>
                   </div>
                   <div className="pa-info-row">
-                    <span className="pa-info-label">Name</span>
+                    <span className="pa-info-label">{t("Name")}</span>
                     <span className="pa-info-value">{formData.fullName}</span>
                   </div>
                   <div className="pa-info-row">
-                    <span className="pa-info-label">Mobile</span>
+                    <span className="pa-info-label">{t("Mobile")}</span>
                     <span className="pa-info-value">{formData.phoneNumber}</span>
                   </div>
                   <div className="pa-info-row">
-                    <span className="pa-info-label">Role</span>
+                    <span className="pa-info-label">{t("Role")}</span>
                     <span className="pa-info-value">{formData.designation}</span>
                   </div>
                   <div className="pa-info-row">
-                    <span className="pa-info-label">Status</span>
-                    <span className="pa-info-value pa-pending">Pending Approval</span>
+                    <span className="pa-info-label">{t("Status")}</span>
+                    <span className="pa-info-value pa-pending">{t("Pending Approval")}</span>
                   </div>
                 </div>
               </div>
             )}
 
-            <button className="pa-logout-link" onClick={handleLogout}>Back to Login</button>
+            <button className="pa-logout-link" onClick={handleLogout}>{t("Back to Login")}</button>
           </div>
         </div>
       </div>

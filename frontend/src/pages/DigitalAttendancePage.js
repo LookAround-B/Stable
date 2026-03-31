@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import OperationalMetricCard from '../components/OperationalMetricCard';
@@ -147,17 +148,17 @@ const DigitalAttendancePage = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <OperationalMetricCard label="MONTH LOGS" value={String(attendanceRecords.length).padStart(2, '0')} icon={History} colorClass="text-primary" bgClass="bg-primary/10" sub="Total records found" />
-        <OperationalMetricCard label="PRESENT" value={String(presentCount).padStart(2, '0')} icon={CheckCircle2} colorClass="text-success" bgClass="bg-success/10" sub="Total present days" subColor="text-success" valueClass="text-4xl font-bold text-success mt-2 mono-data relative z-10" />
+        <OperationalMetricCard label={t("MONTH LOGS")} value={String(attendanceRecords.length).padStart(2, '0')} icon={History} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Total records found")} />
+        <OperationalMetricCard label={t("PRESENT")} value={String(presentCount).padStart(2, '0')} icon={CheckCircle2} colorClass="text-success" bgClass="bg-success/10" sub={t("Total present days")} subColor="text-success" valueClass="text-4xl font-bold text-success mt-2 mono-data relative z-10" />
         <div className="col-span-2 lg:col-span-1">
-          <OperationalMetricCard label="ABSENCES" value={String(leaveCount).padStart(2, '0')} icon={CalendarCheck} colorClass="text-warning" bgClass="bg-warning/10" sub="Total leaves & absences" subColor="text-warning" valueClass="text-4xl font-bold text-warning mt-2 mono-data relative z-10" />
+          <OperationalMetricCard label={t("ABSENCES")} value={String(leaveCount).padStart(2, '0')} icon={CalendarCheck} colorClass="text-warning" bgClass="bg-warning/10" sub={t("Total leaves & absences")} subColor="text-warning" valueClass="text-4xl font-bold text-warning mt-2 mono-data relative z-10" />
         </div>
       </div>
 
       {/* Form */}
-      {showForm && (
-        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
-          <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
+      {showForm && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowForm(false)}>
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <h3 className="text-xl font-bold text-foreground">{t('Quick Mark Attendance')}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
@@ -185,16 +186,19 @@ const DigitalAttendancePage = () => {
               </div>
             </div>
             {isMonday() && <span className="text-[10px] text-primary font-medium uppercase tracking-wider block bg-primary/10 px-3 py-1.5 rounded w-fit mt-1 border border-primary/30">⚠ Monday is weekly off (WOFF)</span>}
-            <div className="pt-2 flex gap-3">
-              <button type="submit" className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">
+          </form>
+            </div>
+            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">
+                {t('Cancel')}
+              </button>
+              <button onClick={handleSubmit} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">
                 {t('Submit Attendance')}
               </button>
             </div>
-          </form>
-            </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Table Container */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
@@ -208,11 +212,11 @@ const DigitalAttendancePage = () => {
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground mono-data hidden sm:block">{attendanceRecords.length} records</span>
             <ExportDialog
-              title="Export Digital Attendance"
+              title={t("Export Digital Attendance")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={(
-                <button className="btn-download digital-attendance-export h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center whitespace-nowrap" type="button" aria-label="Export digital attendance" title="Export digital attendance">
-                  <Download className="w-4 h-4 lg:w-5 lg:h-5" />
+                <button className="btn-download digital-attendance-export h-9 w-9 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center whitespace-nowrap" type="button" aria-label={t("Export digital attendance")} title={t("Export digital attendance")}>
+                  <Download className="w-3.5 h-3.5 shrink-0" />
                 </button>
               )}
             />

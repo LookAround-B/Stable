@@ -200,7 +200,7 @@ const ProfilePage = () => {
   if (!user) {
     return (
       <div className="space-y-6">
-        <p className="text-sm text-muted-foreground text-center py-12">Please log in to view your profile</p>
+        <p className="text-sm text-muted-foreground text-center py-12">{t("Please log in to view your profile")}</p>
       </div>
     );
   }
@@ -208,7 +208,7 @@ const ProfilePage = () => {
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto text-foreground">
       <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-        Profile <span className="text-primary">Settings</span>
+        Profile <span className="text-primary">{t("Settings")}</span>
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl pb-12">
@@ -259,25 +259,25 @@ const ProfilePage = () => {
             ))}
           </div>
           
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-col sm:flex-row gap-2 w-full">
             {/* Edit Profile Dialog */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
-                <button className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center gap-2">
+                <button className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2 flex-1">
                   <Edit className="w-3.5 h-3.5" /> Edit Profile
                 </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px] bg-surface-container-highest border-border">
                 <DialogHeader>
-                  <DialogTitle className="text-foreground uppercase tracking-widest text-sm text-primary">Edit Profile</DialogTitle>
+                  <DialogTitle className="uppercase tracking-widest text-sm text-primary">Edit Profile</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleProfileSubmit} className="space-y-4 py-4">
                   <div>
-                    <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">Full Name</label>
+                    <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Full Name")}</label>
                     <Input value={editForm.fullName} onChange={e => setEditForm(p => ({...p, fullName: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                   </div>
                   <div>
-                    <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">Phone Number</label>
+                    <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Phone Number")}</label>
                     <Input value={editForm.phone} onChange={e => setEditForm(p => ({...p, phone: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                   </div>
                   <DialogFooter>
@@ -303,15 +303,15 @@ const ProfilePage = () => {
                   </DialogHeader>
                   <form onSubmit={handlePasswordSubmit} className="space-y-4 py-4">
                     <div>
-                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">Old Password</label>
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Old Password")}</label>
                       <Input type="password" required value={pwdForm.oldPassword} onChange={e => setPwdForm(p => ({...p, oldPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">New Password</label>
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("New Password")}</label>
                       <Input type="password" required value={pwdForm.newPassword} onChange={e => setPwdForm(p => ({...p, newPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">Confirm Password</label>
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Confirm Password")}</label>
                       <Input type="password" required value={pwdForm.confirmPassword} onChange={e => setPwdForm(p => ({...p, confirmPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                     </div>
                     <DialogFooter>
@@ -345,7 +345,7 @@ const ProfilePage = () => {
         <div className="space-y-6">
           {/* Appearance */}
           <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-4">Color Profile Matrix</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-4">{t("Color Profile Matrix")}</h3>
             <div className="flex gap-3">
               <button
                 onClick={() => setTheme('dark')}
@@ -356,7 +356,7 @@ const ProfilePage = () => {
                 }`}
               >
                 <Moon className={`w-5 h-5 ${theme === 'dark' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-primary' : 'text-muted-foreground'}`}>Tactical Dark</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-primary' : 'text-muted-foreground'}`}>{t("Tactical Dark")}</span>
               </button>
               <button
                 onClick={() => setTheme('light')}
@@ -367,7 +367,7 @@ const ProfilePage = () => {
                 }`}
               >
                 <Sun className={`w-5 h-5 ${theme === 'light' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'light' ? 'text-primary' : 'text-muted-foreground'}`}>High Contrast</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'light' ? 'text-primary' : 'text-muted-foreground'}`}>{t("High Contrast")}</span>
               </button>
             </div>
           </div>
@@ -376,7 +376,7 @@ const ProfilePage = () => {
           <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
             <div className="flex items-center gap-2 mb-4">
               <Type className="w-3.5 h-3.5 text-muted-foreground" />
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Typography Scale</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{t("Typography Scale")}</h3>
             </div>
             <div className="flex gap-2">
               {[
@@ -404,7 +404,7 @@ const ProfilePage = () => {
           <div className="bg-surface-container-highest rounded-xl p-6 edge-glow">
             <div className="flex items-center gap-2 mb-4">
               <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Localization</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{t("Localization")}</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {Object.entries(LANGUAGES).map(([code, name]) => (
@@ -432,11 +432,11 @@ const ProfilePage = () => {
        {ROLES_WITH_HORSES.includes(user.designation) && (
         <div className="bg-surface-container-highest rounded-xl p-6 edge-glow max-w-5xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Assigned Equines</h3>
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">{t("Assigned Equines")}</h3>
             <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider bg-primary/15 text-primary">COUNT: {assignedHorses.length}</span>
           </div>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Synchronizing assigned horses...</p>
+            <p className="text-sm text-muted-foreground">{t("Synchronizing assigned horses...")}</p>
           ) : assignedHorses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {assignedHorses.map(horse => (
@@ -448,7 +448,7 @@ const ProfilePage = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">System shows no current equine assignments.</p>
+            <p className="text-sm text-muted-foreground">{t("System shows no current equine assignments.")}</p>
           )}
         </div>
       )}
@@ -461,8 +461,8 @@ const ProfilePage = () => {
             <div className="flex justify-center mb-3">
               <img src="/fav.png" alt="EFM" className="w-12 h-12 rounded-xl" />
             </div>
-            <h3 className="text-lg font-bold text-foreground text-center">Install EFM Stable</h3>
-            <p className="text-xs text-muted-foreground text-center mt-1 mb-4">Add to your home screen for the best experience</p>
+            <h3 className="text-lg font-bold text-foreground text-center">{t("Install EFM Stable")}</h3>
+            <p className="text-xs text-muted-foreground text-center mt-1 mb-4">{t("Add to your home screen for the best experience")}</p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-high border border-border/50">
                 <span className="w-6 h-6 rounded-full bg-primary/15 text-primary text-[10px] font-bold flex items-center justify-center">1</span>
@@ -475,7 +475,7 @@ const ProfilePage = () => {
                 <Plus size={16} className="ml-auto text-muted-foreground" />
               </div>
             </div>
-            <button className="w-full mt-4 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-bold tracking-wider uppercase hover:brightness-110 transition-all" onClick={dismiss}>UNDERSTOOD</button>
+            <button className="w-full mt-4 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-bold tracking-wider uppercase hover:brightness-110 transition-all" onClick={dismiss}>{t("UNDERSTOOD")}</button>
           </div>
         </div>
       , document.body)}
@@ -485,7 +485,7 @@ const ProfilePage = () => {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-md" onClick={handleCancelCrop}>
           <div className="bg-surface-container-highest rounded-xl w-[90vw] max-w-[400px] border border-border edge-glow overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <h3 className="font-bold text-foreground uppercase tracking-widest text-sm text-primary">CALIBRATE AVATAR</h3>
+              <h3 className="font-bold text-foreground uppercase tracking-widest text-sm text-primary">{t("CALIBRATE AVATAR")}</h3>
               <button className="text-muted-foreground hover:text-foreground transition-colors" onClick={handleCancelCrop}><X size={18} /></button>
             </div>
             <div className="relative w-full h-[300px] bg-black">
@@ -503,11 +503,11 @@ const ProfilePage = () => {
             </div>
             <div className="p-4 space-y-4">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest w-12 text-right">ZOOM</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest w-12 text-right">{t("ZOOM")}</span>
                 <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={e => setZoom(Number(e.target.value))} className="flex-1 accent-primary" />
               </div>
               <div className="flex items-center gap-3 pt-2">
-                <button className="flex-1 h-10 rounded-lg border border-border text-foreground text-xs font-bold tracking-widest uppercase hover:bg-surface-container-high transition-colors" onClick={handleCancelCrop} disabled={uploading}>CANCEL</button>
+                <button className="flex-1 h-10 rounded-lg border border-border text-foreground text-xs font-bold tracking-widest uppercase hover:bg-surface-container-high transition-colors" onClick={handleCancelCrop} disabled={uploading}>{t("CANCEL")}</button>
                 <button className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-xs font-bold tracking-widest uppercase hover:brightness-110 transition-all flex items-center justify-center" onClick={handleSaveCrop} disabled={uploading}>
                   {uploading ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : 'APPLY'}
                 </button>

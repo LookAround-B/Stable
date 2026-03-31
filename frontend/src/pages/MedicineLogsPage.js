@@ -310,15 +310,15 @@ const MedicineLogsPage = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">Logs</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">{t("Logs")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Track medicine administration records and treatment history.')}</p>
         </div>
         <div className="hidden sm:flex gap-2">
           <ExportDialog
-            title="Export Medicine Logs"
+            title={t("Export Medicine Logs")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label="Export medicine logs" title="Export medicine logs">
+              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export medicine logs")} title={t("Export medicine logs")}>
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
@@ -343,13 +343,13 @@ const MedicineLogsPage = () => {
       {selectedTab === 'all-logs' && !loading && filteredLogs.length > 0 && (
         <div className="medicine-logs-export-row sm:hidden">
           <ExportDialog
-            title="Export Medicine Logs"
+            title={t("Export Medicine Logs")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button
                 className="medicine-logs-export-mobile btn-download"
-                aria-label="Export medicine logs"
-                title="Export medicine logs"
+                aria-label={t("Export medicine logs")}
+                title={t("Export medicine logs")}
                 type="button"
               >
                 <Download className="w-4 h-4" />
@@ -385,7 +385,7 @@ const MedicineLogsPage = () => {
           <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
             <div className="flex items-center gap-3">
               <h2 className="orbit-heading-ignore text-lg font-bold text-foreground">{t('Administration Log')}</h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider hidden sm:inline-block">LiveSync</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider hidden sm:inline-block">{t("LiveSync")}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="relative hidden sm:block">
@@ -393,7 +393,7 @@ const MedicineLogsPage = () => {
                 <input
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  placeholder="Search horse or medicine..."
+                  placeholder={t("Search horse or medicine...")}
                   className="h-8 pl-8 pr-3 w-52 rounded-lg bg-surface-container-high text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
                 {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>}
@@ -415,7 +415,7 @@ const MedicineLogsPage = () => {
                 <input
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  placeholder="Search horse or medicine..."
+                  placeholder={t("Search horse or medicine...")}
                   className="h-9 pl-8 pr-3 w-full rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
@@ -479,7 +479,7 @@ const MedicineLogsPage = () => {
             <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
               <div className="my-auto flex min-h-0 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-                  <h3 className="text-xl font-bold text-foreground">Add Medicine Log</h3>
+                  <h3 className="text-xl font-bold text-foreground">{t("Add Medicine Log")}</h3>
                   <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                     <X className="w-5 h-5" />
                   </button>
@@ -488,23 +488,23 @@ const MedicineLogsPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Horse *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
                   <SearchableSelect
                     name="horseId"
                     options={horses.map(h => ({ value: h.id, label: h.name }))}
                     value={formData.horseId}
                     onChange={(e) => setFormData(prev => ({ ...prev, horseId: e.target.value }))}
-                    placeholder="Search horse..."
+                    placeholder={t("Search horse...")}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Medicine Name *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Medicine Name *")}</label>
                   <SearchableSelect
                     name="medicineName"
                     options={medicineNames.map(m => ({ value: m, label: m }))}
                     value={formData.medicineName}
                     onChange={(e) => setFormData(prev => ({ ...prev, medicineName: e.target.value }))}
-                    placeholder="Search or add medicine..."
+                    placeholder={t("Search or add medicine...")}
                     creatable
                     required
                   />
@@ -512,11 +512,11 @@ const MedicineLogsPage = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Quantity *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Quantity *")}</label>
                   <input type="number" name="quantity" value={formData.quantity} onChange={handleFormChange} min="0" step="0.01" placeholder="0" required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Unit</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Unit")}</label>
                   <SelectField
                     value={formData.unit}
                     onChange={(val) => handleFormChange({ target: { name: 'unit', value: val } })}
@@ -524,16 +524,16 @@ const MedicineLogsPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Time Administered *</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Time Administered *")}</label>
                   <DateTimePicker value={formData.timeAdministered} onChange={(val) => handleFormChange({ target: { name: 'timeAdministered', value: val } })} required />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
-                <textarea name="notes" value={formData.notes} onChange={handleFormChange} placeholder="Additional notes about the medication..." rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
+                <textarea name="notes" value={formData.notes} onChange={handleFormChange} placeholder={t("Additional notes about the medication...")} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Treatment Photo</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Treatment Photo")}</label>
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 {formData.photoUrl && (
                   <img src={formData.photoUrl} alt="Preview" className="mt-3 max-w-[150px] max-h-[150px] rounded-lg border border-border" />
@@ -570,7 +570,7 @@ const MedicineLogsPage = () => {
                   </div>
                   {log.notes && (
                     <div className="mt-3 pt-3 border-t border-border/50">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Notes</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Notes")}</span>
                       <p className="text-sm text-muted-foreground mt-1">{log.notes}</p>
                     </div>
                   )}
@@ -586,7 +586,7 @@ const MedicineLogsPage = () => {
                         <button onClick={() => handleDelete(log.id)} disabled={loading} className="px-3 py-1.5 rounded-lg text-xs bg-destructive/15 text-destructive font-medium hover:bg-destructive/25 transition-colors">✕ Delete</button>
                       </>
                     )}
-                    <button onClick={() => setSelectedLogForDetail(log)} className="px-3 py-1.5 rounded-lg text-xs bg-primary/15 text-primary font-medium hover:bg-primary/25 transition-colors ml-auto">View Details</button>
+                    <button onClick={() => setSelectedLogForDetail(log)} className="px-3 py-1.5 rounded-lg text-xs bg-primary/15 text-primary font-medium hover:bg-primary/25 transition-colors ml-auto">{t("View Details")}</button>
                   </div>
                 </div>
               ))}
@@ -608,7 +608,7 @@ const MedicineLogsPage = () => {
                 <div key={log.id} className="bg-surface-container-highest rounded-xl p-5 edge-glow border border-primary/10 hover:border-primary/30 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-bold text-foreground">{log.medicineName}</h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider">Medicine Log</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider">{t("Medicine Log")}</span>
                   </div>
                   <div className="space-y-1.5 text-sm">
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[80px]">Horse:</span> <strong className="text-foreground">{horseMap[log.horseId] || 'Unknown'}</strong></div>
@@ -618,7 +618,7 @@ const MedicineLogsPage = () => {
                   </div>
                   {log.notes && (
                     <div className="mt-3 pt-3 border-t border-border/50">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Notes</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Notes")}</span>
                       <p className="text-sm text-muted-foreground mt-1">{log.notes}</p>
                     </div>
                   )}
@@ -645,7 +645,7 @@ const MedicineLogsPage = () => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedLogForDetail(null)}>
           <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-bold text-foreground">Medicine Log Details</h3>
+              <h3 className="text-lg font-bold text-foreground">{t("Medicine Log Details")}</h3>
               <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setSelectedLogForDetail(null)}>✕</button>
             </div>
             <div className="p-6 space-y-4">
@@ -660,19 +660,19 @@ const MedicineLogsPage = () => {
               </div>
               {selectedLogForDetail.rejectionReason && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <span className="text-[10px] uppercase tracking-wider text-destructive font-semibold">Rejection Reason</span>
+                  <span className="text-[10px] uppercase tracking-wider text-destructive font-semibold">{t("Rejection Reason")}</span>
                   <p className="text-sm text-foreground mt-1">{selectedLogForDetail.rejectionReason}</p>
                 </div>
               )}
               {selectedLogForDetail.notes && (
                 <div className="p-3 rounded-lg bg-surface-container-high">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Notes</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Notes")}</span>
                   <p className="text-sm text-muted-foreground mt-1">{selectedLogForDetail.notes}</p>
                 </div>
               )}
               {selectedLogForDetail.photoUrl && (
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Treatment Photo</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">{t("Treatment Photo")}</p>
                   <img src={selectedLogForDetail.photoUrl} alt="Treatment" className="w-full max-h-[250px] object-contain rounded-lg cursor-pointer border border-border" onClick={() => window.open(selectedLogForDetail.photoUrl, '_blank')} />
                 </div>
               )}
@@ -686,8 +686,8 @@ const MedicineLogsPage = () => {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmModal({ isOpen: false, id: null })}
         title="Delete Record"
-        message="Are you sure you want to delete this record?"
-        confirmText="Delete"
+        message={t("Are you sure you want to delete this record?")}
+        confirmText={t("Delete")}
         confirmVariant="danger"
       />
     </div>
