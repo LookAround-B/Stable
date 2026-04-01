@@ -7,7 +7,7 @@ import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
 import * as XLSX from 'xlsx';
-import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, Calendar } from 'lucide-react';
+import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
@@ -375,8 +375,8 @@ const ReportsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">{t('ANALYTICAL REPORTS')}</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t('System-wide performance matrices and multi-vector data exports.')}</p>
         </div>
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 shrink-0">
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto sm:ml-0">
             {/* <Calendar className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block" /> */}
             <div className="w-[110px] sm:w-[140px]">
               <DatePicker value={dateRange.startDate} onChange={(val) => setDateRange(prev => ({ ...prev, startDate: val }))} />
@@ -390,7 +390,7 @@ const ReportsPage = () => {
             title={t("Export Reports")}
             options={{ xlsx: () => handleDownloadExcel(), csv: () => handleDownloadCSV() }}
             trigger={(
-              <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2" type="button" aria-label={t("Export reports")} title={t("Export reports")}>
+              <button className="h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2 ml-auto" type="button" aria-label={t("Export reports")} title={t("Export reports")}>
                 <Download className="w-4 h-4 shrink-0" />
                 <span className="text-sm font-medium hidden sm:inline-block">{t("Export")}</span>
               </button>
