@@ -129,32 +129,34 @@ const DailyAttendancePage = () => {
 
       {/* Filters */}
       <div className="daily-attendance-toolbar flex flex-col sm:flex-row sm:items-end gap-3">
-        <div className="daily-attendance-search relative">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Search")}</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <input type="text" placeholder={t("Search by name or email...")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 w-full pl-11 pr-8 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" type="button" aria-label={t("Clear search")}>
-                <X className="w-3.5 h-3.5" />
+        <div className="daily-attendance-search-row flex items-end gap-3 w-full">
+          <div className="daily-attendance-search relative">
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Search")}</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input type="text" placeholder={t("Search by name or email...")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-10 w-full pl-11 pr-8 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" type="button" aria-label={t("Clear search")}>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+          <ExportDialog
+            title={t("Export Daily Attendance")}
+            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+            trigger={(
+              <button className="btn-download daily-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0" type="button" aria-label={t("Export daily attendance")} title={t("Export daily attendance")}>
+                <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
-          </div>
+          />
         </div>
         <div className="daily-attendance-toolbar-actions flex items-end gap-3">
           <div>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date")}</label>
             <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
           </div>
-          <ExportDialog
-            title={t("Export Daily Attendance")}
-            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
-            trigger={(
-              <button className="btn-download daily-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export daily attendance")} title={t("Export daily attendance")}>
-                <Download className="w-3.5 h-3.5 shrink-0" />
-              </button>
-            )}
-          />
         </div>
       </div>
 

@@ -208,12 +208,12 @@ const WorkRecordPage = () => {
   return (
     <div className="work-records-page space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Work Record')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Staff work activity logs and hours tracking')}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {canCreateWorkRecord && (
             <button onClick={() => setShowAddForm(!showAddForm)} className="h-9 px-4 sm:px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all">
                {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />} 
@@ -330,35 +330,41 @@ const WorkRecordPage = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="work-records-toolbar flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 pl-8 pr-8 rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              type="button"
-              aria-label={t('Clear search')}
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2 w-full md:w-auto md:ml-auto">
-           <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
-           <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
-           <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
-           <ExportDialog
+      <div className="work-records-toolbar flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+        <div className="flex w-full items-center gap-2 md:max-w-sm">
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search staff...")} className="w-full h-10 rounded-lg bg-surface-container-high border border-border pl-10 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                type="button"
+                aria-label={t('Clear search')}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <ExportDialog
             title={t("Export Work Records")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="btn-download work-records-export h-10 w-10 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0" type="button" aria-label={t("Export work records")} title={t("Export work records")}>
-                <Download className="w-5 h-5" />
+              <button className="btn-download work-records-export h-7 w-8 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors shrink-0" type="button" aria-label={t("Export work records")} title={t("Export work records")}>
+                <Download className="w-3.5 h-3.5" />
               </button>
             )}
-           />
+          />
+        </div>
+
+        <div className="flex w-full items-center gap-2 md:w-auto md:ml-auto">
+           <div className="min-w-0 flex-1 md:flex-none">
+             <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
+           </div>
+           <span className="text-xs text-muted-foreground font-medium shrink-0">to</span>
+           <div className="min-w-0 flex-1 md:flex-none">
+             <DatePicker value={toDate} onChange={(val) => setToDate(val)} />
+           </div>
         </div>
       </div>
 

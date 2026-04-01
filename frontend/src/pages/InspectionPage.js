@@ -8,7 +8,7 @@ import inspectionService from '../services/inspectionService';
 import apiClient from '../services/apiClient';
 import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
-import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, Search, AlertOctagon, ClipboardList, CheckCircle2, Activity } from 'lucide-react';
+import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, AlertOctagon, ClipboardList, CheckCircle2, Activity } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';

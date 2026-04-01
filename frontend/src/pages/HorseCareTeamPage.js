@@ -6,7 +6,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Users, Star, AlertTriangle, Shield, CheckCircle, Plus, Search, X } from 'lucide-react';
+import { Users, Star, AlertTriangle, Shield, CheckCircle, Plus, X } from 'lucide-react';
 
 const HORSE_TEAM_FILTER_OPTIONS = [
   { value: 'all', label: 'All Horses' },
@@ -363,19 +363,18 @@ const HorseCareTeamPage = () => {
 
       {/* Horses Grid */}
       <div className="horse-care-team-toolbar flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-        <div className="horse-care-team-search horse-directory-search relative w-full">
-          <Search className="horse-directory-search-icon w-4 h-4" />
+        <div className="horse-care-team-search relative w-full">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t("Search horse care teams...")}
-            className="horse-directory-search-input"
+            className="h-10 w-full rounded-lg border border-border bg-surface-container-high pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="horse-directory-clear"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               type="button"
               aria-label={t("Clear search")}
             >

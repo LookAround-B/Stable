@@ -135,7 +135,7 @@ const GroomWorkSheetPage = () => {
           title={t("Export Groom Worksheet")}
           options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
           trigger={(
-            <button disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed mx-auto md:mx-0 md:ml-auto" type="button" aria-label={t("Export groom worksheet")} title={t("Export groom worksheet")}>
+            <button disabled={worksheets.length === 0} className="btn-download groom-worksheet-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed self-end md:self-auto md:ml-auto" type="button" aria-label={t("Export groom worksheet")} title={t("Export groom worksheet")}>
               <Download className="w-3.5 h-3.5 shrink-0" />
             </button>
           )}

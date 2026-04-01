@@ -259,11 +259,11 @@ const ProfilePage = () => {
             ))}
           </div>
           
-          <div className="mt-6 flex flex-col sm:flex-row gap-2 w-full">
+          <div className="mt-6 grid grid-cols-1 gap-2 w-full sm:flex sm:flex-row sm:items-stretch">
             {/* Edit Profile Dialog */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
-                <button className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2 flex-1">
+                <button className="btn-save-primary w-full min-h-10 sm:flex-1 sm:basis-0 sm:min-w-0">
                   <Edit className="w-3.5 h-3.5" /> Edit Profile
                 </button>
               </DialogTrigger>
@@ -293,7 +293,7 @@ const ProfilePage = () => {
             {!user.googleId && (
               <Dialog open={isPwdOpen} onOpenChange={setIsPwdOpen}>
                 <DialogTrigger asChild>
-                  <button className="h-9 px-4 rounded-lg bg-surface-container-high text-muted-foreground text-xs font-bold tracking-wider hover:text-foreground hover:border-foreground/50 transition-all flex items-center gap-2 border border-border">
+                  <button className="h-10 w-full min-h-10 px-4 rounded-lg bg-surface-container-high text-muted-foreground text-xs font-bold tracking-wider hover:text-foreground hover:border-foreground/50 transition-all inline-flex items-center justify-center gap-2 border border-border sm:flex-1 sm:basis-0 sm:min-w-0">
                     <LockIcon className="w-3.5 h-3.5" /> Security
                   </button>
                 </DialogTrigger>
@@ -323,19 +323,9 @@ const ProfilePage = () => {
                 </DialogContent>
               </Dialog>
             )}
-          </div>
-          <div className="mt-3 flex sm:hidden justify-center">
             <button 
               onClick={install}
-              className="h-7 px-3 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all flex items-center gap-2 border border-success/20"
-            >
-              <Download className="w-3.5 h-3.5" /> Install App
-            </button>
-          </div>
-          <div className="mt-3 hidden sm:flex">
-            <button 
-              onClick={install}
-              className="h-7 px-3 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all flex items-center gap-2 border border-success/20 ml-auto"
+              className="h-10 w-full min-h-10 px-4 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all inline-flex items-center justify-center gap-2 border border-success/20 sm:flex-1 sm:basis-0 sm:min-w-0"
             >
               <Download className="w-3.5 h-3.5" /> Install App
             </button>

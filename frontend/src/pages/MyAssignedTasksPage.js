@@ -377,7 +377,6 @@ const MyAssignedTasksPage = () => {
                               Submit Completion <Check className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          {task.status === 'Approved' && <span className="text-xs text-success font-semibold">{t("Approved")}</span>}
                           {task.status === 'Rejected' && <span className="text-xs text-destructive font-semibold">{t("Rejected")}</span>}
                           {task.status === 'Pending Review' && <span className="text-xs text-warning font-semibold">{t("Awaiting Review")}</span>}
                         </div>
@@ -542,7 +541,6 @@ const MyAssignedTasksPage = () => {
 };
 
 export default MyAssignedTasksPage;
-
 
 
 
