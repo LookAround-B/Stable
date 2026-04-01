@@ -1,50 +1,43 @@
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const path = require('path');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const sharp = require('sharp');
 
 const prisma = new PrismaClient();
 
-// Initialize R2 client
-let r2Client = null;
-if (process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID) {
-  r2Client = new S3Client({
-    region: 'auto',
-    endpoint: process.env.R2_ENDPOINT,
-    credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-    },
-  });
-}
+const MAX_BYTES = 150 * 1024; // 150 KB target
 
-// Upload file from local folder to R2
-async function uploadImageToR2(filePath, employeeName) {
-  try {
-    if (!r2Client) return null;
+// Compress image to ≤ 150 KB and return as base64 data URI
+async function compressToBase64(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const isWebp = ext === '.webp';
 
-    const fileBuffer = fs.readFileSync(filePath);
-    const ext = path.extname(filePath).toLowerCase().slice(1) || 'jpg';
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-    const key = `profiles/employees/${uniqueName}`;
-
-    console.log(`  ↑ Uploading ${path.basename(filePath)} to R2...`);
-    await r2Client.send(
-      new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET || 'horsestable-storage',
-        Key: key,
-        Body: fileBuffer,
-        ContentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
-      })
-    );
-
-    const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
-    console.log(`  ✓ Uploaded: ${publicUrl}`);
-    return publicUrl;
-  } catch (err) {
-    console.warn(`  ✗ Failed to upload image for ${employeeName}:`, err.message);
-    return null;
+  // Start at quality 85 and step down until under 150 KB
+  for (let quality = 85; quality >= 20; quality -= 10) {
+    let buf;
+    if (isWebp) {
+      buf = await sharp(filePath)
+        .resize({ width: 400, height: 400, fit: 'cover', position: 'centre' })
+        .webp({ quality })
+        .toBuffer();
+    } else {
+      buf = await sharp(filePath)
+        .resize({ width: 400, height: 400, fit: 'cover', position: 'centre' })
+        .jpeg({ quality, mozjpeg: true })
+        .toBuffer();
+    }
+    if (buf.length <= MAX_BYTES) {
+      const mime = isWebp ? 'image/webp' : 'image/jpeg';
+      return `data:${mime};base64,${buf.toString('base64')}`;
+    }
   }
+
+  // Last resort: quality 15
+  const buf = await sharp(filePath)
+    .resize({ width: 300, height: 300, fit: 'cover', position: 'centre' })
+    .jpeg({ quality: 15, mozjpeg: true })
+    .toBuffer();
+  return `data:image/jpeg;base64,${buf.toString('base64')}`;
 }
 
 // Normalize a name for comparison: lowercase, remove special chars, collapse spaces
@@ -96,7 +89,7 @@ function matchScore(searchName, dbName, dbEmail) {
 }
 
 async function seedDPFromLocal() {
-  console.log('\n🖼️  Seeding profile pictures from local dp-images folder...\n');
+  console.log('\n🖼️  Seeding profile pictures (compressed to ≤150KB, stored in DB)...\n');
 
   const dpFolderPath = path.join(__dirname, '..', 'dp-images');
 
@@ -116,13 +109,6 @@ async function seedDPFromLocal() {
   }
 
   console.log(`📁 Found ${files.length} image files\n`);
-
-  if (!r2Client) {
-    console.log('⚠ R2 Storage not configured\n');
-    process.exit(1);
-  }
-
-  console.log('📦 R2 Storage configured\n');
 
   // Load ALL employees from database
   const allEmployees = await prisma.employee.findMany({
@@ -167,19 +153,16 @@ async function seedDPFromLocal() {
     console.log(`\n✔ "${fileName}" → ${bestMatch.fullName} (${bestMatch.email}) [score: ${bestScore}]`);
 
     try {
-      const profileImage = await uploadImageToR2(filePath, bestMatch.fullName);
+      const profileImage = await compressToBase64(filePath);
+      const sizeKB = Math.round(Buffer.byteLength(profileImage, 'utf8') / 1024);
+      console.log(`  ✓ Compressed to ~${sizeKB}KB, saving to DB...`);
 
-      if (profileImage) {
-        await prisma.employee.update({
-          where: { id: bestMatch.id },
-          data: { profileImage },
-        });
-        console.log(`  ✓ Updated: ${bestMatch.fullName} (${bestMatch.email})`);
-        updated++;
-      } else {
-        skipped.push({ fileName, reason: 'Upload failed' });
-        errors++;
-      }
+      await prisma.employee.update({
+        where: { id: bestMatch.id },
+        data: { profileImage },
+      });
+      console.log(`  ✓ Updated: ${bestMatch.fullName} (${bestMatch.email})`);
+      updated++;
     } catch (err) {
       console.error(`  ✗ Error processing ${file}:`, err.message);
       skipped.push({ fileName, reason: err.message });

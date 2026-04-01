@@ -44,6 +44,7 @@
     "eslint": "^8.33.0",
     "eslint-config-next": "^14.0.0",
     "prisma": "^5.0.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.0.0",
     "xlsx": "^0.18.5"
   }
