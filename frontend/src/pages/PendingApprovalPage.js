@@ -110,7 +110,7 @@ const PendingApprovalPage = () => {
 
                   {error && <div className="lp-error">{error}</div>}
 
-                  <button type="submit" className="lp-btn-primary" disabled={loading}>
+                  <button type="submit" className="btn-save-primary w-full" disabled={loading}>
                     {loading ? 'Submitting…' : 'Submit for Approval'}
                   </button>
                 </form>

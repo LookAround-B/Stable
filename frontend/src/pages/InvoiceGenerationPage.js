@@ -310,7 +310,7 @@ const InvoiceGenerationPage = () => {
 
               <button
                 type="submit"
-                className="w-full h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase"
+                className="btn-save-primary w-full"
                 disabled={loading}
               >
                 {loading ? 'Generating Invoice...' : 'Generate Invoice'}

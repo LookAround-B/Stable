@@ -35,6 +35,8 @@ const SearchableSelect = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [resolvedMenuPosition, setResolvedMenuPosition] = useState(menuPosition === 'top' ? 'top' : 'bottom');
+  const [menuScrollMaxHeight, setMenuScrollMaxHeight] = useState(240);
   const wrapperRef = useRef(null);
   const searchRef = useRef(null);
 
@@ -64,7 +66,56 @@ const SearchableSelect = ({
     o?.label?.toLowerCase?.().includes(search.toLowerCase()) ?? false
   ) : [];
 
+  const visibleOptionCount = 5;
   const showSearch = searchable && options.length > 5;
+  const desiredDropdownHeight = showSearch ? 320 : 260;
+  const hiddenOptionCount = Math.max(filtered.length - visibleOptionCount, 0);
+  const dropdownChromeHeight = (showSearch ? 64 : 0) + (hiddenOptionCount > 0 ? 38 : 0) + 12;
+
+  useEffect(() => {
+    if (!open) return;
+
+    const updateMenuPosition = () => {
+      if (!wrapperRef.current) return;
+
+      const rect = wrapperRef.current.getBoundingClientRect();
+      const viewportPadding = 16;
+      const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+      const spaceAbove = rect.top - viewportPadding;
+      const minScrollHeight = 96;
+
+      let nextPosition = 'bottom';
+
+      if (menuPosition === 'top') {
+        nextPosition = 'top';
+      } else {
+        const shouldFlipTop =
+          spaceBelow < desiredDropdownHeight &&
+          spaceAbove > spaceBelow &&
+          spaceAbove >= minScrollHeight + dropdownChromeHeight;
+
+        nextPosition = shouldFlipTop ? 'top' : 'bottom';
+      }
+
+      const availableSpace = nextPosition === 'top' ? spaceAbove : spaceBelow;
+      const nextScrollMaxHeight = Math.max(
+        minScrollHeight,
+        Math.min(240, availableSpace - dropdownChromeHeight)
+      );
+
+      setResolvedMenuPosition(nextPosition);
+      setMenuScrollMaxHeight(nextScrollMaxHeight);
+    };
+
+    updateMenuPosition();
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+    };
+  }, [desiredDropdownHeight, dropdownChromeHeight, menuPosition, open]);
 
   const showCreateOption = creatable && search.trim() &&
     !filtered.some(o => o.label.toLowerCase() === search.trim().toLowerCase());
@@ -80,10 +131,10 @@ const SearchableSelect = ({
   };
 
   const heightClass = size === 'sm' ? 'h-10' : 'h-11';
-  const dropdownClass = menuPosition === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5';
+  const dropdownClass = resolvedMenuPosition === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5';
 
   return (
-    <div ref={wrapperRef} className={`relative ${className}`}>
+    <div ref={wrapperRef} className={`relative efm-searchable-select ${className}`}>
       {/* Hidden native input for form validation */}
       <input
         type="text"
@@ -114,7 +165,7 @@ const SearchableSelect = ({
 
       {/* Dropdown */}
       {open && (
-        <div className={`absolute z-50 ${dropdownClass} w-full min-w-full rounded-xl bg-surface-container-highest border border-border shadow-2xl overflow-hidden`}>
+        <div className={`absolute z-[80] ${dropdownClass} w-full min-w-full rounded-xl bg-surface-container-highest border border-border shadow-2xl overflow-hidden`}>
           {showSearch && (
             <div className="p-2.5 border-b border-border/50">
               <div className="relative">
@@ -132,7 +183,10 @@ const SearchableSelect = ({
             </div>
           )}
 
-          <div className="max-h-80 overflow-y-auto py-1.5">
+          <div
+            className="efm-select-options-scroll overflow-y-auto py-1.5"
+            style={{ maxHeight: `${menuScrollMaxHeight}px` }}
+          >
             {showCreateOption && (
               <button
                 type="button"
@@ -160,6 +214,12 @@ const SearchableSelect = ({
               ))
             )}
           </div>
+
+          {hiddenOptionCount > 0 && (
+            <div className="efm-select-more-indicator px-4 py-2 text-xs font-semibold tracking-[0.16em] uppercase">
+              {`More +${hiddenOptionCount}`}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -168,14 +168,12 @@ const TackInventoryPage = () => {
       {/* ── Header ── */}
       <div className="tack-inventory-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Tack")} <span className="text-primary">{t("Inventory")}</span></h1>
-            <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
-              {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
-            </button>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Tack")} <span className="text-primary">{t("Inventory")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage tack and equipment across all stable operations.')}</p>
         </div>
+        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn btn-save-primary shrink-0 sm:ml-auto">
+          {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
+        </button>
       </div>
 
       {/* ── Message ── */}
@@ -203,16 +201,16 @@ const TackInventoryPage = () => {
 
       {/* ── Form ── */}
       {showForm && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={resetForm}>
-          <div className="my-auto flex min-h-0 w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={resetForm}>
+          <div className="my-auto flex w-full max-w-6xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
               <h3 className="text-xl font-bold text-foreground">{editingId ? t("Edit Tack Item") : t("Add Tack Item")}</h3>
               <button type="button" onClick={resetForm} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-4 sm:px-5 sm:py-4">
+              <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Item Name *")}</label>
@@ -281,9 +279,9 @@ const TackInventoryPage = () => {
             </div>
           </form>
             </div>
-            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+            <div className="p-4 sm:px-5 sm:py-4 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
               <button type="button" className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors" onClick={resetForm}>{t("Cancel")}</button>
-              <button type="button" onClick={handleSubmit} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">{editingId ? t("Save Changes") : t("Add Item")}</button>
+              <button type="button" onClick={handleSubmit} className="btn-save-primary">{editingId ? t("Save Changes") : t("Add Item")}</button>
             </div>
           </div>
         </div>

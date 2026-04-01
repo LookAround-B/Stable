@@ -1002,7 +1002,7 @@ const ExpensePage = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="btn-save-primary flex-1"
                   >
                     <CheckCircle className="w-4 h-4" />
                     {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Log Expense'}

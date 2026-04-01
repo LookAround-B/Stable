@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
-import { Clock, Package, Play, SlidersHorizontal, Users, BarChart3, Check, X, Camera } from 'lucide-react';
+import { Clock, Package, Play, Search, Users, BarChart3, Check, X, Camera } from 'lucide-react';
 
 const cropImageToSquare = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -291,14 +291,15 @@ const MyAssignedTasksPage = () => {
           ))}
         </div>
         <div className="relative w-full md:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             placeholder={t('Search tasks by name, type, horse...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
+            className="h-10 w-full pl-10 pr-8 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
           />
-          <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" type="button"><X className="w-3.5 h-3.5" /></button>}
         </div>
       </div>
 
@@ -502,7 +503,7 @@ const MyAssignedTasksPage = () => {
                   type="button"
                   onClick={() => handleSubmitTask(selectedTaskId)}
                   disabled={loading || (activeSubmissionTask?.requiredProof && !submissionData.proofImage)}
-                  className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50"
+                  className="btn-save-primary flex-1"
                 >{loading ? 'Submitting...' : 'Submit Completion'}</button>
                 <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
@@ -541,7 +542,6 @@ const MyAssignedTasksPage = () => {
 };
 
 export default MyAssignedTasksPage;
-
 
 
 

@@ -437,17 +437,17 @@ const MedicineInventoryPage = () => {
 
           {/* Add/Edit Record Form */}
           {showForm && ReactDOM.createPortal(
-            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={handleCancel}>
-              <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+            <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={handleCancel}>
+              <div className="my-auto flex w-full max-w-2xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
                   <h3 className="text-xl font-bold text-foreground">{editingRecord ? 'Edit Record' : 'Add Medicine Record'}</h3>
                   <button type="button" onClick={handleCancel} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 sm:px-5 sm:py-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Medicine Type *")}</label>
                   <SearchableSelect
@@ -496,7 +496,7 @@ const MedicineInventoryPage = () => {
                   />
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Opening Stock")}</label>
                   <input type="number" name="openingStock" value={formData.openingStock} onChange={(e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); }} min="0" step="0.01" placeholder="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
@@ -511,7 +511,7 @@ const MedicineInventoryPage = () => {
                 <textarea name="notes" value={formData.notes} onChange={(e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); }} placeholder={t("Additional notes...")} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3">
-                <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">
+                <button type="submit" disabled={loading} className="btn-save-primary">
                   {loading ? 'Saving...' : editingRecord ? 'Update Record' : 'Create Record'}
                 </button>
                 <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
@@ -744,7 +744,7 @@ const MedicineInventoryPage = () => {
               </label>
               <div className="flex gap-2 justify-end pt-2">
                 <button onClick={() => setThresholdModal(null)} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
-                <button onClick={handleSaveThreshold} disabled={loading} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{t("Save")}</button>
+                <button onClick={handleSaveThreshold} disabled={loading} className="btn-save-primary">{t("Save")}</button>
               </div>
             </div>
           </div>
@@ -755,4 +755,3 @@ const MedicineInventoryPage = () => {
 };
 
 export default MedicineInventoryPage;
-

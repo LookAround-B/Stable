@@ -192,7 +192,7 @@ const DigitalAttendancePage = () => {
               <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">
                 {t('Cancel')}
               </button>
-              <button onClick={handleSubmit} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">
+              <button onClick={handleSubmit} className="btn-save-primary">
                 {t('Submit Attendance')}
               </button>
             </div>
@@ -272,5 +272,4 @@ const DigitalAttendancePage = () => {
 };
 
 export default DigitalAttendancePage;
-
 

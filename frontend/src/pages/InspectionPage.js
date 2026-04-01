@@ -257,7 +257,7 @@ const InspectionPage = () => {
               )}
             </div>
             <div className="flex gap-3">
-              <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Submitting...' : editingInspection ? 'Update' : 'Submit'}</button>
+              <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Submitting...' : editingInspection ? 'Update' : 'Submit'}</button>
               <button type="button" onClick={closeForm} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
             </div>
           </form>
@@ -442,7 +442,7 @@ const InspectionPage = () => {
                 <textarea name="resolutionNotes" value={resolveData.resolutionNotes} onChange={(e) => setResolveData(prev => ({ ...prev, resolutionNotes: e.target.value }))} placeholder="Resolution details..." maxLength="500" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-success to-success/80 text-success-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Processing...' : 'Resolve'}</button>
+                <button type="submit" disabled={loading} className="btn-save-primary flex-1">{loading ? 'Processing...' : 'Resolve'}</button>
                 <button type="button" onClick={() => setResolvingInspection(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </form>

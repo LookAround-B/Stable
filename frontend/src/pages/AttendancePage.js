@@ -305,7 +305,7 @@ const AttendancePage = () => {
                </div>
             </div>
             
-            <button type="submit" disabled={loading} className="w-full sm:w-auto h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50">
+            <button type="submit" disabled={loading} className="btn-save-primary w-full sm:w-auto">
                {loading ? t('Logging...') : t('Log Attendance')}
             </button>
           </form>

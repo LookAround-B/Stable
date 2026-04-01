@@ -201,13 +201,7 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-[54px] rounded-xl mt-3
-                       bg-gradient-to-r from-[#a855f7] to-[#d946ef]
-                       text-white text-[15px] font-semibold
-                       flex items-center justify-center gap-2
-                       hover:opacity-90 active:scale-[0.98]
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-all shadow-[0_4px_14px_rgba(168,85,247,0.3)]"
+            className="btn-save-primary w-full mt-3"
           >
             {loading
               ? <Loader2 className="w-[18px] h-[18px] animate-spin" />

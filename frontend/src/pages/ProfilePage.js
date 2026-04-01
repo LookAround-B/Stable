@@ -281,7 +281,7 @@ const ProfilePage = () => {
                     <Input value={editForm.phone} onChange={e => setEditForm(p => ({...p, phone: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                   </div>
                   <DialogFooter>
-                    <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 mt-2 font-bold tracking-wider">
+                    <Button type="submit" className="w-full btn-save-primary mt-2">
                       <Save className="w-4 h-4 mr-2" /> SAVE CHANGES
                     </Button>
                   </DialogFooter>
@@ -315,7 +315,7 @@ const ProfilePage = () => {
                       <Input type="password" required value={pwdForm.confirmPassword} onChange={e => setPwdForm(p => ({...p, confirmPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                     </div>
                     <DialogFooter>
-                      <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 mt-2 font-bold tracking-wider">
+                      <Button type="submit" className="w-full btn-save-primary mt-2">
                         <LockIcon className="w-4 h-4 mr-2" /> UPDATE ENCRYPTION KEY
                       </Button>
                     </DialogFooter>
@@ -508,7 +508,7 @@ const ProfilePage = () => {
               </div>
               <div className="flex items-center gap-3 pt-2">
                 <button className="flex-1 h-10 rounded-lg border border-border text-foreground text-xs font-bold tracking-widest uppercase hover:bg-surface-container-high transition-colors" onClick={handleCancelCrop} disabled={uploading}>{t("CANCEL")}</button>
-                <button className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-xs font-bold tracking-widest uppercase hover:brightness-110 transition-all flex items-center justify-center" onClick={handleSaveCrop} disabled={uploading}>
+                <button className="btn-save-primary flex-1" onClick={handleSaveCrop} disabled={uploading}>
                   {uploading ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : 'APPLY'}
                 </button>
               </div>

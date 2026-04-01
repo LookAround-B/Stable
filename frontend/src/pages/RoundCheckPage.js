@@ -129,7 +129,7 @@ const RoundCheckPage = () => {
           <p className="text-xs text-muted-foreground mb-4">{t('Last updated')}: {new Date(roundCheck.updatedAt).toLocaleString('en-GB')}</p>
         )}
 
-        <button type="submit" disabled={loading} className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50 hover:opacity-90 transition-opacity">
+        <button type="submit" disabled={loading} className="btn-save-primary">
           {loading ? t('Updating...') : t('✓ Save Round Status')}
         </button>
       </form>

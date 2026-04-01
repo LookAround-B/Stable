@@ -219,7 +219,7 @@ const DailyWorkRecordsPage = () => {
               </div>
             </div>
                 <div className="flex gap-3">
-                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
+                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
                   <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>

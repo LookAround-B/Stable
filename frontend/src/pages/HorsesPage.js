@@ -469,8 +469,8 @@ const HorsesPage = () => {
       {/* Table Section */}
       <div className="bg-surface-container-highest rounded-[18px] edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="horse-directory-toolbar flex flex-row items-center gap-2 sm:gap-3 p-3 sm:p-5 border-b border-border">
-          <div className="horse-directory-search flex-1 min-w-0 md:flex-none md:w-[360px]">
+        <div className="horse-directory-toolbar flex flex-col gap-2 border-b border-border p-3 sm:gap-3 sm:p-5 lg:flex-row lg:items-center">
+          <div className="horse-directory-search w-full min-w-0 lg:flex-none lg:w-[360px]">
             <Search className="horse-directory-search-icon w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <input
               type="text"
@@ -485,7 +485,7 @@ const HorsesPage = () => {
               </button>
             )}
           </div>
-          <div className="horse-directory-toolbar-actions md:ml-auto">
+          <div className="horse-directory-toolbar-actions flex items-center justify-end gap-2 sm:gap-3 lg:ml-auto">
             <SearchableSelect
               name="horseFilter"
               value={horseFilter}
@@ -593,15 +593,15 @@ const HorsesPage = () => {
 
       {/* Modal */}
       {showModal && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80 backdrop-blur-sm">
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]">
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] backdrop-blur-sm sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={closeModal}>
+          <div className="my-auto flex w-full max-w-lg flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 sm:px-5 sm:py-4 border-b border-border">
               <h2 className="text-lg font-bold text-foreground inline-flex items-center gap-2"><Plus className="w-5 h-5" /> {t('Add New Horse')}</h2>
               <button onClick={closeModal} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground"><X size={18} /></button>
             </div>
-            <div className="p-4 sm:p-6 overflow-y-auto">
-              <form onSubmit={handleAddHorse} className="space-y-4">
-                <div className="flex flex-col items-center gap-3 mb-6">
+            <div className="p-4 sm:px-5 sm:py-4">
+              <form onSubmit={handleAddHorse} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:gap-4">
+                <div className="mb-1 flex flex-col items-center gap-2 md:col-span-2 xl:col-span-1 xl:mb-0">
                   <div
                     onClick={() => horseImgRef.current?.click()}
                     className="w-20 h-20 rounded-full border-2 border-dashed border-border bg-surface-container-high flex items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group relative"
@@ -619,64 +619,58 @@ const HorsesPage = () => {
                   <span className="text-xs text-muted-foreground">{newHorseImage ? t('Tap to change') : t('Add Photo (optional)')}</span>
                 </div>
 
-                <div className="mb-4">
+                <div className="md:col-span-2 xl:col-span-2">
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Horse Name *')}</label>
                   <input id="name" type="text" name="name" value={formData.name} onChange={handleInputChange} pattern="[A-Za-z\s]*" placeholder="Shadow (letters and spaces only)" required disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Gender *')}</label>
-                    <SearchableSelect id="gender" name="gender" value={formData.gender} onChange={handleInputChange} disabled={loading} options={[{ value: 'Stallion', label: 'Stallion' }, { value: 'Mare', label: 'Mare' }, { value: 'Gelding', label: 'Gelding' }, { value: 'Colt', label: 'Colt' }, { value: 'Filly', label: 'Filly' }, { value: 'Foal', label: 'Foal' }, { value: 'Stud', label: 'Stud' }]} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date of Birth')}</label>
-                    <DatePicker value={formData.dateOfBirth} onChange={(val) => handleInputChange({ target: { name: 'dateOfBirth', value: val } })} disabled={loading} />
-                  </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Gender *')}</label>
+                  <SearchableSelect id="gender" name="gender" value={formData.gender} onChange={handleInputChange} disabled={loading} options={[{ value: 'Stallion', label: 'Stallion' }, { value: 'Mare', label: 'Mare' }, { value: 'Gelding', label: 'Gelding' }, { value: 'Colt', label: 'Colt' }, { value: 'Filly', label: 'Filly' }, { value: 'Foal', label: 'Foal' }, { value: 'Stud', label: 'Stud' }]} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date of Birth')}</label>
+                  <DatePicker value={formData.dateOfBirth} onChange={(val) => handleInputChange({ target: { name: 'dateOfBirth', value: val } })} disabled={loading} />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Breed')}</label>
-                    <input id="breed" type="text" name="breed" value={formData.breed} onChange={handleInputChange} disabled={loading} placeholder="Thoroughbred" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Color')}</label>
-                    <input id="color" type="text" name="color" value={formData.color} onChange={handleInputChange} disabled={loading} placeholder="Black" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Breed')}</label>
+                  <input id="breed" type="text" name="breed" value={formData.breed} onChange={handleInputChange} disabled={loading} placeholder="Thoroughbred" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Color')}</label>
+                  <input id="color" type="text" name="color" value={formData.color} onChange={handleInputChange} disabled={loading} placeholder="Black" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Height (hands)')}</label>
-                    <input id="height" type="number" name="height" value={formData.height} onChange={handleInputChange} disabled={loading} placeholder="16.2" step="0.1" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Unique Stable Number')}</label>
-                    <input id="stableNumber" type="text" name="stableNumber" value={formData.stableNumber} onChange={handleInputChange} disabled={loading} placeholder="(Optional, e.g. ST-09)" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Height (hands)')}</label>
+                  <input id="height" type="number" name="height" value={formData.height} onChange={handleInputChange} disabled={loading} placeholder="16.2" step="0.1" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Unique Stable Number')}</label>
+                  <input id="stableNumber" type="text" name="stableNumber" value={formData.stableNumber} onChange={handleInputChange} disabled={loading} placeholder="(Optional, e.g. ST-09)" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
 
-                <div className="mb-4">
+                <div className="md:col-span-2 xl:col-span-1">
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Horse Passport Number')} <span className="opacity-60">({t('Optional')})</span></label>
                   <input id="passportNumber" type="text" name="passportNumber" value={formData.passportNumber} onChange={handleInputChange} disabled={loading} placeholder="e.g. GB-2021-001234" maxLength={50} pattern="[A-Za-z0-9][A-Za-z0-9 \-\/]{1,49}" title="Alphanumeric, spaces, hyphens and slashes only (3–50 chars)" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
 
-                <div className="mb-4">
+                <div className="md:col-span-2 xl:col-span-2">
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Assign to Manager')}</label>
                   <SearchableSelect id="supervisorId" name="supervisorId" value={formData.supervisorId} onChange={handleInputChange} placeholder="-- No Assignment --" disabled={loading} options={[{ value: '', label: '-- No Assignment --' }, ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))]} />
                 </div>
 
                 {message && (
-                  <div className={`mt-4 px-3 py-2 rounded-lg text-sm font-medium ${message.includes('Error') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
+                  <div className={`px-3 py-2 rounded-lg text-sm font-medium md:col-span-2 xl:col-span-3 ${message.includes('Error') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>
                     {message}
                   </div>
                 )}
               </form>
             </div>
-            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+            <div className="flex justify-end gap-3 border-t border-border bg-surface-container-high/50 p-4 sm:px-5 sm:py-4">
               <button type="button" onClick={closeModal} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t('Cancel')}</button>
-              <button onClick={handleAddHorse} disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? t('Adding...') : t('Add Horse')}</button>
+              <button onClick={handleAddHorse} disabled={loading} className="btn-save-primary">{loading ? t('Adding...') : t('Add Horse')}</button>
             </div>
           </div>
         </div>

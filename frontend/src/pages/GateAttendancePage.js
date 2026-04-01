@@ -316,7 +316,7 @@ const GateAttendancePage = () => {
                     <input type="text" value={staffForm.notes} onChange={(e) => setStaffForm({ ...staffForm, notes: e.target.value })} disabled={loading} placeholder="Any additional notes" className={inputCls} />
                   </div>
                 </div>
-                <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Logging...' : 'Log Entry'}</button>
+                <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Logging...' : 'Log Entry'}</button>
               </form>
             </div>
           )}
@@ -361,7 +361,7 @@ const GateAttendancePage = () => {
                     <input type="text" value={visitorForm.notes} onChange={(e) => setVisitorForm({ ...visitorForm, notes: e.target.value })} disabled={loading} placeholder={t("Additional notes")} maxLength="250" className={inputCls} />
                   </div>
                 </div>
-                <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Logging...' : 'Log Visitor'}</button>
+                <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Logging...' : 'Log Visitor'}</button>
               </form>
             </div>
           )}

@@ -747,9 +747,9 @@ const TasksPage = () => {
             placeholder={t('Search task ID or horse name...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10 w-full px-4 pr-10 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+            className="h-10 w-full pl-10 pr-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
@@ -945,55 +945,51 @@ const TasksPage = () => {
         </div>
       </div>
 {canCreateTasks && showCreateForm && ReactDOM.createPortal(
-          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowCreateForm(false)}>
-            <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowCreateForm(false)}>
+            <div className="my-auto flex w-full max-w-lg flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 sm:px-5 sm:py-4 border-b border-border">
                 <h3 className="text-lg font-bold text-foreground">{t('Create New Task')}</h3>
                 <button className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1" onClick={() => setShowCreateForm(false)}><X size={18} /></button>
               </div>
-              <div className="p-4 sm:p-6 overflow-y-auto">
-                <form id="create-task-form" onSubmit={handleCreateTask} className="space-y-4">
-                  <div>
+              <div className="p-4 sm:px-5 sm:py-4">
+                <form id="create-task-form" onSubmit={handleCreateTask} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:gap-4">
+                  <div className="md:col-span-2 xl:col-span-3">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Name *")}</label>
                     <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Morning Feed, Groom Shadow" required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                   </div>
-                  <div>
+                  <div className="md:col-span-2 xl:col-span-3">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Description")}</label>
                     <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Task details and instructions" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Type *")}</label>
-                      <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder={t("Select task type...")} required />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Priority")}</label>
-                      <SearchableSelect name="priority" value={formData.priority} onChange={handleInputChange} options={[{ value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' }, { value: 'High', label: 'High' }, { value: 'Urgent', label: 'Urgent' }]} placeholder={t("Select priority...")} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
-                      <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder={t("Select a horse (optional)")} options={[{ value: '', label: 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Assign To *")}</label>
-                      <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder={t("Select employee")} required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
-                    </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Type *")}</label>
+                    <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder={t("Select task type...")} required />
                   </div>
                   <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Priority")}</label>
+                    <SearchableSelect name="priority" value={formData.priority} onChange={handleInputChange} options={[{ value: 'Low', label: 'Low' }, { value: 'Medium', label: 'Medium' }, { value: 'High', label: 'High' }, { value: 'Urgent', label: 'Urgent' }]} placeholder={t("Select priority...")} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
+                    <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder={t("Select a horse (optional)")} options={[{ value: '', label: 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Assign To *")}</label>
+                    <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder={t("Select employee")} required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
+                  </div>
+                  <div className="md:col-span-2 xl:col-span-1">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Scheduled Date & Time *")}</label>
                     <DateTimePicker value={formData.scheduledTime} onChange={(val) => handleInputChange({ target: { name: 'scheduledTime', value: val } })} required />
                   </div>
-                  <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-2">
                     <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
                     Require photo evidence
                   </label>
                 </form>
               </div>
-              <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <div className="p-4 sm:px-5 sm:py-4 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
                 <button type="button" onClick={() => setShowCreateForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-                <button type="submit" form="create-task-form" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? 'Creating...' : 'Create Task'}</button>
+                <button type="submit" form="create-task-form" disabled={loading} className="btn-save-primary">{loading ? 'Creating...' : 'Create Task'}</button>
               </div>
             </div>
           </div>,
@@ -1026,7 +1022,7 @@ const TasksPage = () => {
                 <textarea placeholder={t("Add any notes about task completion...")} value={completionData.notes} onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => handleCompleteTask(selectedTask.id)} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Submitting...' : 'Submit for Approval'}</button>
+                <button type="button" onClick={() => handleCompleteTask(selectedTask.id)} disabled={loading} className="btn-save-primary flex-1">{loading ? 'Submitting...' : 'Submit for Approval'}</button>
                 <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </div>

@@ -290,17 +290,17 @@ const HorseCareTeamPage = () => {
 
       {/* Assignment Form */}
       {showForm && (
-        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
-          <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-hidden bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex w-full max-w-4xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest edge-glow xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
               <h3 className="text-xl font-bold text-foreground">{t("Assign Care Team Member")}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-4 sm:px-5 sm:py-4">
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-4">
                     <div>
                       <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
@@ -352,7 +352,7 @@ const HorseCareTeamPage = () => {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all">{loading ? 'Assigning...' : 'Assign to Team'}</button>
+                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Assigning...' : 'Assign to Team'}</button>
                   <button type="button" onClick={() => setShowForm(false)} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>
@@ -440,4 +440,3 @@ const HorseCareTeamPage = () => {
 };
 
 export default HorseCareTeamPage;
-

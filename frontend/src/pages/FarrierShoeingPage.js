@@ -240,16 +240,16 @@ const FarrierShoeingPage = () => {
 
       {/* Add Form */}
       {showForm && (
-        <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={() => setShowForm(false)}>
-          <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm p-4 sm:p-6" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex w-full max-w-5xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest edge-glow xl:max-w-6xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
               <h3 className="text-xl font-bold text-foreground">{t("New Shoeing Record")}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-4 sm:px-5 sm:py-4">
+              <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
@@ -273,7 +273,7 @@ const FarrierShoeingPage = () => {
                   <textarea value={formData.notes} onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))} placeholder="Any notes about the shoeing..." rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                 </div>
                 <div className="flex gap-3">
-                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Shoeing Record'}</button>
+                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : 'Save Shoeing Record'}</button>
                   <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>

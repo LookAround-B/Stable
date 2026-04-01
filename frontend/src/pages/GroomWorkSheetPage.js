@@ -219,7 +219,7 @@ const GroomWorkSheetPage = () => {
             </div>
             <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
               <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-              <button onClick={handleSubmitWorksheet} disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all uppercase tracking-wider">{loading ? 'Creating...' : 'Create Worksheet'}</button>
+              <button onClick={handleSubmitWorksheet} disabled={loading} className="btn-save-primary">{loading ? 'Creating...' : 'Create Worksheet'}</button>
             </div>
           </div>
         </div>
@@ -302,4 +302,3 @@ const GroomWorkSheetPage = () => {
 };
 
 export default GroomWorkSheetPage;
-

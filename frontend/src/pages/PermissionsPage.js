@@ -351,7 +351,7 @@ const PermissionsPage = () => {
             type="button"
             onClick={handleSaveAll}
             disabled={isSaving || !selectedEmployee}
-            className="h-11 px-3 sm:px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-white text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all min-w-[100px] justify-center tracking-wider sm:ml-0"
+            className="btn-save-primary min-w-[100px] sm:ml-0"
           >
             {isSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
             {isSaving ? t('SAVING...') : t('SAVE CHANGES')}

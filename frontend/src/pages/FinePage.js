@@ -501,7 +501,7 @@ const FinePage = () => {
                   </div>
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider flex items-center justify-center gap-2 transition-opacity active:opacity-80 hover:opacity-90 disabled:opacity-50">
+                <button type="submit" disabled={loading} className="btn-save-primary w-full">
                   {loading ? t('Processing...') : <>{t('Execute Fine Action')} <Zap className="w-4 h-4" /></>}
                 </button>
               </form>
@@ -754,7 +754,7 @@ const FinePage = () => {
                 <button type="button" className="flex-1 h-10 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors" onClick={() => setResolvingFine(null)}>
                   {t('Cancel')}
                 </button>
-                <button type="submit" className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 transition-all disabled:opacity-50" disabled={loading}>
+                <button type="submit" className="btn-save-primary flex-1" disabled={loading}>
                   {loading ? t('Processing...') : <><Check size={16} /> {t('Update Status')}</>}
                 </button>
               </div>

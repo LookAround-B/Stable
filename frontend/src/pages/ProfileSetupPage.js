@@ -107,7 +107,7 @@ const ProfileSetupPage = () => {
 
             {error && <div className="p-3 rounded-lg bg-destructive/15 text-destructive border border-destructive/30 text-sm font-medium">{error}</div>}
 
-            <button type="submit" disabled={loading} className="w-full h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase disabled:opacity-50 hover:opacity-90 transition-opacity">
+            <button type="submit" disabled={loading} className="btn-save-primary w-full">
               {loading ? 'Setting up profile...' : 'Submit for Review'}
             </button>
           </form>

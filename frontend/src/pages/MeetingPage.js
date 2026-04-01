@@ -61,6 +61,7 @@ const MeetingPage = () => {
     setSelectedDate(date)
     if (canCreateMeeting) {
       setFormData(prev => ({ ...prev, meetingDate: date.toISOString().split('T')[0] }))
+      setShowCreateForm(true)
     }
   }
 
@@ -230,14 +231,6 @@ const MeetingPage = () => {
           </p>
         </div>
         <div className="meeting-header-actions flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          {canCreateMeeting && (
-            <button
-              onClick={() => { setFormData(prev => ({ ...prev, meetingDate: new Date().toISOString().split('T')[0] })); setShowCreateForm(true) }}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:brightness-110 transition-all"
-            >
-              <Plus className="w-4 h-4" /> {t('New Meeting')}
-            </button>
-          )}
           <div className="meeting-upcoming-queue-card w-full sm:w-auto bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">
             <div className="w-14 h-14 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
               <span className="text-lg font-bold text-primary">{scheduledCount}</span>
@@ -269,7 +262,7 @@ const MeetingPage = () => {
       </div>
 
       {/* ── Filters ── */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap items-center">
         {filters.map(f => (
           <button
             key={f}
@@ -283,6 +276,14 @@ const MeetingPage = () => {
             {f}
           </button>
         ))}
+        {canCreateMeeting && (
+          <button
+            onClick={() => { setFormData(prev => ({ ...prev, meetingDate: new Date().toISOString().split('T')[0] })); setShowCreateForm(true) }}
+            className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold btn-save-primary"
+          >
+            <Plus className="w-4 h-4" /> {t('New Meeting')}
+          </button>
+        )}
       </div>
 
       {/* ── Main Grid ── */}
@@ -523,7 +524,7 @@ const MeetingPage = () => {
                           </div>
                         ))}
                         <div className="flex gap-3">
-                          <button onClick={handleSaveMOM} disabled={loading} className="flex-1 py-2.5 rounded-lg bg-success text-success-foreground text-sm font-semibold hover:brightness-110 transition-all">
+                          <button onClick={handleSaveMOM} disabled={loading} className="btn-save-primary flex-1">
                             {loading ? 'Saving...' : 'Save MOM'}
                           </button>
                           {(momData.pointsDiscussed.length > 0 || momData.memberInputs.length > 0 || momData.decisions.length > 0) && (
@@ -546,41 +547,39 @@ const MeetingPage = () => {
 
       {/* ═══════════ CREATE MODAL ═══════════ */}
       {showCreateForm && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowCreateForm(false)}>
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-[560px] overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowCreateForm(false)}>
+          <div className="my-auto flex w-full max-w-[560px] flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 sm:px-5 sm:py-4 border-b border-border">
               <h2 className="text-xl font-bold text-foreground">{t('New Meeting')}</h2>
               <button onClick={() => setShowCreateForm(false)} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 sm:p-6 overflow-y-auto min-h-0 flex-1">
-            <form onSubmit={handleCreateMeeting} className="space-y-4">
-              <div>
+            <div className="p-4 sm:px-5 sm:py-4">
+            <form onSubmit={handleCreateMeeting} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:gap-4">
+              <div className="md:col-span-2 xl:col-span-3">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Meeting Title *")}</label>
                 <input type="text" required value={formData.title} onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g., Quarterly Review" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
+              <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date *")}</label>
                   <DatePicker value={formData.meetingDate} onChange={(val) => setFormData(prev => ({ ...prev, meetingDate: val }))} required />
-                </div>
-                <div>
+              </div>
+              <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Time")}</label>
                   <TimePicker value={formData.meetingTime} onChange={(val) => setFormData(prev => ({ ...prev, meetingTime: val }))} />
-                </div>
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Location")}</label>
                 <input type="text" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="e.g., Conference Room A" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
               </div>
-              <div>
+              <div className="md:col-span-2 xl:col-span-3">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Description")}</label>
                 <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Meeting purpose and agenda" rows={3} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
-              <div>
+              <div className="md:col-span-2 xl:col-span-3">
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Participants{formData.participants.length > 0 ? ` (${formData.participants.length} selected)` : ''}</label>
-                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto p-3 bg-surface-container-high rounded-lg border border-border">
+                <div className="flex flex-wrap gap-1.5 p-3 bg-surface-container-high rounded-lg border border-border">
                   {employees.map(emp => {
                     const sel = formData.participants.includes(emp.id)
                     return (
@@ -595,9 +594,9 @@ const MeetingPage = () => {
                   })}
                 </div>
               </div>
-              <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <div className="flex justify-end gap-3 border-t border-border bg-surface-container-high/50 p-4 sm:px-5 sm:py-4 md:col-span-2 xl:col-span-3">
                 <button type="button" onClick={() => setShowCreateForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-                <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">
+                <button type="submit" disabled={loading} className="btn-save-primary">
                   {loading ? 'Creating...' : 'Create Meeting'}
                 </button>
               </div>

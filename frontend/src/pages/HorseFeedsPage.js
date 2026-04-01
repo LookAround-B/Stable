@@ -7,7 +7,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Plus, X, Package, Scale, CalendarDays, Activity } from 'lucide-react';
+import { Download, Plus, X, Package, Scale, CalendarDays, Activity, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
@@ -184,7 +184,9 @@ const HorseFeedsPage = () => {
       {/* Date Filters + Search */}
       <div className="horse-feeds-toolbar flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
         <div className="horse-feeds-search relative flex-1 max-w-xs">
-          <input type="text" placeholder={t("Search horse name...")} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="h-10 w-full px-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <input type="text" placeholder={t("Search horse name...")} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="h-10 w-full pl-10 pr-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all" />
+          {searchTerm && <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" type="button"><X className="w-3.5 h-3.5" /></button>}
         </div>
         <div className="horse-feeds-toolbar-actions flex flex-col sm:flex-row sm:items-end gap-3">
           <div className="horse-feeds-date-range flex items-center gap-3">
@@ -215,16 +217,16 @@ const HorseFeedsPage = () => {
 
       {/* Add Feed Record Form */}
       {showForm && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowForm(false)}>
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-6xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowForm(false)}>
+          <div className="my-auto flex w-full max-w-6xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
               <h3 className="text-xl font-bold text-foreground">{t('New Feed Record')}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-4 sm:px-5 sm:py-4">
+              <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
@@ -248,7 +250,7 @@ const HorseFeedsPage = () => {
                   <textarea id="notes" name="notes" value={formData.notes} onChange={handleFormChange} placeholder="Any additional notes" rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                 </div>
                 <div className="flex gap-3">
-                  <button type="submit" disabled={loading} className="h-10 px-6 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{loading ? 'Saving...' : 'Save Record'}</button>
+                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : 'Save Record'}</button>
                   <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>

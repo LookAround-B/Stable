@@ -719,15 +719,15 @@ const EmployeesPage = () => {
 
       {/* Modal */}
       {showModal && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80 backdrop-blur-sm">
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-lg overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]">
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] backdrop-blur-sm sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={closeModal}>
+          <div className="my-auto flex w-full max-w-lg flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 sm:px-5 sm:py-4 border-b border-border">
               <h2 className="text-lg font-bold text-foreground">{t('Add New Employee')}</h2>
               <button onClick={closeModal} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground"><X size={18} /></button>
             </div>
-            <div className="p-4 sm:p-6 overflow-y-auto">
-              <form onSubmit={handleAddEmployee} className="space-y-4">
-                <div className="flex flex-col items-center gap-3 mb-6">
+            <div className="p-4 sm:px-5 sm:py-4">
+              <form onSubmit={handleAddEmployee} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:gap-4">
+                <div className="mb-1 flex flex-col items-center gap-2 md:col-span-2 xl:col-span-1 xl:mb-0">
                   <div
                     onClick={() => empImgRef.current?.click()}
                     className="w-20 h-20 rounded-full border-2 border-dashed border-border bg-surface-container-high flex items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group relative"
@@ -745,43 +745,39 @@ const EmployeesPage = () => {
                   <span className="text-xs text-muted-foreground">{newEmpImage ? t('Tap to change') : t('Add Photo (optional)')}</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Full Name *')}</label>
-                    <input id="fullName" type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} pattern="[A-Za-z\s]*" placeholder="John Doe" required disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Email Address *')}</label>
-                    <input id="email" type="email" name="email" value={formData.email} onChange={handleInputChange} required disabled={loading} placeholder="john@example.com" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Full Name *')}</label>
+                  <input id="fullName" type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} pattern="[A-Za-z\s]*" placeholder="John Doe" required disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Designation/Role *')}</label>
-                    <SearchableSelect name="designation" value={formData.designation} onChange={handleInputChange} options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))} placeholder={t("Select designation...")} disabled={loading} required />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Phone Number')}</label>
-                    <input id="phoneNumber" type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} inputMode="numeric" maxLength="10" placeholder="10-digit number" disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                  </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Email Address *')}</label>
+                  <input id="email" type="email" name="email" value={formData.email} onChange={handleInputChange} required disabled={loading} placeholder="john@example.com" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
 
                 <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Designation/Role *')}</label>
+                  <SearchableSelect name="designation" value={formData.designation} onChange={handleInputChange} options={EMPLOYEE_DESIGNATIONS.map((role) => ({ value: role, label: role }))} placeholder={t("Select designation...")} disabled={loading} required />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Phone Number')}</label>
+                  <input id="phoneNumber" type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} inputMode="numeric" maxLength="10" placeholder="10-digit number" disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                </div>
+
+                <div className="md:col-span-2 xl:col-span-1">
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Supervisor (Optional)')}</label>
                   <SearchableSelect id="supervisorId" name="supervisorId" value={formData.supervisorId} onChange={handleInputChange} placeholder="-- Select Supervisor --" disabled={loading} options={[{ value: '', label: '-- None --' }, ...supervisors.map(s => ({ value: s.id, label: `${s.fullName} (${t(s.designation)})` }))]} />
                 </div>
 
                 {message && (
-                  <div className={`mt-4 px-3 py-2 rounded-lg text-sm font-medium ${message.includes('Error') ? 'bg-destructive/15 text-destructive' : 'bg-success/15 text-success'}`}>
+                  <div className={`px-3 py-2 rounded-lg text-sm font-medium md:col-span-2 xl:col-span-3 ${message.includes('Error') ? 'bg-destructive/15 text-destructive' : 'bg-success/15 text-success'}`}>
                     {message}
                   </div>
                 )}
               </form>
             </div>
-            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+            <div className="p-4 sm:px-5 sm:py-4 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
               <button type="button" onClick={closeModal} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t('Cancel')}</button>
-              <button onClick={handleAddEmployee} disabled={loading} className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all">{loading ? t('Adding...') : t('Save Employee')}</button>
+              <button onClick={handleAddEmployee} disabled={loading} className="btn-save-primary">{loading ? t('Adding...') : t('Save Employee')}</button>
             </div>
           </div>
         </div>

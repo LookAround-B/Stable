@@ -250,16 +250,16 @@ const FeedInventoryPage = () => {
 
           {/* Form */}
           {showForm && ReactDOM.createPortal(
-            <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
-              <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-5xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+            <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
+              <div className="my-auto flex w-full max-w-5xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-6xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
                   <h3 className="text-xl font-bold text-foreground">{editingRecord ? `Edit: ${FEED_LABELS[editingRecord.feedType]}` : 'Add Stock Entry'}</h3>
                   <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto p-6">
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="p-4 sm:px-5 sm:py-4">
+                  <form onSubmit={handleSubmit} className="space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {!editingRecord && (
                         <div>
@@ -285,7 +285,7 @@ const FeedInventoryPage = () => {
                       <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Optional notes..." rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
                     </div>
                     <div className="flex gap-3">
-                      <button type="submit" disabled={loading} className="h-10 px-5 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase hover:brightness-110 transition-all">{loading ? 'Saving...' : editingRecord ? 'Save Changes' : 'Create Entry'}</button>
+                      <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : editingRecord ? 'Save Changes' : 'Create Entry'}</button>
                       <button type="button" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                     </div>
                   </form>
@@ -555,7 +555,7 @@ const FeedInventoryPage = () => {
                 Notify admin when below threshold
               </label>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleSaveThreshold} disabled={loading} className="flex-1 h-10 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-semibold tracking-wider uppercase">{t("Save Alert")}</button>
+                <button onClick={handleSaveThreshold} disabled={loading} className="btn-save-primary flex-1">{t("Save Alert")}</button>
                 <button onClick={() => setThresholdModal(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </div>

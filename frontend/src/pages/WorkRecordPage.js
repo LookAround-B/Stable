@@ -314,7 +314,7 @@ const WorkRecordPage = () => {
             </div>
 
             <div className="flex justify-end pt-2">
-               <button type="submit" disabled={loading} className="h-10 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-all disabled:opacity-50">
+               <button type="submit" disabled={loading} className="btn-save-primary">
                   {loading ? t('Creating...') : t('Create Record')}
                </button>
             </div>
