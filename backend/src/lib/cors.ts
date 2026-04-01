@@ -6,7 +6,7 @@ import cors from 'cors'
 function getAllowedOrigins(): string[] {
   if (process.env.CORS_ORIGIN) {
     const origins = process.env.CORS_ORIGIN.split(',').map((origin: string) => origin.trim());
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('[CORS] Using CORS_ORIGIN from env:', origins);
     }
     return origins;
@@ -20,7 +20,7 @@ function getAllowedOrigins(): string[] {
     process.env.FRONTEND_URL
   ].filter((url): url is string => !!url);
   
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     console.log('[CORS] CORS_ORIGIN not set, using defaults:', defaults);
   }
   return defaults;
