@@ -190,23 +190,32 @@
   }
 
   .btn-save-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-primary-dim px-6 text-sm font-semibold uppercase tracking-wider text-primary-foreground transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg px-6 text-sm font-semibold uppercase tracking-wider text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50;
+    background: hsl(160 84% 39%);
     box-shadow:
-      inset 0 0 0 1px hsl(var(--primary) / 0.16),
-      0 10px 28px hsl(var(--primary) / 0.18);
-    text-shadow: 0 0 18px hsl(var(--primary-foreground) / 0.18);
+      inset 0 0 0 1px hsl(160 84% 39% / 0.16),
+      0 10px 28px hsl(160 84% 39% / 0.18);
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.18);
     white-space: nowrap;
   }
 
   .btn-save-primary:hover:not(:disabled) {
+    background: hsl(160 84% 34%);
     box-shadow:
-      inset 0 0 0 1px hsl(var(--primary) / 0.2),
-      0 14px 34px hsl(var(--primary) / 0.24);
+      inset 0 0 0 1px hsl(160 84% 39% / 0.2),
+      0 14px 34px hsl(160 84% 39% / 0.24);
     transform: translateY(-1px);
   }
 
   .btn-save-primary:active:not(:disabled) {
     transform: translateY(0);
+  }
+
+  /* Neutral focus rings for form inputs */
+  input:focus, textarea:focus, select:focus,
+  .efm-searchable-select button:focus {
+    --tw-ring-color: hsl(var(--foreground) / 0.25) !important;
+    border-color: hsl(var(--foreground) / 0.3) !important;
   }
 
   /* Hide scrollbar */
@@ -11043,6 +11052,18 @@ html[data-text-size="large"] {
   overflow-y: auto;
 }
 
+/* Entity-map fullscreen overrides */
+.lovable-main-content.entity-map-fullscreen {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.entity-map-fullscreen-inner {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
 .lovable-main-content .powered-by {
   position: static;
   padding: 8px 20px 12px;
@@ -16707,7 +16728,13 @@ body.efm-theme-light .crop-area {
   min-width: 0;
 }
 
-.tasks-page .task-card-topline,
+.tasks-page .task-card-topline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
 .tasks-page .task-card-meta,
 .tasks-page .task-card-footer {
   display: flex;
@@ -16726,15 +16753,22 @@ body.efm-theme-light .crop-area {
 }
 
 .tasks-page .task-card-category {
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
   color: var(--lovable-primary);
   background: hsl(var(--primary) / 0.12);
   border: 1px solid hsl(var(--primary) / 0.22);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tasks-page .task-card-id {
   color: var(--lovable-text-soft);
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tasks-page .task-card-title {
@@ -18004,11 +18038,18 @@ body.efm-theme-light .crop-area {
 
   .employee-directory-search,
   .employee-directory-role-filter,
-  .horse-directory-heading,
-  .horse-directory-search,
-  .horse-directory-toolbar-actions {
+  .horse-directory-heading {
     width: 100%;
     flex-basis: 100%;
+  }
+
+  .horse-directory-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .horse-directory-toolbar-actions {
+    flex: 0 0 auto;
   }
 
   .horse-directory-heading,
@@ -20242,12 +20283,12 @@ body.efm-theme-light .crop-area {
 
 .horses-page .horse-directory-search,
 .horse-care-team-page .horse-care-team-search {
-  width: 100%;
-  max-width: 360px;
+  width: auto;
+  max-width: none;
 }
 
 .horses-page .horse-directory-search {
-  flex: 0 1 360px;
+  flex: 1 1 auto;
 }
 
 .horse-care-team-page .horse-care-team-search {
@@ -20408,12 +20449,12 @@ body.efm-theme-light .crop-area {
 }
 
 .horses-page .horse-directory-toolbar {
-  flex-wrap: wrap;
-  align-items: stretch;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 .horses-page .horse-directory-search {
-  flex: 1 1 100%;
+  flex: 1 1 auto;
   min-width: 0;
   max-width: none;
 }
@@ -20423,7 +20464,7 @@ body.efm-theme-light .crop-area {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  flex: 1 1 100%;
+  flex: 0 0 auto;
   min-width: 0;
 }
 

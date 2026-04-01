@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
-import { Clock, Package, Play, Search, Users, BarChart3, Check, X, Camera } from 'lucide-react';
+import { Clock, Package, Search, Users, BarChart3, X, Camera } from 'lucide-react';
 
 const cropImageToSquare = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -135,19 +135,19 @@ const MyAssignedTasksPage = () => {
     }
   };
 
-  const handleStartTask = async (taskId) => {
-    try {
-      setLoading(true);
-      await apiClient.patch(`/tasks/${taskId}`, { status: 'In Progress' });
-      setMessage('âœ“ Task started!');
-      loadAssignedTasks();
-      setTimeout(() => setMessage(''), 2000);
-    } catch (error) {
-      setMessage(`âœ— Error: ${error.response?.data?.error || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleStartTask = async (taskId) => {
+  //   try {
+  //     setLoading(true);
+  //     await apiClient.patch(`/tasks/${taskId}`, { status: 'In Progress' });
+  //     setMessage('âœ“ Task started!');
+  //     loadAssignedTasks();
+  //     setTimeout(() => setMessage(''), 2000);
+  //   } catch (error) {
+  //     setMessage(`âœ— Error: ${error.response?.data?.error || error.message}`);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const filteredTasks = tasks.filter((task) => {
     const statusMatch = filterStatus === 'All' || task.status === filterStatus;
@@ -366,21 +366,7 @@ const MyAssignedTasksPage = () => {
                           </div>
                         )}
 
-                        <div className="flex items-center justify-end gap-2 mt-4">
-                          {task.status === 'Pending' && (
-                            <button onClick={() => handleStartTask(task.id)} disabled={loading} className="flex items-center gap-2 px-5 py-2 rounded-lg border border-primary/20 bg-primary/5 text-sm font-semibold text-foreground hover:bg-primary/20 hover:border-primary/40 hover:text-primary transition-all active:scale-95">
-                              Start Task <Play className="w-3.5 h-3.5 fill-current" />
-                            </button>
-                          )}
-                          {task.status === 'In Progress' && (
-                            <button onClick={() => setSelectedTaskId(task.id)} disabled={loading} className="my-assigned-submit-btn flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all">
-                              Submit Completion <Check className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                          {task.status === 'Approved' && <span className="text-xs text-success font-semibold">{t("Approved")}</span>}
-                          {task.status === 'Rejected' && <span className="text-xs text-destructive font-semibold">{t("Rejected")}</span>}
-                          {task.status === 'Pending Review' && <span className="text-xs text-warning font-semibold">{t("Awaiting Review")}</span>}
-                        </div>
+                       
                       </div>
                     </div>
                   </div>

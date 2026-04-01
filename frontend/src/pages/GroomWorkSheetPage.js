@@ -100,7 +100,7 @@ const GroomWorkSheetPage = () => {
     downloadCsvFile(rows, `GroomWorkSheet_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
-  const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const inputCls = "w-full h-10 px-3 rounded-lg bg-background border border-border text-foreground text-sm focus:ring-1 focus:ring-foreground/25 outline-none";
 
   if (!p.viewGroomWorksheet) return <Navigate to="/dashboard" replace />;
 
@@ -145,14 +145,14 @@ const GroomWorkSheetPage = () => {
       {/* Add Worksheet Form */}
       {showAddForm && canCreateWorksheet && ReactDOM.createPortal(
         <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowAddForm(false)}>
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-4xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-4xl overflow-visible flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <h3 className="text-xl font-bold text-foreground">{t("Create New Work Sheet")}</h3>
               <button type="button" onClick={() => setShowAddForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+            <div className="p-6">
           <form onSubmit={handleSubmitWorksheet} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -219,7 +219,7 @@ const GroomWorkSheetPage = () => {
             </div>
             <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
               <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-              <button onClick={handleSubmitWorksheet} disabled={loading} className="btn-save-primary">{loading ? 'Creating...' : 'Create Worksheet'}</button>
+              <button onClick={handleSubmitWorksheet} disabled={loading} className="btn-save-primary groom-worksheet-submit">{loading ? 'Creating...' : 'Create Worksheet'}</button>
             </div>
           </div>
         </div>

@@ -239,7 +239,7 @@ const FarrierInventoryPage = () => {
             </div>
             <div className="p-4 sm:px-5 sm:py-4 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
               <button type="button" onClick={resetForm} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-              <button type="button" onClick={handleSubmit} className="btn-save-primary">{editingId ? t("Save Changes") : t("Add Item")}</button>
+              <button type="button" onClick={handleSubmit} className="btn-save-primary" style={{background:'hsl(160 84% 39%)',boxShadow:'inset 0 0 0 1px rgba(0,0,0,0.1), 0 10px 28px rgba(22,163,74,0.28)'}}>{editingId ? t("Save Changes") : t("Add Item")}</button>
             </div>
           </div>
         </div>

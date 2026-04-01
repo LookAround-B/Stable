@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
@@ -229,11 +230,16 @@ const WorkRecordPage = () => {
         </div>
       )}
 
-      {showAddForm && canCreateWorkRecord && (
-        <div className="bg-surface-container-highest rounded-xl p-6 border border-primary/20 shadow-lg relative edge-glow">
-          <div className="flex items-center justify-between mb-5 pb-3 border-b border-border/50">
-            <h3 className="text-lg font-bold text-foreground">{t('Create New Work Record')}</h3>
-          </div>
+      {showAddForm && canCreateWorkRecord && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowAddForm(false)}>
+          <div className="my-auto flex w-full max-w-5xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
+              <h3 className="text-xl font-bold text-foreground">{t('Create New Work Record')}</h3>
+              <button type="button" onClick={() => setShowAddForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 sm:px-5 sm:py-4">
           <form onSubmit={handleSubmitWorkRecord} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -312,15 +318,17 @@ const WorkRecordPage = () => {
                   <Plus className="w-4 h-4" /> {t('Add Another Task')}
                </button>
             </div>
-
-            <div className="flex justify-end pt-2">
-               <button type="submit" disabled={loading} className="btn-save-primary">
-                  {loading ? t('Creating...') : t('Create Record')}
-               </button>
-            </div>
           </form>
+            </div>
+            <div className="p-4 sm:px-5 sm:py-4 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+              <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t('Cancel')}</button>
+              <button type="button" onClick={handleSubmitWorkRecord} disabled={loading} className="btn-save-primary">
+                {loading ? t('Creating...') : t('Create Record')}
+              </button>
+            </div>
+          </div>
         </div>
-      )}
+      , document.body)}
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

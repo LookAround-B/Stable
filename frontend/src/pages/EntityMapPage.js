@@ -261,11 +261,7 @@ const panelVariants = {
   exit: { x: 360, opacity: 0, transition: { duration: 0.2 } },
 };
 
-const popupVariants = {
-  hidden: { opacity: 0, scale: 0.92, y: -8 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 25 } },
-  exit: { opacity: 0, scale: 0.92, y: -8, transition: { duration: 0.15 } },
-};
+
 
 const fieldRowVariants = {
   hidden: { opacity: 0, x: -8 },
@@ -368,6 +364,8 @@ const EntityMapPage = () => {
   const canvasRef = useRef(null);
   const svgRef = useRef(null);
   const nodesRef = useRef({});
+  const transformLayerRef = useRef(null);
+  const rafRef = useRef(null);
 
   const [theme, setTheme] = useState(() => getStoredTheme());
   useEffect(() => subscribeToThemeChange(setTheme), []);
@@ -402,6 +400,18 @@ const EntityMapPage = () => {
   useEffect(() => { const id = setTimeout(() => setNodesReady(true), 50); return () => clearTimeout(id); }, []);
   useEffect(() => { panRef.current = { x: panX, y: panY }; }, [panX, panY]);
   useEffect(() => { scaleRef.current = scale; }, [scale]);
+
+  // Fullscreen — strip layout chrome while this page is mounted
+  useEffect(() => {
+    const main = document.querySelector('.lovable-main-content');
+    const inner = document.querySelector('.main-content-inner');
+    if (main) main.classList.add('entity-map-fullscreen');
+    if (inner) inner.classList.add('entity-map-fullscreen-inner');
+    return () => {
+      if (main) main.classList.remove('entity-map-fullscreen');
+      if (inner) inner.classList.remove('entity-map-fullscreen-inner');
+    };
+  }, []);
 
   // ── Draw edges ──────────────────────────────────────────────
   const drawEdges = useCallback(() => {
@@ -493,7 +503,14 @@ const EntityMapPage = () => {
 
   useEffect(() => { drawEdges(); }, [drawEdges]);
 
-  // ── Pan / drag / zoom (unchanged logic) ─────────────────────
+  // Helper to apply transform directly to DOM (no React re-render)
+  const applyTransform = useCallback(() => {
+    if (transformLayerRef.current) {
+      transformLayerRef.current.style.transform = `translate(${panRef.current.x}px,${panRef.current.y}px) scale(${scaleRef.current})`;
+    }
+  }, []);
+
+  // ── Pan / drag / zoom (optimized — direct DOM during drag) ──
   const handleCanvasMouseDown = (e) => {
     if (e.target.closest('.entity-node') || e.target.closest('.entity-panel')) return;
     panDragRef.current = { startX: e.clientX - panRef.current.x, startY: e.clientY - panRef.current.y };
@@ -501,24 +518,38 @@ const EntityMapPage = () => {
 
   const handleMouseMove = useCallback((e) => {
     if (panDragRef.current) {
-      setPanX(e.clientX - panDragRef.current.startX);
-      setPanY(e.clientY - panDragRef.current.startY);
+      panRef.current.x = e.clientX - panDragRef.current.startX;
+      panRef.current.y = e.clientY - panDragRef.current.startY;
+      applyTransform();
     }
     if (dragRef.current) {
       const { id, offX, offY } = dragRef.current;
-      setPositions(prev => ({
-        ...prev,
-        [id]: [
-          (e.clientX - panRef.current.x) / scaleRef.current - offX,
-          (e.clientY - panRef.current.y) / scaleRef.current - offY,
-        ],
-      }));
+      const newX = (e.clientX - panRef.current.x) / scaleRef.current - offX;
+      const newY = (e.clientY - panRef.current.y) / scaleRef.current - offY;
+      // Move node DOM directly
+      const nodeEl = nodesRef.current[id];
+      if (nodeEl) {
+        nodeEl.style.left = newX + 'px';
+        nodeEl.style.top = newY + 'px';
+      }
+      dragRef.current.lastPos = [newX, newY];
     }
-  }, []);
+  }, [applyTransform]);
 
   const handleMouseUp = useCallback(() => {
-    panDragRef.current = null;
-    dragRef.current = null;
+    if (panDragRef.current) {
+      // Sync state once on release
+      setPanX(panRef.current.x);
+      setPanY(panRef.current.y);
+      panDragRef.current = null;
+    }
+    if (dragRef.current) {
+      const { id, lastPos } = dragRef.current;
+      if (lastPos) {
+        setPositions(prev => ({ ...prev, [id]: lastPos }));
+      }
+      dragRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -536,10 +567,20 @@ const EntityMapPage = () => {
     const ns = Math.min(2, Math.max(0.15, scaleRef.current + delta));
     const rect = canvasRef.current.getBoundingClientRect();
     const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
-    setPanX(prev => cx - (cx - prev) * (ns / scaleRef.current));
-    setPanY(prev => cy - (cy - prev) * (ns / scaleRef.current));
-    setScale(ns);
-  }, []);
+    const newPx = cx - (cx - panRef.current.x) * (ns / scaleRef.current);
+    const newPy = cy - (cy - panRef.current.y) * (ns / scaleRef.current);
+    panRef.current.x = newPx;
+    panRef.current.y = newPy;
+    scaleRef.current = ns;
+    applyTransform();
+    // Debounced state sync so React picks up final value
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      setPanX(panRef.current.x);
+      setPanY(panRef.current.y);
+      setScale(scaleRef.current);
+    });
+  }, [applyTransform]);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -734,7 +775,7 @@ const EntityMapPage = () => {
       {/* ── Canvas ──────────────────────────────────────────── */}
       <div ref={canvasRef} style={{ width: '100%', height: '100%', position: 'relative', cursor: 'grab', overflow: 'hidden' }}
         onMouseDown={handleCanvasMouseDown} onClick={handleCanvasClick}>
-        <div style={{ position: 'absolute', top: 0, left: 0, transformOrigin: '0 0', transform: `translate(${panX}px,${panY}px) scale(${scale})` }}>
+        <div ref={transformLayerRef} style={{ position: 'absolute', top: 0, left: 0, transformOrigin: '0 0', transform: `translate(${panX}px,${panY}px) scale(${scale})` }}>
           {/* Grid — minor + major */}
           <div style={{
             position: 'absolute', top: 0, left: 0, width: 8000, height: 5000, pointerEvents: 'none',

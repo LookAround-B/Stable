@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
 import expenseService from '../services/expenseService';
@@ -27,6 +27,7 @@ const ExpensePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [viewMode, setViewMode] = useState('Facility');
+  const formRef = useRef(null);
 
   // Confirm modal state
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
@@ -610,6 +611,7 @@ const ExpensePage = () => {
               onClick={() => {
                 resetForm();
                 setEditingExpense(null);
+                setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
               }}
               className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-white text-sm font-semibold flex items-center gap-2"
             >
@@ -663,51 +665,54 @@ const ExpensePage = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 xl:flex-row xl:flex-nowrap xl:items-center">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Filter className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">ACTIVE FILTERS:</span>
+          <span>ACTIVE FILTERS:</span>
         </div>
-        <div className="w-full xl:w-[280px] xl:shrink-0">
-          <SearchableSelect
-            name="type"
-            value={filters.type}
-            onChange={handleFilterChange}
-            placeholder="All Expense Categories"
-            options={[
-              { value: '', label: 'All Expense Categories' },
-              ...EXPENSE_TYPES.map((type) => ({ value: type, label: type })),
-            ]}
-            className="w-full"
-          />
-        </div>
-        <div className="w-full sm:w-[220px] xl:shrink-0">
-          <SearchableSelect
-            name="horseId"
-            value={filters.horseId}
-            onChange={handleFilterChange}
-            placeholder="All Equine Assets"
-            options={[
-              { value: '', label: 'All Equine Assets' },
-              ...horses.map((h) => ({ value: h.id, label: h.name })),
-            ]}
-            className="w-full"
-          />
-        </div>
-        <div className="w-full sm:w-[200px] xl:shrink-0">
-          <SearchableSelect
-            name="employeeId"
-            value={filters.employeeId}
-            onChange={handleFilterChange}
-            placeholder="All Handlers"
-            options={[
-              { value: '', label: 'All Handlers' },
-              ...employees.map((emp) => ({ value: emp.id, label: emp.fullName })),
-            ]}
-            className="w-full"
-          />
-        </div>
-        <div className="flex items-center gap-2 flex-nowrap xl:shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-full sm:w-[220px] shrink-0">
+            <SearchableSelect
+              name="type"
+              value={filters.type}
+              onChange={handleFilterChange}
+              placeholder="All Expense Categories"
+              options={[
+                { value: '', label: 'All Expense Categories' },
+                ...EXPENSE_TYPES.map((type) => ({ value: type, label: type })),
+              ]}
+              className="w-full"
+              size="sm"
+            />
+          </div>
+          <div className="w-full sm:w-[180px] shrink-0">
+            <SearchableSelect
+              name="horseId"
+              value={filters.horseId}
+              onChange={handleFilterChange}
+              placeholder="All Equine Assets"
+              options={[
+                { value: '', label: 'All Equine Assets' },
+                ...horses.map((h) => ({ value: h.id, label: h.name })),
+              ]}
+              className="w-full"
+              size="sm"
+            />
+          </div>
+          <div className="w-full sm:w-[180px] shrink-0">
+            <SearchableSelect
+              name="employeeId"
+              value={filters.employeeId}
+              onChange={handleFilterChange}
+              placeholder="All Handlers"
+              options={[
+                { value: '', label: 'All Handlers' },
+                ...employees.map((emp) => ({ value: emp.id, label: emp.fullName })),
+              ]}
+              className="w-full"
+              size="sm"
+            />
+          </div>
           <DatePicker
             value={filters.startDate}
             onChange={(val) => handleFilterChange({ target: { name: 'startDate', value: val } })}
@@ -718,34 +723,36 @@ const ExpensePage = () => {
             onChange={(val) => handleFilterChange({ target: { name: 'endDate', value: val } })}
             size="sm"
           />
-          <ExportDialog
-            title={t("Export Expenses")}
-            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
-            trigger={(
-              <button
-                type="button"
-                disabled={!visibleExpenses.length}
-                className="h-8 w-8 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
-                aria-label={t("Export expenses")}
-                title={t("Export expenses")}
-              >
-                <Download className="w-3.5 h-3.5 shrink-0" />
-              </button>
-            )}
-          />
+          {Object.values(filters).some(Boolean) && (
+            <button
+              type="button"
+              onClick={() => {
+                clearFilters();
+                setCurrentPage(1);
+              }}
+              className="h-8 px-3 rounded-lg border border-border text-muted-foreground text-xs hover:bg-surface-container-high transition-colors shrink-0"
+            >
+              Clear
+            </button>
+          )}
+          <div className="ml-auto shrink-0">
+            <ExportDialog
+              title={t("Export Expenses")}
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button
+                  type="button"
+                  disabled={!visibleExpenses.length}
+                  className="h-8 w-8 rounded-lg border border-black/20 dark:border-white/20 text-muted-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors disabled:opacity-40 shrink-0"
+                  aria-label={t("Export expenses")}
+                  title={t("Export expenses")}
+                >
+                  <Download className="w-3.5 h-3.5 shrink-0" />
+                </button>
+              )}
+            />
+          </div>
         </div>
-        {Object.values(filters).some(Boolean) && (
-          <button
-            type="button"
-            onClick={() => {
-              clearFilters();
-              setCurrentPage(1);
-            }}
-            className="h-8 px-3 rounded-lg border border-border text-muted-foreground text-xs hover:bg-surface-container-high transition-colors shrink-0"
-          >
-            Clear
-          </button>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -874,7 +881,7 @@ const ExpensePage = () => {
         </div>
 
         {isAccountsUser && (
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 space-y-4" ref={formRef}>
             <div className="bg-surface-container-highest rounded-lg p-5 edge-glow">
               <div className="flex items-center gap-2 mb-5">
                 <h2 className="heading-md text-foreground uppercase tracking-wider">

@@ -469,8 +469,8 @@ const HorsesPage = () => {
       {/* Table Section */}
       <div className="bg-surface-container-highest rounded-[18px] edge-glow overflow-hidden">
         {/* Toolbar */}
-        <div className="horse-directory-toolbar flex flex-col gap-2 border-b border-border p-3 sm:gap-3 sm:p-5 lg:flex-row lg:items-center">
-          <div className="horse-directory-search w-full min-w-0 lg:flex-none lg:w-[360px]">
+        <div className="horse-directory-toolbar flex flex-row items-center gap-2 border-b border-border p-3 sm:gap-3 sm:p-5">
+          <div className="horse-directory-search flex-1 min-w-0">
             <Search className="horse-directory-search-icon w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <input
               type="text"
@@ -485,7 +485,7 @@ const HorsesPage = () => {
               </button>
             )}
           </div>
-          <div className="horse-directory-toolbar-actions flex items-center justify-end gap-2 sm:gap-3 lg:ml-auto">
+          <div className="horse-directory-toolbar-actions flex items-center gap-2 sm:gap-3 shrink-0">
             <SearchableSelect
               name="horseFilter"
               value={horseFilter}

@@ -9,7 +9,7 @@ import {
 import {
   ChevronRight, Users, LayoutDashboard, BarChart2,
   AlertTriangle, Package, Calendar, CreditCard, Save, Shield,
-  Download, Filter, SlidersHorizontal, Lock, CheckCircle, Plus, RotateCcw,
+  Download, Filter, SlidersHorizontal, Lock, CheckCircle, RotateCcw,
   Bell
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
