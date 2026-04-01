@@ -7,7 +7,7 @@ import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
 import * as XLSX from 'xlsx';
-import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, Calendar } from 'lucide-react';
+import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
