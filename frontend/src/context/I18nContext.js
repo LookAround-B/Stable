@@ -547,8 +547,6 @@ const translations = {
   "No items found.":        { en: "No items found.",       hi: "कोई आइटम नहीं मिला।",          te: "అంశాలు కనుగొనబడలేదు.",           kn: "ವಸ್ತುಗಳು ಕಂಡುಬಂದಿಲ್ಲ." },
   "Search items...":        { en: "Search items...",       hi: "आइटम खोजें...",                te: "అంశాలు వెతకండి...",               kn: "ವಸ್ತುಗಳನ್ನು ಹುಡುಕಿ..." },
 
-  // Housekeeping
-  "Housekeeping":            { en: "Housekeeping",          hi: "हाउसकीपिंग",                  te: "హౌస్‌కీపింగ్",                   kn: "ಹೌಸ್‌ಕೀಪಿಂಗ್" },
   "Manage cleaning supplies, tools & consumables": { en: "Manage cleaning supplies, tools & consumables", hi: "सफाई सामग्री, उपकरण और उपभोग्य प्रबंधित करें", te: "శుభ్రపరిచే సామగ్రి, పరికరాలు & వినియోగ వస్తువులను నిర్వహించండి", kn: "ಸ್ವಚ್ಛತಾ ಸಾಮಗ್ರಿ, ಉಪಕರಣಗಳು & ಬಳಕೆಯ ವಸ್ತುಗಳನ್ನು ನಿರ್ವಹಿಸಿ" },
   "Delete this housekeeping item?": { en: "Delete this housekeeping item?", hi: "इस हाउसकीपिंग आइटम को हटाएं?", te: "ఈ హౌస్‌కీపింగ్ అంశాన్ని తొలగించాలా?", kn: "ಈ ಹೌಸ್‌ಕೀಪಿಂಗ್ ವಸ್ತುವನ್ನು ಅಳಿಸಲೇ?" },
   "Cleaning Supplies":      { en: "Cleaning Supplies",     hi: "सफाई सामग्री",                te: "శుభ్రపరిచే సామగ్రి",              kn: "ಸ್ವಚ್ಛತಾ ಸಾಮಗ್ರಿ" },
@@ -589,8 +587,6 @@ const translations = {
   "Assigned Horse":         { en: "Assigned Horse",        hi: "नियुक्त घोड़ा",                te: "కేటాయించిన గుర్రం",               kn: "ನಿಯೋಜಿತ ಕುದುರೆ" },
   "Assigned Rider":         { en: "Assigned Rider",        hi: "नियुक्त सवार",                 te: "కేటాయించిన రైడర్",               kn: "ನಿಯೋಜಿತ ಸವಾರ" },
 
-  // Farrier Inventory
-  "Farrier":                { en: "Farrier",               hi: "फैरियर",                      te: "ఫ్యారియర్",                     kn: "ಫೇರಿಯರ್" },
   "Manage farrier tools, horseshoes & consumables": { en: "Manage farrier tools, horseshoes & consumables", hi: "फैरियर उपकरण, नाल और उपभोग्य प्रबंधित करें", te: "ఫ్యారియర్ పరికరాలు, గుర్రపు నాడాలు & వినియోగ వస్తువులను నిర్వహించండి", kn: "ಫೇರಿಯರ್ ಉಪಕರಣಗಳು, ಕುದುರೆ ನಾಳಗಳು & ಬಳಕೆಯ ವಸ್ತುಗಳನ್ನು ನಿರ್ವಹಿಸಿ" },
   "Edit Farrier Item":      { en: "Edit Farrier Item",     hi: "फैरियर आइटम संपादित करें",     te: "ఫ్యారియర్ అంశం సవరించండి",        kn: "ಫೇರಿಯರ್ ವಸ್ತು ಸಂಪಾದಿಸಿ" },
   "Add Farrier Item":       { en: "Add Farrier Item",      hi: "फैरियर आइटम जोड़ें",           te: "ఫ్యారియర్ అంశం జోడించండి",        kn: "ಫೇರಿಯರ್ ವಸ್ತು ಸೇರಿಸಿ" },
@@ -692,7 +688,6 @@ const translations = {
   "UPDATE ENCRYPTION KEY":  { en: "UPDATE ENCRYPTION KEY",  hi: "एन्क्रिप्शन कुंजी अपडेट करें",  te: "ఎన్‌క్రిప్షన్ కీ అప్‌డేట్ చేయండి", kn: "ಎನ್‌ಕ್ರಿಪ್ಶನ್ ಕೀ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ" },
   "VERIFIED ACCOUNT":       { en: "VERIFIED ACCOUNT",       hi: "सत्यापित खाता",                te: "ధృవీకరించబడిన ఖాతా",              kn: "ಪರಿಶೀಲಿಸಲಾದ ಖಾತೆ" },
   "PENDING APPROVAL":       { en: "PENDING APPROVAL",       hi: "अनुमोदन लंबित",                te: "ఆమోదం పెండింగ్",                  kn: "ಅನುಮೋದನೆ ಬಾಕಿ" },
-  "Personal Information":   { en: "Personal Information",   hi: "व्यक्तिगत जानकारी",            te: "వ్యక్తిగత సమాచారం",               kn: "ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ" },
   "Phone":                  { en: "Phone",                  hi: "फोन",                         te: "ఫోన్",                           kn: "ಫೋನ್" },
   "Department":             { en: "Department",             hi: "विभाग",                        te: "విభాగం",                         kn: "ವಿಭಾಗ" },
   "Install App":            { en: "Install App",            hi: "ऐप इंस्टॉल करें",              te: "యాప్ ఇన్‌స్టాల్ చేయండి",          kn: "ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ" },
@@ -713,7 +708,6 @@ const translations = {
   "Are you sure you want to mark this entry as exited?": { en: "Are you sure you want to mark this entry as exited?", hi: "क्या आप वाकई इस प्रविष्टि को निकास चिह्नित करना चाहते हैं?", te: "ఈ ఎంట్రీని నిష్క్రమించినట్లు గుర్తించాలనుకుంటున్నారా?", kn: "ಈ ಪ್ರವೇಶವನ್ನು ನಿರ್ಗಮಿಸಿದೆ ಎಂದು ಗುರುತಿಸಲು ಖಚಿತವಾಗಿದ್ದೀರಾ?" },
   "Creating...":            { en: "Creating...",           hi: "बना रहा है...",                 te: "సృష్టిస్తోంది...",                 kn: "ರಚಿಸುತ್ತಿದೆ..." },
   "Create Worksheet":       { en: "Create Worksheet",      hi: "वर्कशीट बनाएं",                te: "వర్క్‌షీట్ సృష్టించండి",            kn: "ವರ್ಕ್‌ಶೀಟ್ ರಚಿಸಿ" },
-  "Add Horse":              { en: "Add Horse",             hi: "घोड़ा जोड़ें",                   te: "గుర్రాన్ని జోడించండి",              kn: "ಕುದುರೆ ಸೇರಿಸಿ" },
 };
 
 // ─── Context ─────────────────────────────────────────────────────────────────
