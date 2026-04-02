@@ -213,7 +213,7 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
         <div className={`lovable-sidebar-brand ${collapsed ? 'collapsed' : ''}`}>
           <div className="lovable-sidebar-logo-copy">
             <span className="lovable-sidebar-logo">EFM</span>
-            {!collapsed && <span className="lovable-sidebar-subtitle">Equine Facility Management</span>}
+            {!collapsed && <span className="lovable-sidebar-subtitle">{t('Equine Facility Management')}</span>}
           </div>
         </div>
 
@@ -222,7 +222,7 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
             className="lovable-sidebar-toggle"
             type="button"
             onClick={onToggleCollapse}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? t('Expand sidebar') : t('Collapse sidebar')}
           >
             {collapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
           </button>

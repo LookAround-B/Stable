@@ -370,7 +370,7 @@ const ReportsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <p className="label-sm text-muted-foreground text-[10px] truncate uppercase tracking-widest">
-            {t('Organization')} &gt; {t('Analytics')} &gt; <span className="text-primary">{t('Reports Module')}</span>
+            {t('Organization')} &gt; {t('Analysis')} &gt; <span className="text-primary">{t('Reports Module')}</span>
           </p>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mt-1">{t('ANALYTICAL REPORTS')}</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">{t('System-wide performance matrices and multi-vector data exports.')}</p>

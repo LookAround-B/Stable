@@ -9,6 +9,8 @@ export const LANGUAGES = {
 
 const translations = {
   // Sidebar group headers
+  "Organisation":          { en: "Organisation",          hi: "संगठन",                    te: "సంస్థ",                        kn: "ಸಂಸ್ಥೆ" },
+  "Restaurant":            { en: "Restaurant",            hi: "रेस्तरां",                   te: "రెస్టారెంట్",                   kn: "ರೆಸ್ಟೋರೆಂಟ್" },
   "Organization":           { en: "Organization",           hi: "संगठन",                  te: "సంస్థ",                      kn: "ಸಂಸ್ಥೆ" },
   "Tasks & Approvals":      { en: "Tasks & Approvals",      hi: "कार्य और अनुमोदन",        te: "విధులు & ఆమోదాలు",            kn: "ಕಾರ್ಯಗಳು & ಅನುಮೋದನೆಗಳು" },
   "Stable Operations":      { en: "Stable Operations",      hi: "स्टेबल ऑपरेशन्स",          te: "స్టేబుల్ కార్యకలాపాలు",        kn: "ಸ್ಟೇಬಲ್ ಕಾರ್ಯಾಚರಣೆಗಳು" },
@@ -18,6 +20,15 @@ const translations = {
   "System":                 { en: "System",                 hi: "सिस्टम",                   te: "వ్యవస్థ",                       kn: "ವ್ಯವಸ್ಥೆ" },
 
   // Sidebar menu items
+  "Analysis":              { en: "Analysis",              hi: "विश्लेषण",                  te: "విశ్లేషణ",                     kn: "ವಿಶ್ಲೇಷಣೆ" },
+  "Analytics":             { en: "Analytics",             hi: "विश्लेषण",                  te: "విశ్లేషణ",                     kn: "ವಿಶ್ಲೇಷಣೆ" },
+  "Farrier Shoeing":       { en: "Farrier Shoeing",       hi: "फेरियर शूइंग",              te: "ఫారియర్ షూయింగ్",              kn: "ಫ್ಯಾರಿಯರ್ ಶೂಯಿಂಗ್" },
+  "Tack Inventory":        { en: "Tack Inventory",        hi: "टैक इन्वेंटरी",              te: "టాక్ ఇన్వెంటరీ",               kn: "ಟಾಕ್ ಇನ್ವೆಂಟರಿ" },
+  "Farrier Inventory":     { en: "Farrier Inventory",     hi: "फेरियर इन्वेंटरी",           te: "ఫారియర్ ఇన్వెంటరీ",            kn: "ಫ್ಯಾರಿಯರ್ ಇನ್ವೆಂಟರಿ" },
+  "Gate Attendance":       { en: "Gate Attendance",       hi: "गेट उपस्थिति",              te: "గేట్ హాజరు",                   kn: "ಗೇಟ್ ಹಾಜರಾತಿ" },
+  "Housekeeping Inventory": { en: "Housekeeping Inventory", hi: "हाउसकीपिंग इन्वेंटरी",      te: "హౌస్‌కీపింగ్ ఇన్వెంటరీ",       kn: "ಹೌಸ್‌ಕೀಪಿಂಗ್ ಇನ್ವೆಂಟರಿ" },
+  "Entity Map":            { en: "Entity Map",            hi: "एंटिटी मैप",                te: "ఎంటిటీ మ్యాప్",                kn: "ಎಂಟಿಟಿ ನಕ್ಷೆ" },
+  "Profile":               { en: "Profile",               hi: "प्रोफ़ाइल",                 te: "ప్రొఫైల్",                     kn: "ಪ್ರೊಫೈಲ್" },
   "Dashboard":              { en: "Dashboard",              hi: "डैशबोर्ड",                  te: "డాష్‌బోర్డ్",                   kn: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್" },
   "Horses":                 { en: "Horses",                 hi: "घोड़े",                      te: "గుర్రాలు",                     kn: "ಕುದುರೆಗಳು" },
   "Team":                   { en: "Team",                   hi: "टीम",                       te: "బృందం",                        kn: "ತಂಡ" },
@@ -44,6 +55,10 @@ const translations = {
   "Settings":               { en: "Settings",               hi: "सेटिंग्स",                   te: "సెట్టింగ్‌లు",                   kn: "ಸೆಟ್ಟಿಂಗ್‌ಗಳు" },
 
   // Common UI
+  "Powered by":            { en: "Powered by",            hi: "द्वारा संचालित",            te: "ద్వారా నిర్వహితం",             kn: "ನಿಂದ ನಡೆಸಲ್ಪಟ್ಟ" },
+  "Expand sidebar":        { en: "Expand sidebar",        hi: "साइडबार फैलाएँ",            te: "సైడ్‌బార్ విస్తరించండి",        kn: "ಸೈಡ್‌ಬಾರ್ ವಿಸ್ತರಿಸಿ" },
+  "Collapse sidebar":      { en: "Collapse sidebar",      hi: "साइडबार समेटें",            te: "సైడ్‌బార్ ముడిచండి",            kn: "ಸೈಡ್‌ಬಾರ್ ಕುಗ್ಗಿಸಿ" },
+  "Equine Facility Management": { en: "Equine Facility Management", hi: "अश्व सुविधा प्रबंधन", te: "అశ్వ సౌకర్య నిర్వహణ", kn: "ಅಶ್ವ ಸೌಲಭ್ಯ ನಿರ್ವಹಣೆ" },
   "Search":                 { en: "Search",                 hi: "खोजें",                     te: "వెతకండి",                      kn: "ಹುಡುಕಿ" },
   "Save":                   { en: "Save",                   hi: "सहेजें",                    te: "సేవ్ చేయండి",                   kn: "ಉಳಿಸಿ" },
   "Cancel":                 { en: "Cancel",                 hi: "रद्द करें",                  te: "రద్దు చేయండి",                  kn: "ರದ್ದುಮಾಡಿ" },
@@ -103,6 +118,20 @@ const translations = {
   "Filter":                 { en: "Filter",                 hi: "फ़िल्टर",                    te: "ఫిల్టర్",                       kn: "ಫಿಲ್ಟರ್" },
 
   // Dashboard
+  "Intelligence Center":    { en: "Intelligence Center",    hi: "इंटेलिजेंस सेंटर",           te: "ఇంటెలిజెన్స్ సెంటర్",           kn: "ಇಂಟೆಲಿಜೆನ್ಸ್ ಸೆಂಟರ್" },
+  "Total Horses":           { en: "Total Horses",           hi: "कुल घोड़े",                  te: "మొత్తం గుర్రాలు",               kn: "ಒಟ್ಟು ಕುದುರೆಗಳು" },
+  "Active Staff":           { en: "Active Staff",           hi: "सक्रिय कर्मचारी",             te: "క్రియాశీల సిబ్బంది",            kn: "ಸಕ್ರಿಯ ಸಿಬ್ಬಂದಿ" },
+  "Task Completion":        { en: "Task Completion",        hi: "कार्य पूर्णता",               te: "విధి పూర్తి",                  kn: "ಕಾರ್ಯ ಪೂರ್ಣತೆ" },
+  "Operational Score":      { en: "Operational Score",      hi: "ऑपरेशनल स्कोर",             te: "ఆపరేషనల్ స్కోర్",              kn: "ಆಪರೇಶನಲ್ ಸ್ಕೋರ್" },
+  "Operational intelligence across horses, staff, tasks, and expenses.": { en: "Operational intelligence across horses, staff, tasks, and expenses.", hi: "घोड़ों, स्टाफ, कार्यों और खर्चों के आरपार ऑपरेशनल इंटेलिजेंस।", te: "గుర్రాలు, సిబ్బంది, విధులు మరియు ఖర్చులలో ఆపరేషనల్ ఇంటెలిజెన్స్.", kn: "ಕುದುರೆಗಳು, ಸಿಬ್ಬಂದಿ, ಕಾರ್ಯಗಳು ಮತ್ತು ವೆಚ್ಚಗಳಲ್ಲಿನ ಕಾರ್ಯಾಚರಣಾ ಬುದ್ಧಿಮತ್ತೆ." },
+  "No monthly trend data available": { en: "No monthly trend data available", hi: "मासिक रुझान डेटा उपलब्ध नहीं है", te: "నెలవారీ ధోరణి డేటా అందుబాటులో లేదు", kn: "ಮಾಸಿಕ ಪ್ರವೃತ್ತಿ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No role data available": { en: "No role data available", hi: "भूमिका डेटा उपलब्ध नहीं है", te: "పాత్ర డేటా అందుబాటులో లేదు", kn: "ಪಾತ್ರ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No task data available": { en: "No task data available", hi: "कार्य डेटा उपलब्ध नहीं है", te: "విధుల డేటా అందుబాటులో లేదు", kn: "ಕಾರ್ಯ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No horse coat data available": { en: "No horse coat data available", hi: "घोड़े के कोट का डेटा उपलब्ध नहीं है", te: "గుర్రపు కోట్ డేటా అందుబాటులో లేదు", kn: "ಕುದುರೆ ಕೋಟ್ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No department data available": { en: "No department data available", hi: "विभाग डेटा उपलब्ध नहीं है", te: "విభాగ డేటా అందుబాటులో లేదు", kn: "ವಿಭಾಗ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No expense data available": { en: "No expense data available", hi: "खर्च डेटा उपलब्ध नहीं है", te: "ఖర్చు డేటా అందుబాటులో లేదు", kn: "ವೆಚ್ಚ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No gender data available": { en: "No gender data available", hi: "लिंग डेटा उपलब्ध नहीं है", te: "లింగ డేటా అందుబాటులో లేదు", kn: "ಲಿಂಗ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
+  "No health record data available": { en: "No health record data available", hi: "स्वास्थ्य रिकॉर्ड डेटा उपलब्ध नहीं है", te: "ఆరోగ్య రికార్డ్ డేటా అందుబాటులో లేదు", kn: "ಆರೋಗ್ಯ ದಾಖಲೆ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ" },
   "TOTAL HORSES":           { en: "TOTAL HORSES",           hi: "कुल घोड़े",                  te: "మొత్తం గుర్రాలు",               kn: "ಒಟ್ಟು ಕುದುರೆಗಳು" },
   "TOTAL EMPLOYEES":        { en: "TOTAL EMPLOYEES",        hi: "कुल कर्मचारी",               te: "మొత్తం ఉద్యోగులు",              kn: "ಒಟ್ಟು ಉದ್ಯೋಗಿಗಳು" },
   "PENDING TASKS":          { en: "PENDING TASKS",          hi: "लंबित कार्य",                te: "పెండింగ్ విధులు",               kn: "ಬಾಕಿ ಕಾರ್ಯಗಳು" },
@@ -206,6 +235,9 @@ const translations = {
   "Employee":               { en: "Employee",               hi: "कर्मचारी",                  te: "ఉద్యోగి",                       kn: "ಉದ್ಯೋಗಿ" },
 
   // Reports
+  "ANALYTICAL REPORTS":     { en: "ANALYTICAL REPORTS",     hi: "विश्लेषणात्मक रिपोर्ट",       te: "విశ్లేషణాత్మక నివేదికలు",        kn: "ವಿಶ್ಲೇಷಣಾತ್ಮಕ ವರದಿಗಳು" },
+  "Reports Module":         { en: "Reports Module",         hi: "रिपोर्ट मॉड्यूल",             te: "నివేదికల మాడ్యూల్",             kn: "ವರದಿಗಳ ಘಟಕ" },
+  "System-wide performance matrices and multi-vector data exports.": { en: "System-wide performance matrices and multi-vector data exports.", hi: "सिस्टम-व्यापी प्रदर्शन मैट्रिक्स और बहु-वेक्टर डेटा निर्यात।", te: "వ్యవస్థవ్యాప్తంగా పనితీరు మ్యాట్రిక్స్ మరియు బహు-వెక్టర్ డేటా ఎగుమతులు.", kn: "ವ್ಯವಸ್ಥೆ-ವ್ಯಾಪಿ ಕಾರ್ಯಕ್ಷಮತಾ ಮ್ಯಾಟ್ರಿಕ್ಸ್ ಮತ್ತು ಬಹು-ವೆಕ್ಟರ್ ಡೇಟಾ ರಫ್ತುಗಳು." },
   "Attendance Reports":     { en: "Attendance Reports",     hi: "उपस्थिति रिपोर्ट",           te: "హాజరు నివేదికలు",               kn: "ಹಾಜರಾತಿ ವರದಿಗಳು" },
   "Task Reports":           { en: "Task Reports",           hi: "कार्य रिपोर्ट",              te: "విధి నివేదికలు",                 kn: "ಕಾರ್ಯ ವರದಿಗಳు" },
   "Expense Reports":        { en: "Expense Reports",        hi: "खर्च रिपोर्ट",               te: "ఖర్చు నివేదికలు",               kn: "ವೆಚ್ಚ ವರದಿಗಳు" },
@@ -717,6 +749,12 @@ const I18nContext = createContext({
   t: (key) => key,
 });
 
+const translationAliases = {
+  Organisation: 'Organization',
+  Restaurant: 'Restaurant Operations',
+  Analytics: 'Analysis',
+};
+
 export const I18nProvider = ({ children }) => {
   const [lang, setLang] = useState(() => {
     return localStorage.getItem('efm-lang') || 'en';
@@ -727,7 +765,26 @@ export const I18nProvider = ({ children }) => {
     localStorage.setItem('efm-lang', newLang);
   };
 
-  const t = (key) => translations[key]?.[lang] || key;
+  const t = (key) => {
+    if (typeof key !== 'string') return key;
+
+    const trimmedKey = key.trim();
+    const normalizedCandidates = [
+      key,
+      trimmedKey,
+      translationAliases[key],
+      translationAliases[trimmedKey],
+      trimmedKey.toUpperCase(),
+    ].filter(Boolean);
+
+    for (const candidate of normalizedCandidates) {
+      if (translations[candidate]?.[lang]) {
+        return translations[candidate][lang];
+      }
+    }
+
+    return key;
+  };
 
   return (
     <I18nContext.Provider value={{ lang, setLang: handleSetLang, t }}>

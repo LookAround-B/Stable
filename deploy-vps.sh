@@ -69,5 +69,5 @@ pm2 info horsestable-frontend | grep -E "status|pid" || true
 
 echo ""
 echo "✨ Deployment complete!"
-echo "📱 Frontend: http://187.77.185.220"
-echo "🔌 Backend: http://187.77.185.220/api/"
+echo "📱 Frontend: https://eirs.app"
+echo "🔌 Backend: https://eirs.app/api/"

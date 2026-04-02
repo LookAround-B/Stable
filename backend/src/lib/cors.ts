@@ -15,7 +15,8 @@ function getAllowedOrigins(): string[] {
     'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3000',
-    // Vercel deployments
+    'https://eirs.app',
+    'https://www.eirs.app',
     // Environment variable
     process.env.FRONTEND_URL
   ].filter((url): url is string => !!url);
