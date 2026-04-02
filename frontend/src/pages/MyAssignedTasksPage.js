@@ -135,19 +135,19 @@ const MyAssignedTasksPage = () => {
     }
   };
 
-  // const handleStartTask = async (taskId) => {
-  //   try {
-  //     setLoading(true);
-  //     await apiClient.patch(`/tasks/${taskId}`, { status: 'In Progress' });
-  //     setMessage('âœ“ Task started!');
-  //     loadAssignedTasks();
-  //     setTimeout(() => setMessage(''), 2000);
-  //   } catch (error) {
-  //     setMessage(`âœ— Error: ${error.response?.data?.error || error.message}`);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const handleStartTask = async (taskId) => {
+    try {
+      setLoading(true);
+      await apiClient.patch(`/tasks/${taskId}/start`);
+      setMessage('✔ Task started! You can now submit completion.');
+      loadAssignedTasks();
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(`✗ Error: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredTasks = tasks.filter((task) => {
     const statusMatch = filterStatus === 'All' || task.status === filterStatus;
@@ -366,7 +366,34 @@ const MyAssignedTasksPage = () => {
                           </div>
                         )}
 
-                       
+                        {/* Action buttons */}
+                        <div className="mt-4 flex gap-2 flex-wrap">
+                          {task.status === 'Pending' && (
+                            <button
+                              type="button"
+                              onClick={() => handleStartTask(task.id)}
+                              disabled={loading}
+                              className="h-9 px-5 rounded-lg bg-primary/15 border border-primary/30 text-primary text-sm font-semibold hover:bg-primary/25 transition-colors disabled:opacity-50"
+                            >
+                              ▶ Start Task
+                            </button>
+                          )}
+                          {task.status === 'In Progress' && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedTaskId(task.id)}
+                              disabled={loading}
+                              className="h-9 px-5 rounded-lg bg-success/15 border border-success/30 text-success text-sm font-semibold hover:bg-success/25 transition-colors disabled:opacity-50"
+                            >
+                              ✔ Submit Completion
+                            </button>
+                          )}
+                          {(task.status === 'Pending Review' || task.status === 'Approved') && (
+                            <span className="h-9 px-5 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm font-medium flex items-center">
+                              {task.status === 'Approved' ? '✔ Approved' : '⏳ Awaiting Review'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

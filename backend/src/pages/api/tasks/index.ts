@@ -197,6 +197,25 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       },
     })
 
+    // Create notification for the assigned employee
+    try {
+      const scheduledStr = parsedScheduled.toLocaleString('en-IN', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+      })
+      await prisma.notification.create({
+        data: {
+          employeeId: assignedEmployeeId,
+          type: 'task_assignment',
+          title: `New task assigned: ${sanitize(name)}`,
+          message: `You have been assigned a new task scheduled for ${scheduledStr}. Priority: ${priority || 'Medium'}.`,
+          relatedTaskId: task.id,
+        },
+      })
+    } catch (notifErr) {
+      // Non-fatal: task was created, just log the notification failure
+      console.error('Failed to create task assignment notification:', notifErr)
+    }
+
     return res.status(201).json(task)
   } catch (error) {
     console.error('Error creating task:', error)
