@@ -142,20 +142,23 @@ const DailyAttendancePage = () => {
               )}
             </div>
           </div>
-          <ExportDialog
-            title={t("Export Daily Attendance")}
-            options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
-            trigger={(
-              <button className="btn-download daily-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0" type="button" aria-label={t("Export daily attendance")} title={t("Export daily attendance")}>
-                <Download className="w-3.5 h-3.5 shrink-0" />
-              </button>
-            )}
-          />
         </div>
-        <div className="daily-attendance-toolbar-actions flex items-end gap-3">
+        <div className="daily-attendance-toolbar-actions flex items-end gap-3 sm:ml-auto">
           <div>
             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date")}</label>
             <DatePicker value={selectedDate} onChange={(val) => setSelectedDate(val)} />
+          </div>
+          <div>
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5 opacity-0 select-none">.</label>
+            <ExportDialog
+              title={t("Export Daily Attendance")}
+              options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
+              trigger={(
+                <button className="btn-download daily-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0" type="button" aria-label={t("Export daily attendance")} title={t("Export daily attendance")}>
+                  <Download className="w-3.5 h-3.5 shrink-0" />
+                </button>
+              )}
+            />
           </div>
         </div>
       </div>

@@ -38,11 +38,15 @@ const SearchableSelect = ({
   const [search, setSearch] = useState('');
   const [dropdownStyle, setDropdownStyle] = useState({});
   const wrapperRef = useRef(null);
+  const dropdownRef = useRef(null);
   const searchRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+      const clickedTrigger = wrapperRef.current?.contains(e.target);
+      const clickedDropdown = dropdownRef.current?.contains(e.target);
+
+      if (!clickedTrigger && !clickedDropdown) {
         setOpen(false);
         setSearch('');
       }
@@ -113,6 +117,7 @@ const SearchableSelect = ({
 
   const dropdownContent = open ? (
     <div
+      ref={dropdownRef}
       style={{
         position: 'fixed',
         top: dropdownStyle.flip ? undefined : dropdownStyle.top,
