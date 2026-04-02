@@ -189,7 +189,7 @@ const ENTITIES = [
   { id: 'Notification',            cat: 'system', fields: ['employeeId','type','title','message','isRead'] },
   { id: 'AuditLog',                cat: 'system', fields: ['userId','action','entityType','entityId','changes'] },
   { id: 'SystemSettings',          cat: 'system', fields: ['key','value','description'] },
-  { id: 'EmployeePermission',      cat: 'system', fields: ['employeeId','viewDashboard','manageEmployees','issueFines','viewPayroll'] },
+  { id: 'EmployeePermission',      cat: 'system', fields: ['employeeId','manageEmployees','issueFines','viewPayroll'] },
   { id: 'EmployeeTaskPermission',  cat: 'system', fields: ['employeeId','permission','granted'] },
 ];
 

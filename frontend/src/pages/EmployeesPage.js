@@ -256,10 +256,7 @@ const EmployeesPage = () => {
     });
   };
 
-  // Super Admin, Director, and School Administrator can add employees
-  const canAddEmployee = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
-  // Only Director can delete employees
-  const canDeleteEmployee = user?.designation === 'Director';
+  const canManageEmployeeRecords = p.isAdmin || Boolean(user?.permissions?.manageEmployees);
 
   useEffect(() => {
     // Load existing employees to show as supervisors
@@ -510,7 +507,7 @@ const EmployeesPage = () => {
         <div className="min-w-0">
           <div className="employees-title-row flex items-end justify-between gap-3 w-full">
             <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">{t("Team")}</h1>
-            {canAddEmployee && (
+            {canManageEmployeeRecords && (
               <button onClick={() => setShowModal(true)} className="employees-header-add-btn inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all whitespace-nowrap shrink-0">
                 <Plus className="w-4 h-4" /> Add New Employee
               </button>
@@ -637,7 +634,7 @@ const EmployeesPage = () => {
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">{t("Supervisor")}</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("Status")}</th>
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">{t("Contact")}</th>
-                    {(canAddEmployee || canDeleteEmployee) && <th className="px-4 sm:px-6 py-3 w-32"></th>}
+                    {canManageEmployeeRecords && <th className="px-4 sm:px-6 py-3 w-32"></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -681,15 +678,15 @@ const EmployeesPage = () => {
                           </span>
                         </td>
                         <td className="px-4 sm:px-6 py-4 font-mono text-muted-foreground hidden lg:table-cell">{employee.phoneNumber || '-'}</td>
-                        {(canAddEmployee || canDeleteEmployee) && (
+                        {canManageEmployeeRecords && (
                           <td className="px-4 sm:px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              {canAddEmployee && !isAppr && (
+                              {!isAppr && (
                                 <button onClick={() => handleApproveEmployee(employee.id)} className="h-8 px-3 rounded bg-success/15 text-success text-xs font-medium hover:bg-success/25 transition-colors">
                                   {t('Approve')}
                                 </button>
                               )}
-                              {canDeleteEmployee && employee.id !== user?.id && (
+                              {employee.id !== user?.id && (
                                 <button onClick={() => handleDeleteEmployee(employee.id, employee.fullName)} className="h-8 px-3 rounded bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors flex items-center gap-1">
                                   <Trash2 className="w-3 h-3" />
                                 </button>

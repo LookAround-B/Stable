@@ -3,6 +3,11 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidId, isOneOf } from '@/lib/validate'
+import {
+  createNotificationAndPublish,
+  publishNotificationStates,
+} from '@/lib/notificationRealtime'
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -11,9 +16,9 @@ export default async function handler(
   setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end()
   }
-  // Check authentication
+
   const token = getTokenFromRequest(req as any)
   if (!token || !verifyToken(token)) {
     return res.status(401).json({ error: 'Unauthorized' })
@@ -37,21 +42,21 @@ async function handleGetTask(req: NextApiRequest, res: NextApiResponse) {
 
     const task = await prisma.task.findUnique({
       where: { id: id as string },
-      include: { 
-        horse: true, 
-        assignedEmployee: true, 
-        approvals: { 
+      include: {
+        horse: true,
+        assignedEmployee: true,
+        approvals: {
           include: {
             approver: {
               select: {
                 id: true,
                 fullName: true,
                 email: true,
-                designation: true
-              }
-            }
-          }
-        }
+                designation: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -71,31 +76,45 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     const { id } = req.query
     const { status, completionNotes, photoUrl } = req.body
     const token = getTokenFromRequest(req as any)
+
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
-    const decoded = verifyToken(token)   
+
+    const decoded = verifyToken(token)
     const userId = decoded?.id
 
     if (!id || !isValidId(id as string)) {
       return res.status(400).json({ error: 'Valid Task ID is required' })
     }
 
-    // Validate status
-    const validStatuses = ['Pending', 'In Progress', 'Completed', 'Pending Review', 'Approved', 'Rejected', 'Cancelled'] as const
+    const validStatuses = [
+      'Pending',
+      'In Progress',
+      'Completed',
+      'Pending Review',
+      'Approved',
+      'Rejected',
+      'Cancelled',
+    ] as const
+
     if (status && !isOneOf(status, validStatuses)) {
       return res.status(400).json({ error: 'Invalid status' })
     }
     if (completionNotes && !isValidString(completionNotes, 0, 2000)) {
-      return res.status(400).json({ error: 'Completion notes must be max 2000 chars' })
+      return res
+        .status(400)
+        .json({ error: 'Completion notes must be max 2000 chars' })
     }
     if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 2000) {
       return res.status(400).json({ error: 'Photo URL too long' })
     }
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (status) updateData.status = status
-    if (completionNotes) updateData.completionNotes = sanitizeString(completionNotes)
+    if (completionNotes) {
+      updateData.completionNotes = sanitizeString(completionNotes)
+    }
     if (photoUrl) updateData.proofImage = photoUrl
     if (status === 'Completed' || status === 'Pending Review') {
       updateData.completedTime = new Date()
@@ -104,10 +123,10 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     const task = await prisma.task.update({
       where: { id: id as string },
       data: updateData,
-      include: { 
-        horse: true, 
-        assignedEmployee: true, 
-        createdBy: true, 
+      include: {
+        horse: true,
+        assignedEmployee: true,
+        createdBy: true,
         approvals: {
           include: {
             approver: {
@@ -115,16 +134,29 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
                 id: true,
                 fullName: true,
                 email: true,
-                designation: true
-              }
-            }
-          }
-        }
+                designation: true,
+              },
+            },
+          },
+        },
       },
     })
 
-    // Create approval record if status is Approved or Rejected
+    let responseTask: any = task
+    let clearedNotificationRecipients: string[] = []
+
     if ((status === 'Approved' || status === 'Rejected') && userId) {
+      clearedNotificationRecipients = (
+        await prisma.notification.findMany({
+          where: {
+            relatedTaskId: id as string,
+            type: 'task_completion',
+            isRead: false,
+          },
+          select: { employeeId: true },
+        })
+      ).map((notification) => notification.employeeId)
+
       await prisma.approval.upsert({
         where: {
           taskId_approverId: {
@@ -143,13 +175,12 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         },
       })
 
-      // Refresh task to include the new approval
-      const updatedTask = await prisma.task.findUnique({
+      responseTask = await prisma.task.findUnique({
         where: { id: id as string },
-        include: { 
-          horse: true, 
-          assignedEmployee: true, 
-          createdBy: true, 
+        include: {
+          horse: true,
+          assignedEmployee: true,
+          createdBy: true,
           approvals: {
             include: {
               approver: {
@@ -157,18 +188,49 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
                   id: true,
                   fullName: true,
                   email: true,
-                  designation: true
-                }
-              }
-            }
-          }
+                  designation: true,
+                },
+              },
+            },
+          },
         },
       })
-
-      return res.status(200).json(updatedTask)
     }
 
-    return res.status(200).json(task)
+    if (status === 'Approved' || status === 'Rejected') {
+      try {
+        await prisma.notification.updateMany({
+          where: {
+            relatedTaskId: id as string,
+            type: 'task_completion',
+            isRead: false,
+          },
+          data: { isRead: true, readAt: new Date() },
+        })
+
+        await publishNotificationStates(clearedNotificationRecipients)
+
+        const employeeMsg =
+          status === 'Approved'
+            ? `Your task "${task.name}" has been approved. Great work!`
+            : `Your task "${task.name}" was rejected. Please check with your supervisor.`
+
+        await createNotificationAndPublish({
+          employeeId: task.assignedEmployeeId,
+          type: status === 'Approved' ? 'approval_request' : 'general',
+          title: `Task ${status}: ${task.name}`,
+          message: employeeMsg,
+          relatedTaskId: id as string,
+        })
+      } catch (notifErr) {
+        console.error(
+          '[NOTIF] Failed to handle approval notifications:',
+          notifErr
+        )
+      }
+    }
+
+    return res.status(200).json(responseTask || task)
   } catch (error) {
     console.error('Error updating task:', error)
     return res.status(500).json({ error: 'Internal server error' })

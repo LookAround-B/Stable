@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Navigate } from 'react-router-dom';
-import { CheckCircle2, XCircle, Clock, BarChart3, Search, Shield } from 'lucide-react';
+import { CheckCircle2, X, XCircle, Clock, BarChart3, Search, Shield } from 'lucide-react';
 import apiClient from '../services/apiClient';
 import medicineLogService from '../services/medicineLogService';
 import { useI18n } from '../context/I18nContext';
@@ -10,6 +11,14 @@ const statusStyles = {
   Pending: 'bg-warning/10 text-warning border-warning/30',
   Approved: 'bg-success/10 text-success border-success/30',
   Rejected: 'bg-destructive/10 text-destructive border-destructive/30',
+};
+
+const getEvidenceSrc = (item) => {
+  const image = item?.proofImage || item?.photoUrl || '';
+  if (!image) return '';
+  if (image.startsWith('http') || image.startsWith('data:')) return image;
+  const apiRoot = process.env.REACT_APP_API_URL?.replace('/api', '') || '';
+  return `${apiRoot}${image}`;
 };
 
 const ApprovalTasksPage = () => {
@@ -23,12 +32,31 @@ const ApprovalTasksPage = () => {
   const [message, setMessage] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [search, setSearch] = useState('');
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
 
   const filters = ['All', 'Pending', 'Approved', 'Rejected'];
 
   useEffect(() => {
     loadAllTasks();
   }, []);
+
+  useEffect(() => {
+    if (!selectedEvidence) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedEvidence(null);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedEvidence]);
 
   const loadAllTasks = async () => {
     try {
@@ -138,6 +166,8 @@ const ApprovalTasksPage = () => {
     const createdBy = isTask ? item.createdBy?.fullName : item.jamedar?.fullName;
     const timestamp = isTask ? item.scheduledTime : item.timeAdministered;
     const displayStatus = item.status === 'Pending Review' ? 'Pending' : item.status;
+    const evidenceSrc = isTask ? getEvidenceSrc(item) : '';
+    const horseName = item.horse?.name || 'N/A';
 
     return (
       <div key={item.id} className="bg-surface-container-high rounded-xl p-5 md:p-6 edge-glow border border-primary/10 hover:border-primary/30 transition-all duration-300">
@@ -147,22 +177,64 @@ const ApprovalTasksPage = () => {
           </span>
           <span className="text-[10px] text-muted-foreground font-mono opacity-60">ID: {item.id.toString().toUpperCase().slice(0, 8)}</span>
         </div>
-        <h3 className="text-xl font-bold text-foreground leading-tight">{itemName}</h3>
-        <p className="text-sm text-primary/90 mt-1 font-medium">{createdBy || 'Unknown'}</p>
-
-        <div className="text-sm text-muted-foreground mt-3 leading-relaxed space-y-1">
-          {isTask ? (
-            <>
-              <p><span className="text-foreground font-medium">Horse:</span> {item.horse?.name || 'N/A'}</p>
-              <p><span className="text-foreground font-medium">Priority:</span> {item.priority}</p>
-              {item.description && <p>{item.description}</p>}
-            </>
-          ) : (
-            <>
-              <p><span className="text-foreground font-medium">Quantity:</span> {item.quantity} {item.unit}</p>
-              {item.notes && <p>{item.notes}</p>}
-            </>
+        <div className="flex flex-col md:flex-row gap-4 md:gap-5">
+          {isTask && (
+            <div className="w-full md:w-28 shrink-0">
+              <div className="aspect-square rounded-xl overflow-hidden border border-border bg-surface-container-highest">
+                {evidenceSrc ? (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEvidence({
+                      src: evidenceSrc,
+                      taskName: itemName,
+                      horseName,
+                      submittedBy: createdBy || 'Unknown',
+                    })}
+                    className="group relative h-full w-full cursor-zoom-in"
+                    aria-label={`Open evidence for ${itemName}`}
+                  >
+                    <img
+                      src={evidenceSrc}
+                      alt="Task evidence"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/85 via-background/25 to-transparent px-3 py-2 text-left">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/90">
+                        Tap to view
+                      </span>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    No Photo
+                  </div>
+                )}
+              </div>
+            </div>
           )}
+
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xl font-bold text-foreground leading-tight">{itemName}</h3>
+              <p className="text-sm text-primary/90 mt-1 font-medium">{createdBy || 'Unknown'}</p>
+
+              <div className="text-sm text-muted-foreground mt-3 leading-relaxed space-y-1">
+              {isTask ? (
+                <>
+                  <p><span className="text-foreground font-medium">Horse:</span> {horseName}</p>
+                  <p><span className="text-foreground font-medium">Priority:</span> {item.priority}</p>
+                  {item.description && <p>{item.description}</p>}
+                </>
+              ) : (
+                <>
+                  <p><span className="text-foreground font-medium">Quantity:</span> {item.quantity} {item.unit}</p>
+                  {item.notes && <p>{item.notes}</p>}
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-border/10">
@@ -298,6 +370,45 @@ const ApprovalTasksPage = () => {
           </div>
         </div>
       </div>
+
+      {selectedEvidence && ReactDOM.createPortal(
+        <div
+          className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-background/92 backdrop-blur-md p-0 sm:p-6"
+          onClick={() => setSelectedEvidence(null)}
+        >
+          <div
+            className="relative flex h-[88vh] w-full flex-col overflow-hidden rounded-t-3xl border border-border/40 bg-surface-container sm:h-auto sm:max-h-[88vh] sm:max-w-5xl sm:rounded-3xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedEvidence(null)}
+              className="absolute right-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/40 bg-background/80 text-foreground shadow-lg transition-colors hover:bg-background sm:right-4 sm:top-4"
+              aria-label="Close evidence preview"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="border-b border-border/20 bg-surface-container-high/80 px-4 py-4 pr-16 sm:px-6">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary/80">Photo Evidence</p>
+              <h3 className="mt-1 text-lg font-bold text-foreground sm:text-xl">{selectedEvidence.taskName}</h3>
+              <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-4 sm:text-sm">
+                <span><span className="font-medium text-foreground">Horse:</span> {selectedEvidence.horseName}</span>
+                <span><span className="font-medium text-foreground">Submitted by:</span> {selectedEvidence.submittedBy}</span>
+              </div>
+            </div>
+
+            <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-[radial-gradient(circle_at_top,_rgba(var(--primary-rgb),0.12),_transparent_55%)] p-3 sm:p-6">
+              <img
+                src={selectedEvidence.src}
+                alt={`${selectedEvidence.taskName} evidence`}
+                className="max-h-full w-full rounded-2xl border border-border/30 bg-background/50 object-contain shadow-2xl sm:max-w-[calc(100vw-8rem)]"
+              />
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

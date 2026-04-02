@@ -1,6 +1,6 @@
 // pages/api/employees/[id]/approve.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -22,10 +22,9 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  // Only Super Admin, Director, or School Administrator can approve
-  const allowedRoles = ['Super Admin', 'Director', 'School Administrator']
-  if (!allowedRoles.includes(decoded.designation)) {
-    return res.status(403).json({ error: 'Only admins can approve employees' })
+  const canManageEmployees = await checkPermission(decoded, 'manageEmployees')
+  if (!canManageEmployees) {
+    return res.status(403).json({ error: 'You do not have permission to manage employees' })
   }
 
   if (req.method !== 'PATCH') {

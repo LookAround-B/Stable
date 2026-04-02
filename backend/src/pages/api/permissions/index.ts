@@ -60,14 +60,12 @@ async function handleGet(_req: NextApiRequest, res: NextApiResponse) {
         profileImage: true,
         permissions: {
           select: {
-            viewDashboard: true,
             manageEmployees: true,
             viewReports: true,
             issueFines: true,
             manageInventory: true,
             manageSchedules: true,
             viewPayroll: true,
-            viewNotifications: true,
           },
         },
       },
@@ -104,14 +102,12 @@ async function handlePut(
 
     // Only allow known permission keys
     const allowedKeys = [
-      'viewDashboard',
       'manageEmployees',
       'viewReports',
       'issueFines',
       'manageInventory',
       'manageSchedules',
       'viewPayroll',
-      'viewNotifications',
     ]
 
     const permData: Record<string, boolean> = {}

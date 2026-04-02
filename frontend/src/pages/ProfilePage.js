@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import Cropper from 'react-easy-crop';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
-import { Camera, Type, Globe, Download, Share, Plus, X, Sun, Moon, Edit, Lock as LockIcon, Save } from 'lucide-react';
+import { Camera, Type, Globe, Download, Share, Plus, X, Sun, Moon, Edit, Lock as LockIcon, LogOut, Save } from 'lucide-react';
 import { useI18n, LANGUAGES } from '../context/I18nContext';
 import useTextSize from '../hooks/useTextSize';
 import usePwaInstall from '../hooks/usePwaInstall';
 import { toast } from 'sonner';
+import { logout as clearStoredAuth } from '../services/authService';
 
 // Optional ShadCN imports if they exist, but let's build standard dialogs to avoid hook-form and Zod issues if they are missing
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
@@ -49,7 +51,8 @@ async function getCroppedImg(imageSrc, croppedAreaPixels) {
 }
 
 const ProfilePage = () => {
-  const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateUser, logout } = useAuth();
   const { t, lang, setLang } = useI18n();
   const { textSize, setTextSize } = useTextSize();
   const { install, showIosModal, dismiss } = usePwaInstall();
@@ -197,6 +200,12 @@ const ProfilePage = () => {
     toast.success("Password changed successfully!");
   };
 
+  const handleLogout = () => {
+    clearStoredAuth();
+    logout();
+    navigate('/login');
+  };
+
   if (!user) {
     return (
       <div className="space-y-6">
@@ -259,76 +268,88 @@ const ProfilePage = () => {
             ))}
           </div>
           
-          <div className="mt-6 grid grid-cols-1 gap-2 w-full sm:flex sm:flex-row sm:items-stretch">
-            {/* Edit Profile Dialog */}
-            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogTrigger asChild>
-                <button className="btn-save-primary w-full min-h-10 sm:flex-1 sm:basis-0 sm:min-w-0">
-                  <Edit className="w-3.5 h-3.5" /> Edit Profile
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-surface-container-highest border-border">
-                <DialogHeader>
-                  <DialogTitle className="uppercase tracking-widest text-sm text-primary">Edit Profile</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleProfileSubmit} className="space-y-4 py-4">
-                  <div>
-                    <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Full Name")}</label>
-                    <Input value={editForm.fullName} onChange={e => setEditForm(p => ({...p, fullName: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
-                  </div>
-                  <div>
-                    <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Phone Number")}</label>
-                    <Input value={editForm.phone} onChange={e => setEditForm(p => ({...p, phone: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" className="w-full btn-save-primary mt-2">
-                      <Save className="w-4 h-4 mr-2" /> SAVE CHANGES
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            {/* Change Password Dialog */}
-            {!user.googleId && (
-              <Dialog open={isPwdOpen} onOpenChange={setIsPwdOpen}>
+          <div className="mt-6 space-y-2 w-full">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {/* Edit Profile Dialog */}
+              <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogTrigger asChild>
-                  <button className="h-10 w-full min-h-10 px-4 rounded-lg bg-surface-container-high text-muted-foreground text-xs font-bold tracking-wider hover:text-foreground hover:border-foreground/50 transition-all inline-flex items-center justify-center gap-2 border border-border sm:flex-1 sm:basis-0 sm:min-w-0">
-                    <LockIcon className="w-3.5 h-3.5" /> Security
+                  <button className="btn-save-primary w-full min-h-10">
+                    <Edit className="w-3.5 h-3.5" /> Edit Profile
                   </button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px] bg-surface-container-highest border-border">
                   <DialogHeader>
-                    <DialogTitle className="text-foreground uppercase tracking-widest text-sm text-primary">Change Password</DialogTitle>
+                    <DialogTitle className="uppercase tracking-widest text-sm text-primary">Edit Profile</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handlePasswordSubmit} className="space-y-4 py-4">
+                  <form onSubmit={handleProfileSubmit} className="space-y-4 py-4">
                     <div>
-                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Old Password")}</label>
-                      <Input type="password" required value={pwdForm.oldPassword} onChange={e => setPwdForm(p => ({...p, oldPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Full Name")}</label>
+                      <Input value={editForm.fullName} onChange={e => setEditForm(p => ({...p, fullName: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                     </div>
                     <div>
-                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("New Password")}</label>
-                      <Input type="password" required value={pwdForm.newPassword} onChange={e => setPwdForm(p => ({...p, newPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
-                    </div>
-                    <div>
-                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Confirm Password")}</label>
-                      <Input type="password" required value={pwdForm.confirmPassword} onChange={e => setPwdForm(p => ({...p, confirmPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
+                      <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Phone Number")}</label>
+                      <Input value={editForm.phone} onChange={e => setEditForm(p => ({...p, phone: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
                     </div>
                     <DialogFooter>
                       <Button type="submit" className="w-full btn-save-primary mt-2">
-                        <LockIcon className="w-4 h-4 mr-2" /> UPDATE ENCRYPTION KEY
+                        <Save className="w-4 h-4 mr-2" /> SAVE CHANGES
                       </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
               </Dialog>
-            )}
-            <button 
-              onClick={install}
-              className="h-10 w-full min-h-10 px-4 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all inline-flex items-center justify-center gap-2 border border-success/20 sm:flex-1 sm:basis-0 sm:min-w-0"
-            >
-              <Download className="w-3.5 h-3.5" /> Install App
-            </button>
+
+              {/* Change Password Dialog */}
+              {!user.googleId && (
+                <Dialog open={isPwdOpen} onOpenChange={setIsPwdOpen}>
+                  <DialogTrigger asChild>
+                    <button className="h-10 w-full min-h-10 px-4 rounded-lg bg-surface-container-high text-muted-foreground text-xs font-bold tracking-wider hover:text-foreground hover:border-foreground/50 transition-all inline-flex items-center justify-center gap-2 border border-border">
+                      <LockIcon className="w-3.5 h-3.5" /> Security
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px] bg-surface-container-highest border-border">
+                    <DialogHeader>
+                      <DialogTitle className="text-foreground uppercase tracking-widest text-sm text-primary">Change Password</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handlePasswordSubmit} className="space-y-4 py-4">
+                      <div>
+                        <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Old Password")}</label>
+                        <Input type="password" required value={pwdForm.oldPassword} onChange={e => setPwdForm(p => ({...p, oldPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("New Password")}</label>
+                        <Input type="password" required value={pwdForm.newPassword} onChange={e => setPwdForm(p => ({...p, newPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-1.5 block">{t("Confirm Password")}</label>
+                        <Input type="password" required value={pwdForm.confirmPassword} onChange={e => setPwdForm(p => ({...p, confirmPassword: e.target.value}))} className="bg-surface-container-high border-border text-foreground h-10" />
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" className="w-full btn-save-primary mt-2">
+                          <LockIcon className="w-4 h-4 mr-2" /> UPDATE ENCRYPTION KEY
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
+              <button 
+                onClick={install}
+                className="h-10 w-full min-h-10 px-4 rounded-lg bg-success/15 text-success text-xs font-bold tracking-wider uppercase hover:bg-success/25 transition-all inline-flex items-center justify-center gap-2 border border-success/20"
+              >
+                <Download className="w-3.5 h-3.5" /> Install App
+              </button>
+            </div>
+
+            <div className="pt-2 sm:pt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="h-10 w-full min-h-10 px-4 rounded-lg bg-destructive/15 text-destructive text-xs font-bold tracking-wider uppercase hover:bg-destructive/25 transition-all inline-flex items-center justify-center gap-2 border border-destructive/20 sm:w-auto sm:min-w-[220px]"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Logout
+              </button>
+            </div>
           </div>
         </div>
 

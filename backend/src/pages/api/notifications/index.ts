@@ -4,6 +4,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { safePositiveInt } from '@/lib/validate'
+import { publishNotificationState } from '@/lib/notificationRealtime'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -90,6 +91,7 @@ async function handleMarkAsRead(
         readAt: new Date(),
       },
     })
+    await publishNotificationState(employeeId)
 
     return res.status(200).json(notification)
   } catch (error) {
@@ -97,4 +99,3 @@ async function handleMarkAsRead(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-

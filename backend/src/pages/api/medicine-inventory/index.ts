@@ -3,6 +3,7 @@ import { verifyToken, checkPermission } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
+import { createNotificationAndPublish } from '@/lib/notificationRealtime'
 
 const AUTHORIZED_ROLES = [
   'Super Admin',
@@ -334,14 +335,11 @@ async function checkAndNotifyThreshold(
     });
     if (!admin) return;
 
-    await prisma.notification.create({
-      data: {
-        employeeId: admin.id,
-        type: 'inventory_threshold_alert',
-        title: `Low ${inventoryType} inventory: ${itemName}`,
-        message: `${itemName} stock is ${currentQty} ${unit}, below the threshold of ${threshold} ${unit}.`,
-        isRead: false,
-      },
+    await createNotificationAndPublish({
+      employeeId: admin.id,
+      type: 'inventory_threshold_alert',
+      title: `Low ${inventoryType} inventory: ${itemName}`,
+      message: `${itemName} stock is ${currentQty} ${unit}, below the threshold of ${threshold} ${unit}.`,
     });
   } catch (err) {
     console.error('Failed to send threshold notification:', err);

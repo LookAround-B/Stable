@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import prisma from '@/lib/prisma'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import { setCorsHeaders } from '@/lib/cors'
 import { isValidId, isOneOf, validationError } from '@/lib/validate'
 
@@ -26,8 +26,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'GET') {
     return handleGet(req, res)
   } else if (req.method === 'POST') {
+    const canManageHorseTeams =
+      decoded.designation === 'Stable Manager' ||
+      await checkPermission(decoded, 'manageEmployees') ||
+      await checkPermission(decoded, 'manageSchedules')
+
+    if (!canManageHorseTeams) {
+      return res.status(403).json({ error: 'You do not have permission to manage care teams' })
+    }
+
     return handlePost(req, res)
   } else if (req.method === 'DELETE') {
+    const canManageHorseTeams =
+      decoded.designation === 'Stable Manager' ||
+      await checkPermission(decoded, 'manageEmployees') ||
+      await checkPermission(decoded, 'manageSchedules')
+
+    if (!canManageHorseTeams) {
+      return res.status(403).json({ error: 'You do not have permission to manage care teams' })
+    }
+
     return handleDelete(req, res)
   } else {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -220,4 +238,3 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Failed to delete assignment' })
   }
 }
-

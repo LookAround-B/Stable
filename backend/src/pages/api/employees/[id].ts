@@ -1,6 +1,6 @@
 // pages/api/employees/[id].ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -85,17 +85,9 @@ async function handleDeleteEmployee(
   decoded: { id: string; email: string; designation: string }
 ) {
   try {
-    // Only Director can delete employees
-    const ALLOWED_ROLES = ['Director']
-
-    // Get the user's current designation from DB (in case JWT is stale)
-    const currentUser = await prisma.employee.findUnique({
-      where: { id: decoded.id },
-      select: { designation: true },
-    })
-
-    if (!currentUser || !ALLOWED_ROLES.includes(currentUser.designation)) {
-      return res.status(403).json({ error: 'Only Directors can delete employees' })
+    const canManageEmployees = await checkPermission(decoded, 'manageEmployees')
+    if (!canManageEmployees) {
+      return res.status(403).json({ error: 'You do not have permission to manage employees' })
     }
 
     // Prevent deleting yourself

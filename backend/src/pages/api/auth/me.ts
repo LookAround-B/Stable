@@ -46,7 +46,6 @@ export default async function handler(
         profileImage: true,
         permissions: {
           select: {
-            viewDashboard: true,
             manageEmployees: true,
             viewReports: true,
             issueFines: true,
@@ -68,4 +67,3 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-

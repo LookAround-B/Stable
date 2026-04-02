@@ -4,6 +4,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString } from '@/lib/validate'
+import { createNotificationAndPublish } from '@/lib/notificationRealtime'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -86,6 +87,20 @@ export default async function handler(
         createdBy: true,
       },
     })
+
+    // Notify the task creator that submission is pending review
+    try {
+      const employeeName = task.assignedEmployee?.fullName || 'An employee'
+      await createNotificationAndPublish({
+        employeeId: task.createdById,
+        type: 'task_completion',
+        title: `Task submitted for review: ${task.name}`,
+        message: `${employeeName} has completed "${task.name}" and submitted it for your approval.`,
+        relatedTaskId: task.id,
+      })
+    } catch (notifErr) {
+      console.error('Failed to create task completion notification:', notifErr)
+    }
 
     return res.status(200).json({
       success: true,

@@ -78,7 +78,6 @@ import { hasPermission as roleHasPermission } from '@/lib/roles-prd'
 const ADMIN_DESIGNATIONS = ['Super Admin', 'Director', 'School Administrator']
 
 export type PermissionKey =
-  | 'viewDashboard'
   | 'manageEmployees'
   | 'viewReports'
   | 'issueFines'

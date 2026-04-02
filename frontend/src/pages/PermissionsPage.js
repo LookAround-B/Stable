@@ -7,10 +7,9 @@ import {
   getTaskPermissions, updateTaskPermissions, getRoleDefaults
 } from '../services/permissionService';
 import {
-  ChevronRight, Users, LayoutDashboard, BarChart2,
+  ChevronRight, Users, BarChart2,
   AlertTriangle, Package, Calendar, CreditCard, Save, Shield,
-  Download, Filter, SlidersHorizontal, Lock, CheckCircle, RotateCcw,
-  Bell
+  Download, Filter, SlidersHorizontal, Lock, CheckCircle, RotateCcw
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
@@ -18,14 +17,12 @@ import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 
 const DEFAULT_PERMS = {
-  viewDashboard: false,
   manageEmployees: false,
   viewReports: false,
   issueFines: false,
   manageInventory: false,
   manageSchedules: false,
   viewPayroll: false,
-  viewNotifications: false,
 };
 
 // Helper: convert snake_case permission key to readable label
@@ -61,14 +58,12 @@ const PermissionsPage = () => {
 
   // Define properties dynamically using t() function
   const globalPermDefs = () => [
-    { key: 'viewDashboard', label: t('View Dashboard'), desc: t('Access dashboard overview.'), icon: LayoutDashboard },
     { key: 'manageEmployees', label: t('Manage Employees'), desc: t('Create, edit or remove employee records.'), icon: Users },
     { key: 'viewReports', label: t('View Reports'), desc: t('Access reports, analytics, and data.'), icon: BarChart2 },
     { key: 'issueFines', label: t('Issue Fines'), desc: t('Raise fines against employee accounts.'), icon: AlertTriangle },
     { key: 'manageInventory', label: t('Manage Inventory'), desc: t('Add, edit, and update stock levels.'), icon: Package },
     { key: 'manageSchedules', label: t('Manage Schedules'), desc: t('Create shift schedules and duty rosters.'), icon: Calendar },
     { key: 'viewPayroll', label: t('View Payroll'), desc: t('Access salary records and payslips.'), icon: CreditCard },
-    { key: 'viewNotifications', label: t('View Notifications'), desc: t('Receive and view in-app alerts.'), icon: Bell },
   ];
 
   const fetchData = useCallback(async () => {

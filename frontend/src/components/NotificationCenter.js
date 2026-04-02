@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, Bell, Check, CheckCheck, ClipboardList, FileText, Package } from 'lucide-react';
-import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from '../services/notificationService';
+import {
+  getNotifications,
+  getUnreadCount,
+  markAllAsRead,
+  markAsRead,
+  subscribeToNotifications,
+} from '../services/notificationService';
 import usePermissions from '../hooks/usePermissions';
 
 const TYPE_META = {
@@ -26,19 +33,77 @@ const timeAgo = (dateStr) => {
 };
 
 const NotificationCenter = () => {
+  const navigate = useNavigate();
   const { viewNotifications } = usePermissions();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef(null);
+  const audioContextRef = useRef(null);
+  const soundEnabledRef = useRef(false);
+  const unreadIdsRef = useRef(new Set());
+
+  const playNotificationSound = useCallback(async () => {
+    if (!soundEnabledRef.current || typeof window === 'undefined') return;
+
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return;
+
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContextCtor();
+      }
+
+      const ctx = audioContextRef.current;
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      const now = ctx.currentTime;
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, now);
+      oscillator.frequency.exponentialRampToValueAtTime(660, now + 0.18);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.065, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.3);
+    } catch {
+      // ignore sound playback failures
+    }
+  }, []);
+
+  const applyNotificationState = useCallback((payload, { playSound = false } = {}) => {
+    const nextNotifications = payload?.notifications || [];
+    const nextUnreadCount = payload?.unreadCount ?? nextNotifications.filter((item) => !item.isRead).length;
+    const nextUnreadIds = new Set(
+      nextNotifications.filter((item) => !item.isRead).map((item) => item.id)
+    );
+    const hasNewUnread = Array.from(nextUnreadIds).some((id) => !unreadIdsRef.current.has(id));
+
+    setNotifications(nextNotifications);
+    setUnreadCount(nextUnreadCount);
+    unreadIdsRef.current = nextUnreadIds;
+
+    if (playSound && hasNewUnread) {
+      playNotificationSound();
+    }
+  }, [playNotificationSound]);
 
   const fetchCount = useCallback(async () => {
     try {
       const response = await getUnreadCount();
       setUnreadCount(response.data?.data?.count || 0);
     } catch {
-      // ignore sidebar polling failures
+      // ignore count fetch failures
     }
   }, []);
 
@@ -46,25 +111,75 @@ const NotificationCenter = () => {
     setLoading(true);
     try {
       const response = await getNotifications();
-      setNotifications(response.data?.data || []);
+      applyNotificationState({ notifications: response.data?.data || [] });
     } catch {
       // ignore dropdown loading failures
     }
     setLoading(false);
+  }, [applyNotificationState]);
+
+  const resolveNotificationTarget = useCallback((notification) => {
+    const combinedText = `${notification?.title || ''} ${notification?.message || ''}`.toLowerCase();
+
+    if (notification?.type === 'task_assignment') {
+      return '/my-assigned-tasks';
+    }
+
+    if (notification?.type === 'task_completion') {
+      return '/pending-approvals';
+    }
+
+    if (notification?.type === 'approval_request') {
+      if (combinedText.includes('your task') || combinedText.includes('task approved') || combinedText.includes('task rejected')) {
+        return '/my-assigned-tasks';
+      }
+      return '/pending-approvals';
+    }
+
+    if (notification?.relatedTaskId) {
+      return '/my-assigned-tasks';
+    }
+
+    if (notification?.type === 'inventory_threshold_alert') {
+      if (combinedText.includes('feed')) return '/feed-inventory';
+      if (combinedText.includes('medicine')) return '/medicine-inventory';
+      if (combinedText.includes('grocery')) return '/groceries-inventory';
+    }
+
+    return '/dashboard';
   }, []);
 
   useEffect(() => {
     if (!viewNotifications) return undefined;
+
+    fetchNotifications();
     fetchCount();
-    const interval = window.setInterval(fetchCount, 30000);
-    return () => window.clearInterval(interval);
-  }, [viewNotifications, fetchCount]);
+
+    const eventSource = subscribeToNotifications({
+      onState: (payload) => applyNotificationState(payload, { playSound: true }),
+      onError: () => {
+        // keep current state on transient stream failures
+      },
+    });
+
+    return () => {
+      eventSource?.close();
+    };
+  }, [applyNotificationState, fetchCount, fetchNotifications, viewNotifications]);
 
   useEffect(() => {
-    if (open) {
-      fetchNotifications();
-    }
-  }, [open, fetchNotifications]);
+    const enableSound = () => {
+      soundEnabledRef.current = true;
+    };
+
+    window.addEventListener('pointerdown', enableSound, { once: true });
+    window.addEventListener('keydown', enableSound, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', enableSound);
+      window.removeEventListener('keydown', enableSound);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open || typeof window === 'undefined') return undefined;
@@ -89,27 +204,44 @@ const NotificationCenter = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const handleMarkRead = async (id) => {
+  useEffect(() => {
+    if (!open) return undefined;
+    fetchNotifications();
+    return undefined;
+  }, [open, fetchNotifications]);
+
+  const handleMarkRead = useCallback(async (id) => {
     try {
       await markAsRead(id);
       setNotifications((prev) => prev.map((item) => (
         item.id === id ? { ...item, isRead: true, readAt: new Date().toISOString() } : item
       )));
+      unreadIdsRef.current.delete(id);
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch {
       // ignore single mark read failure
     }
-  };
+  }, []);
 
   const handleMarkAllRead = async () => {
     try {
       await markAllAsRead();
       setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true, readAt: new Date().toISOString() })));
+      unreadIdsRef.current = new Set();
       setUnreadCount(0);
     } catch {
       // ignore bulk mark read failure
     }
   };
+
+  const handleNotificationClick = useCallback(async (notification) => {
+    if (!notification?.isRead) {
+      await handleMarkRead(notification.id);
+    }
+
+    setOpen(false);
+    navigate(resolveNotificationTarget(notification));
+  }, [handleMarkRead, navigate, resolveNotificationTarget]);
 
   if (!viewNotifications) {
     return null;
@@ -162,7 +294,7 @@ const NotificationCenter = () => {
                   <div
                     key={notification.id}
                     className={`notification-item ${notification.isRead ? '' : 'unread'}`}
-                    onClick={() => !notification.isRead && handleMarkRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="notification-type-icon" style={{ color: meta.color }}>
                       <Icon size={16} />

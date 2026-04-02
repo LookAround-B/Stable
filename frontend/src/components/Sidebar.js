@@ -43,7 +43,7 @@ const GROUPS = [
     icon: Stethoscope,
     items: [
       { to: '/medicine-logs', label: 'Medicine Logs', permission: 'viewMedicineLogs' },
-      { to: '/horse-care-team', label: 'Care Teams', always: false },
+      { to: '/horse-care-team', label: 'Care Teams', permission: 'manageHorseTeams' },
       { to: '/medicine-inventory', label: 'Medicine Inventory', permission: 'viewMedicineInventory' },
       { to: '/horse-feeds', label: 'Horse Feeds', permission: 'viewHorseFeeds' },
       { to: '/feed-inventory', label: 'Feed Inventory', permission: 'viewFeedInventory' },
@@ -90,7 +90,7 @@ const GROUPS = [
     items: [
       { to: '/reports', label: 'Reports', permission: 'viewReports' },
       { to: '/permissions', label: 'Permissions', permission: 'viewPermissions' },
-      { to: '/entity-map', label: 'Entity Map', permission: 'viewDashboard' },
+      { to: '/entity-map', label: 'Entity Map', permission: 'viewPermissions' },
       { to: '/profile', label: 'Profile', always: true },
     ],
   },
@@ -128,7 +128,7 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
       GROUPS.map((group) => ({
         ...group,
         items: group.items.filter((item) => {
-          if (item.show === false) return false;
+          if (item.show === false || item.always === false) return false;
           if (item.always) return true;
           if (item.permission) return Boolean(permissions[item.permission]);
           return true;

@@ -514,6 +514,36 @@ const TasksPage = () => {
     }
   };
 
+  const handleApproveTask = async (taskId) => {
+    setLoading(true);
+    try {
+      const response = await apiClient.patch(`/tasks/${taskId}`, { status: 'Approved' });
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, ...response.data } : t));
+      setMessage('Success: Task approved');
+      setViewingTaskId(null);
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectTask = async (taskId) => {
+    setLoading(true);
+    try {
+      const response = await apiClient.patch(`/tasks/${taskId}`, { status: 'Rejected' });
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, ...response.data } : t));
+      setMessage('Task rejected and sent back');
+      setViewingTaskId(null);
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage(`Error: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
@@ -522,6 +552,12 @@ const TasksPage = () => {
         return '#f57c00';
       case 'Completed':
         return '#388e3c';
+      case 'Pending Review':
+        return '#9c27b0';
+      case 'Approved':
+        return '#2e7d32';
+      case 'Rejected':
+        return '#c62828';
       default:
         return '#666';
     }
@@ -760,11 +796,31 @@ const TasksPage = () => {
           ) : (
             filteredTasks.map((task) => {
               const horseImage = getHorseProfileImage(task.horseId);
+              const evidenceImage = getTaskEvidenceImage(task);
+              const evidenceSrc = evidenceImage
+                ? (evidenceImage.startsWith('http') ? evidenceImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${evidenceImage}`)
+                : null;
 
               return (
                 <div key={task.id} className="task-card task-card-lovable group bg-surface-container-high rounded-xl overflow-hidden edge-glow border border-primary/10 hover:border-primary/30 transition-colors">
-                  <div className="task-card-media">
-                    {horseImage ? (
+                  <div
+                    className={`task-card-media relative${evidenceSrc ? ' cursor-pointer' : ''}`}
+                    onClick={evidenceSrc ? (e) => { e.stopPropagation(); setFullscreenImage(evidenceImage); } : undefined}
+                    title={evidenceSrc ? 'Click to view full evidence photo' : undefined}
+                  >
+                    {evidenceSrc ? (
+                      <>
+                        <img
+                          src={evidenceSrc}
+                          alt="Task evidence"
+                          className="task-card-image transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <span className="absolute bottom-1.5 left-1.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded leading-none">
+                          Evidence
+                        </span>
+                      </>
+                    ) : horseImage ? (
                       <img
                         src={horseImage}
                         alt={getHorseName(task.horseId)}
@@ -836,7 +892,7 @@ const TasksPage = () => {
                             </button>
                           </>
                         )}
-                        {CAN_REVIEW_TASKS.includes(user?.designation) && task.status === 'Completed' && (
+                        {CAN_REVIEW_TASKS.includes(user?.designation) && (task.status === 'Pending Review' || task.status === 'Completed') && (
                           <button
                             onClick={() => setViewingTaskId(task.id)}
                             disabled={loading}
@@ -1030,7 +1086,7 @@ const TasksPage = () => {
         </div>
       )}
 
-      {reviewingTask && reviewingTask.status === 'Completed' && (
+      {reviewingTask && (reviewingTask.status === 'Pending Review' || reviewingTask.status === 'Completed') && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewingTaskId(null)}>
           <div className="bg-surface-container-highest border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center px-6 py-4 border-b border-border">
@@ -1075,8 +1131,26 @@ const TasksPage = () => {
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-border">
-              <button onClick={() => setViewingTaskId(null)} className="w-full h-10 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Close")}</button>
+            <div className="px-6 py-4 border-t border-border flex gap-3">
+              {(reviewingTask.status === 'Pending Review' || reviewingTask.status === 'Completed') && (
+                <>
+                  <button
+                    onClick={() => handleApproveTask(reviewingTask.id)}
+                    disabled={loading}
+                    className="flex-1 h-10 rounded-lg bg-success/15 border border-success/40 text-success text-sm font-semibold hover:bg-success/25 transition-colors disabled:opacity-50"
+                  >
+                    ✔ Approve
+                  </button>
+                  <button
+                    onClick={() => handleRejectTask(reviewingTask.id)}
+                    disabled={loading}
+                    className="flex-1 h-10 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm font-semibold hover:bg-destructive/20 transition-colors disabled:opacity-50"
+                  >
+                    ✗ Reject
+                  </button>
+                </>
+              )}
+              <button onClick={() => setViewingTaskId(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Close")}</button>
             </div>
           </div>
         </div>
@@ -1084,9 +1158,45 @@ const TasksPage = () => {
 
       {/* Fullscreen Image Viewer */}
       {fullscreenImage && (
-        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center" onClick={() => setFullscreenImage(null)}>
-          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors" onClick={() => setFullscreenImage(null)} title="Close (ESC)"><X size={18} /></button>
-          <img src={fullscreenImage.startsWith('http') ? fullscreenImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${fullscreenImage}`} alt="Full size view" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" onClick={() => setFullscreenImage(null)} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="16" fill="%23999"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setFullscreenImage(null)}
+        >
+          {/* Close button */}
+          <button
+            className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            onClick={() => setFullscreenImage(null)}
+            title="Close (ESC)"
+            type="button"
+          >
+            <X size={20} />
+          </button>
+
+          {/* Label */}
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+            <span className="bg-primary/80 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
+              Task Evidence
+            </span>
+          </div>
+
+          {/* Image */}
+          <div
+            className="relative max-w-[min(92vw,600px)] max-h-[85vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={fullscreenImage.startsWith('http') ? fullscreenImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${fullscreenImage}`}
+              alt="Full size evidence"
+              className="w-full h-full object-contain rounded-2xl shadow-2xl border border-white/10"
+              style={{ maxHeight: '85vh' }}
+              onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23222"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="16" fill="%23666"%3EImage not found%3C/text%3E%3C/svg%3E'; }}
+            />
+            {/* Tap-to-close hint on mobile */}
+            <p className="absolute -bottom-8 left-0 right-0 text-center text-white/40 text-xs sm:hidden">
+              Tap outside to close
+            </p>
+          </div>
         </div>
       )}
     </div>

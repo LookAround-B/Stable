@@ -43,6 +43,7 @@ const HorseCareTeamPage = () => {
     'Instructor': ['Instructor'],
     'Farrier': ['Farrier'],
   };
+  const canManageCareTeams = p.manageHorseTeams;
 
   const showMsg = (msg, type = "success") => {
     setMessage(msg); setMessageType(type);
@@ -151,7 +152,7 @@ const HorseCareTeamPage = () => {
       const response = await apiClient.get('/employees');
       const allEmployees = Array.isArray(response.data) ? response.data : response.data.data || [];
       const stableStaff = allEmployees.filter((emp) =>
-        ['Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager'].includes(emp.designation)
+        ['Groom', 'Riding Boy', 'Rider', 'Jamedar', 'Instructor', 'Stable Manager', 'Farrier'].includes(emp.designation)
       );
       setEmployees(getFilteredEmployeeList(stableStaff));
     } catch (error) {
@@ -219,7 +220,7 @@ const HorseCareTeamPage = () => {
     return 'N/A';
   };
 
-  if (!p.isAdmin && user?.designation !== 'Stable Manager') return <Navigate to="/dashboard" replace />;
+  if (!canManageCareTeams && !p.viewHorses) return <Navigate to="/dashboard" replace />;
 
   const totalHorses = horses.length;
   const horsesWithTeams = horses.filter((h) => getHorseCareTeam(h.id).length > 0).length;
@@ -256,22 +257,24 @@ const HorseCareTeamPage = () => {
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Horse <span className="text-primary">{t("Care Team")}</span></h1>
         </div>
-        <div className="flex shrink-0">
-          <button 
-            onClick={() => setShowForm(!showForm)} 
-            className="horse-care-team-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
-          >
-            {showForm ? (
-              <><X className="w-4 h-4" /> {t("Cancel")}</>
-            ) : (
-              <>
-                <Plus className="w-4 h-4" />
-                <span className="sm:hidden">{t("Member")}</span>
-                <span className="hidden sm:inline">{t("Assign Member")}</span>
-              </>
-            )}
-          </button>
-        </div>
+        {canManageCareTeams && (
+          <div className="flex shrink-0">
+            <button 
+              onClick={() => setShowForm(!showForm)} 
+              className="horse-care-team-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
+            >
+              {showForm ? (
+                <><X className="w-4 h-4" /> {t("Cancel")}</>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  <span className="sm:hidden">{t("Member")}</span>
+                  <span className="hidden sm:inline">{t("Assign Member")}</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {message && (

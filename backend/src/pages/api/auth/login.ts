@@ -44,7 +44,6 @@ export default async function handler(
       include: {
         permissions: {
           select: {
-            viewDashboard: true,
             manageEmployees: true,
             viewReports: true,
             issueFines: true,
@@ -100,4 +99,3 @@ export default async function handler(
     res.status(500).json({ error: 'Internal server error' });
   }
 }
-

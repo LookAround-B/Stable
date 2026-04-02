@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
+import { createNotificationAndPublish } from '@/lib/notificationRealtime'
 
 export default async function handler(
   req: NextApiRequest,
@@ -202,14 +203,12 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       const scheduledStr = parsedScheduled.toLocaleString('en-IN', {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
       })
-      await prisma.notification.create({
-        data: {
-          employeeId: assignedEmployeeId,
-          type: 'task_assignment',
-          title: `New task assigned: ${sanitize(name)}`,
-          message: `You have been assigned a new task scheduled for ${scheduledStr}. Priority: ${priority || 'Medium'}.`,
-          relatedTaskId: task.id,
-        },
+      await createNotificationAndPublish({
+        employeeId: assignedEmployeeId,
+        type: 'task_assignment',
+        title: `New task assigned: ${sanitize(name)}`,
+        message: `You have been assigned a new task scheduled for ${scheduledStr}. Priority: ${priority || 'Medium'}.`,
+        relatedTaskId: task.id,
       })
     } catch (notifErr) {
       // Non-fatal: task was created, just log the notification failure
@@ -222,4 +221,3 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-

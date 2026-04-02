@@ -5,7 +5,7 @@ const ADMIN_ROLES = ['Super Admin', 'Director', 'School Administrator'];
 
 /**
  * Shared permissions hook used by both the Sidebar and individual pages.
- * 
+ *
  * Logic:
  *  1. Admins always have full access.
  *  2. If a `permissions` object exists on the user (from the DB), use it.
@@ -21,10 +21,17 @@ export default function usePermissions() {
     const isAdmin = ADMIN_ROLES.includes(designation);
     const perms = user?.permissions || null;
 
-    // Helper: admin → true, DB row → flag, else → designation fallback
     const has = (key, fallback) => {
       if (isAdmin) return true;
-      if (perms) return !!perms[key];
+      if (perms && Object.prototype.hasOwnProperty.call(perms, key)) return !!perms[key];
+      return fallback;
+    };
+
+    const hasAny = (keys, fallback) => {
+      if (isAdmin) return true;
+      if (perms) {
+        return keys.some((key) => Object.prototype.hasOwnProperty.call(perms, key) && !!perms[key]);
+      }
       return fallback;
     };
 
@@ -32,63 +39,102 @@ export default function usePermissions() {
       isAdmin,
 
       // Dashboard
-      viewDashboard: has('viewDashboard', true),
+      viewDashboard: true,
 
       // Organization
-      viewHorses: has('viewDashboard', designation !== 'Guard'),
+      viewHorses: hasAny(
+        ['manageEmployees', 'manageSchedules', 'manageInventory'],
+        designation !== 'Guard'
+      ),
       manageEmployees: has('manageEmployees', true),
+      manageHorseTeams: hasAny(
+        ['manageEmployees', 'manageSchedules'],
+        designation === 'Stable Manager'
+      ),
 
       // Tasks & Approvals
-      manageTasks: has('manageSchedules',
-        ['Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(designation)),
+      manageTasks: has(
+        'manageSchedules',
+        ['Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(designation)
+      ),
       viewApprovals: has('manageSchedules', designation === 'Stable Manager'),
       viewMeetings: has('manageSchedules', designation === 'Stable Manager'),
 
       // Stable Operations
-      viewMedicineLogs: has('manageInventory',
-        designation === 'Jamedar' || designation === 'Stable Manager'),
-      viewMedicineInventory: has('manageInventory',
-        ['Stable Manager', 'Jamedar'].includes(designation)),
-      viewHorseFeeds: has('manageInventory',
-        ['Stable Manager', 'Ground Supervisor'].includes(designation)),
-      viewFeedInventory: has('manageInventory',
-        ['Stable Manager', 'Ground Supervisor'].includes(designation)),
-      viewFarrierShoeing: has('manageSchedules',
-        ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)),
-      viewTackInventory: has('manageInventory',
-        ['Stable Manager', 'Jamedar', 'Ground Supervisor'].includes(designation)),
-      viewFarrierInventory: has('manageInventory',
-        ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)),
+      viewMedicineLogs: has(
+        'manageInventory',
+        designation === 'Jamedar' || designation === 'Stable Manager'
+      ),
+      viewMedicineInventory: has(
+        'manageInventory',
+        ['Stable Manager', 'Jamedar'].includes(designation)
+      ),
+      viewHorseFeeds: has(
+        'manageInventory',
+        ['Stable Manager', 'Ground Supervisor'].includes(designation)
+      ),
+      viewFeedInventory: has(
+        'manageInventory',
+        ['Stable Manager', 'Ground Supervisor'].includes(designation)
+      ),
+      viewFarrierShoeing: has(
+        'manageSchedules',
+        ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)
+      ),
+      viewTackInventory: has(
+        'manageInventory',
+        ['Stable Manager', 'Jamedar', 'Ground Supervisor'].includes(designation)
+      ),
+      viewFarrierInventory: has(
+        'manageInventory',
+        ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)
+      ),
 
       // Ground Operations
-      viewGateEntry: has('manageSchedules',
-        designation === 'Guard' || ['Stable Manager', 'Ground Supervisor'].includes(designation)),
-      viewDailyAttendance: has('manageSchedules',
-        ['Ground Supervisor', 'Groom'].includes(designation)),
-      viewTeamAttendance: has('manageSchedules',
-        ['Stable Manager', 'Ground Supervisor'].includes(designation)),
+      viewGateEntry: has(
+        'manageSchedules',
+        designation === 'Guard' || ['Stable Manager', 'Ground Supervisor'].includes(designation)
+      ),
+      viewDailyAttendance: has(
+        'manageSchedules',
+        ['Ground Supervisor', 'Groom'].includes(designation)
+      ),
+      viewTeamAttendance: has(
+        'manageSchedules',
+        ['Stable Manager', 'Ground Supervisor'].includes(designation)
+      ),
       viewGroomWorksheet: has('manageSchedules', designation === 'Groom'),
-      viewInspections: has('manageSchedules',
-        designation === 'Jamedar' || designation === 'Stable Manager'),
-      viewHousekeepingInventory: has('manageInventory',
-        ['Stable Manager', 'Ground Supervisor', 'Housekeeping'].includes(designation)),
-      viewEIRS: has('manageSchedules',
-        ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(designation)),
+      viewInspections: has(
+        'manageSchedules',
+        designation === 'Jamedar' || designation === 'Stable Manager'
+      ),
+      viewHousekeepingInventory: has(
+        'manageInventory',
+        ['Stable Manager', 'Ground Supervisor', 'Housekeeping'].includes(designation)
+      ),
+      viewEIRS: has(
+        'manageSchedules',
+        ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(designation)
+      ),
 
       // Restaurant
-      viewGroceriesInventory: has('manageInventory',
-        ['Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(designation)),
+      viewGroceriesInventory: has(
+        'manageInventory',
+        ['Senior Executive Admin', 'Junior Executive Admin', 'Restaurant Manager'].includes(designation)
+      ),
 
       // Accounts & Finance
       viewInvoiceGeneration: has('viewPayroll', designation === 'Stable Manager'),
-      viewExpenses: has('viewPayroll',
-        ['Senior Executive Accounts', 'Executive Accounts'].includes(designation)),
+      viewExpenses: has(
+        'viewPayroll',
+        ['Senior Executive Accounts', 'Executive Accounts'].includes(designation)
+      ),
       viewFines: has('issueFines', true),
 
       // System
       viewReports: has('viewReports', true),
       viewPermissions: isAdmin,
-      viewNotifications: has('viewNotifications', true),
+      viewNotifications: true,
     };
   }, [user]);
 }
