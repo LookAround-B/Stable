@@ -28,6 +28,82 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/tasks/my-tasks - Get tasks assigned to current user
+router.get('/my-tasks', authenticateToken, async (req, res) => {
+  try {
+    const tasks = await prisma.task.findMany({
+      where: { assignedEmployeeId: req.user.id },
+      include: {
+        horse: true,
+        assignedEmployee: true,
+        createdBy: true,
+      },
+      orderBy: { scheduledTime: 'desc' },
+      take: 1000,
+    });
+    res.json({ data: tasks });
+  } catch (error) {
+    console.error('Error fetching my tasks:', error);
+    res.status(500).json({ error: 'Failed to fetch tasks', details: error.message });
+  }
+});
+
+// PATCH /api/tasks/:id/start - Start a task (set to In Progress)
+router.patch('/:id/start', authenticateToken, async (req, res) => {
+  try {
+    const task = await prisma.task.findUnique({ where: { id: req.params.id } });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (task.assignedEmployeeId !== req.user.id)
+      return res.status(403).json({ error: 'You are not assigned to this task' });
+    if (task.status !== 'Pending')
+      return res.status(400).json({ error: `Task cannot be started — current status is "${task.status}"` });
+
+    const updated = await prisma.task.update({
+      where: { id: req.params.id },
+      data: { status: 'In Progress' },
+      include: { horse: true, assignedEmployee: true, createdBy: true },
+    });
+    res.json({ success: true, data: updated, message: 'Task started successfully.' });
+  } catch (error) {
+    console.error('Error starting task:', error);
+    res.status(500).json({ error: 'Failed to start task', details: error.message });
+  }
+});
+
+// PATCH /api/tasks/:id/submit-completion - Submit task completion
+router.patch('/:id/submit-completion', authenticateToken, async (req, res) => {
+  try {
+    const { proofImage, completionNotes } = req.body;
+    const task = await prisma.task.findUnique({
+      where: { id: req.params.id },
+      include: { assignedEmployee: true, createdBy: true },
+    });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (task.assignedEmployeeId !== req.user.id)
+      return res.status(403).json({ error: 'You are not assigned to this task' });
+    if (task.status !== 'In Progress')
+      return res.status(400).json({ error: 'Task must be in progress before submission' });
+    if (task.requiredProof && !proofImage)
+      return res.status(400).json({ error: 'Photo evidence is required for this task' });
+
+    const updated = await prisma.task.update({
+      where: { id: req.params.id },
+      data: {
+        status: 'Pending Review',
+        proofImage: proofImage || undefined,
+        completionNotes: completionNotes || undefined,
+        submittedAt: new Date(),
+        completedTime: new Date(),
+      },
+      include: { horse: true, assignedEmployee: true, createdBy: true },
+    });
+    res.json({ success: true, data: updated, message: 'Task submitted successfully. Awaiting approval.' });
+  } catch (error) {
+    console.error('Error submitting task:', error);
+    res.status(500).json({ error: 'Failed to submit task', details: error.message });
+  }
+});
+
 // GET /api/tasks/:id - Get task by ID
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -108,26 +184,6 @@ router.put('/:id', authenticateToken, async (req, res) => {
     console.error('Error updating task:', error);
     res.status(500).json({ error: 'Failed to update task', details: error.message });
   }
-});
-
-// POST /api/tasks/:id/start - Start task
-router.post('/:id/start', authenticateToken, (req, res) => {
-  res.json({ message: 'Start task' });
-});
-
-// POST /api/tasks/:id/complete - Mark task as complete
-router.post('/:id/complete', authenticateToken, (req, res) => {
-  res.json({ message: 'Complete task' });
-});
-
-// POST /api/tasks/:id/upload-proof - Upload proof images
-router.post('/:id/upload-proof', authenticateToken, (req, res) => {
-  res.json({ message: 'Upload task proof' });
-});
-
-// POST /api/tasks/:id/submit-questionnaire - Submit task questionnaire
-router.post('/:id/submit-questionnaire', authenticateToken, (req, res) => {
-  res.json({ message: 'Submit task questionnaire' });
 });
 
 module.exports = router;
