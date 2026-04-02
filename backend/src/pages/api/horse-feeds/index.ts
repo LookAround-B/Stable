@@ -1,40 +1,38 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../../lib/prisma';
-import { verifyToken } from '../../../lib/auth';
+import { NextApiRequest, NextApiResponse } from 'next'
+import prisma from '@/lib/prisma'
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  getTokenFromRequest,
+  verifyToken,
+} from '@/lib/auth'
 import { setCorsHeaders } from '@/lib/cors'
-import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
-
+import {
+  isValidId,
+  isValidString,
+  safeDate,
+  sanitizeString,
+} from '@/lib/validate'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin
   setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end()
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
-    }
-
-    const token = authHeader.split(' ')[1];
+    const token = getTokenFromRequest(req as any)
     if (!token) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'No authorization header' })
     }
-    const decoded = verifyToken(token);
 
+    const decoded = verifyToken(token)
     if (!decoded) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'Invalid or expired token' })
     }
 
-    // Get full user data from database
     const user = await prisma.employee.findUnique({
       where: { id: decoded.id },
       select: {
@@ -43,42 +41,46 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         designation: true,
         fullName: true,
       },
-    });
+    })
 
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'User not found' })
     }
 
+    const canManageInventory = await checkPermission(decoded, 'manageInventory')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canViewHorseFeeds =
+      canManageInventory ||
+      taskCapabilities.canViewHorseFeeds ||
+      taskCapabilities.canRecordHorseFeeds
+    const canRecordHorseFeeds = taskCapabilities.canRecordHorseFeeds
+
     if (req.method === 'GET') {
-      // Get horse feed records
-      const { startDate, endDate, horseId } = req.query;
-
-      // Only Stable Manager and Ground Supervisor can view
-      if (!['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
-        return res.status(403).json({ error: 'You do not have permission to view horse feeds' });
+      if (!canViewHorseFeeds) {
+        return res.status(403).json({
+          error: 'You do not have permission to view horse feeds',
+        })
       }
 
-      let where: any = {};
+      const { startDate, endDate, horseId } = req.query
+      const where: any = {}
 
-      // Filter by horse if specified
       if (horseId) {
-        where.horseId = horseId as string;
+        where.horseId = horseId as string
       }
 
-      // Filter by date range
       if (startDate || endDate) {
-        where.date = {};
+        where.date = {}
         if (startDate) {
-          const [year, month, day] = (startDate as string).split('-').map(Number);
-          const startDateObj = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-          console.log(`[Horse Feeds GET] startDate: ${startDate}, parsed: UTC: ${startDateObj.toISOString()}`);
-          where.date.gte = startDateObj;
+          const [year, month, day] = (startDate as string).split('-').map(Number)
+          where.date.gte = new Date(Date.UTC(year, month - 1, day, 0, 0, 0))
         }
         if (endDate) {
-          const [year, month, day] = (endDate as string).split('-').map(Number);
-          const endDateObj = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0));
-          console.log(`[Horse Feeds GET] endDate: ${endDate}, next day UTC: ${endDateObj.toISOString()}`);
-          where.date.lt = endDateObj;
+          const [year, month, day] = (endDate as string).split('-').map(Number)
+          where.date.lt = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0))
         }
       }
 
@@ -99,44 +101,59 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
         },
         orderBy: { date: 'desc' },
-      });
+      })
 
       return res.status(200).json({
         data: records,
         message: 'Horse feed records retrieved',
-      });
-    } else if (req.method === 'POST') {
-      // Create horse feed record - only Stable Manager and Ground Supervisor
-      if (!['Stable Manager', 'Ground Supervisor', 'Super Admin', 'Director', 'School Administrator'].includes(user.designation)) {
-        return res.status(403).json({ error: 'Only Stable Manager and Ground Supervisor can record horse feeds' });
+      })
+    }
+
+    if (req.method === 'POST') {
+      if (!canRecordHorseFeeds) {
+        return res.status(403).json({
+          error: 'Horse feed recording is not enabled for your account',
+        })
       }
 
-      const { horseId, date, balance, barley, oats, soya, lucerne, linseed, rOil, biotin, joint, epsom, heylase, notes } = req.body;
+      const {
+        horseId,
+        date,
+        balance,
+        barley,
+        oats,
+        soya,
+        lucerne,
+        linseed,
+        rOil,
+        biotin,
+        joint,
+        epsom,
+        heylase,
+        notes,
+      } = req.body
 
       if (!isValidId(horseId)) {
-        return res.status(400).json({ error: 'Valid Horse ID is required' });
+        return res.status(400).json({ error: 'Valid Horse ID is required' })
       }
       if (!safeDate(date)) {
-        return res.status(400).json({ error: 'Valid date is required' });
+        return res.status(400).json({ error: 'Valid date is required' })
       }
       if (notes && !isValidString(notes, 0, 1000)) {
-        return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+        return res.status(400).json({ error: 'Notes must be max 1000 chars' })
       }
 
-      // Validate horse exists
       const horse = await prisma.horse.findUnique({
         where: { id: horseId },
-      });
+      })
 
       if (!horse) {
-        return res.status(404).json({ error: 'Horse not found' });
+        return res.status(404).json({ error: 'Horse not found' })
       }
 
-      // Parse date
-      const [year, month, day] = (date as string).split('-').map(Number);
-      const recordDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+      const [year, month, day] = (date as string).split('-').map(Number)
+      const recordDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0))
 
-      // Check if record already exists for this horse and date
       const existingRecord = await prisma.horseFeed.findUnique({
         where: {
           horseId_date: {
@@ -144,10 +161,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             date: recordDate,
           },
         },
-      });
+      })
 
       if (existingRecord) {
-        return res.status(400).json({ error: 'A feed record already exists for this horse on this date' });
+        return res.status(400).json({
+          error: 'A feed record already exists for this horse on this date',
+        })
       }
 
       const record = await prisma.horseFeed.create({
@@ -182,23 +201,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             },
           },
         },
-      });
-
-      console.log('[Horse Feeds POST] Record created:', JSON.stringify(record, null, 2));
+      })
 
       return res.status(201).json({
         data: record,
         message: 'Horse feed record created successfully',
-      });
-    } else {
-      res.setHeader('Allow', ['GET', 'POST']);
-      return res.status(405).json({ error: 'Method not allowed' });
+      })
     }
+
+    res.setHeader('Allow', ['GET', 'POST'])
+    return res.status(405).json({ error: 'Method not allowed' })
   } catch (error: any) {
-    console.error('Horse feeds API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Horse feeds API error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
 
-export default handler;
-
+export default handler

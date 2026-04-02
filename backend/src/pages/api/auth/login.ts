@@ -1,7 +1,7 @@
 // pages/api/auth/login.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
-import { generateToken } from '@/lib/auth'
+import { generateToken, getTaskCapabilitiesForUser } from '@/lib/auth'
 import { setCorsHeaders } from '@/lib/cors'
 import bcrypt from 'bcryptjs'
 import { isValidEmail, isValidString, validationError } from '@/lib/validate'
@@ -80,6 +80,10 @@ export default async function handler(
       email: user.email,
       designation: user.designation,
     })
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      user.id,
+      user.designation
+    )
 
     res.status(200).json({
       token,
@@ -92,6 +96,7 @@ export default async function handler(
         isApproved: user.isApproved,
         profileImage: user.profileImage,
         permissions: user.permissions || null,
+        taskCapabilities,
       },
     });
   } catch (error) {

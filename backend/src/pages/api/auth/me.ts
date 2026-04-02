@@ -1,6 +1,6 @@
 // pages/api/auth/me.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { getTokenFromRequest, getTaskCapabilitiesForUser, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -61,7 +61,15 @@ export default async function handler(
       return res.status(404).json({ error: 'User not found' })
     }
 
-    return res.status(200).json(user)
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      user.id,
+      user.designation
+    )
+
+    return res.status(200).json({
+      ...user,
+      taskCapabilities,
+    })
   } catch (error) {
     console.error('Auth error:', error)
     return res.status(500).json({ error: 'Internal server error' })

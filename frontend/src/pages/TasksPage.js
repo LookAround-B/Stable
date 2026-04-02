@@ -21,27 +21,6 @@ const TASK_TYPES = [
   'Other'
 ];
 
-const CAN_CREATE_TASKS = [
-  'Super Admin',
-  'Director',
-  'School Administrator',
-  'Stable Manager',
-  'Instructor',
-  'Ground Supervisor',
-  'Jamedar'
-];
-
-const CAN_REVIEW_TASKS = [
-  'Super Admin',
-  'Director',
-  'School Administrator',
-  'Stable Manager',
-  'Instructor',
-  'Ground Supervisor',
-  'Senior Executive Accounts',
-  'Jamedar'
-];
-
 const TASK_CATEGORY_MAP = {
   'Health Check': 'PRIORITY ALPHA',
   Training: 'CONDITIONING',
@@ -154,6 +133,12 @@ const TasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
+  const taskCapabilities = user?.taskCapabilities || {};
+  const canManageSchedules = p.isAdmin || Boolean(user?.permissions?.manageSchedules);
+  const canCreateTasks = canManageSchedules || Boolean(taskCapabilities.canCreateTasks);
+  const canReviewTasks = canManageSchedules || Boolean(taskCapabilities.canReviewTasks);
+  const canWorkOnAssignedTasks =
+    canManageSchedules || Boolean(taskCapabilities.canWorkOnAssignedTasks);
   const [tasks, setTasks] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -275,8 +260,6 @@ const TasksPage = () => {
     });
   };
 
-  const canCreateTasks = CAN_CREATE_TASKS.includes(user?.designation);
-
   useEffect(() => {
     let active = true;
 
@@ -328,8 +311,7 @@ const TasksPage = () => {
     };
   }, [viewingTaskId]);
 
-  // All authenticated users can view tasks (assigned to them)
-  // Only users in CAN_CREATE_TASKS can create new tasks
+  // Page access is driven by effective task capabilities plus broad schedule access.
 
   const loadTasks = async () => {
     try {
@@ -409,8 +391,9 @@ const TasksPage = () => {
   const handleStartTask = async (taskId) => {
     setLoading(true);
     try {
-      const response = await apiClient.patch(`/tasks/${taskId}`, { status: 'In Progress' });
-      setTasks(tasks.map(t => t.id === taskId ? response.data : t));
+      const response = await apiClient.patch(`/tasks/${taskId}/start`);
+      const updatedTask = response.data?.data;
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask || t : t));
       setMessage('Success: Task started');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
@@ -432,12 +415,12 @@ const TasksPage = () => {
 
     setLoading(true);
     try {
-      const response = await apiClient.patch(`/tasks/${taskId}`, { 
-        status: 'Completed',
-        completionNotes: completionData.notes,
-        photoUrl: completionData.photoUrl
+      const response = await apiClient.patch(`/tasks/${taskId}/submit-completion`, {
+        proofImage: completionData.photoUrl,
+        completionNotes: completionData.notes
       });
-      setTasks(tasks.map(t => t.id === taskId ? response.data : t));
+      const updatedTask = response.data?.data;
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask || t : t));
       setMessage('Success: Task completed and submitted for approval');
       setCompletionData({ photoUrl: '', notes: '' });
       setSelectedTaskId(null);
@@ -862,7 +845,7 @@ const TasksPage = () => {
                         {t('Assigned')}: <strong className="text-foreground">{getEmployeeName(task.assignedEmployeeId)}</strong>
                       </span>
                       <div className="task-card-action-cluster flex gap-2 flex-wrap">
-                        {!canCreateTasks && task.status === 'Pending' && (
+                        {canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'Pending' && (
                           <button
                             onClick={() => handleStartTask(task.id)}
                             disabled={loading}
@@ -872,7 +855,7 @@ const TasksPage = () => {
                             {t('Start Task')} <Play className="w-3.5 h-3.5 fill-current" />
                           </button>
                         )}
-                        {!canCreateTasks && task.status === 'In Progress' && (
+                        {canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'In Progress' && (
                           <>
                             <button
                               onClick={() => setSelectedTaskId(task.id)}
@@ -892,7 +875,7 @@ const TasksPage = () => {
                             </button>
                           </>
                         )}
-                        {CAN_REVIEW_TASKS.includes(user?.designation) && (task.status === 'Pending Review' || task.status === 'Completed') && (
+                        {canReviewTasks && (task.status === 'Pending Review' || task.status === 'Completed') && (
                           <button
                             onClick={() => setViewingTaskId(task.id)}
                             disabled={loading}

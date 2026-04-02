@@ -22,6 +22,11 @@ const MedicineLogsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
+  const taskCapabilities = user?.taskCapabilities || {};
+  const canRecordMedicineLogs = Boolean(taskCapabilities.canRecordMedicineLogs);
+  const canApprove = Boolean(taskCapabilities.canApproveMedicineLogs);
+  const canViewOwnLogs =
+    Boolean(taskCapabilities.canViewOwnMedicineLogs) || canRecordMedicineLogs;
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState('');
@@ -48,22 +53,19 @@ const MedicineLogsPage = () => {
 
   const UNITS = ['ml', 'g', 'tablets', 'vials', 'bottles', 'injections'];
 
-  const canApprove = ['Stable Manager', 'Director', 'Super Admin', 'School Administrator'].includes(user?.designation);
-  const isJamedar = user?.designation === 'Jamedar';
-
   useEffect(() => {
     if (user) {
-      if (isJamedar) setSelectedTab('my-logs');
+      if (canViewOwnLogs) setSelectedTab('my-logs');
       else if (canApprove) setSelectedTab('pending-approval');
       else setSelectedTab('all-logs');
     }
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, canApprove, canViewOwnLogs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       let response;
-      if (selectedTab === 'my-logs' && isJamedar) {
+      if (selectedTab === 'my-logs' && canViewOwnLogs) {
         response = await medicineLogService.getMyMedicineLogs();
       } else if (selectedTab === 'pending-approval' && canApprove) {
         response = await medicineLogService.getPendingMedicineLogs();
@@ -78,7 +80,7 @@ const MedicineLogsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedTab, isJamedar, canApprove]);
+  }, [selectedTab, canApprove, canViewOwnLogs]);
 
   const loadHorses = useCallback(async () => {
     try {
@@ -301,7 +303,7 @@ const MedicineLogsPage = () => {
 
   const tabFilters = [
     { key: 'all-logs', label: 'All Logs' },
-    ...(isJamedar ? [{ key: 'my-logs', label: 'My Logs' }] : []),
+    ...(canViewOwnLogs ? [{ key: 'my-logs', label: 'My Logs' }] : []),
     ...(canApprove ? [{ key: 'pending-approval', label: 'Pending Approval' }] : []),
   ];
 
@@ -462,7 +464,7 @@ const MedicineLogsPage = () => {
       )}
 
       {/* ═══════════ MY LOGS TAB ═══════════ */}
-      {selectedTab === 'my-logs' && isJamedar && (
+      {selectedTab === 'my-logs' && canViewOwnLogs && (
         <div className="space-y-4">
           <div className="flex justify-end">
             <button

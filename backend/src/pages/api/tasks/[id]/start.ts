@@ -1,6 +1,11 @@
 // pages/api/tasks/[id]/start.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  getTokenFromRequest,
+  verifyToken,
+} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -45,7 +50,15 @@ export default async function handler(
       return res.status(404).json({ error: 'Task not found' })
     }
 
-    if (task.assignedEmployeeId !== userId) {
+    const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canWorkOnAssignedTasks =
+      canManageSchedules || taskCapabilities.canWorkOnAssignedTasks
+
+    if (task.assignedEmployeeId !== userId || !canWorkOnAssignedTasks) {
       return res.status(403).json({ error: 'You are not assigned to this task' })
     }
 

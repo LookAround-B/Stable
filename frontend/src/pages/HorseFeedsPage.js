@@ -12,10 +12,14 @@ import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { useAuth } from '../context/AuthContext';
 
 const HorseFeedsPage = () => {
+  const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
+  const taskCapabilities = user?.taskCapabilities || {};
+  const canRecordHorseFeeds = Boolean(taskCapabilities.canRecordHorseFeeds);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [horses, setHorses] = useState([]);
@@ -154,9 +158,11 @@ const HorseFeedsPage = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Horse <span className="text-primary">{t("Feeds")}</span></h1>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <button onClick={() => setShowForm(!showForm)} className="horse-feeds-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-              {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add Feed</>}
-            </button>
+            {canRecordHorseFeeds && (
+              <button onClick={() => setShowForm(!showForm)} className="horse-feeds-header-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+                {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add Feed</>}
+              </button>
+            )}
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{t('Record daily feed consumption for horses')}</p>
@@ -216,7 +222,7 @@ const HorseFeedsPage = () => {
       </div>
 
       {/* Add Feed Record Form */}
-      {showForm && ReactDOM.createPortal(
+      {canRecordHorseFeeds && showForm && ReactDOM.createPortal(
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowForm(false)}>
           <div className="my-auto flex w-full max-w-6xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">

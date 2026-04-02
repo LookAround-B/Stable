@@ -27,6 +27,10 @@ const FarrierShoeingPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
+  const taskCapabilities = user?.taskCapabilities || {};
+  const canManageSchedules = p.isAdmin || Boolean(user?.permissions?.manageSchedules);
+  const canRecordFarrierShoeing =
+    canManageSchedules || Boolean(taskCapabilities.canRecordFarrierShoeing);
   const [activeTab, setActiveTab] = useState('completed');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -231,7 +235,7 @@ const FarrierShoeingPage = () => {
           {pendingHorses.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-destructive text-white text-[10px] font-bold">{pendingHorses.length}</span>}
         </button>
         </div>
-        {activeTab === 'completed' && (
+        {activeTab === 'completed' && canRecordFarrierShoeing && (
           <button onClick={() => setShowForm(!showForm)} disabled={loading} className="farrier-shoeing-record-btn h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> Record Shoeing</>}
           </button>
@@ -239,7 +243,7 @@ const FarrierShoeingPage = () => {
       </div>
 
       {/* Add Form */}
-      {showForm && (
+      {canRecordFarrierShoeing && showForm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm p-4 sm:p-6" onClick={() => setShowForm(false)}>
           <div className="my-auto flex w-full max-w-5xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest edge-glow xl:max-w-6xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
@@ -327,7 +331,9 @@ const FarrierShoeingPage = () => {
                         <td className="px-4 py-3">{getStatusBadge(record)}</td>
                         <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || 'N/A'}</td>
                         <td className="px-4 py-3">
-                          <button onClick={() => handleDelete(record.id)} disabled={loading} className="h-8 px-3 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition-colors flex items-center gap-1.5"><Trash2 className="w-3 h-3" /> Delete</button>
+                          {canRecordFarrierShoeing && (
+                            <button onClick={() => handleDelete(record.id)} disabled={loading} className="h-8 px-3 rounded-lg border border-destructive/30 text-destructive text-xs font-medium hover:bg-destructive/10 transition-colors flex items-center gap-1.5"><Trash2 className="w-3 h-3" /> Delete</button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -398,7 +404,9 @@ const FarrierShoeingPage = () => {
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{item.farrier?.fullName || 'N/A'}</td>
                         <td className="px-4 py-3">
-                          <button onClick={() => handleQuickShoe(item.horse?.id)} className="h-8 px-4 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1.5"><Hammer className="w-3 h-3" /> Shoe Now</button>
+                          {canRecordFarrierShoeing && (
+                            <button onClick={() => handleQuickShoe(item.horse?.id)} className="h-8 px-4 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1.5"><Hammer className="w-3 h-3" /> Shoe Now</button>
+                          )}
                         </td>
                       </tr>
                     ))}

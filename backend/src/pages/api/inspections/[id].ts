@@ -1,51 +1,75 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  getTokenFromRequest,
+  verifyToken,
+} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
-import { sanitizeString, isValidId } from '@/lib/validate'
+import { isValidId, sanitizeString } from '@/lib/validate'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const VALID_AREAS = [
+  'Pony stables',
+  'Rear Paddocks',
+  'Private stables',
+  'Front office stables',
+  'Warm up arena',
+  'Jumping arena',
+  'Dressage arena',
+  'Camp Area',
+  'Forest Trail',
+  'Accommodation',
+  'Middle school',
+  'Top school',
+  'Gazebo area',
+  'Grooms rooms',
+  'Round yard',
+  'Paddocks',
+]
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const origin = req.headers.origin
   setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end()
   }
 
-  // Check authentication
   const token = getTokenFromRequest(req as any)
-  if (!token || !verifyToken(token)) {
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  const decoded = verifyToken(token)
+  if (!decoded) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
   switch (req.method) {
     case 'GET':
-      return handleGetInspection(req, res)
+      return handleGetInspection(req, res, decoded)
     case 'PUT':
-      return handleUpdateInspection(req, res)
+      return handleUpdateInspection(req, res, decoded)
     case 'DELETE':
-      return handleDeleteInspection(req, res)
+      return handleDeleteInspection(req, res, decoded)
     default:
       return res.status(405).json({ error: 'Method not allowed' })
   }
 }
 
-async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
+async function handleGetInspection(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  decoded: { id: string; designation: string; email: string }
+) {
   try {
     const { id } = req.query
     if (!id || typeof id !== 'string' || !isValidId(id)) {
       return res.status(400).json({ error: 'Invalid inspection ID' })
-    }
-    const token = getTokenFromRequest(req as any)
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-    const decoded = verifyToken(token)
-    const userId = decoded?.id
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' })
     }
 
     const inspection = await prisma.inspectionRound.findUnique({
@@ -67,30 +91,49 @@ async function handleGetInspection(req: NextApiRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'Inspection not found' })
     }
 
+    const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canViewAll =
+      canManageSchedules || taskCapabilities.canViewAllInspections
+    const canViewOwn = taskCapabilities.canCreateInspections
+
+    if (
+      !canViewAll &&
+      (!canViewOwn || inspection.jamedarId !== decoded.id)
+    ) {
+      return res.status(403).json({ error: 'Not authorized to view this inspection' })
+    }
+
     res.status(200).json({ inspection })
   } catch (error) {
-    console.error('❌ Error fetching inspection:', error)
+    console.error('Error fetching inspection:', error)
     res.status(500).json({ error: 'Failed to fetch inspection' })
   }
 }
 
-async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse) {
+async function handleUpdateInspection(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  decoded: { id: string; designation: string; email: string }
+) {
   try {
     const { id } = req.query
-    const { round, description, horseId, location, area, severityLevel, comments, status, resolutionNotes } = req.body
-    const token = getTokenFromRequest(req as any)
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-    const decoded = verifyToken(token)
-    const userId = decoded?.id
-    const userRole = decoded?.designation
+    const {
+      round,
+      description,
+      horseId,
+      location,
+      area,
+      severityLevel,
+      comments,
+      status,
+      resolutionNotes,
+      images,
+    } = req.body
 
-    if (!userId || !userRole) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-
-    // Check if inspection exists
     const inspection = await prisma.inspectionRound.findUnique({
       where: { id: id as string },
     })
@@ -99,42 +142,75 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Inspection not found' })
     }
 
-    // Check authorization (creator or manager)
-    const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar']
-    if (userId !== inspection.jamedarId && !AUTHORIZED_ROLES.includes(userRole)) {
+    const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canResolve =
+      canManageSchedules || taskCapabilities.canResolveInspections
+    const canEditOwn =
+      taskCapabilities.canCreateInspections && inspection.jamedarId === decoded.id
+
+    if (!canResolve && !canEditOwn) {
       return res.status(403).json({ error: 'Not authorized to update this inspection' })
     }
 
-    // Validation
     if (round && !['Morning', 'Afternoon', 'Evening'].includes(round)) {
-      return res.status(400).json({ error: 'Invalid round. Must be Morning, Afternoon, or Evening' })
+      return res.status(400).json({
+        error: 'Invalid round. Must be Morning, Afternoon, or Evening',
+      })
     }
 
-    if (severityLevel && !['Low', 'Medium', 'High', 'Critical'].includes(severityLevel)) {
-      return res.status(400).json({ error: 'Invalid severity level. Must be Low, Medium, High, or Critical' })
+    if (
+      severityLevel &&
+      !['Low', 'Medium', 'High', 'Critical'].includes(severityLevel)
+    ) {
+      return res.status(400).json({
+        error: 'Invalid severity level. Must be Low, Medium, High, or Critical',
+      })
+    }
+
+    if (area && !VALID_AREAS.includes(area)) {
+      return res.status(400).json({ error: 'Invalid area selected' })
     }
 
     if (description && description.length > 500) {
-      return res.status(400).json({ error: 'Description cannot exceed 500 characters' })
+      return res
+        .status(400)
+        .json({ error: 'Description cannot exceed 500 characters' })
     }
 
     if (location && location.length > 100) {
-      return res.status(400).json({ error: 'Location cannot exceed 100 characters' })
+      return res
+        .status(400)
+        .json({ error: 'Location cannot exceed 100 characters' })
     }
 
     if (comments && comments.length > 500) {
-      return res.status(400).json({ error: 'Comments cannot exceed 500 characters' })
+      return res
+        .status(400)
+        .json({ error: 'Comments cannot exceed 500 characters' })
     }
 
     if (resolutionNotes && resolutionNotes.length > 500) {
-      return res.status(400).json({ error: 'Resolution notes cannot exceed 500 characters' })
+      return res
+        .status(400)
+        .json({ error: 'Resolution notes cannot exceed 500 characters' })
     }
 
     if (status && !['Open', 'Resolved'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be Open or Resolved' })
+      return res
+        .status(400)
+        .json({ error: 'Invalid status. Must be Open or Resolved' })
     }
 
-    // Validate horse exists if provided
+    if ((status || comments !== undefined || resolutionNotes !== undefined) && !canResolve) {
+      return res.status(403).json({
+        error: 'Inspection resolution is not enabled for your account.',
+      })
+    }
+
     if (horseId) {
       const horse = await prisma.horse.findUnique({ where: { id: horseId } })
       if (!horse) {
@@ -142,7 +218,6 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Build update data
     const updateData: any = {
       ...(round && { round }),
       ...(description && { description: sanitizeString(description) }),
@@ -150,14 +225,17 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       ...(location && { location: sanitizeString(location) }),
       ...(area !== undefined && { area: area || null }),
       ...(severityLevel && { severityLevel }),
-      ...(comments !== undefined && { comments: comments ? sanitizeString(comments) : null }),
     }
 
-    // Handle images array update if provided
-    const { images } = req.body
+    if (canResolve) {
+      updateData.comments =
+        comments !== undefined ? (comments ? sanitizeString(comments) : null) : inspection.comments
+    }
+
     if (images && Array.isArray(images) && images.length > 0) {
       const { uploadImage } = await import('@/lib/s3')
       const imageUrls: string[] = []
+
       for (const imgData of images) {
         try {
           if (typeof imgData === 'string' && imgData.startsWith('data:')) {
@@ -172,27 +250,30 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
             imageUrls.push(imgData)
           }
         } catch (e) {
-          console.error('Image upload failed during update:', e)
+          console.error('Inspection image upload failed during update:', e)
         }
       }
-      if (imageUrls.length > 0) updateData.images = imageUrls
+
+      if (imageUrls.length > 0) {
+        updateData.images = imageUrls
+      }
     }
 
-    // Handle resolution
-    if (status) {
+    if (status && canResolve) {
       updateData.status = status
       if (status === 'Resolved') {
-        updateData.resolvedById = userId
+        updateData.resolvedById = decoded.id
         updateData.resolvedAt = new Date()
-        updateData.resolutionNotes = resolutionNotes ? sanitizeString(resolutionNotes) : null
-      } else if (status === 'Open') {
+        updateData.resolutionNotes = resolutionNotes
+          ? sanitizeString(resolutionNotes)
+          : null
+      } else {
         updateData.resolvedById = null
         updateData.resolvedAt = null
         updateData.resolutionNotes = null
       }
     }
 
-    // Update inspection
     const updatedInspection = await prisma.inspectionRound.update({
       where: { id: id as string },
       data: updateData,
@@ -209,30 +290,20 @@ async function handleUpdateInspection(req: NextApiRequest, res: NextApiResponse)
       },
     })
 
-    console.log('✅ Inspection updated:', updatedInspection.id)
     res.status(200).json({ inspection: updatedInspection })
   } catch (error) {
-    console.error('❌ Error updating inspection:', error)
+    console.error('Error updating inspection:', error)
     res.status(500).json({ error: 'Failed to update inspection' })
   }
 }
 
-async function handleDeleteInspection(req: NextApiRequest, res: NextApiResponse) {
+async function handleDeleteInspection(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  decoded: { id: string; designation: string; email: string }
+) {
   try {
     const { id } = req.query
-    const token = getTokenFromRequest(req as any)
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-    const decoded = verifyToken(token)
-    const userId = decoded?.id
-    const userDesignation = decoded?.designation
-
-    if (!userId || !userDesignation) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-
-    // Check if inspection exists
     const inspection = await prisma.inspectionRound.findUnique({
       where: { id: id as string },
     })
@@ -241,25 +312,31 @@ async function handleDeleteInspection(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Inspection not found' })
     }
 
-    // Check authorization (creator or manager)
-    if (userId !== inspection.jamedarId && !['Stable Manager', 'School Administrator', 'Director'].includes(userDesignation)) {
+    const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canResolve =
+      canManageSchedules || taskCapabilities.canResolveInspections
+    const canDeleteOwn =
+      taskCapabilities.canCreateInspections && inspection.jamedarId === decoded.id
+
+    if (!canResolve && !canDeleteOwn) {
       return res.status(403).json({ error: 'Not authorized to delete this inspection' })
     }
 
-    // Delete inspection
     await prisma.inspectionRound.delete({
       where: { id: id as string },
     })
 
-    console.log('✅ Inspection deleted:', id)
     res.status(200).json({ message: 'Inspection deleted successfully' })
   } catch (error) {
-    console.error('❌ Error deleting inspection:', error)
+    console.error('Error deleting inspection:', error)
     res.status(500).json({ error: 'Failed to delete inspection' })
   }
 }
 
-// Increase request body size limit for image uploads (default is 1MB)
 export const config = {
   api: {
     bodyParser: {
@@ -267,5 +344,3 @@ export const config = {
     },
   },
 }
-
-

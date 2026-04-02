@@ -3,9 +3,15 @@ import roundCheckService from '../services/roundCheckService';
 import { useI18n } from '../context/I18nContext';
 import { ClipboardCheck, Sunrise, Sun, Moon, Info } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
+import { useAuth } from '../context/AuthContext';
+import usePermissions from '../hooks/usePermissions';
+import { Navigate } from 'react-router-dom';
 
 const RoundCheckPage = () => {
+  const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
+  const canUpdateOwnRoundChecks = Boolean(user?.taskCapabilities?.canUpdateOwnRoundChecks);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [roundCheck, setRoundCheck] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -61,6 +67,10 @@ const RoundCheckPage = () => {
     { id: 'afternoon', label: 'Afternoon Round', time: 'Mid Day', icon: Sun, checked: afternoonCompleted, onChange: setAfternoonCompleted },
     { id: 'evening', label: 'Evening Round', time: 'Late Evening', icon: Moon, checked: eveningCompleted, onChange: setEveningCompleted },
   ];
+
+  if (!p.viewInspections || !canUpdateOwnRoundChecks) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="space-y-6">

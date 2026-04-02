@@ -7,9 +7,17 @@ import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { useAuth } from '../context/AuthContext';
+import usePermissions from '../hooks/usePermissions';
+import { Navigate } from 'react-router-dom';
 
 const RoundTrackingPage = () => {
+  const { user } = useAuth();
   const { t } = useI18n();
+  const p = usePermissions();
+  const canManageSchedules = p.isAdmin || Boolean(user?.permissions?.manageSchedules);
+  const canViewTeamRoundChecks =
+    canManageSchedules || Boolean(user?.taskCapabilities?.canViewTeamRoundChecks);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [roundChecks, setRoundChecks] = useState([]);
   const [missingJamedars, setMissingJamedars] = useState([]);
@@ -70,6 +78,10 @@ const RoundTrackingPage = () => {
   const ShiftBadge = ({ done }) => done
     ? <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-success/30 text-success bg-success/10">✓ Done</span>
     : <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border border-muted-foreground/20 text-muted-foreground bg-muted">⊘ Pending</span>;
+
+  if (!p.viewInspections || !canViewTeamRoundChecks) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="space-y-6">

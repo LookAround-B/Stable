@@ -1,6 +1,11 @@
 // pages/api/tasks/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  getTokenFromRequest,
+  verifyToken,
+} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { createNotificationAndPublish } from '@/lib/notificationRealtime'
@@ -45,36 +50,40 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
-    // Get user's role
-    const user = await prisma.employee.findUnique({
-      where: { id: userId },
-    })
+    const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canCreateTasks =
+      canManageSchedules || taskCapabilities.canCreateTasks
+    const canReviewTasks =
+      canManageSchedules || taskCapabilities.canReviewTasks
+    const canViewAssignedTasks =
+      canCreateTasks ||
+      canReviewTasks ||
+      taskCapabilities.canViewTasks ||
+      taskCapabilities.canWorkOnAssignedTasks
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+    if (!canViewAssignedTasks) {
+      return res.status(403).json({
+        error:
+          'Task access is not enabled for your account. Ask an admin to enable the required task overrides.',
+      })
     }
 
     const where: any = {}
     if (status) where.status = status
     if (horseId) where.horseId = horseId
 
-    // Filter tasks based on user role
-    // For approval workflow: show all tasks with "Pending Review" status
-    // Admin/management roles see tasks they created + tasks assigned to them
-    // Other roles see tasks assigned to them
-    const adminRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Ground Supervisor', 'Jamedar', 'Instructor']
-    
-    if (status === 'Pending Review' && adminRoles.includes(user.designation)) {
-      // For approval review: show all pending review tasks
-      // No additional filtering - managers can see all pending review tasks regardless of who created them
-    } else if (adminRoles.includes(user.designation)) {
-      // Admins/Instructors see tasks they created OR tasks assigned to them
+    if (status === 'Pending Review' && canReviewTasks) {
+      // Reviewers can see all pending submissions.
+    } else if (canCreateTasks || canReviewTasks) {
       where.OR = [
         { createdById: userId },
         { assignedEmployeeId: userId },
       ]
     } else {
-      // Groomers, Riding Boys, and others see tasks assigned to them
       where.assignedEmployeeId = userId
     }
 
@@ -127,11 +136,18 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
-    // Check manageSchedules permission (admins always pass)
     try {
-      const allowed = await checkPermission(decoded, 'manageSchedules')
+      const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+      const taskCapabilities = await getTaskCapabilitiesForUser(
+        decoded.id,
+        decoded.designation
+      )
+      const allowed = canManageSchedules || taskCapabilities.canCreateTasks
       if (!allowed) {
-        return res.status(403).json({ error: 'Task creation is not enabled for your account. Ask an admin to enable the "Manage Schedules" permission.' })
+        return res.status(403).json({
+          error:
+            'Task creation is not enabled for your account. Ask an admin to enable task assignment access.',
+        })
       }
     } catch (permErr) {
       console.error('Permission check failed:', permErr)

@@ -1,10 +1,19 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  getTokenFromRequest,
+  isAdminDesignation,
+  verifyToken,
+} from '@/lib/auth'
+import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
-import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
-
-const JAMEDAR_ROLES = ['Jamedar'];
+import {
+  isValidId,
+  isValidString,
+  safeDate,
+  sanitizeString,
+} from '@/lib/validate'
 
 export const config = {
   api: {
@@ -12,89 +21,140 @@ export const config = {
       sizeLimit: '1mb',
     },
   },
-};
+}
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+type MedicineUser = {
+  id: string
+  email: string
+  designation: string
+  fullName: string
+}
+
+type MedicineAccess = {
+  canManageInventory: boolean
+  canRecordMedicineLogs: boolean
+  canApproveMedicineLogs: boolean
+  canViewMedicineLogs: boolean
+}
+
+const getMedicineAccess = async (
+  user: MedicineUser
+): Promise<MedicineAccess> => {
+  const canManageInventory = await checkPermission(
+    {
+      id: user.id,
+      email: user.email,
+      designation: user.designation,
+    },
+    'manageInventory'
+  )
+  const taskCapabilities = await getTaskCapabilitiesForUser(
+    user.id,
+    user.designation
+  )
+
+  return {
+    canManageInventory,
+    canRecordMedicineLogs: taskCapabilities.canRecordMedicineLogs,
+    canApproveMedicineLogs: taskCapabilities.canApproveMedicineLogs,
+    canViewMedicineLogs:
+      canManageInventory ||
+      taskCapabilities.canViewMedicineLogs ||
+      taskCapabilities.canRecordMedicineLogs ||
+      taskCapabilities.canApproveMedicineLogs,
+  }
+}
+
+const canManageAnyMedicineLog = (
+  user: MedicineUser,
+  _access: MedicineAccess
+): boolean => isAdminDesignation(user.designation)
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const origin = req.headers.origin
   setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end()
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
-    }
-
-    const token = authHeader.split(' ')[1];
+    const token = getTokenFromRequest(req as any)
     if (!token) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'No authorization header' })
     }
 
-    const decoded = verifyToken(token);
+    const decoded = verifyToken(token)
     if (!decoded) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'Invalid or expired token' })
     }
 
     const user = await prisma.employee.findUnique({
       where: { id: decoded.id },
       select: { id: true, email: true, designation: true, fullName: true },
-    });
+    })
 
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'User not found' })
     }
+
+    const access = await getMedicineAccess(user)
 
     switch (req.method) {
       case 'GET':
-        return handleGet(req, res);
+        return handleGet(req, res, access)
       case 'POST':
-        return handlePost(req, res, user);
+        return handlePost(req, res, user, access)
       case 'PUT':
-        return handlePut(req, res, user);
+        return handlePut(req, res, user, access)
       case 'DELETE':
-        return handleDelete(req, res, user);
+        return handleDelete(req, res, user, access)
       default:
-        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-        return res.status(405).json({ error: 'Method not allowed' });
+        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE'])
+        return res.status(405).json({ error: 'Method not allowed' })
     }
   } catch (error: any) {
-    console.error('Medicine logs API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Medicine logs API error:', error)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
 
-// GET - Fetch medicine logs
 async function handleGet(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
+  access: MedicineAccess
 ) {
-  const { jamiedarId, horseId, approvalStatus, startDate, endDate } = req.query;
+  if (!access.canViewMedicineLogs) {
+    return res.status(403).json({
+      error: 'Medicine logs are not enabled for your account.',
+    })
+  }
 
-  const where: any = {};
+  const { jamiedarId, horseId, approvalStatus, startDate, endDate } = req.query
+  const where: any = {}
 
   if (jamiedarId) {
-    where.jamiedarId = jamiedarId as string;
+    where.jamiedarId = jamiedarId as string
   }
 
   if (horseId) {
-    where.horseId = horseId as string;
+    where.horseId = horseId as string
   }
 
   if (approvalStatus) {
-    where.approvalStatus = approvalStatus as string;
+    where.approvalStatus = approvalStatus as string
   }
 
   if (startDate || endDate) {
-    where.timeAdministered = {};
+    where.timeAdministered = {}
     if (startDate) {
-      where.timeAdministered.gte = new Date(startDate as string);
+      where.timeAdministered.gte = new Date(startDate as string)
     }
     if (endDate) {
-      where.timeAdministered.lte = new Date(endDate as string);
+      where.timeAdministered.lte = new Date(endDate as string)
     }
   }
 
@@ -125,71 +185,96 @@ async function handleGet(
     orderBy: {
       timeAdministered: 'desc',
     },
-  });
+  })
 
-  return res.status(200).json({ data: logs });
+  return res.status(200).json({ data: logs })
 }
 
-// POST - Create new medicine log or approve/reject
 async function handlePost(
   req: NextApiRequest,
   res: NextApiResponse,
-  user: { id: string; fullName: string; designation: string }
+  user: MedicineUser,
+  access: MedicineAccess
 ) {
-  const { jamiedarId, horseId, medicineName, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
+  const {
+    jamiedarId,
+    horseId,
+    medicineName,
+    quantity,
+    unit,
+    timeAdministered,
+    notes,
+    photoUrl,
+  } = req.body
 
-  // Validate required fields
+  if (!access.canRecordMedicineLogs) {
+    return res.status(403).json({
+      error: 'Medicine log entry is not enabled for your account.',
+    })
+  }
+
   if (!isValidId(jamiedarId)) {
-    return res.status(400).json({ error: 'Valid jamiedarId is required' });
+    return res.status(400).json({ error: 'Valid jamiedarId is required' })
   }
   if (!isValidId(horseId)) {
-    return res.status(400).json({ error: 'Valid horseId is required' });
+    return res.status(400).json({ error: 'Valid horseId is required' })
   }
   if (!isValidString(medicineName, 1, 200)) {
-    return res.status(400).json({ error: 'Medicine name is required (max 200 chars)' });
-  }
-  const qty = parseFloat(quantity);
-  if (isNaN(qty) || qty <= 0 || qty > 100000) {
-    return res.status(400).json({ error: 'Quantity must be a positive number (max 100000)' });
-  }
-  if (!safeDate(timeAdministered)) {
-    return res.status(400).json({ error: 'Valid timeAdministered date is required' });
-  }
-  if (unit && !isValidString(unit, 1, 20)) {
-    return res.status(400).json({ error: 'Unit must be max 20 chars' });
-  }
-  if (notes && !isValidString(notes, 0, 1000)) {
-    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
-  }
-  if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 2000) {
-    return res.status(400).json({ error: 'Photo URL too long' });
+    return res
+      .status(400)
+      .json({ error: 'Medicine name is required (max 200 chars)' })
   }
 
-  // Only Jamedar can create medicine logs
-  if (!JAMEDAR_ROLES.includes(user.designation)) {
-    return res.status(403).json({ error: 'Only Jamedar can create medicine logs' });
+  const qty = parseFloat(quantity)
+  if (isNaN(qty) || qty <= 0 || qty > 100000) {
+    return res.status(400).json({
+      error: 'Quantity must be a positive number (max 100000)',
+    })
+  }
+  if (!safeDate(timeAdministered)) {
+    return res
+      .status(400)
+      .json({ error: 'Valid timeAdministered date is required' })
+  }
+  if (unit && !isValidString(unit, 1, 20)) {
+    return res.status(400).json({ error: 'Unit must be max 20 chars' })
+  }
+  if (notes && !isValidString(notes, 0, 1000)) {
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' })
+  }
+  if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 2000) {
+    return res.status(400).json({ error: 'Photo URL too long' })
+  }
+
+  const canManageAll = canManageAnyMedicineLog(user, access)
+  if (!canManageAll && jamiedarId !== user.id) {
+    return res.status(403).json({
+      error: 'You can only create medicine logs for your own account.',
+    })
   }
 
   try {
-    // Check if jamedar exists
-    const jamedar = await prisma.employee.findUnique({
+    const loggerEmployee = await prisma.employee.findUnique({
       where: { id: jamiedarId },
-    });
+      select: {
+        id: true,
+        fullName: true,
+        designation: true,
+      },
+    })
 
-    if (!jamedar || jamedar.designation !== 'Jamedar') {
-      return res.status(404).json({ error: 'Jamedar not found' });
+    if (!loggerEmployee) {
+      return res.status(404).json({ error: 'Employee not found' })
     }
 
-    // Check if horse exists
     const horse = await prisma.horse.findUnique({
       where: { id: horseId },
-    });
+    })
 
     if (!horse) {
-      return res.status(404).json({ error: 'Horse not found' });
+      return res.status(404).json({ error: 'Horse not found' })
     }
 
-    // Create medicine log with pending approval status
     const log = await prisma.medicineLog.create({
       data: {
         jamiedarId,
@@ -217,62 +302,78 @@ async function handlePost(
           },
         },
       },
-    });
+    })
 
-    return res.status(201).json(log);
+    return res.status(201).json(log)
   } catch (error: any) {
-    console.error('Error creating medicine log:', error);
-    return res.status(500).json({ error: 'Failed to create medicine log' });
+    console.error('Error creating medicine log:', error)
+    return res.status(500).json({ error: 'Failed to create medicine log' })
   }
 }
 
-// PUT - Update medicine log (only if pending)
 async function handlePut(
   req: NextApiRequest,
   res: NextApiResponse,
-  user: { id: string; fullName: string; designation: string }
+  user: MedicineUser,
+  access: MedicineAccess
 ) {
-  const { id, medicineName, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
+  const { id, medicineName, quantity, unit, timeAdministered, notes, photoUrl } =
+    req.body
+
+  if (!access.canRecordMedicineLogs) {
+    return res.status(403).json({
+      error: 'Medicine log editing is not enabled for your account.',
+    })
+  }
 
   if (!isValidId(id)) {
-    return res.status(400).json({ error: 'Valid id is required' });
+    return res.status(400).json({ error: 'Valid id is required' })
   }
   if (medicineName && !isValidString(medicineName, 1, 200)) {
-    return res.status(400).json({ error: 'Medicine name must be max 200 chars' });
+    return res.status(400).json({ error: 'Medicine name must be max 200 chars' })
   }
   if (notes !== undefined && notes && !isValidString(notes, 0, 1000)) {
-    return res.status(400).json({ error: 'Notes must be max 1000 chars' });
-  }
-
-  // Only Jamedar can update logs
-  if (!JAMEDAR_ROLES.includes(user.designation)) {
-    return res.status(403).json({ error: 'Only Jamedar can update medicine logs' });
+    return res.status(400).json({ error: 'Notes must be max 1000 chars' })
   }
 
   try {
-    // Check if log exists
     const log = await prisma.medicineLog.findUnique({
       where: { id },
-    });
+    })
 
     if (!log) {
-      return res.status(404).json({ error: 'Medicine log not found' });
+      return res.status(404).json({ error: 'Medicine log not found' })
     }
 
-    // Only allow updating if pending
+    const canManageAll = canManageAnyMedicineLog(user, access)
+    if (!canManageAll && log.jamiedarId !== user.id) {
+      return res.status(403).json({
+        error: 'You can only edit medicine logs submitted by your account.',
+      })
+    }
+
     if (log.approvalStatus !== 'pending') {
-      return res.status(403).json({ error: 'Only pending logs can be updated' });
+      return res.status(403).json({ error: 'Only pending logs can be updated' })
     }
 
-    // Update medicine log
     const updatedLog = await prisma.medicineLog.update({
       where: { id },
       data: {
-        medicineName: medicineName ? sanitizeString(medicineName) : log.medicineName,
-        quantity: quantity !== undefined ? parseFloat(quantity) : log.quantity,
+        medicineName: medicineName
+          ? sanitizeString(medicineName)
+          : log.medicineName,
+        quantity:
+          quantity !== undefined ? parseFloat(quantity) : log.quantity,
         unit: unit || log.unit,
-        timeAdministered: timeAdministered ? new Date(timeAdministered) : log.timeAdministered,
-        notes: notes !== undefined ? (notes ? sanitizeString(notes) : null) : log.notes,
+        timeAdministered: timeAdministered
+          ? new Date(timeAdministered)
+          : log.timeAdministered,
+        notes:
+          notes !== undefined
+            ? notes
+              ? sanitizeString(notes)
+              : null
+            : log.notes,
         photoUrl: photoUrl !== undefined ? photoUrl : log.photoUrl,
       },
       include: {
@@ -290,55 +391,62 @@ async function handlePut(
           },
         },
       },
-    });
+    })
 
-    return res.status(200).json(updatedLog);
+    return res.status(200).json(updatedLog)
   } catch (error: any) {
-    console.error('Error updating medicine log:', error);
-    return res.status(500).json({ error: 'Failed to update medicine log' });
+    console.error('Error updating medicine log:', error)
+    return res.status(500).json({ error: 'Failed to update medicine log' })
   }
 }
 
-// DELETE - Delete medicine log (only if pending)
 async function handleDelete(
   req: NextApiRequest,
   res: NextApiResponse,
-  user: { id: string; fullName: string; designation: string }
+  user: MedicineUser,
+  access: MedicineAccess
 ) {
-  const { id } = req.body;
+  const { id } = req.body
 
   if (!id) {
-    return res.status(400).json({ error: 'id is required' });
+    return res.status(400).json({ error: 'id is required' })
   }
 
-  // Only Jamedar can delete logs
-  if (!JAMEDAR_ROLES.includes(user.designation)) {
-    return res.status(403).json({ error: 'Only Jamedar can delete medicine logs' });
+  if (!access.canRecordMedicineLogs) {
+    return res.status(403).json({
+      error: 'Medicine log deletion is not enabled for your account.',
+    })
   }
 
   try {
-    // Check if log exists
     const log = await prisma.medicineLog.findUnique({
       where: { id },
-    });
+    })
 
     if (!log) {
-      return res.status(404).json({ error: 'Medicine log not found' });
+      return res.status(404).json({ error: 'Medicine log not found' })
     }
 
-    // Only allow deleting if pending
+    const canManageAll = canManageAnyMedicineLog(user, access)
+    if (!canManageAll && log.jamiedarId !== user.id) {
+      return res.status(403).json({
+        error: 'You can only delete medicine logs submitted by your account.',
+      })
+    }
+
     if (log.approvalStatus !== 'pending') {
-      return res.status(403).json({ error: 'Only pending logs can be deleted' });
+      return res.status(403).json({ error: 'Only pending logs can be deleted' })
     }
 
     await prisma.medicineLog.delete({
       where: { id },
-    });
+    })
 
-    return res.status(200).json({ message: 'Medicine log deleted successfully' });
+    return res
+      .status(200)
+      .json({ message: 'Medicine log deleted successfully' })
   } catch (error: any) {
-    console.error('Error deleting medicine log:', error);
-    return res.status(500).json({ error: 'Failed to delete medicine log' });
+    console.error('Error deleting medicine log:', error)
+    return res.status(500).json({ error: 'Failed to delete medicine log' })
   }
 }
-

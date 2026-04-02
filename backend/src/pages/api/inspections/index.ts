@@ -1,23 +1,86 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  getTokenFromRequest,
+  verifyToken,
+} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString } from '@/lib/validate'
 
-async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const { round, horseId, severityLevel, area, startDate, endDate, jamedarId } = req.query
-    const token = getTokenFromRequest(req as any)
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-    const decoded = verifyToken(token)
-    const userId = decoded?.id
-    const userDesignation = decoded?.designation
+const VALID_AREAS = [
+  'Pony stables',
+  'Rear Paddocks',
+  'Private stables',
+  'Front office stables',
+  'Warm up arena',
+  'Jumping arena',
+  'Dressage arena',
+  'Camp Area',
+  'Forest Trail',
+  'Accommodation',
+  'Middle school',
+  'Top school',
+  'Gazebo area',
+  'Grooms rooms',
+  'Round yard',
+  'Paddocks',
+]
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' })
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const origin = req.headers.origin
+  setCorsHeaders(res, origin as string | undefined)
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
+  const token = getTokenFromRequest(req as any)
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  const decoded = verifyToken(token)
+  if (!decoded) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  switch (req.method) {
+    case 'GET':
+      return handleGetInspections(req, res, decoded)
+    case 'POST':
+      return handleCreateInspection(req, res, decoded)
+    default:
+      return res.status(405).json({ error: 'Method not allowed' })
+  }
+}
+
+async function handleGetInspections(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  decoded: { id: string; designation: string; email: string }
+) {
+  try {
+    const { round, horseId, severityLevel, area, startDate, endDate, jamedarId } =
+      req.query
+
+    const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canViewAll =
+      canManageSchedules || taskCapabilities.canViewAllInspections
+    const canViewOwn = taskCapabilities.canCreateInspections
+
+    if (!canViewAll && !canViewOwn) {
+      return res.status(403).json({
+        error: 'Inspection access is not enabled for your account.',
+      })
     }
 
     const where: any = {}
@@ -37,9 +100,8 @@ async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    // Jamedar sees only their own, Managers see all
-    if (userDesignation === 'Jamedar') {
-      where.jamedarId = userId
+    if (!canViewAll) {
+      where.jamedarId = decoded.id
     } else if (jamedarId) {
       where.jamedarId = jamedarId
     }
@@ -59,26 +121,31 @@ async function handleGetInspections(req: NextApiRequest, res: NextApiResponse) {
 
     res.status(200).json({ inspections })
   } catch (error) {
-    console.error('❌ Error fetching inspections:', error)
+    console.error('Error fetching inspections:', error)
     res.status(500).json({ error: 'Failed to fetch inspections' })
   }
 }
 
-async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse) {
+async function handleCreateInspection(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  decoded: { id: string; designation: string; email: string }
+) {
   try {
-    const { round, description, horseId, location, area, severityLevel, images } = req.body
-    const token = getTokenFromRequest(req as any)
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
-    const decoded = verifyToken(token)
-    const jamedarId = decoded?.id
+    const { round, description, horseId, location, area, severityLevel, images } =
+      req.body
 
-    if (!jamedarId) {
-      return res.status(401).json({ error: 'Unauthorized' })
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+
+    if (!taskCapabilities.canCreateInspections) {
+      return res.status(403).json({
+        error: 'Inspection creation is not enabled for your account.',
+      })
     }
 
-    // Validation
     if (!round || !description || !location || !severityLevel) {
       return res.status(400).json({
         error: 'Round, description, location, and severity level are required',
@@ -90,37 +157,39 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (images.length > 8) {
-      return res.status(400).json({ error: 'Maximum 8 images allowed per inspection' })
+      return res
+        .status(400)
+        .json({ error: 'Maximum 8 images allowed per inspection' })
     }
-
-    const VALID_AREAS = [
-      'Pony stables', 'Rear Paddocks', 'Private stables', 'Front office stables',
-      'Warm up arena', 'Jumping arena', 'Dressage arena', 'Camp Area',
-      'Forest Trail', 'Accommodation', 'Middle school', 'Top school',
-      'Gazebo area', 'Grooms rooms', 'Round yard', 'Paddocks'
-    ]
 
     if (area && !VALID_AREAS.includes(area)) {
       return res.status(400).json({ error: 'Invalid area selected' })
     }
 
     if (!['Morning', 'Afternoon', 'Evening'].includes(round)) {
-      return res.status(400).json({ error: 'Invalid round. Must be Morning, Afternoon, or Evening' })
+      return res.status(400).json({
+        error: 'Invalid round. Must be Morning, Afternoon, or Evening',
+      })
     }
 
     if (!['Low', 'Medium', 'High', 'Critical'].includes(severityLevel)) {
-      return res.status(400).json({ error: 'Invalid severity level. Must be Low, Medium, High, or Critical' })
+      return res.status(400).json({
+        error: 'Invalid severity level. Must be Low, Medium, High, or Critical',
+      })
     }
 
     if (description.length > 500) {
-      return res.status(400).json({ error: 'Description cannot exceed 500 characters' })
+      return res
+        .status(400)
+        .json({ error: 'Description cannot exceed 500 characters' })
     }
 
     if (location.length > 100) {
-      return res.status(400).json({ error: 'Location cannot exceed 100 characters' })
+      return res
+        .status(400)
+        .json({ error: 'Location cannot exceed 100 characters' })
     }
 
-    // Upload all images
     const { uploadImage } = await import('@/lib/s3')
     const imageUrls: string[] = []
 
@@ -135,15 +204,16 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
           const url = await uploadImage(buffer, filename, mimeType, 'inspections')
           imageUrls.push(url)
         } else if (typeof imgData === 'string' && imgData.startsWith('http')) {
-          imageUrls.push(imgData) // already uploaded URL (edit scenario)
+          imageUrls.push(imgData)
         }
       } catch (uploadError) {
-        console.error('\u274c Image upload failed:', uploadError)
-        return res.status(500).json({ error: 'Failed to upload one or more images' })
+        console.error('Inspection image upload failed:', uploadError)
+        return res
+          .status(500)
+          .json({ error: 'Failed to upload one or more images' })
       }
     }
 
-    // Validate horse exists if provided
     if (horseId) {
       const horse = await prisma.horse.findUnique({ where: { id: horseId } })
       if (!horse) {
@@ -151,10 +221,9 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Create inspection
     const inspection = await prisma.inspectionRound.create({
       data: {
-        jamedarId,
+        jamedarId: decoded.id,
         round,
         images: imageUrls,
         description: sanitizeString(description),
@@ -173,44 +242,13 @@ async function handleCreateInspection(req: NextApiRequest, res: NextApiResponse)
       },
     })
 
-    console.log('\u2705 Inspection created:', inspection.id)
     res.status(201).json({ inspection })
   } catch (error) {
-    console.error('\u274c Error creating inspection:', error)
+    console.error('Error creating inspection:', error)
     res.status(500).json({ error: 'Failed to create inspection' })
   }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const origin = req.headers.origin
-  setCorsHeaders(res, origin as string | undefined)
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  // Check authentication
-  const token = getTokenFromRequest(req as any)
-  if (!token || !verifyToken(token)) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-
-  switch (req.method) {
-    case 'GET':
-      return handleGetInspections(req, res)
-    case 'POST':
-      // Check if user is Jamedar
-      const decoded = verifyToken(token)
-      if (decoded?.designation !== 'Jamedar') {
-        return res.status(403).json({ error: 'Only Jamedar can create inspections' })
-      }
-      return handleCreateInspection(req, res)
-    default:
-      return res.status(405).json({ error: 'Method not allowed' })
-  }
-}
-
-// Increase request body size limit for image uploads (default is 1MB)
 export const config = {
   api: {
     bodyParser: {
@@ -218,4 +256,3 @@ export const config = {
     },
   },
 }
-

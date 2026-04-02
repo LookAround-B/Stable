@@ -20,6 +20,7 @@ export default function usePermissions() {
     const designation = user?.designation;
     const isAdmin = ADMIN_ROLES.includes(designation);
     const perms = user?.permissions || null;
+    const taskCapabilities = user?.taskCapabilities || {};
 
     const has = (key, fallback) => {
       if (isAdmin) return true;
@@ -50,21 +51,32 @@ export default function usePermissions() {
       manageHorseTeams: hasAny(
         ['manageEmployees', 'manageSchedules'],
         designation === 'Stable Manager'
-      ),
+      ) || !!taskCapabilities.canManageHorseTeams,
 
       // Tasks & Approvals
-      manageTasks: has(
-        'manageSchedules',
-        ['Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(designation)
-      ),
-      viewApprovals: has('manageSchedules', designation === 'Stable Manager'),
+      manageTasks:
+        has(
+          'manageSchedules',
+          ['Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(designation)
+        ) ||
+        !!taskCapabilities.canViewTasks ||
+        !!taskCapabilities.canCreateTasks ||
+        !!taskCapabilities.canReviewTasks ||
+        !!taskCapabilities.canWorkOnAssignedTasks,
+      viewApprovals:
+        has('manageSchedules', designation === 'Stable Manager') ||
+        !!taskCapabilities.canReviewTasks,
       viewMeetings: has('manageSchedules', designation === 'Stable Manager'),
 
       // Stable Operations
-      viewMedicineLogs: has(
-        'manageInventory',
-        designation === 'Jamedar' || designation === 'Stable Manager'
-      ),
+      viewMedicineLogs:
+        has(
+          'manageInventory',
+          designation === 'Jamedar' || designation === 'Stable Manager'
+        ) ||
+        !!taskCapabilities.canViewMedicineLogs ||
+        !!taskCapabilities.canRecordMedicineLogs ||
+        !!taskCapabilities.canApproveMedicineLogs,
       viewMedicineInventory: has(
         'manageInventory',
         ['Stable Manager', 'Jamedar'].includes(designation)
@@ -72,7 +84,7 @@ export default function usePermissions() {
       viewHorseFeeds: has(
         'manageInventory',
         ['Stable Manager', 'Ground Supervisor'].includes(designation)
-      ),
+      ) || !!taskCapabilities.canViewHorseFeeds || !!taskCapabilities.canRecordHorseFeeds,
       viewFeedInventory: has(
         'manageInventory',
         ['Stable Manager', 'Ground Supervisor'].includes(designation)
@@ -80,7 +92,7 @@ export default function usePermissions() {
       viewFarrierShoeing: has(
         'manageSchedules',
         ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)
-      ),
+      ) || !!taskCapabilities.canViewFarrierShoeing || !!taskCapabilities.canRecordFarrierShoeing,
       viewTackInventory: has(
         'manageInventory',
         ['Stable Manager', 'Jamedar', 'Ground Supervisor'].includes(designation)
@@ -107,7 +119,13 @@ export default function usePermissions() {
       viewInspections: has(
         'manageSchedules',
         designation === 'Jamedar' || designation === 'Stable Manager'
-      ),
+      ) ||
+        !!taskCapabilities.canViewInspections ||
+        !!taskCapabilities.canViewAllInspections ||
+        !!taskCapabilities.canCreateInspections ||
+        !!taskCapabilities.canResolveInspections ||
+        !!taskCapabilities.canViewTeamRoundChecks ||
+        !!taskCapabilities.canUpdateOwnRoundChecks,
       viewHousekeepingInventory: has(
         'manageInventory',
         ['Stable Manager', 'Ground Supervisor', 'Housekeeping'].includes(designation)

@@ -19,6 +19,19 @@ const InspectionPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
+  const taskCapabilities = user?.taskCapabilities || {};
+  const canManageSchedules = p.isAdmin || Boolean(user?.permissions?.manageSchedules);
+  const canCreateInspections = Boolean(taskCapabilities.canCreateInspections);
+  const canResolveInspections =
+    canManageSchedules || Boolean(taskCapabilities.canResolveInspections);
+  const canViewAll = useMemo(
+    () =>
+      canManageSchedules ||
+      Boolean(taskCapabilities.canViewAllInspections) ||
+      Boolean(taskCapabilities.canResolveInspections),
+    [canManageSchedules, taskCapabilities]
+  );
+  const canViewOwn = canCreateInspections;
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -40,9 +53,6 @@ const InspectionPage = () => {
   const SEVERITY_LEVELS = ['Low', 'Medium', 'High', 'Critical'];
   const FACILITY_AREAS = ['Pony stables', 'Rear Paddocks', 'Private stables', 'Front office stables', 'Warm up arena', 'Jumping arena', 'Dressage arena', 'Camp Area', 'Forest Trail', 'Accommodation', 'Middle school', 'Top school', 'Gazebo area', 'Grooms rooms', 'Round yard', 'Paddocks'];
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-  const isJamedar = useMemo(() => user?.designation === 'Jamedar', [user?.designation]);
-  const canViewAll = useMemo(() => ['Stable Manager', 'School Administrator', 'Director'].includes(user?.designation), [user?.designation]);
 
   const loadInspections = useCallback(async () => {
     try { setLoading(true); const data = await inspectionService.getAllInspections(filters); setInspections(data.inspections || []); }
@@ -149,7 +159,7 @@ const InspectionPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Jamedar Inspection')} <span className="text-foreground sm:text-primary">{t("Rounds")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t("Report and track facility inspection issues")}</p>
         </div>
-        {isJamedar && (
+        {canCreateInspections && (
           <button onClick={() => setShowForm(!showForm)} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
             {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> Add Inspection</>}
           </button>
@@ -199,7 +209,7 @@ const InspectionPage = () => {
       </div>
 
       {/* Form */}
-      {showForm && isJamedar && (
+      {showForm && canCreateInspections && (
         <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={closeForm}>
           <div className="my-auto flex min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
@@ -344,10 +354,10 @@ const InspectionPage = () => {
                 </div>
               </div>
               {/* Card Actions */}
-              {(isJamedar || canViewAll) && (
+              {(canViewOwn || canViewAll) && (
                 <div className="px-4 pb-4 flex gap-1.5">
                   <button onClick={() => handleView(inspection)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center gap-1"><Eye className="w-3 h-3" /> View</button>
-                  {isJamedar && (
+                  {canCreateInspections && inspection.jamedarId === user?.id && (
                     <>
                       <button onClick={() => handleEdit(inspection)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center gap-1"><Pencil className="w-3 h-3" /> Edit</button>
                       <button onClick={() => handleDelete(inspection.id)} className="h-7 px-2.5 rounded text-[10px] font-semibold border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-1"><Trash2 className="w-3 h-3" /></button>
@@ -407,8 +417,8 @@ const InspectionPage = () => {
               )}
             </div>
             <div className="p-5 border-t border-border flex gap-2 justify-end">
-              {isJamedar && viewingInspection.jamedarId === user?.id && <button onClick={() => { handleEdit(viewingInspection); setViewingInspection(null); }} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-1"><Pencil className="w-3.5 h-3.5" /> Edit</button>}
-              {canViewAll && viewingInspection.status === 'Open' && <button onClick={() => { setResolvingInspection(viewingInspection); setResolveData({ comments: '', resolutionNotes: '' }); setViewingInspection(null); }} className="h-9 px-4 rounded-lg bg-success/15 border border-success/30 text-success text-sm font-medium hover:bg-success/25 transition-colors flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Resolve</button>}
+              {canCreateInspections && viewingInspection.jamedarId === user?.id && <button onClick={() => { handleEdit(viewingInspection); setViewingInspection(null); }} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-1"><Pencil className="w-3.5 h-3.5" /> Edit</button>}
+              {canResolveInspections && viewingInspection.status === 'Open' && <button onClick={() => { setResolvingInspection(viewingInspection); setResolveData({ comments: '', resolutionNotes: '' }); setViewingInspection(null); }} className="h-9 px-4 rounded-lg bg-success/15 border border-success/30 text-success text-sm font-medium hover:bg-success/25 transition-colors flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Resolve</button>}
               <button onClick={() => setViewingInspection(null)} className="h-9 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Close")}</button>
             </div>
           </div>

@@ -114,7 +114,9 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     'log_medicine_administration',
     'record_treatment_notes',
     'flag_low_stock',
-    'upload_treatment_photos'
+    'upload_treatment_photos',
+    'submit_inspection_rounds',
+    'update_own_round_checks'
   ],
   
   // Instructors - Supervisory
@@ -135,6 +137,9 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     'approve_instructor_updates',
     'view_feed_compliance',
     'view_medical_alerts',
+    'view_inspection_rounds',
+    'resolve_inspection_rounds',
+    'view_team_round_checks',
     'escalate_to_director'
   ],
   
