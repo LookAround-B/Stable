@@ -144,7 +144,7 @@ const GroomWorkSheetPage = () => {
 
       {/* Add Worksheet Form */}
       {showAddForm && canCreateWorksheet && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowAddForm(false)}>
+        <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowAddForm(false)}>
           <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-4xl overflow-visible flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <h3 className="text-xl font-bold text-foreground">{t("Create New Work Sheet")}</h3>

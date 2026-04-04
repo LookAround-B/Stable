@@ -442,6 +442,7 @@
 /* Using system Helvetica font stack */
 
 :root {
+  --efm-modal-left-offset: 0px;
   /* Raw palette */
   --white: #ffffff;
   --gray-50: #f9f8f7;
@@ -15793,6 +15794,20 @@ html[data-text-size="large"] {
   background: rgba(9, 9, 11, 0.82);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+}
+
+.modal-overlay {
+  padding-left: calc(var(--efm-modal-left-offset, 0px) + 20px);
+}
+
+.efm-page-modal-overlay {
+  padding-left: calc(var(--efm-modal-left-offset, 0px) + 1rem) !important;
+}
+
+@media (min-width: 640px) {
+  .efm-page-modal-overlay {
+    padding-left: calc(var(--efm-modal-left-offset, 0px) + 1.5rem) !important;
+  }
 }
 
 .modal,

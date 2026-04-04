@@ -213,6 +213,30 @@ function MainLayout() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
+    const root = document.documentElement;
+
+    const syncModalOffset = () => {
+      const isDesktop = window.matchMedia('(min-width: 1025px)').matches;
+      if (!isDesktop) {
+        root.style.setProperty('--efm-modal-left-offset', '0px');
+        return;
+      }
+
+      const sidebar = document.querySelector('.lovable-sidebar');
+      const sidebarWidth = sidebar?.getBoundingClientRect().width || (sidebarCollapsed ? 68 : 260);
+      root.style.setProperty('--efm-modal-left-offset', `${Math.round(sidebarWidth)}px`);
+    };
+
+    syncModalOffset();
+    window.addEventListener('resize', syncModalOffset);
+
+    return () => {
+      window.removeEventListener('resize', syncModalOffset);
+      root.style.removeProperty('--efm-modal-left-offset');
+    };
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
     setAppTheme(theme);
   }, [theme]);
 

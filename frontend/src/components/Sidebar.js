@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -109,9 +109,6 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
       return {};
     }
   });
-  const [flyout, setFlyout] = useState(null);
-  const flyoutTimer = useRef(null);
-  const groupButtonRefs = useRef({});
 
   const isActive = useCallback(
     (path) => {
@@ -158,12 +155,6 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
     window.localStorage.setItem('efm.sidebar.openGroups', JSON.stringify(openGroups));
   }, [openGroups]);
 
-  useEffect(() => {
-    if (!collapsed) {
-      setFlyout(null);
-    }
-  }, [collapsed]);
-
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -173,36 +164,11 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
     if (window.innerWidth <= 1024) {
       onCloseMobile();
     }
-    setFlyout(null);
   }, [onCloseMobile]);
 
   const toggleGroup = (label) => {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
   };
-
-  const openFlyout = useCallback((label) => {
-    if (!collapsed) return;
-    if (flyoutTimer.current) {
-      window.clearTimeout(flyoutTimer.current);
-    }
-    const button = groupButtonRefs.current[label];
-    if (!button) return;
-    const rect = button.getBoundingClientRect();
-    setFlyout({ label, top: rect.top });
-  }, [collapsed]);
-
-  const scheduleFlyoutClose = useCallback(() => {
-    if (flyoutTimer.current) {
-      window.clearTimeout(flyoutTimer.current);
-    }
-    flyoutTimer.current = window.setTimeout(() => setFlyout(null), 120);
-  }, []);
-
-  const cancelFlyoutClose = useCallback(() => {
-    if (flyoutTimer.current) {
-      window.clearTimeout(flyoutTimer.current);
-    }
-  }, []);
 
   const isDashboardActive = location.pathname === '/' || location.pathname === '/dashboard';
   const isAnalysisActive = location.pathname === '/analysis';
@@ -268,24 +234,14 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
               return (
                 <div key={group.label} className="lovable-nav-group">
                   <button
-                    ref={(element) => {
-                      groupButtonRefs.current[group.label] = element;
-                    }}
                     className={`lovable-group-trigger ${groupIsActive ? 'active' : ''} ${collapsed ? 'collapsed' : ''}`}
                     type="button"
                     onClick={() => {
                       if (collapsed) {
-                        if (flyout?.label === group.label) {
-                          setFlyout(null);
-                        } else {
-                          openFlyout(group.label);
-                        }
                         return;
                       }
                       toggleGroup(group.label);
                     }}
-                    onMouseEnter={() => openFlyout(group.label)}
-                    onMouseLeave={scheduleFlyoutClose}
                     title={collapsed ? t(group.label) : undefined}
                   >
                     <div className="lovable-group-copy">
@@ -331,35 +287,6 @@ function Sidebar({ mobileOpen, onCloseMobile, collapsed, onToggleCollapse }) {
           </div>
         </div>
       </aside>
-
-      {collapsed && flyout && (() => {
-        const group = visibleGroups.find((entry) => entry.label === flyout.label);
-        if (!group) return null;
-        const FlyoutIcon = group.icon;
-        return (
-          <div
-            className="lovable-sidebar-flyout"
-            style={{ top: flyout.top, left: 76 }}
-            onMouseEnter={cancelFlyoutClose}
-            onMouseLeave={scheduleFlyoutClose}
-          >
-            <div className="lovable-sidebar-flyout-head">
-              <FlyoutIcon size={14} />
-              <span>{t(group.label)}</span>
-            </div>
-            {group.items.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`lovable-sidebar-flyout-link ${isActive(item.to) ? 'active' : ''}`}
-                onClick={handleNavClick}
-              >
-                {t(item.label)}
-              </Link>
-            ))}
-          </div>
-        );
-      })()}
     </>
   );
 }
