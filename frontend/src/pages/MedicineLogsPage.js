@@ -478,7 +478,7 @@ const MedicineLogsPage = () => {
 
           {/* Add form */}
           {showForm && (
-            <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-hidden bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowForm(false)}>
+            <div className="efm-page-modal-overlay fixed inset-0 z-[60] flex items-start justify-center overflow-hidden bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowForm(false)}>
               <div className="my-auto flex w-full max-w-2xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest edge-glow xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
                   <h3 className="text-xl font-bold text-foreground">{t("Add Medicine Log")}</h3>
