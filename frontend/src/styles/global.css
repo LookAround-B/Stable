@@ -18853,6 +18853,7 @@ body.efm-theme-light .crop-area {
 @media (max-width: 767px) {
   .lovable-shell {
     min-height: 100dvh;
+    height: 100dvh;
   }
 
   .lovable-shell-body {
@@ -18860,6 +18861,8 @@ body.efm-theme-light .crop-area {
     width: 100%;
     max-width: 100%;
     margin: 0;
+    min-height: 100dvh;
+    height: 100dvh;
   }
 
   .lovable-topbar {
@@ -18881,6 +18884,8 @@ body.efm-theme-light .crop-area {
 
   .lovable-main-content .main-content-inner {
     padding: 12px;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .dashboard-lovable .dashboard-lovable-card-grid,

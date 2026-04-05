@@ -44,6 +44,8 @@ const LoginPage = () => {
     try {
       const response = await loginWithEmail(email, password);
       if (response.data.token) {
+        document.activeElement?.blur?.();
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         setToken(response.data.token);
         login(response.data.user);
         navigate('/dashboard');
@@ -63,6 +65,8 @@ const LoginPage = () => {
       try {
         const response = await loginWithGoogle(tokenResponse.access_token);
         if (response.data.token) {
+          document.activeElement?.blur?.();
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
           setToken(response.data.token);
           login(response.data.user);
           navigate('/dashboard');

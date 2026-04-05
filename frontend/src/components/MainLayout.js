@@ -161,6 +161,19 @@ function MainLayout() {
   const hasMountedRef = useRef(false);
 
   useEffect(() => {
+    if (!window.history || !('scrollRestoration' in window.history)) {
+      return undefined;
+    }
+
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       setQuoteIndex((prev) => (prev + 1) % QUOTES.length);
     }, 7000);
@@ -198,15 +211,31 @@ function MainLayout() {
       hasMountedRef.current = true;
     }
 
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
     if (innerContentRef.current) {
       innerContentRef.current.scrollTop = 0;
+      innerContentRef.current.scrollLeft = 0;
     }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      if (innerContentRef.current) {
+        innerContentRef.current.scrollTop = 0;
+        innerContentRef.current.scrollLeft = 0;
+      }
+    });
+
     setRouteSkeleton(true);
     const timer = window.setTimeout(() => {
       setRouteSkeleton(false);
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.hash]);
 
   useEffect(() => {
     window.localStorage.setItem('efm.sidebar.collapsed', sidebarCollapsed ? '1' : '0');
