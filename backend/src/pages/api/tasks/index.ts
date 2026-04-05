@@ -6,9 +6,17 @@ import {
   getTokenFromRequest,
   verifyToken,
 } from '@/lib/auth'
+import { rememberJson } from '@/lib/cache'
+import {
+  cacheKeys,
+  CACHE_TTL_SECONDS,
+  invalidateTaskCaches,
+} from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { createNotificationAndPublish } from '@/lib/notificationRealtime'
+import { taskListSelect } from '@/lib/taskPayload'
+import { safePositiveInt } from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
@@ -72,11 +80,15 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
       })
     }
 
+    const statusValue = Array.isArray(status) ? status[0] : status
+    const horseIdValue = Array.isArray(horseId) ? horseId[0] : horseId
+    const skipValue = safePositiveInt(skip, 0, 10000)
+    const takeValue = safePositiveInt(take, 10, 100)
     const where: any = {}
-    if (status) where.status = status
-    if (horseId) where.horseId = horseId
+    if (statusValue) where.status = statusValue
+    if (horseIdValue) where.horseId = horseIdValue
 
-    if (status === 'Pending Review' && canReviewTasks) {
+    if (statusValue === 'Pending Review' && canReviewTasks) {
       // Reviewers can see all pending submissions.
     } else if (canCreateTasks || canReviewTasks) {
       where.OR = [
@@ -87,36 +99,34 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
       where.assignedEmployeeId = userId
     }
 
-    const tasks = await prisma.task.findMany({
-      where,
-      skip: Math.max(0, parseInt(skip as string) || 0),
-      take: Math.min(100, Math.max(1, parseInt(take as string) || 10)),
-      include: { 
-        horse: true, 
-        assignedEmployee: true, 
-        createdBy: true,
-        approvals: { 
-          include: { 
-            approver: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                designation: true
-              }
-            }
-          }
+    const payload = await rememberJson(
+      cacheKeys.tasksList(userId, {
+        status: statusValue ?? null,
+        horseId: horseIdValue ?? null,
+        skip: skipValue,
+        take: takeValue,
+      }),
+      CACHE_TTL_SECONDS.tasksList,
+      async () => {
+        const [tasks, total] = await Promise.all([
+          prisma.task.findMany({
+            where,
+            skip: skipValue,
+            take: takeValue,
+            select: taskListSelect,
+            orderBy: { scheduledTime: 'desc' },
+          }),
+          prisma.task.count({ where }),
+        ])
+
+        return {
+          data: tasks,
+          pagination: { total, skip: skipValue, take: takeValue },
         }
-      },
-      orderBy: { scheduledTime: 'desc' },
-    })
+      }
+    )
 
-    const total = await prisma.task.count({ where })
-
-    return res.status(200).json({
-      data: tasks,
-      pagination: { total, skip, take },
-    })
+    return res.status(200).json(payload)
   } catch (error) {
     console.error('Error fetching tasks:', error)
     return res.status(500).json({ error: 'Internal server error' })
@@ -207,12 +217,10 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
         description: description ? sanitize(description) : undefined,
         status: 'Pending',
       },
-      include: {
-        horse: true,
-        assignedEmployee: true,
-        createdBy: true,
-      },
+      select: taskListSelect,
     })
+
+    await invalidateTaskCaches(task.id)
 
     // Create notification for the assigned employee
     try {

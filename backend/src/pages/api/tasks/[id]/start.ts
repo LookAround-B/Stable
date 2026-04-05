@@ -6,8 +6,10 @@ import {
   getTokenFromRequest,
   verifyToken,
 } from '@/lib/auth'
+import { invalidateTaskCaches } from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
+import { taskListSelect } from '@/lib/taskPayload'
 
 export default async function handler(
   req: NextApiRequest,
@@ -69,12 +71,10 @@ export default async function handler(
     const updatedTask = await prisma.task.update({
       where: { id },
       data: { status: 'In Progress' },
-      include: {
-        horse: true,
-        assignedEmployee: true,
-        createdBy: true,
-      },
+      select: taskListSelect,
     })
+
+    await invalidateTaskCaches(id)
 
     return res.status(200).json({
       success: true,

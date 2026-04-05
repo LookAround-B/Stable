@@ -129,6 +129,8 @@ See `.env.example` for all available configuration options:
 | Variable | Description |
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Optional Redis connection string for API caching and notification pub/sub |
+| `REDIS_KEY_PREFIX` | Optional Redis key namespace prefix |
 | `JWT_SECRET` | Secret for signing JWT tokens |
 | `JWT_EXPIRE` | Token expiration time |
 | `AWS_ACCESS_KEY_ID` | AWS credentials for S3 |

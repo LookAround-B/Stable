@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
-import { publishNotificationState } from '@/lib/notificationRealtime'
+import { publishNotificationStates } from '@/lib/notificationRealtime'
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,7 +23,7 @@ export default async function handler(
       where: { employeeId: decoded.id, isRead: false },
       data: { isRead: true, readAt: new Date() },
     })
-    await publishNotificationState(decoded.id)
+    await publishNotificationStates([decoded.id])
     return res.status(200).json({ message: 'All notifications marked as read' })
   } catch (error) {
     console.error('Error marking all as read:', error)

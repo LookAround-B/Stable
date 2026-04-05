@@ -6,8 +6,10 @@ import {
   getTokenFromRequest,
   verifyToken,
 } from '@/lib/auth'
+import { invalidateTaskCaches } from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
+import { taskListSelect } from '@/lib/taskPayload'
 import { sanitizeString, isValidString } from '@/lib/validate'
 import { createNotificationAndPublish } from '@/lib/notificationRealtime'
 export default async function handler(
@@ -47,7 +49,20 @@ export default async function handler(
     // Get the task
     const task = await prisma.task.findUnique({
       where: { id },
-      include: { assignedEmployee: true, createdBy: true },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        requiredProof: true,
+        assignedEmployeeId: true,
+        createdById: true,
+        assignedEmployee: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+      },
     })
 
     if (!task) {
@@ -93,12 +108,10 @@ export default async function handler(
         submittedAt: new Date(),
         completedTime: new Date(),
       },
-      include: {
-        horse: true,
-        assignedEmployee: true,
-        createdBy: true,
-      },
+      select: taskListSelect,
     })
+
+    await invalidateTaskCaches(id)
 
     // Notify the task creator that submission is pending review
     try {

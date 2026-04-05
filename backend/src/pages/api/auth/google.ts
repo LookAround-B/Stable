@@ -2,6 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
+import {
+  invalidateEmployeeCaches,
+  invalidatePermissionCaches,
+} from '@/lib/cacheKeys'
 import { prisma } from '../../../lib/prisma';
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -72,6 +76,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           isApproved: false,
         },
       });
+
+      await Promise.all([
+        invalidateEmployeeCaches(user.id),
+        invalidatePermissionCaches(user.id),
+      ])
     }
 
     // Generate JWT token
@@ -106,4 +115,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
-

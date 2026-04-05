@@ -3,6 +3,12 @@
 // PUT  - Save task-level permission overrides for an employee
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { rememberJson } from '@/lib/cache'
+import {
+  cacheKeys,
+  CACHE_TTL_SECONDS,
+  invalidatePermissionCaches,
+} from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { isValidId } from '@/lib/validate'
@@ -13,7 +19,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // CORS
   const origin = req.headers.origin
   setCorsHeaders(res, origin as string | undefined)
 
@@ -21,7 +26,6 @@ export default async function handler(
     return res.status(200).end()
   }
 
-  // Auth
   const token = getTokenFromRequest(req as any)
   if (!token) {
     return res.status(401).json({ error: 'No authorization header' })
@@ -46,40 +50,44 @@ export default async function handler(
   }
 }
 
-// GET /api/permissions/task-permissions?employeeId=xxx
-// Returns the employee's role defaults + their overrides
 async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { employeeId } = req.query
 
     if (!employeeId || typeof employeeId !== 'string' || !isValidId(employeeId)) {
-      return res.status(400).json({ error: 'Valid employeeId query parameter is required' })
+      return res
+        .status(400)
+        .json({ error: 'Valid employeeId query parameter is required' })
     }
 
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
-      select: {
-        id: true,
-        fullName: true,
-        designation: true,
-        department: true,
-        taskPermissions: {
+    const employee = await rememberJson(
+      cacheKeys.taskPermissionOverrides(employeeId),
+      CACHE_TTL_SECONDS.taskPermissionOverrides,
+      async () =>
+        prisma.employee.findUnique({
+          where: { id: employeeId },
           select: {
-            permission: true,
-            granted: true,
+            id: true,
+            fullName: true,
+            designation: true,
+            department: true,
+            taskPermissions: {
+              select: {
+                permission: true,
+                granted: true,
+              },
+            },
           },
-        },
-      },
-    })
+        })
+    )
 
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' })
     }
 
-    // Convert overrides array to a map { permissionKey: boolean }
     const overrides: Record<string, boolean> = {}
-    for (const tp of employee.taskPermissions) {
-      overrides[tp.permission] = tp.granted
+    for (const taskPermission of employee.taskPermissions) {
+      overrides[taskPermission.permission] = taskPermission.granted
     }
 
     return res.status(200).json({
@@ -98,9 +106,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-// PUT /api/permissions/task-permissions
-// Body: { employeeId: string, overrides: { [permission]: boolean | null } }
-// null = remove override (revert to role default)
 async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { employeeId, overrides } = req.body
@@ -117,13 +122,19 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     if (entries.length > 200) {
       return res.status(400).json({ error: 'Too many overrides (max 200)' })
     }
+
     for (const [key] of entries) {
-      if (typeof key !== 'string' || key.length > 100 || !/^[a-zA-Z0-9_.:-]+$/.test(key)) {
-        return res.status(400).json({ error: `Invalid permission key: ${key.slice(0, 50)}` })
+      if (
+        typeof key !== 'string' ||
+        key.length > 100 ||
+        !/^[a-zA-Z0-9_.:-]+$/.test(key)
+      ) {
+        return res
+          .status(400)
+          .json({ error: `Invalid permission key: ${key.slice(0, 50)}` })
       }
     }
 
-    // Verify employee exists
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
       select: { id: true },
@@ -133,19 +144,17 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'Employee not found' })
     }
 
-    const upserts: Promise<any>[] = []
-    const deletes: Promise<any>[] = []
+    const upserts: Array<Promise<unknown>> = []
+    const deletes: Array<Promise<unknown>> = []
 
     for (const [permission, value] of Object.entries(overrides)) {
       if (value === null) {
-        // Remove override → revert to role default
         deletes.push(
           prisma.employeeTaskPermission.deleteMany({
             where: { employeeId, permission },
           })
         )
       } else {
-        // Set override
         upserts.push(
           prisma.employeeTaskPermission.upsert({
             where: {
@@ -165,6 +174,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     }
 
     await Promise.all([...upserts, ...deletes])
+    await invalidatePermissionCaches(employeeId)
 
     return res.status(200).json({ success: true })
   } catch (error) {

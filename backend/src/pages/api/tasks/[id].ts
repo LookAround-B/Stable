@@ -5,8 +5,15 @@ import {
   getTokenFromRequest,
   verifyToken,
 } from '@/lib/auth'
+import { rememberJson } from '@/lib/cache'
+import {
+  cacheKeys,
+  CACHE_TTL_SECONDS,
+  invalidateTaskCaches,
+} from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
+import { taskDetailSelect, taskListSelect } from '@/lib/taskPayload'
 import { sanitizeString, isValidString, isValidId, isOneOf } from '@/lib/validate'
 import {
   createNotificationAndPublish,
@@ -45,25 +52,20 @@ async function handleGetTask(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query
 
-    const task = await prisma.task.findUnique({
-      where: { id: id as string },
-      include: {
-        horse: true,
-        assignedEmployee: true,
-        approvals: {
-          include: {
-            approver: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                designation: true,
-              },
-            },
-          },
-        },
-      },
-    })
+    const taskId = Array.isArray(id) ? id[0] : id
+    if (!taskId) {
+      return res.status(400).json({ error: 'Task ID is required' })
+    }
+
+    const task = await rememberJson(
+      cacheKeys.taskDetail(taskId),
+      CACHE_TTL_SECONDS.taskDetail,
+      () =>
+        prisma.task.findUnique({
+          where: { id: taskId },
+          select: taskDetailSelect,
+        })
+    )
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' })
@@ -121,9 +123,25 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
 
     const existingTask = await prisma.task.findUnique({
       where: { id: id as string },
-      include: {
-        assignedEmployee: true,
-        createdBy: true,
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        requiredProof: true,
+        assignedEmployeeId: true,
+        createdById: true,
+        assignedEmployee: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
       },
     })
 
@@ -238,23 +256,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     const task = await prisma.task.update({
       where: { id: id as string },
       data: updateData,
-      include: {
-        horse: true,
-        assignedEmployee: true,
-        createdBy: true,
-        approvals: {
-          include: {
-            approver: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                designation: true,
-              },
-            },
-          },
-        },
-      },
+      select: taskListSelect,
     })
 
     let responseTask: any = task
@@ -292,23 +294,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
 
       responseTask = await prisma.task.findUnique({
         where: { id: id as string },
-        include: {
-          horse: true,
-          assignedEmployee: true,
-          createdBy: true,
-          approvals: {
-            include: {
-              approver: {
-                select: {
-                  id: true,
-                  fullName: true,
-                  email: true,
-                  designation: true,
-                },
-              },
-            },
-          },
-        },
+        select: taskListSelect,
       })
     }
 
@@ -364,6 +350,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
+    await invalidateTaskCaches(id as string)
+
     return res.status(200).json(responseTask || task)
   } catch (error) {
     console.error('Error updating task:', error)
@@ -404,6 +392,8 @@ async function handleDeleteTask(req: NextApiRequest, res: NextApiResponse) {
     await prisma.task.delete({
       where: { id: id as string },
     })
+
+    await invalidateTaskCaches(id as string)
 
     return res.status(200).json({ message: 'Task deleted successfully' })
   } catch (error) {

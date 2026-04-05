@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { rememberJson } from '@/lib/cache'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { cacheKeys, CACHE_TTL_SECONDS } from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
+import { taskListSelect } from '@/lib/taskPayload'
 import { safePositiveInt } from '@/lib/validate'
 export default async function handler(
   req: NextApiRequest,
@@ -31,49 +34,48 @@ export default async function handler(
 
     const userId = decoded.id
     const { status, skip = 0, take = 1000 } = req.query
+    const statusValue = Array.isArray(status) ? status[0] : status
+    const skipValue = safePositiveInt(skip, 0)
+    const takeValue = safePositiveInt(take, 1000, 1000)
 
     const where: any = {
       assignedEmployeeId: userId, // Get tasks assigned to the current user
     }
 
-    if (status) {
-      where.status = status
+    if (statusValue) {
+      where.status = statusValue
     }
 
-    const tasks = await prisma.task.findMany({
-      where,
-      skip: safePositiveInt(skip, 0),
-      take: safePositiveInt(take, 1000, 1000),
-      include: {
-        horse: true,
-        assignedEmployee: true,
-        createdBy: true,
-        approvals: {
-          include: {
-            approver: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                designation: true
-              }
-            }
-          }
+    const payload = await rememberJson(
+      cacheKeys.myTasksList(userId, {
+        status: statusValue ?? null,
+        skip: skipValue,
+        take: takeValue,
+      }),
+      CACHE_TTL_SECONDS.myTasksList,
+      async () => {
+        const [tasks, total] = await Promise.all([
+          prisma.task.findMany({
+            where,
+            skip: skipValue,
+            take: takeValue,
+            select: taskListSelect,
+            orderBy: { scheduledTime: 'desc' },
+          }),
+          prisma.task.count({ where }),
+        ])
+
+        return {
+          success: true,
+          data: tasks,
+          pagination: { total, skip: skipValue, take: takeValue },
         }
-      },
-      orderBy: { scheduledTime: 'desc' },
-    })
+      }
+    )
 
-    const total = await prisma.task.count({ where })
-
-    return res.status(200).json({
-      success: true,
-      data: tasks,
-      pagination: { total, skip, take },
-    })
+    return res.status(200).json(payload)
   } catch (error) {
     console.error('Error fetching my tasks:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-

@@ -265,14 +265,15 @@ const TasksPage = () => {
 
     const loadInitialData = async () => {
       setPageLoading(true);
-      await Promise.all([
-        loadTasks(),
-        loadHorses(),
-        user ? loadEmployees() : Promise.resolve(),
-      ]);
+      await loadTasks();
 
       if (active) {
         setPageLoading(false);
+      }
+
+      void loadHorses();
+      if (user) {
+        void loadEmployees();
       }
     };
 
@@ -312,6 +313,18 @@ const TasksPage = () => {
   }, [viewingTaskId]);
 
   // Page access is driven by effective task capabilities plus broad schedule access.
+
+  useEffect(() => {
+    if (!showCreateForm) return;
+
+    if (horses.length === 0) {
+      void loadHorses();
+    }
+    if (user && employees.length === 0) {
+      void loadEmployees();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCreateForm, horses.length, employees.length, user?.id]);
 
   const loadTasks = async () => {
     try {
@@ -555,11 +568,12 @@ const TasksPage = () => {
       (activeFilter === 'Training' && ['Training', 'Exercise'].includes(task.type));
     const taskId = String(task.id || '');
     const shortTaskId = taskId.slice(0, 8);
+    const horseName = (task.horse?.name || '').toLowerCase();
     const searchMatch =
       !query ||
       taskId.toLowerCase().includes(query) ||
       shortTaskId.toLowerCase().includes(query) ||
-      getHorseName(task.horseId).toLowerCase().includes(query);
+      horseName.includes(query);
     return filterMatch && searchMatch;
   });
 
@@ -598,15 +612,23 @@ const TasksPage = () => {
     return horse?.name || 'Unknown Horse';
   };
 
+  const getTaskHorseName = (task) => task.horse?.name || getHorseName(task.horseId);
+
   const getHorseProfileImage = (horseId) => {
     const horse = horses.find(h => h.id === horseId);
     return horse?.profileImage || '';
   };
 
+  const getTaskHorseProfileImage = (task) =>
+    task.horse?.profileImage || getHorseProfileImage(task.horseId);
+
   const getEmployeeName = (empId) => {
     const emp = employees.find(e => e.id === empId);
     return emp?.fullName || 'Unknown Employee';
   };
+
+  const getTaskEmployeeName = (task) =>
+    task.assignedEmployee?.fullName || getEmployeeName(task.assignedEmployeeId);
 
   const getTaskTime = (scheduledTime) => {
     if (!scheduledTime) return 'No Time Set';
@@ -778,7 +800,7 @@ const TasksPage = () => {
             <div className="text-center py-12 text-muted-foreground">{t('No tasks found')}</div>
           ) : (
             filteredTasks.map((task) => {
-              const horseImage = getHorseProfileImage(task.horseId);
+              const horseImage = getTaskHorseProfileImage(task);
               const evidenceImage = getTaskEvidenceImage(task);
               const evidenceSrc = evidenceImage
                 ? (evidenceImage.startsWith('http') ? evidenceImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${evidenceImage}`)
@@ -806,13 +828,13 @@ const TasksPage = () => {
                     ) : horseImage ? (
                       <img
                         src={horseImage}
-                        alt={getHorseName(task.horseId)}
+                        alt={getTaskHorseName(task)}
                         className="task-card-image transition-transform duration-500 group-hover:scale-110"
                         loading="lazy"
                       />
                     ) : (
                       <div className="task-card-placeholder">
-                        <span>{getHorseName(task.horseId).charAt(0).toUpperCase()}</span>
+                        <span>{getTaskHorseName(task).charAt(0).toUpperCase()}</span>
                         <small>{t(task.type)}</small>
                       </div>
                     )}
@@ -826,7 +848,7 @@ const TasksPage = () => {
                       </div>
 
                       <h3 className="task-card-title">{task.name}</h3>
-                      <p className="task-card-horse">{getHorseName(task.horseId)}</p>
+                      <p className="task-card-horse">{getTaskHorseName(task)}</p>
 
                       <div className="task-card-meta">
                         <span>
@@ -842,7 +864,7 @@ const TasksPage = () => {
 
                     <div className="task-card-footer">
                       <span className="task-card-assigned">
-                        {t('Assigned')}: <strong className="text-foreground">{getEmployeeName(task.assignedEmployeeId)}</strong>
+                        {t('Assigned')}: <strong className="text-foreground">{getTaskEmployeeName(task)}</strong>
                       </span>
                       <div className="task-card-action-cluster flex gap-2 flex-wrap">
                         {canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'Pending' && (
@@ -1044,7 +1066,7 @@ const TasksPage = () => {
             </div>
             <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-surface-container-high border border-border mb-4">
               <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t('Task')}</p><p className="text-sm font-medium text-foreground mt-0.5">{selectedTask.name}</p></div>
-              <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t('Horse')}</p><p className="text-sm font-medium text-foreground mt-0.5">{getHorseName(selectedTask.horseId)}</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t('Horse')}</p><p className="text-sm font-medium text-foreground mt-0.5">{getTaskHorseName(selectedTask)}</p></div>
             </div>
             <div className="space-y-4">
               <div>
@@ -1082,8 +1104,8 @@ const TasksPage = () => {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {[
                     ['Task Name', reviewingTask.name],
-                    ['Assigned To', getEmployeeName(reviewingTask.assignedEmployeeId)],
-                    ['Horse', getHorseName(reviewingTask.horseId)],
+                    ['Assigned To', getTaskEmployeeName(reviewingTask)],
+                    ['Horse', getTaskHorseName(reviewingTask)],
                     ['Type', reviewingTask.type],
                     ['Priority', reviewingTask.priority],
                   ].map(([label, val]) => (

@@ -2,6 +2,8 @@
 import jwt from 'jsonwebtoken'
 import { NextRequest, NextResponse } from 'next/server'
 import type { NextApiRequest } from 'next'
+import { rememberJson } from '@/lib/cache'
+import { cacheKeys, CACHE_TTL_SECONDS } from '@/lib/cacheKeys'
 
 const JWT_SECRET: string = (() => {
   const secret = process.env.JWT_SECRET
@@ -166,6 +168,15 @@ export type PermissionKey =
   | 'manageSchedules'
   | 'viewPayroll'
 
+type EmployeePermissionRecord = {
+  manageEmployees: boolean
+  viewReports: boolean
+  issueFines: boolean
+  manageInventory: boolean
+  manageSchedules: boolean
+  viewPayroll: boolean
+}
+
 export const isAdminDesignation = (designation?: string | null): boolean =>
   ADMIN_DESIGNATIONS.includes(designation || '')
 
@@ -203,33 +214,70 @@ const buildTaskCapabilities = (
   return capabilities
 }
 
+const getEmployeePermissionRecord = async (
+  employeeId: string
+): Promise<EmployeePermissionRecord | null> => {
+  if (!employeeId) {
+    return null
+  }
+
+  return rememberJson<EmployeePermissionRecord | null>(
+    cacheKeys.authPermissionMap(employeeId),
+    CACHE_TTL_SECONDS.authPermissions,
+    async () =>
+      prisma.employeePermission.findUnique({
+        where: { employeeId },
+        select: {
+          manageEmployees: true,
+          viewReports: true,
+          issueFines: true,
+          manageInventory: true,
+          manageSchedules: true,
+          viewPayroll: true,
+        },
+      })
+  )
+}
+
 export const getEffectiveTaskPermissionsForUser = async (
   employeeId: string,
   designation: string
 ): Promise<Record<string, boolean>> => {
   if (!employeeId) return {}
 
-  const overrides = await prisma.employeeTaskPermission.findMany({
-    where: { employeeId },
-    select: {
-      permission: true,
-      granted: true,
-    },
-  })
+  return rememberJson<Record<string, boolean>>(
+    cacheKeys.authTaskPermissionMap(employeeId, designation),
+    CACHE_TTL_SECONDS.authTaskPermissions,
+    async () => {
+      const overrides = await prisma.employeeTaskPermission.findMany({
+        where: { employeeId },
+        select: {
+          permission: true,
+          granted: true,
+        },
+      })
 
-  return buildEffectiveTaskPermissionMap(designation, overrides)
+      return buildEffectiveTaskPermissionMap(designation, overrides)
+    }
+  )
 }
 
 export const getTaskCapabilitiesForUser = async (
   employeeId: string,
   designation: string
 ): Promise<TaskCapabilities> => {
-  const isAdmin = isAdminDesignation(designation)
-  const effectivePermissions = isAdmin
-    ? {}
-    : await getEffectiveTaskPermissionsForUser(employeeId, designation)
+  return rememberJson<TaskCapabilities>(
+    cacheKeys.authTaskCapabilities(employeeId, designation),
+    CACHE_TTL_SECONDS.authTaskCapabilities,
+    async () => {
+      const isAdmin = isAdminDesignation(designation)
+      const effectivePermissions = isAdmin
+        ? {}
+        : await getEffectiveTaskPermissionsForUser(employeeId, designation)
 
-  return buildTaskCapabilities(effectivePermissions, isAdmin)
+      return buildTaskCapabilities(effectivePermissions, isAdmin)
+    }
+  )
 }
 
 /**
@@ -244,12 +292,8 @@ export const checkPermission = async (
   // Admins bypass permission checks
   if (isAdminDesignation(decoded.designation)) return true
 
-  const row = await prisma.employeePermission.findUnique({
-    where: { employeeId: decoded.id },
-    select: { [permission]: true },
-  })
-
-  return !!(row as any)?.[permission]
+  const row = await getEmployeePermissionRecord(decoded.id)
+  return Boolean(row?.[permission])
 }
 
 /**

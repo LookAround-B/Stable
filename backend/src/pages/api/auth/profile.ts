@@ -2,6 +2,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { generateToken, getTokenFromRequest, verifyToken } from '@/lib/auth'
+import {
+  invalidateEmployeeCaches,
+  invalidatePermissionCaches,
+} from '@/lib/cacheKeys'
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidPhone, validationError } from '@/lib/validate'
 
@@ -64,6 +68,11 @@ export default async function handler(
       },
     })
 
+    await Promise.all([
+      invalidateEmployeeCaches(decoded.id),
+      invalidatePermissionCaches(decoded.id),
+    ])
+
     // Generate new token with updated info
     const newToken = generateToken({
       id: user.id,
@@ -87,4 +96,3 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-

@@ -1,6 +1,10 @@
 // pages/api/employees/[id]/approve.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken, checkPermission } from '@/lib/auth'
+import {
+  invalidateEmployeeCaches,
+  invalidatePermissionCaches,
+} from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -50,6 +54,11 @@ export default async function handler(
         isApproved: true,
       },
     })
+
+    await Promise.all([
+      invalidateEmployeeCaches(id),
+      invalidatePermissionCaches(id),
+    ])
 
     return res.status(200).json({
       message: 'Employee approved successfully',

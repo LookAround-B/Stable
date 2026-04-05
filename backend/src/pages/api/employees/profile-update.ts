@@ -1,6 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
+import {
+  invalidateEmployeeCaches,
+  invalidatePermissionCaches,
+} from '@/lib/cacheKeys'
 import { uploadBase64Image } from '../../../lib/s3';
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -89,6 +93,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    await Promise.all([
+      invalidateEmployeeCaches(payload.id),
+      invalidatePermissionCaches(payload.id),
+    ])
+
     return res.status(200).json({
       message: 'Profile updated successfully',
       user: updatedUser,
@@ -100,4 +109,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
-

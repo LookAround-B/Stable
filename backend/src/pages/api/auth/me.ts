@@ -1,6 +1,12 @@
 // pages/api/auth/me.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, getTaskCapabilitiesForUser, verifyToken } from '@/lib/auth'
+import {
+  getTokenFromRequest,
+  getTaskCapabilitiesForUser,
+  verifyToken,
+} from '@/lib/auth'
+import { rememberJson } from '@/lib/cache'
+import { cacheKeys, CACHE_TTL_SECONDS } from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -11,9 +17,8 @@ export default async function handler(
   const origin = req.headers.origin as string | undefined
   setCorsHeaders(res, origin)
 
-  // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true })
   }
 
   if (req.method !== 'GET') {
@@ -33,43 +38,55 @@ export default async function handler(
       return res.status(403).json({ error: 'Invalid or expired token' })
     }
 
-    const user = await prisma.employee.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        designation: true,
-        department: true,
-        phoneNumber: true,
-        isApproved: true,
-        profileImage: true,
-        permissions: {
+    const user = await rememberJson(
+      cacheKeys.authMe(decoded.id),
+      CACHE_TTL_SECONDS.authMe,
+      async () => {
+        const employee = await prisma.employee.findUnique({
+          where: { id: decoded.id },
           select: {
-            manageEmployees: true,
-            viewReports: true,
-            issueFines: true,
-            manageInventory: true,
-            manageSchedules: true,
-            viewPayroll: true,
+            id: true,
+            email: true,
+            fullName: true,
+            designation: true,
+            department: true,
+            phoneNumber: true,
+            isApproved: true,
+            profileImage: true,
+            permissions: {
+              select: {
+                manageEmployees: true,
+                viewReports: true,
+                issueFines: true,
+                manageInventory: true,
+                manageSchedules: true,
+                viewPayroll: true,
+              },
+            },
           },
-        },
-      },
-    })
+        })
+
+        if (!employee) {
+          return null
+        }
+
+        const taskCapabilities = await getTaskCapabilitiesForUser(
+          employee.id,
+          employee.designation
+        )
+
+        return {
+          ...employee,
+          taskCapabilities,
+        }
+      }
+    )
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    const taskCapabilities = await getTaskCapabilitiesForUser(
-      user.id,
-      user.designation
-    )
-
-    return res.status(200).json({
-      ...user,
-      taskCapabilities,
-    })
+    return res.status(200).json(user)
   } catch (error) {
     console.error('Auth error:', error)
     return res.status(500).json({ error: 'Internal server error' })

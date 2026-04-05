@@ -30,7 +30,7 @@ export default async function handler(
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  const cleanup = registerNotificationStream(decoded.id, res)
+  const cleanup = await registerNotificationStream(decoded.id, res)
 
   req.on('close', cleanup)
   req.on('aborted', cleanup)

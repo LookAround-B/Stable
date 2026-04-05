@@ -1,6 +1,8 @@
 // pages/api/employees/all.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import { rememberJson } from '@/lib/cache'
+import { cacheKeys, CACHE_TTL_SECONDS } from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -12,7 +14,7 @@ export default async function handler(
   setCorsHeaders(res, origin as string | undefined)
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end()
   }
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -29,23 +31,27 @@ export default async function handler(
       return res.status(401).json({ error: 'Invalid or expired token' })
     }
 
-    // Get all active employees
-    const employees = await prisma.employee.findMany({
-      where: {
-        employmentStatus: 'Active',
-      },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        designation: true,
-        department: true,
-        profileImage: true,
-      },
-      orderBy: {
-        fullName: 'asc',
-      },
-    })
+    const employees = await rememberJson(
+      cacheKeys.employeesActive(),
+      CACHE_TTL_SECONDS.employeesActive,
+      async () =>
+        prisma.employee.findMany({
+          where: {
+            employmentStatus: 'Active',
+          },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            designation: true,
+            department: true,
+            profileImage: true,
+          },
+          orderBy: {
+            fullName: 'asc',
+          },
+        })
+    )
 
     return res.status(200).json({
       success: true,
@@ -56,4 +62,3 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
-
