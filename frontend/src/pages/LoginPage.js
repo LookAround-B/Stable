@@ -29,6 +29,18 @@ const LoginPage = () => {
   const navigate  = useNavigate();
   const { login } = useAuth();
 
+  const getErrorMessage = (err) => {
+    if (err?.response?.data?.error) {
+      return err.response.data.error;
+    }
+
+    if (err?.isApiRoutingError) {
+      return 'Login is unavailable right now. The app is reaching the frontend instead of the auth API.';
+    }
+
+    return 'Invalid credentials. Please try again.';
+  };
+
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (isAuthenticated()) {
@@ -43,15 +55,17 @@ const LoginPage = () => {
     setError('');
     try {
       const response = await loginWithEmail(email, password);
-      if (response.data.token) {
-        document.activeElement?.blur?.();
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-        setToken(response.data.token);
-        login(response.data.user);
-        navigate('/dashboard');
+      if (!response?.data?.token || !response?.data?.user) {
+        throw new Error('Login response did not include session data');
       }
+
+      document.activeElement?.blur?.();
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      setToken(response.data.token);
+      login(response.data.user);
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid credentials. Please try again.');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -64,15 +78,17 @@ const LoginPage = () => {
       setError('');
       try {
         const response = await loginWithGoogle(tokenResponse.access_token);
-        if (response.data.token) {
-          document.activeElement?.blur?.();
-          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-          setToken(response.data.token);
-          login(response.data.user);
-          navigate('/dashboard');
+        if (!response?.data?.token || !response?.data?.user) {
+          throw new Error('Google login response did not include session data');
         }
+
+        document.activeElement?.blur?.();
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        setToken(response.data.token);
+        login(response.data.user);
+        navigate('/dashboard');
       } catch (err) {
-        setError(err.response?.data?.error || 'Google sign-in failed. Please try again.');
+        setError(getErrorMessage(err));
       } finally {
         setLoading(false);
       }
