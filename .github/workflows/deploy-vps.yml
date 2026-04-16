@@ -1,0 +1,64 @@
+name: Deploy VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      APP_ROOT: ${{ vars.APP_ROOT }}
+      BACKEND_PM2_NAME: ${{ vars.BACKEND_PM2_NAME }}
+      FRONTEND_PM2_NAME: ${{ vars.FRONTEND_PM2_NAME }}
+      FRONTEND_PORT: ${{ vars.FRONTEND_PORT }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+      VPS_PORT: ${{ secrets.VPS_PORT }}
+      VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+    steps:
+      - name: Validate deployment settings
+        shell: bash
+        run: |
+          test -n "${VPS_HOST}" || { echo "Missing secret: VPS_HOST"; exit 1; }
+          test -n "${VPS_PORT}" || { echo "Missing secret: VPS_PORT"; exit 1; }
+          test -n "${VPS_USER}" || { echo "Missing secret: VPS_USER"; exit 1; }
+          test -n "${VPS_SSH_PRIVATE_KEY}" || { echo "Missing secret: VPS_SSH_PRIVATE_KEY"; exit 1; }
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${VPS_SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          if [ -n "${VPS_KNOWN_HOSTS}" ]; then
+            printf '%s\n' "${VPS_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${VPS_PORT}" -H "${VPS_HOST}" >> ~/.ssh/known_hosts
+          fi
+
+      - name: Deploy latest code to VPS
+        shell: bash
+        run: |
+          APP_ROOT_VALUE="${APP_ROOT:-/opt/horsestable}"
+          BACKEND_PM2_VALUE="${BACKEND_PM2_NAME:-horsestable-backend}"
+          FRONTEND_PM2_VALUE="${FRONTEND_PM2_NAME:-horsestable-frontend}"
+          FRONTEND_PORT_VALUE="${FRONTEND_PORT:-3001}"
+
+          ssh -i ~/.ssh/id_ed25519 -p "${VPS_PORT}" "${VPS_USER}@${VPS_HOST}" \
+            "export APP_ROOT='${APP_ROOT_VALUE}' \
+            DEPLOY_BRANCH='${GITHUB_REF_NAME}' \
+            BACKEND_PM2_NAME='${BACKEND_PM2_VALUE}' \
+            FRONTEND_PM2_NAME='${FRONTEND_PM2_VALUE}' \
+            FRONTEND_PORT='${FRONTEND_PORT_VALUE}' && \
+            bash '${APP_ROOT_VALUE}/deploy-vps.sh'"

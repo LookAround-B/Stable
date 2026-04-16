@@ -1,73 +1,94 @@
 #!/bin/bash
 
-# VPS Deployment Script - Handles git conflicts and rebuilds
+# VPS deployment script for GitHub Actions -> Hostinger VPS
 
-set -e
+set -Eeuo pipefail
 
-echo "🚀 Starting VPS Deployment..."
+APP_ROOT="${APP_ROOT:-/opt/horsestable}"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+BACKEND_DIR="${APP_ROOT}/backend"
+FRONTEND_DIR="${APP_ROOT}/frontend"
+BACKEND_PM2_NAME="${BACKEND_PM2_NAME:-horsestable-backend}"
+FRONTEND_PM2_NAME="${FRONTEND_PM2_NAME:-horsestable-frontend}"
+FRONTEND_PORT="${FRONTEND_PORT:-3001}"
 
-# Navigate to project root
-cd /opt/horsestable
-echo "📍 Working in: $(pwd)"
+echo "Starting VPS deployment..."
+cd "${APP_ROOT}"
+echo "Working in: $(pwd)"
 
-# Clean up git merge state if any
-echo "🧹 Cleaning merge state..."
+if ! command -v git >/dev/null 2>&1; then
+  echo "git is required on the VPS"
+  exit 1
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "npm is required on the VPS"
+  exit 1
+fi
+
+if ! command -v pm2 >/dev/null 2>&1; then
+  echo "pm2 is required on the VPS"
+  exit 1
+fi
+
+echo "Cleaning merge state..."
 git merge --abort 2>/dev/null || true
 
-# Stash local changes (but preserve frontend build)
-echo "💾 Stashing local changes..."
-git stash push -m "stash-before-deploy-$(date +%s)" -- backend/ 2>/dev/null || true
+echo "Stashing tracked backend changes if needed..."
+if ! git diff --quiet -- backend/; then
+  git stash push -m "stash-before-deploy-$(date +%s)" -- backend/ || true
+fi
 
-# Pull latest code
-echo "📥 Pulling latest code..."
-git pull origin main
+echo "Pulling latest code from ${DEPLOY_BRANCH}..."
+git fetch origin "${DEPLOY_BRANCH}"
+git pull --ff-only origin "${DEPLOY_BRANCH}"
 
-# Build and deploy backend
-echo "🔨 Building backend..."
-cd backend
-# Install dependencies (picks up new packages)
-echo "📦 Installing backend dependencies..."
+echo "Building backend..."
+cd "${BACKEND_DIR}"
+echo "Installing backend dependencies..."
 npm install --legacy-peer-deps
-# Clean build cache
 rm -rf .next 2>/dev/null || true
-# Sync database schema with new models
-echo "📊 Syncing database schema..."
-npx prisma db push --skip-generate
-npx prisma generate
+
+if [ -f "prisma/schema.prisma" ]; then
+  echo "Syncing Prisma schema..."
+  npx prisma db push --skip-generate
+  npx prisma generate
+fi
+
 npm run build
-echo "✅ Backend built successfully"
+echo "Backend build completed"
 
-# Restart backend
-echo "🔄 Restarting backend..."
-pm2 restart horsestable-backend
-sleep 2
-
-# Deploy frontend (pre-built locally, already in git)
-echo "📦 Deploying frontend (pre-built)..."
-cd ../frontend
-npm install --prefer-offline --no-audit --legacy-peer-deps
-echo "✅ Frontend dependencies installed"
-
-# Restart or start frontend
-echo "🔄 Restarting frontend..."
-if pm2 info horsestable-frontend > /dev/null 2>&1; then
-  pm2 restart horsestable-frontend
+echo "Restarting backend..."
+if pm2 info "${BACKEND_PM2_NAME}" >/dev/null 2>&1; then
+  pm2 restart "${BACKEND_PM2_NAME}"
 else
-  echo "⚠️  Frontend process not found, starting fresh..."
-  # Install serve if not available, then start it
-  npm list -g serve >/dev/null 2>&1 || npm install -g serve
-  pm2 start "serve -s build -l 3001" --name horsestable-frontend --cwd /opt/horsestable/frontend
+  pm2 start npm --name "${BACKEND_PM2_NAME}" --cwd "${BACKEND_DIR}" -- start
 fi
 sleep 2
 
-# Verify both services are running
-echo "✓ Backend status:"
-pm2 info horsestable-backend | grep -E "status|pid" || true
+echo "Building frontend..."
+cd "${FRONTEND_DIR}"
+npm install --prefer-offline --no-audit --legacy-peer-deps
+rm -rf build 2>/dev/null || true
+npm run build
+echo "Frontend build completed"
 
-echo "✓ Frontend status:"
-pm2 info horsestable-frontend | grep -E "status|pid" || true
+echo "Restarting frontend..."
+if pm2 info "${FRONTEND_PM2_NAME}" >/dev/null 2>&1; then
+  pm2 restart "${FRONTEND_PM2_NAME}"
+else
+  npm list -g serve >/dev/null 2>&1 || npm install -g serve
+  pm2 start "serve -s build -l ${FRONTEND_PORT}" --name "${FRONTEND_PM2_NAME}" --cwd "${FRONTEND_DIR}"
+fi
+sleep 2
 
-echo ""
-echo "✨ Deployment complete!"
-echo "📱 Frontend: https://eirs.app"
-echo "🔌 Backend: https://eirs.app/api/"
+pm2 save
+
+echo "Backend status:"
+pm2 info "${BACKEND_PM2_NAME}" | grep -E "status|pid" || true
+
+echo "Frontend status:"
+pm2 info "${FRONTEND_PM2_NAME}" | grep -E "status|pid" || true
+
+echo
+echo "Deployment complete"
