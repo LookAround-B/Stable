@@ -518,6 +518,68 @@ async function main() {
     console.log(`✅ Seeded ${groomUsers.length} groom worksheets`);
   }
 
+  // Seed Medicine Inventory
+  console.log('\n💊 Seeding Medicine Inventory...');
+  const managerUser = createdUsers['manager@test.com'];
+
+  if (managerUser) {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const medicines = [
+      { medicineType: 'Phenylbutazone (Bute)', unit: 'tablets', openingStock: 200, unitsPurchased: 50, totalUsed: 65, unitsLeft: 185, threshold: 40, notes: 'Common NSAID for pain and inflammation' },
+      { medicineType: 'Banamine (Flunixin)', unit: 'vials', openingStock: 30, unitsPurchased: 10, totalUsed: 12, unitsLeft: 28, threshold: 8, notes: 'Anti-inflammatory and analgesic injection' },
+      { medicineType: 'Adequan (PSGAG)', unit: 'syringes', openingStock: 24, unitsPurchased: 12, totalUsed: 16, unitsLeft: 20, threshold: 6, notes: 'Injectable joint supplement for degenerative joint disease' },
+      { medicineType: 'Legend (Hyaluronate Sodium)', unit: 'vials', openingStock: 15, unitsPurchased: 5, totalUsed: 8, unitsLeft: 12, threshold: 4, notes: 'Joint fluid therapy for synovitis' },
+      { medicineType: 'Gastrogard (Omeprazole)', unit: 'tubes', openingStock: 40, unitsPurchased: 20, totalUsed: 25, unitsLeft: 35, threshold: 10, notes: 'Gastric ulcer treatment and prevention' },
+      { medicineType: 'Excede (Ceftiofur)', unit: 'bottles', openingStock: 10, unitsPurchased: 5, totalUsed: 7, unitsLeft: 8, threshold: 3, notes: 'Long-acting antibiotic for respiratory infections' },
+      { medicineType: 'Eqvalan (Ivermectin Paste)', unit: 'syringes', openingStock: 50, unitsPurchased: 25, totalUsed: 33, unitsLeft: 42, threshold: 15, notes: 'Broad-spectrum dewormer' },
+      { medicineType: 'Panacur (Fenbendazole)', unit: 'tubes', openingStock: 35, unitsPurchased: 15, totalUsed: 20, unitsLeft: 30, threshold: 10, notes: 'Anthelmintic for parasite control' },
+      { medicineType: 'Dexamethasone', unit: 'vials', openingStock: 25, unitsPurchased: 10, totalUsed: 13, unitsLeft: 22, threshold: 6, notes: 'Corticosteroid anti-inflammatory' },
+      { medicineType: 'Pentosan Equine (Cartrophen)', unit: 'vials', openingStock: 20, unitsPurchased: 10, totalUsed: 12, unitsLeft: 18, threshold: 5, notes: 'Disease-modifying osteoarthritis drug' },
+      { medicineType: 'Regumate (Altrenogest)', unit: 'bottles', openingStock: 8, unitsPurchased: 4, totalUsed: 6, unitsLeft: 6, threshold: 2, notes: 'Synthetic progestin for mare cycle regulation' },
+      { medicineType: 'Equioxx (Firocoxib)', unit: 'tubes', openingStock: 45, unitsPurchased: 20, totalUsed: 27, unitsLeft: 38, threshold: 12, notes: 'COX-2 selective NSAID for osteoarthritis' },
+      { medicineType: 'SMZ-TMP (Sulfamethoxazole)', unit: 'tablets', openingStock: 300, unitsPurchased: 100, totalUsed: 125, unitsLeft: 275, threshold: 60, notes: 'Broad-spectrum antibiotic combination' },
+      { medicineType: 'Vetalog (Triamcinolone)', unit: 'vials', openingStock: 18, unitsPurchased: 6, totalUsed: 10, unitsLeft: 14, threshold: 4, notes: 'Corticosteroid for intra-articular injection' },
+      { medicineType: 'Osphos (Clodronate)', unit: 'vials', openingStock: 12, unitsPurchased: 6, totalUsed: 8, unitsLeft: 10, threshold: 3, notes: 'Bisphosphonate for navicular syndrome' },
+    ];
+
+    for (const med of medicines) {
+      await prisma.medicineInventory.upsert({
+        where: {
+          medicineType_month_year: {
+            medicineType: med.medicineType,
+            month: currentMonth,
+            year: currentYear,
+          },
+        },
+        update: {
+          openingStock: med.openingStock,
+          unitsPurchased: med.unitsPurchased,
+          totalUsed: med.totalUsed,
+          unitsLeft: med.unitsLeft,
+          unit: med.unit,
+          threshold: med.threshold,
+          notes: med.notes,
+        },
+        create: {
+          medicineType: med.medicineType,
+          month: currentMonth,
+          year: currentYear,
+          openingStock: med.openingStock,
+          unitsPurchased: med.unitsPurchased,
+          totalUsed: med.totalUsed,
+          unitsLeft: med.unitsLeft,
+          unit: med.unit,
+          threshold: med.threshold,
+          notes: med.notes,
+          recordedById: managerUser.id,
+        },
+      });
+    }
+
+    console.log(`✅ Seeded ${medicines.length} medicine inventory records`);
+  }
 
   console.log('\n✅ Database seeding complete!');
   console.log('\n📊 Role Summary:');
