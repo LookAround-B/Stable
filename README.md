@@ -1,377 +1,120 @@
+
+---
+
 # Stable Management System
 
-A comprehensive web application for managing horses, employees, and daily stable operations with hierarchical task management, real-time status updates, and accountability through an approval chain structure.
+A comprehensive enterprise-grade web application for equestrian facility management, featuring hierarchical task management, real-time operations tracking, and comprehensive horse care coordination.
+ <div align="center">
+  <img src="frontend/public/fav.png" alt="Stable Management System Logo" width="120" height="120">
+</div>
 
-## Project Overview
+<div align="center">
 
-This system implements:
-- **4-level hierarchical approval system** (Groomer → Zamindar → Instructor → Admin)
-- **Horse management** with comprehensive health records and care tracking
-- **Employee management** with role-based access control
-- **Task management** with photographic evidence and timestamps
-- **Report system** for accountability and violations
-- **Real-time notifications** and approval escalation
+![Next.js](https://img.shields.io/badge/Next.js-14_|_16-black?style=flat-square&logo=nextdotjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=flat-square&logo=typescript)
+![Prisma](https://img.shields.io/badge/Prisma-5.8-2D3748?style=flat-square&logo=prisma)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3-06B6D4?style=flat-square&logo=tailwindcss)
 
-## System Architecture
+</div>
 
-### Tech Stack
+## Features
 
-**Backend:**
-- Next.js 14+ (TypeScript)
-- PostgreSQL database with Prisma ORM
-- JWT authentication
-- AWS S3 for image storage
+- **Hierarchical Task Management**: Multi-level approval workflows with automated escalation
+- **Horse Care Management**: Complete health records, care teams, and veterinary tracking
+- **Employee Operations**: Attendance tracking, permissions, and performance monitoring
+- **Inventory Control**: Feed, medicine, tack, and equipment management
+- **Financial Management**: Expense tracking, fines, and automated billing
+- **Security & Access**: Gate management, visitor logging, and audit trails
+- **Real-time Notifications**: Automated alerts and escalation systems
+- **Analytics & Reporting**: Operational insights and compliance reporting
 
-**Frontend:**
-- React 18+
-- React Router for navigation
-- Axios for API calls
-- CSS3 for responsive design
+## Tech Stack
 
-**Database:**
-- PostgreSQL 12+
-- Prisma ORM for type-safe database access
+**Backend**: Next.js 16, TypeScript, PostgreSQL, Prisma ORM, JWT Authentication
+**Frontend**: React 19, Radix UI, Tailwind CSS, React Router
+**Infrastructure**: AWS S3, Redis, Google OAuth
 
-## Project Structure
-
-```
-horsestable/
-├── backend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   └── api/              # Next.js API routes
-│   │   │       ├── auth/         # Authentication endpoints
-│   │   │       ├── horses/       # Horse management endpoints
-│   │   │       ├── tasks/        # Task management endpoints
-│   │   │       ├── employees/    # Employee management endpoints
-│   │   │       ├── approvals/    # Approval endpoints
-│   │   │       ├── health-records/ # Health record endpoints
-│   │   │       ├── reports/      # Report endpoints
-│   │   │       ├── notifications/ # Notification endpoints
-│   │   │       ├── audit-logs/   # Audit logging endpoints
-│   │   │       └── settings/     # System settings endpoints
-│   │   ├── lib/
-│   │   │   ├── prisma.ts         # Prisma client initialization
-│   │   │   ├── auth.ts           # JWT utilities
-│   │   │   └── s3.ts             # AWS S3 utilities
-│   │   └── types/
-│   │       └── index.ts          # TypeScript type definitions
-│   ├── prisma/
-│   │   └── schema.prisma         # Prisma schema for PostgreSQL
-│   ├── tsconfig.json             # TypeScript configuration
-│   ├── next.config.js            # Next.js configuration
-│   ├── package.json
-│   └── .env.example
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/           # Reusable React components
-│   │   ├── pages/                # Page components
-│   │   ├── services/             # API service layer
-│   │   ├── context/              # React context providers
-│   │   ├── styles/               # CSS files
-│   │   ├── App.js
-│   │   └── index.js
-│   ├── public/
-│   ├── package.json
-│   └── .env.example
-│
-└── database/
-    ├── migrations/
-    │   ├── 001_initial_schema.sql # PostgreSQL schema
-    │   └── seed.sql              # Initial seed data
-```
-
-## Core Entities
-
-### 1. Employees
-Hierarchical roles:
-- **Groomer (Level 0)**: Execute tasks, upload proof, view assigned horses
-- **Zamindar (Level 1)**: Supervise groomers, approve/reject tasks
-- **Instructor (Level 2)**: View all activities, approve/reject at higher level
-- **Admin (Level 3)**: Full system access, create tasks, manage employees
-- **Health Advisor**: Manage horse health records
-
-### 2. Horses
-Comprehensive horse records including:
-- Basic info: name, gender, breed, color, height, location
-- Measurements: girth, bit, rug, bridle, nummah sizes
-- Identification: UELN, microchip, FEI ID, passport
-- Pedigree: sire and damsire information
-- Ownership: owner details, lease status, insurance
-- Status: active/rest/injured/traveling
-- Health records and medical history
-
-### 3. Tasks
-- Task types: Daily, Weekly, Event-based
-- States: Pending → In Progress → Completed → Approved
-- Approval chain follows employee hierarchy
-- Auto-expiry after X minutes
-- Photographic proof and questionnaire support
-
-### 4. Approvals
-- Follows approval chain: Zamindar → Instructor → Admin
-- SLA-based escalation (auto-escalate if not approved within timeframe)
-- Marks non-responsive approvers as NO_RESPONSE
-- Supports partial approvals with notes
-
-### 5. Reports
-- Employee can report violations/misconduct
-- Tagged @ mentions system
-- Evidence with images and timestamps
-- Visible to supervisory chain and admins
-- Status: Open, Resolved, Dismissed
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js 18+
 - PostgreSQL 12+
-- AWS S3 account (for image storage)
+- AWS S3 account
+- Google OAuth credentials
 
-### Backend Setup
+### Installation
 
-1. Navigate to backend directory:
-```bash
-cd backend
-```
+1. **Clone and install dependencies:**
+   ```bash
+   git clone <repository-url>
+   npm run install-all
+   ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+2. **Configure environment:**
+   ```bash
+   # Copy environment files
+   cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env
 
-3. Create `.env` file from `.env.example`:
-```bash
-cp .env.example .env
-```
+   # Edit .env files with your credentials
+   ```
 
-4. Update `.env` with your database and AWS credentials
+3. **Setup database:**
+   ```bash
+   cd backend
+   npm run prisma:migrate
+   npm run seed
+   ```
 
-5. Create database and run migrations:
-```bash
-npm run prisma:migrate
-```
+4. **Start development servers:**
+   ```bash
+   # Terminal 1 - Backend
+   npm run start-backend
 
-6. (Optional) Seed initial data:
-```bash
-npm run seed
-```
+   # Terminal 2 - Frontend
+   npm run start-frontend
+   ```
 
-6. Start the server:
-```bash
-npm run dev
-```
+Visit `http://localhost:3001` to access the application.
 
-Server runs on `http://localhost:5000`
 
-### Frontend Setup
+## Development
 
-1. Navigate to frontend directory:
-```bash
-cd frontend
-```
+### Available Scripts
 
-2. Install dependencies:
-```bash
-npm install
-```
+- `npm run install-all` - Install all dependencies
+- `npm run start-backend` - Start backend server
+- `npm run start-frontend` - Start frontend application
+- `npm run build-frontend` - Build for production
 
-3. Create `.env` file from `.env.example`:
-```bash
-cp .env.example .env
-```
+### Environment Variables
 
-4. Start the development server:
-```bash
-npm start
-```
+**Backend (.env):**
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - JWT signing secret
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `AWS_ACCESS_KEY_ID` - AWS S3 access key
 
-App runs on `http://localhost:3000`
-
-## Cross-Platform Setup (Windows + Linux)
-
-To avoid line-ending conflicts and editor formatting issues across OSes:
-
-1. Ensure Git respects LF line endings in this repo:
-```bash
-git config core.autocrlf input
-```
-
-2. Keep the new repo settings that normalize line endings and whitespace:
-- `.gitattributes` enforces LF line endings
-- `.editorconfig` enforces whitespace consistency
-
-3. Reinstall dependencies after switching OS or Node versions:
-```bash
-npm run install-all
-```
-
-## Key Features Implementation
-
-### Authentication & Onboarding
-- Email-based login (no passwords)
-- Profile creation after initial login
-- Admin approval flow before full access
-- JWT token-based authentication
-
-### Approval System
-- Tasks automatically escalate if SLA not met
-- Multi-level approval chain with notes
-- Partial approvals with comments
-- Audit trail of all approvals
-
-### Task Management
-- Drag-and-drop task assignment
-- Real-time status updates
-- Image upload with watermarking
-- Auto-expiry after configured minutes
-
-### Health Management
-- Vaccination and deworming schedules
-- Injury logs with photos
-- Vet and farrier visit records
-- Medication tracking
-- Health advisor assignments
-
-### Reporting & Accountability
-- Universal reporting panel
-- Predefined violation categories
-- Evidence gathering with images
-- Report escalation to supervisory chain
-
-### Notifications
-- Task assignment and reminders
-- Missed task alerts
-- Approval requests
-- Escalation alerts
-- Health alerts
-- Emergency broadcasts
-
-## API Routes Overview
-
-### Authentication
-- `POST /api/auth/login` - Login with email
-- `POST /api/auth/profile` - Create user profile
-- `GET /api/auth/me` - Get current user
-
-### Horses
-- `GET /api/horses` - List all horses
-- `GET /api/horses/:id` - Get horse details
-- `POST /api/horses` - Create horse (Admin/Instructor)
-- `PUT /api/horses/:id` - Update horse (Admin/Instructor)
-- `DELETE /api/horses/:id` - Delete horse (Admin)
-- `GET /api/horses/:id/health-records` - Get health records
-- `GET /api/horses/:id/tasks` - Get assigned tasks
-
-### Tasks
-- `GET /api/tasks` - Get tasks (role-filtered)
-- `GET /api/tasks/:id` - Get task details
-- `POST /api/tasks` - Create task (Admin/Instructor)
-- `POST /api/tasks/:id/complete` - Mark task complete
-- `POST /api/tasks/:id/upload-proof` - Upload task proof
-
-### Approvals
-- `GET /api/approvals` - Get pending approvals
-- `POST /api/approvals/:id/approve` - Approve task
-- `POST /api/approvals/:id/reject` - Reject task
-- `GET /api/approvals/task/:taskId` - Get approval chain
-
-### Employees
-- `GET /api/employees` - List employees
-- `POST /api/employees` - Create employee (Admin)
-- `POST /api/employees/:id/approve` - Approve profile (Admin)
-- `GET /api/employees/:id/performance` - Performance metrics
-
-### Reports
-- `GET /api/reports` - List reports
-- `POST /api/reports` - Create report
-- `POST /api/reports/:id/resolve` - Resolve report (Admin)
-
-### Notifications
-- `GET /api/notifications` - Get user notifications
-- `PUT /api/notifications/:id/read` - Mark as read
-- `PUT /api/notifications/:id/snooze` - Snooze notification
-
-### Health Records
-- `GET /api/health-records` - List health records
-- `POST /api/health-records` - Create record (Health Advisor/Admin)
-- `PUT /api/health-records/:id` - Update record
-
-### Settings
-- `GET /api/settings` - List settings (Admin)
-- `PUT /api/settings/:key` - Update setting (Admin)
-
-## Configuration
-
-### Task Settings
-- Task templates and predefined types
-- Default schedules for recurring tasks
-- Auto-expiry time windows
-- Required proof settings
-
-### Approval Configuration
-- SLA time limits per approval level
-- Auto-escalation rules
-- Partial approval criteria
-
-### Fine & Report Configuration
-- Predefined violation categories
-- Fine amounts (if applicable)
-- Report visibility rules
-
-### Media Settings
-- Image retention period (default: 12 months)
-- Compression quality
-- Watermark format with timestamp and employee name
-
-## Performance Targets
-
-- Page load time: < 2 seconds
-- Image upload support: up to 10MB
-- Concurrent users: 50+
-- Real-time notifications: < 5 second delay
-- System uptime: 99.5%
+**Frontend (.env):**
+- `REACT_APP_API_URL` - Backend API URL
+- `REACT_APP_GOOGLE_CLIENT_ID` - Google OAuth client ID
 
 ## Security
 
-- Email-based authentication
-- JWT token security
-- Role-based access control (RBAC)
-- Audit trail for all changes
-- Secure image storage on AWS S3
-- Session management
-- IP address logging
+- JWT-based authentication with secure token management
+- Role-based access control with granular permissions
+- AWS S3 secure file storage with access controls
+- Comprehensive audit logging and compliance tracking
+- Data encryption and secure API endpoints
 
-## Future Enhancements
+## Performance
 
-- Mobile applications (iOS & Android)
-- GPS tracking for horses
-- AI-powered task recommendations
-- Predictive health analytics
-- Integration with veterinary systems
-- Advanced data visualization and reporting
-- Custom report builder
-
-## Development Guidelines
-
-### Code Structure
-- RESTful API design
-- Separation of concerns (routes, controllers, models)
-- Error handling and logging
-- Input validation
-- Consistent naming conventions
-
-### Database
-- Timestamps in UTC
-- Soft deletes for data integrity
-- Proper indexes for performance
-- Foreign key relationships
-
-### Testing
-- Unit tests for services
-- Integration tests for routes
-- API testing with sample data
+- Optimized database queries with strategic indexing
+- Redis caching for improved response times
+- Image compression and efficient file handling
+- Real-time notifications with WebSocket support
+- Mobile-responsive design with progressive enhancement
 
 ## License
 
@@ -379,4 +122,5 @@ Proprietary - Stable Management System
 
 ## Support
 
-For issues and questions, contact the development team.
+For technical support or questions, please contact the development team.
+
