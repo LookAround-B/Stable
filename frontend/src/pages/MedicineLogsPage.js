@@ -18,6 +18,24 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
 
+const DEFAULT_MEDICINE_NAMES = [
+  'Phenylbutazone (Bute)',
+  'Banamine (Flunixin)',
+  'Adequan (PSGAG)',
+  'Legend (Hyaluronate Sodium)',
+  'Gastrogard (Omeprazole)',
+  'Excede (Ceftiofur)',
+  'Eqvalan (Ivermectin Paste)',
+  'Panacur (Fenbendazole)',
+  'Dexamethasone',
+  'Pentosan Equine (Cartrophen)',
+  'Regumate (Altrenogest)',
+  'Equioxx (Firocoxib)',
+  'SMZ-TMP (Sulfamethoxazole)',
+  'Vetalog (Triamcinolone)',
+  'Osphos (Clodronate)',
+];
+
 const MedicineLogsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -93,16 +111,16 @@ const MedicineLogsPage = () => {
 
   const loadMedicineNames = useCallback(async () => {
     try {
-      const now = new Date();
-      const response = await medicineInventoryService.getInventory({
-        month: now.getMonth() + 1,
-        year: now.getFullYear(),
-      });
+      const response = await medicineInventoryService.getInventory();
       const records = response.data || [];
-      const unique = [...new Set(records.map(r => r.medicineType))].filter(Boolean).sort();
+      const unique = [...new Set([
+        ...records.map(r => r.medicineType),
+        ...DEFAULT_MEDICINE_NAMES,
+      ])].filter(Boolean).sort();
       setMedicineNames(unique);
     } catch (error) {
       console.error('Error loading medicine names:', error);
+      setMedicineNames(DEFAULT_MEDICINE_NAMES);
     }
   }, []);
 
