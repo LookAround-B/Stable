@@ -55,7 +55,14 @@ jobs:
           FRONTEND_PM2_VALUE="${FRONTEND_PM2_NAME:-horsestable-frontend}"
           FRONTEND_PORT_VALUE="${FRONTEND_PORT:-3001}"
 
-          ssh -i ~/.ssh/id_ed25519 -p "${VPS_PORT}" "${VPS_USER}@${VPS_HOST}" \
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -p "${VPS_PORT}" \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=10 \
+            -o TCPKeepAlive=yes \
+            "${VPS_USER}@${VPS_HOST}" \
             "export APP_ROOT='${APP_ROOT_VALUE}' \
             DEPLOY_BRANCH='${GITHUB_REF_NAME}' \
             BACKEND_PM2_NAME='${BACKEND_PM2_VALUE}' \
