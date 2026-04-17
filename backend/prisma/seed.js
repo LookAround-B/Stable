@@ -6,6 +6,12 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding database with comprehensive test data...');
 
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DESTRUCTIVE_SEED !== 'true') {
+    throw new Error(
+      'Refusing to run destructive seed in production. Use the safe seed command or set ALLOW_DESTRUCTIVE_SEED=true explicitly.'
+    );
+  }
+
   // Clear existing data - delete in order of dependencies
   await prisma.expense.deleteMany({});
   await prisma.attendance.deleteMany({});
