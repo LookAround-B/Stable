@@ -12,8 +12,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed-safe.js",
-    "seed:reset": "node prisma/seed.js",
-    "seed:medicine": "node prisma/seed-medicine-safe.js"
+    "seed:medicine": "node prisma/seed-medicine-safe.js",
+    "seed:medicine-logs": "node prisma/seed-medicine-logs-safe.js",
+    "seed:admin": "node prisma/seed-admin.js"
   },
   "prisma": {
     "seed": "node prisma/seed-safe.js"
