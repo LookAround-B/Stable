@@ -80,20 +80,23 @@ const SearchableSelect = ({
     o?.label?.toLowerCase?.().includes(search.toLowerCase()) ?? false
   ) : [];
 
-  const visibleOptionCount = 5;
   const showSearch = searchable && options.length > 5;
-  const hiddenOptionCount = Math.max(filtered.length - visibleOptionCount, 0);
 
   const updateDropdownStyle = () => {
     if (!wrapperRef.current) return;
     const rect = wrapperRef.current.getBoundingClientRect();
-    const viewportPadding = 16;
-    const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
-    const spaceAbove = rect.top - viewportPadding;
+    const paddingTop = 16;
+    const paddingBottom = 56; // extra clearance so dropdown doesn't hide under taskbar
+    const spaceBelow = window.innerHeight - rect.bottom - paddingBottom;
+    const spaceAbove = rect.top - paddingTop;
     const minScrollHeight = 96;
-    const maxH = Math.max(minScrollHeight, Math.min(240, (spaceBelow >= spaceAbove ? spaceBelow : spaceAbove) - (showSearch ? 64 : 0) - (hiddenOptionCount > 0 ? 38 : 0) - 12));
+    // Show below only when there's clearly more room below than above AND enough space.
+    // Otherwise always flip upward — prevents the dropdown clipping at the taskbar.
+    const showBelow = spaceBelow >= 200 && spaceBelow > spaceAbove;
+    const availableSpace = showBelow ? spaceBelow : spaceAbove;
+    const maxH = Math.max(minScrollHeight, Math.min(176, availableSpace - (showSearch ? 64 : 0) - 12));
 
-    if (spaceBelow >= 160 || spaceBelow >= spaceAbove) {
+    if (showBelow) {
       setDropdownStyle({ position: 'fixed', top: rect.bottom + 6, left: rect.left, width: rect.width, maxScrollHeight: maxH, flip: false });
     } else {
       setDropdownStyle({ position: 'fixed', bottom: window.innerHeight - rect.top + 6, left: rect.left, width: rect.width, maxScrollHeight: maxH, flip: true });
@@ -175,11 +178,6 @@ const SearchableSelect = ({
           ))
         )}
       </div>
-      {hiddenOptionCount > 0 && (
-        <div className="efm-select-more-indicator px-4 py-2 text-xs font-semibold tracking-[0.16em] uppercase">
-          {`More +${hiddenOptionCount}`}
-        </div>
-      )}
     </div>
   ) : null;
 

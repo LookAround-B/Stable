@@ -16113,29 +16113,27 @@ html[data-text-size="large"] {
   color: hsl(var(--primary));
 }
 
-.efm-searchable-select .efm-select-options-scroll {
+/* Dropdown is portaled to body — selector must not require the parent wrapper */
+.efm-select-options-scroll {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--primary) / 0.36) transparent;
 }
 
-.efm-searchable-select .efm-select-options-scroll::-webkit-scrollbar {
-  width: 8px;
+.efm-select-options-scroll::-webkit-scrollbar {
+  width: 4px;
 }
 
-.efm-searchable-select .efm-select-options-scroll::-webkit-scrollbar-track {
+.efm-select-options-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.efm-searchable-select .efm-select-options-scroll::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary) / 0.28);
+.efm-select-options-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
   border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
 }
 
-.efm-searchable-select .efm-select-options-scroll::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.42);
-  background-clip: padding-box;
+.efm-select-options-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.65);
 }
 
 .efm-searchable-select .efm-select-more-indicator {
