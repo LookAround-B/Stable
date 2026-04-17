@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # VPS deployment script for GitHub Actions -> Hostinger VPS
+# Frontend is pre-built in GitHub Actions and rsynced before this script runs.
+# This script only handles: git pull, backend build, prisma, PM2 restarts.
 
 set -Eeuo pipefail
 
@@ -16,21 +18,11 @@ echo "Starting VPS deployment..."
 cd "${APP_ROOT}"
 echo "Working in: $(pwd)"
 
-if ! command -v git >/dev/null 2>&1; then
-  echo "git is required on the VPS"
-  exit 1
-fi
+for cmd in git npm pm2; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "$cmd is required on the VPS"; exit 1; }
+done
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo "npm is required on the VPS"
-  exit 1
-fi
-
-if ! command -v pm2 >/dev/null 2>&1; then
-  echo "pm2 is required on the VPS"
-  exit 1
-fi
-
+# ── Pull latest code ─────────────────────────────────────────────────────────
 echo "Cleaning merge state..."
 git merge --abort 2>/dev/null || true
 
@@ -43,18 +35,25 @@ echo "Pulling latest code from ${DEPLOY_BRANCH}..."
 git fetch origin "${DEPLOY_BRANCH}"
 git pull --ff-only origin "${DEPLOY_BRANCH}"
 
-echo "Building backend..."
-cd "${BACKEND_DIR}"
+# ── Backend ──────────────────────────────────────────────────────────────────
 echo "Installing backend dependencies..."
-npm install --legacy-peer-deps
-rm -rf .next 2>/dev/null || true
+cd "${BACKEND_DIR}"
+npm ci --legacy-peer-deps
 
-if [ -f "prisma/schema.prisma" ]; then
-  echo "Syncing Prisma schema..."
+# Run prisma only when the schema actually changed
+SCHEMA_CHANGED=$(git diff HEAD~1 HEAD --name-only 2>/dev/null | grep "prisma/schema.prisma" || true)
+if [ -n "${SCHEMA_CHANGED}" ]; then
+  echo "Prisma schema changed — running db push + generate..."
   npx prisma db push --skip-generate
+  npx prisma generate
+else
+  echo "Prisma schema unchanged — skipping db push"
+  # Still regenerate the client in case prisma package was updated
   npx prisma generate
 fi
 
+# Keep .next/cache so Next.js can do incremental rebuilds (much faster)
+echo "Building backend..."
 npm run build
 echo "Backend build completed"
 
@@ -66,14 +65,9 @@ else
 fi
 sleep 2
 
-echo "Building frontend..."
-cd "${FRONTEND_DIR}"
-npm install --prefer-offline --no-audit --legacy-peer-deps
-rm -rf build 2>/dev/null || true
-npm run build
-echo "Frontend build completed"
-
-echo "Restarting frontend..."
+# ── Frontend ─────────────────────────────────────────────────────────────────
+# The build/ folder was already rsynced from GitHub Actions — nothing to build here.
+echo "Frontend already built and uploaded — restarting PM2..."
 if pm2 info "${FRONTEND_PM2_NAME}" >/dev/null 2>&1; then
   pm2 restart "${FRONTEND_PM2_NAME}"
 else

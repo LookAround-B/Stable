@@ -25,15 +25,41 @@ jobs:
       VPS_PORT: ${{ secrets.VPS_PORT }}
       VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
       VPS_USER: ${{ secrets.VPS_USER }}
+
     steps:
       - name: Validate deployment settings
         shell: bash
         run: |
-          test -n "${VPS_HOST}" || { echo "Missing secret: VPS_HOST"; exit 1; }
-          test -n "${VPS_PORT}" || { echo "Missing secret: VPS_PORT"; exit 1; }
-          test -n "${VPS_USER}" || { echo "Missing secret: VPS_USER"; exit 1; }
+          test -n "${VPS_HOST}"          || { echo "Missing secret: VPS_HOST";          exit 1; }
+          test -n "${VPS_PORT}"          || { echo "Missing secret: VPS_PORT";          exit 1; }
+          test -n "${VPS_USER}"          || { echo "Missing secret: VPS_USER";          exit 1; }
           test -n "${VPS_SSH_PRIVATE_KEY}" || { echo "Missing secret: VPS_SSH_PRIVATE_KEY"; exit 1; }
 
+      # ── Step 1: Checkout on the fast GitHub runner ──────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Step 2: Build frontend here (2-core, 7GB RAM) not on the VPS ────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build frontend
+        working-directory: frontend
+        # CI=false: prevents CRA from treating ESLint warnings as errors
+        run: CI=false npm run build
+        env:
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          REACT_APP_GOOGLE_CLIENT_ID: ${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }}
+
+      # ── Step 3: Setup SSH ────────────────────────────────────────────────────
       - name: Configure SSH
         shell: bash
         run: |
@@ -47,6 +73,17 @@ jobs:
             ssh-keyscan -p "${VPS_PORT}" -H "${VPS_HOST}" >> ~/.ssh/known_hosts
           fi
 
+      # ── Step 4: Push pre-built frontend directly to VPS (rsync, fast) ───────
+      - name: Upload pre-built frontend to VPS
+        shell: bash
+        run: |
+          APP_ROOT_VALUE="${APP_ROOT:-/opt/horsestable}"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${VPS_PORT} -o BatchMode=yes -o StrictHostKeyChecking=no" \
+            frontend/build/ \
+            "${VPS_USER}@${VPS_HOST}:${APP_ROOT_VALUE}/frontend/build/"
+
+      # ── Step 5: SSH into VPS — only backend build + PM2 restarts remain ─────
       - name: Deploy latest code to VPS
         shell: bash
         run: |
