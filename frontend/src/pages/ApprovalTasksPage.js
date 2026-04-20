@@ -26,8 +26,10 @@ const ApprovalTasksPage = () => {
   const p = usePermissions();
   const [pendingTasks, setPendingTasks] = useState([]);
   const [approvedTasks, setApprovedTasks] = useState([]);
+  const [rejectedTasks, setRejectedTasks] = useState([]);
   const [pendingMedicineLogs, setPendingMedicineLogs] = useState([]);
   const [approvedMedicineLogs, setApprovedMedicineLogs] = useState([]);
+  const [rejectedMedicineLogs, setRejectedMedicineLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
@@ -61,17 +63,21 @@ const ApprovalTasksPage = () => {
   const loadAllTasks = async () => {
     try {
       setLoading(true);
-      const [pendingRes, approvedRes, pendingMedRes, approvedMedRes] = await Promise.allSettled([
+      const [pendingRes, approvedRes, rejectedRes, pendingMedRes, approvedMedRes, rejectedMedRes] = await Promise.allSettled([
         apiClient.get('/tasks', { params: { status: 'Pending Review' } }),
         apiClient.get('/tasks', { params: { status: 'Approved' } }),
+        apiClient.get('/tasks', { params: { status: 'Rejected' } }),
         medicineLogService.getPendingMedicineLogs(),
-        medicineLogService.getMedicineLogs({ status: 'approved' })
+        medicineLogService.getMedicineLogs({ status: 'approved' }),
+        medicineLogService.getMedicineLogs({ status: 'rejected' })
       ]);
 
       setPendingTasks(pendingRes.status === 'fulfilled' ? pendingRes.value.data.data || [] : []);
       setApprovedTasks(approvedRes.status === 'fulfilled' ? approvedRes.value.data.data || [] : []);
+      setRejectedTasks(rejectedRes.status === 'fulfilled' ? rejectedRes.value.data.data || [] : []);
       setPendingMedicineLogs(pendingMedRes.status === 'fulfilled' ? pendingMedRes.value.data || [] : []);
       setApprovedMedicineLogs(approvedMedRes.status === 'fulfilled' ? approvedMedRes.value.data || [] : []);
+      setRejectedMedicineLogs(rejectedMedRes.status === 'fulfilled' ? rejectedMedRes.value.data || [] : []);
     } catch (error) {
       console.error('Error loading data:', error);
       setMessage('✗ Failed to load data');
@@ -107,11 +113,15 @@ const ApprovalTasksPage = () => {
     try {
       setLoading(true);
       if (type === 'task') {
+        const rejectedTask = pendingTasks.find(t => t.id === itemId);
         await apiClient.patch(`/tasks/${itemId}`, { status: 'Rejected' });
         setPendingTasks(pendingTasks.filter(t => t.id !== itemId));
+        setRejectedTasks([rejectedTask, ...rejectedTasks]);
       } else {
+        const rejectedLog = pendingMedicineLogs.find(m => m.id === itemId);
         await medicineLogService.rejectMedicineLog(itemId, 'Rejected');
         setPendingMedicineLogs(pendingMedicineLogs.filter(m => m.id !== itemId));
+        setRejectedMedicineLogs([rejectedLog, ...rejectedMedicineLogs]);
       }
       setMessage('✓ Item rejected');
       setTimeout(() => setMessage(''), 3000);
@@ -132,7 +142,12 @@ const ApprovalTasksPage = () => {
     ...approvedMedicineLogs.map(m => ({ ...m, itemType: 'medicine', status: 'Approved' }))
   ].sort((a, b) => new Date(b.createdAt || b.timeAdministered) - new Date(a.createdAt || a.timeAdministered));
 
-  const allItems = [...pendingItems, ...approvedItems];
+  const rejectedItems = [
+    ...rejectedTasks.map(t => ({ ...t, itemType: 'task', status: 'Rejected' })),
+    ...rejectedMedicineLogs.map(m => ({ ...m, itemType: 'medicine', status: 'Rejected' }))
+  ].sort((a, b) => new Date(b.createdAt || b.timeAdministered) - new Date(a.createdAt || a.timeAdministered));
+
+  const allItems = [...pendingItems, ...approvedItems, ...rejectedItems];
   const filtered = allItems.filter(item => {
     const status = item.status === 'Pending Review' ? 'Pending' : item.status;
     if (activeFilter !== 'All' && status !== activeFilter) return false;

@@ -94,7 +94,7 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
           where,
           skip: parsedSkip,
           take: parsedTake,
-          orderBy: { name: 'asc' },
+          orderBy: { createdAt: 'desc' },
           include: {
             supervisor: true,
           },

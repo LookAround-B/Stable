@@ -5,6 +5,7 @@ import { Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
+import TimePicker from '../components/shared/TimePicker';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { BarChart3, Camera, Check, Clock3, Package, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
@@ -163,9 +164,7 @@ const TasksPage = () => {
     assignedEmployeeId: '',
     priority: 'Medium',
     startDate: '',
-    startAmPm: 'AM',
     endDate: '',
-    endAmPm: 'AM',
     scheduledTime: '',
     endTime: '',
     requiredProof: false,
@@ -380,11 +379,10 @@ const TasksPage = () => {
         return;
       }
 
-      const amPmToTime = (ampm) => ampm === 'AM' ? '09:00' : '14:00';
       const payload = {
         ...formData,
-        scheduledTime: formData.startDate ? `${formData.startDate}T${amPmToTime(formData.startAmPm)}` : '',
-        endTime: formData.endDate ? `${formData.endDate}T${amPmToTime(formData.endAmPm)}` : '',
+        scheduledTime: formData.startDate ? `${formData.startDate}T${formData.scheduledTime || '09:00'}` : '',
+        endTime: formData.endDate ? `${formData.endDate}T${formData.endTime || '17:00'}` : '',
       };
       const response = await apiClient.post('/tasks', payload);
       
@@ -399,9 +397,7 @@ const TasksPage = () => {
         assignedEmployeeId: '',
         priority: 'Medium',
         startDate: '',
-        startAmPm: 'AM',
         endDate: '',
-        endAmPm: 'AM',
         scheduledTime: '',
         endTime: '',
         requiredProof: false,
@@ -1050,43 +1046,39 @@ const TasksPage = () => {
                     <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder={t("Select employee")} required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Time *")}</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="date"
-                        required
-                        value={formData.startDate}
-                        onChange={(e) => setFormData(f => ({ ...f, startDate: e.target.value }))}
-                        className="flex-1 h-11 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
-                      />
-                      <select
-                        value={formData.startAmPm}
-                        onChange={(e) => setFormData(f => ({ ...f, startAmPm: e.target.value }))}
-                        className="h-11 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-                      >
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Date *")}</label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.startDate}
+                      onChange={(e) => setFormData(f => ({ ...f, startDate: e.target.value }))}
+                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Time")}</label>
+                    <TimePicker
+                      value={formData.scheduledTime}
+                      onChange={(val) => setFormData(f => ({ ...f, scheduledTime: val }))}
+                      placeholder="Pick start time"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Date")}</label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData(f => ({ ...f, endDate: e.target.value }))}
+                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Time")}</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="date"
-                        value={formData.endDate}
-                        onChange={(e) => setFormData(f => ({ ...f, endDate: e.target.value }))}
-                        className="flex-1 h-11 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
-                      />
-                      <select
-                        value={formData.endAmPm}
-                        onChange={(e) => setFormData(f => ({ ...f, endAmPm: e.target.value }))}
-                        className="h-11 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-                      >
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
+                    <TimePicker
+                      value={formData.endTime}
+                      onChange={(val) => setFormData(f => ({ ...f, endTime: val }))}
+                      placeholder="Pick end time"
+                    />
                   </div>
                   <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-2">
                     <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
