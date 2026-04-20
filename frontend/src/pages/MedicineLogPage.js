@@ -59,6 +59,7 @@ const MedicineLogPage = () => {
     if (!file) return;
 
     try {
+      setMessage('Uploading image...');
       const formData = new FormData();
       formData.append('file', file);
 
@@ -66,14 +67,19 @@ const MedicineLogPage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
+      const imageUrl = response.data.url || response.data.path;
+      console.log('Image uploaded, URL:', imageUrl, 'Length:', imageUrl?.length);
+
       setFormData((prev) => ({
         ...prev,
-        photoUrl: response.data.url || response.data.path,
+        photoUrl: imageUrl,
       }));
+      setMessage('✓ Image uploaded successfully');
+      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       console.error('Image upload failed:', error);
-      setMessage('✗ Image upload failed');
-      setTimeout(() => setMessage(''), 3000);
+      setMessage('✗ Image upload failed: ' + (error.response?.data?.error || error.message));
+      setTimeout(() => setMessage(''), 5000);
     }
   };
 
@@ -84,9 +90,10 @@ const MedicineLogPage = () => {
         throw new Error('Please fill in all required fields');
       }
       const payload = {
+        jamiedarId: user.id,
         horseId: formData.horseId, medicineName: formData.medicineName,
         quantity: parseFloat(formData.quantity), unit: formData.unit,
-        timeAdministered: new Date(formData.timeAdministered),
+        timeAdministered: formData.timeAdministered,
         notes: formData.notes || null, photoUrl: formData.photoUrl || null,
       };
       const response = await apiClient.post('/medicine-logs', payload);
@@ -95,8 +102,10 @@ const MedicineLogPage = () => {
       setFormData({ horseId: '', medicineName: '', quantity: '', unit: 'ml', timeAdministered: new Date().toISOString().slice(0, 16), notes: '', photoUrl: '' });
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message;
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
+      console.error('Medicine log creation error:', error.response?.data);
       setMessage(`✗ Error: ${errorMsg}`);
+      setTimeout(() => setMessage(''), 5000);
     } finally { setLoading(false); }
   };
 

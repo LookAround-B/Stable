@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
-import { Clock, Package, Search, Users, BarChart3, X, Camera } from 'lucide-react';
+import { Clock, Package, Search, Users, BarChart3, X, Camera, CheckCircle, Hourglass } from 'lucide-react';
 
 const cropImageToSquare = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -389,8 +389,12 @@ const MyAssignedTasksPage = () => {
                             </button>
                           )}
                           {(task.status === 'Pending Review' || task.status === 'Approved') && (
-                            <span className="h-9 px-5 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm font-medium flex items-center">
-                              {task.status === 'Approved' ? '✔ Approved' : '⏳ Awaiting Review'}
+                            <span className="h-9 px-5 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm font-medium flex items-center gap-2">
+                              {task.status === 'Approved' ? (
+                                <><CheckCircle className="w-4 h-4 text-success" /> {t('Approved')}</>
+                              ) : (
+                                <><Hourglass className="w-4 h-4 text-warning" /> {t('Awaiting Review')}</>
+                              )}
                             </span>
                           )}
                         </div>

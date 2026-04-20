@@ -25,14 +25,14 @@ router.get('/', authenticateToken, getMedicineLogs);
 // GET /api/medicine-logs/:id - Get single medicine log
 router.get('/:id', authenticateToken, getMedicineLogById);
 
-// POST /api/medicine-logs - Create new medicine log (Jamedar only)
-router.post('/', authenticateToken, authorize('Jamedar'), createMedicineLog);
+// POST /api/medicine-logs - Create new medicine log
+router.post('/', authenticateToken, authorize('Jamedar', 'Stable Manager', 'Director', 'Super Admin', 'School Administrator'), createMedicineLog);
 
 // PUT /api/medicine-logs/:id - Update medicine log (only if pending)
-router.put('/:id', authenticateToken, authorize('Jamedar'), updateMedicineLog);
+router.put('/:id', authenticateToken, authorize('Jamedar', 'Stable Manager', 'Director', 'Super Admin', 'School Administrator'), updateMedicineLog);
 
 // DELETE /api/medicine-logs/:id - Delete medicine log (only if pending)
-router.delete('/:id', authenticateToken, authorize('Jamedar'), deleteMedicineLog);
+router.delete('/:id', authenticateToken, authorize('Jamedar', 'Stable Manager', 'Director', 'Super Admin', 'School Administrator'), deleteMedicineLog);
 
 // POST /api/medicine-logs/:id/approve - Approve medicine log
 router.post(

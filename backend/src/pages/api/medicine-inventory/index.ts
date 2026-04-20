@@ -256,9 +256,9 @@ async function handleDelete(
   res: NextApiResponse,
   user: { id: string; fullName: string; designation: string }
 ) {
-  const { id } = req.query;
+  const id = req.query.id as string;
 
-  if (!isValidId(id as string)) {
+  if (!isValidId(id)) {
     return res.status(400).json({ error: 'Valid id is required' });
   }
 

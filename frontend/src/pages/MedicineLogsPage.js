@@ -144,17 +144,33 @@ const MedicineLogsPage = () => {
     }));
   };
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData((prev) => ({
-          ...prev,
-          photoUrl: event.target.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      showMessage('Uploading image...', 'success');
+      
+      const uploadData = new FormData();
+      uploadData.append('file', file);
+
+      const response = await apiClient.post('/upload', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const imageUrl = response.data.url || response.data.path;
+
+      setFormData((prev) => ({
+        ...prev,
+        photoUrl: imageUrl,
+      }));
+      showMessage('✓ Image uploaded successfully');
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      showMessage('Failed to upload image: ' + (error.response?.data?.error || error.message), 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -596,7 +612,7 @@ const MedicineLogsPage = () => {
                   )}
                   {log.photoUrl && (
                     <div className="mt-3">
-                      <img src={log.photoUrl} alt="Treatment" className="w-full max-h-[150px] object-cover rounded-lg cursor-pointer border border-border" onClick={() => window.open(log.photoUrl, '_blank')} />
+                      <img src={log.photoUrl} alt="Treatment" className="w-full max-h-[150px] object-contain bg-surface-container-high rounded-lg cursor-pointer border border-border" onClick={() => window.open(log.photoUrl, '_blank')} />
                     </div>
                   )}
                   <div className="flex gap-2 mt-4">
@@ -644,7 +660,7 @@ const MedicineLogsPage = () => {
                   )}
                   {log.photoUrl && (
                     <div className="mt-3">
-                      <img src={log.photoUrl} alt="Treatment" className="w-full max-h-[150px] object-cover rounded-lg cursor-pointer border border-border" onClick={() => window.open(log.photoUrl, '_blank')} />
+                      <img src={log.photoUrl} alt="Treatment" className="w-full max-h-[150px] object-contain bg-surface-container-high rounded-lg cursor-pointer border border-border" onClick={() => window.open(log.photoUrl, '_blank')} />
                     </div>
                   )}
                   <div className="flex gap-2 mt-4">

@@ -242,8 +242,8 @@ async function handlePost(
   if (notes && !isValidString(notes, 0, 1000)) {
     return res.status(400).json({ error: 'Notes must be max 1000 chars' })
   }
-  if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 2000) {
-    return res.status(400).json({ error: 'Photo URL too long' })
+  if (photoUrl && typeof photoUrl === 'string' && photoUrl.length > 10000) {
+    return res.status(400).json({ error: 'Photo URL too long (max 10000 chars)' })
   }
 
   const canManageAll = canManageAnyMedicineLog(user, access)
