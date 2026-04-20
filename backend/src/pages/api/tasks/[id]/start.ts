@@ -60,7 +60,7 @@ export default async function handler(
     const canWorkOnAssignedTasks =
       canManageSchedules || taskCapabilities.canWorkOnAssignedTasks
 
-    if (task.assignedEmployeeId !== userId || !canWorkOnAssignedTasks) {
+    if (task.assignedEmployeeId !== userId && !canWorkOnAssignedTasks) {
       return res.status(403).json({ error: 'You are not assigned to this task' })
     }
 

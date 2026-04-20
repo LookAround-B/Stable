@@ -51,6 +51,7 @@ export default function DatePicker({ label, defaultValue, value: controlledValue
   return (
     <div className={className}>
       {label && <label className={lbl}>{label}</label>}
+      {required && <input type="text" required value={date ? toDateStr(date) : ''} className="sr-only absolute" tabIndex={-1} aria-hidden="true" />}
       <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
         <PopoverTrigger asChild>
           <button

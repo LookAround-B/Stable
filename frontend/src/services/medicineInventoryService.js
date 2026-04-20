@@ -54,7 +54,7 @@ const medicineInventoryService = {
   // Delete an inventory entry
   deleteInventory: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/medicine-inventory/${id}`, {
+      const response = await axios.delete(`${API_BASE_URL}/medicine-inventory?id=${id}`, {
         headers: getAuthHeaders(),
       });
       return response.data;

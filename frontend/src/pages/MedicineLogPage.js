@@ -5,7 +5,7 @@ import apiClient from '../services/apiClient';
 import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Plus, X, Pill, Activity, CheckCircle, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react';
+import { Download, Plus, X, Pill, Activity, CheckCircle, AlertTriangle, Search, SlidersHorizontal, Camera } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import DateTimePicker from '../components/shared/DateTimePicker';
 import SelectField from '../components/shared/SelectField';
@@ -52,6 +52,29 @@ const MedicineLogPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await apiClient.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        photoUrl: response.data.url || response.data.path,
+      }));
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      setMessage('✗ Image upload failed');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -223,8 +246,20 @@ const MedicineLogPage = () => {
                 <DateTimePicker value={formData.timeAdministered} onChange={(val) => handleInputChange({ target: { name: 'timeAdministered', value: val } })} required disabled={loading} />
               </div>
               <div>
-                <label className={lbl}>{t('Photo URL (Evidence)')}</label>
-                <input type="url" name="photoUrl" value={formData.photoUrl} onChange={handleInputChange} disabled={loading} placeholder="https://..." className={inp} />
+                <label className={lbl}>{t('Photo Evidence')}</label>
+                <input type="file" id="medicine-photo-upload" accept="image/*" onChange={handleImageUpload} disabled={loading} className="hidden" />
+                <label htmlFor="medicine-photo-upload" className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors bg-surface-container-high">
+                  <Camera className="w-5 h-5 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{formData.photoUrl ? 'Change Photo' : 'Click to Upload'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{formData.photoUrl ? 'Photo uploaded' : 'JPG, PNG (Optional)'}</p>
+                  </div>
+                </label>
+                {formData.photoUrl && (
+                  <div className="mt-2">
+                    <img src={formData.photoUrl} alt="Preview" className="max-w-[120px] max-h-[100px] rounded-lg border border-border object-cover" />
+                  </div>
+                )}
               </div>
               <div className="sm:col-span-2 lg:col-span-1">
                 <label className={lbl}>{t('Clinical Notes')}</label>
