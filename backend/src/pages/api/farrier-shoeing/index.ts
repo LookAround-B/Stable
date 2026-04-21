@@ -168,7 +168,7 @@ async function handlePost(
     })
   }
 
-  const { horseId, farrierId, shoeingDate, notes } = req.body
+  const { horseId, farrierId, shoeingDate, notes, numberOfLegs } = req.body
 
   if (!isValidId(horseId)) {
     return res.status(400).json({ error: 'Valid horseId is required' })
@@ -181,6 +181,21 @@ async function handlePost(
   }
   if (notes && !isValidString(notes, 0, 1000)) {
     return res.status(400).json({ error: 'Notes must be max 1000 chars' })
+  }
+
+  const parsedLegCount =
+    numberOfLegs === undefined || numberOfLegs === null || numberOfLegs === ''
+      ? 4
+      : parseInt(numberOfLegs, 10)
+
+  if (
+    Number.isNaN(parsedLegCount) ||
+    parsedLegCount < 1 ||
+    parsedLegCount > 4
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'Number of legs must be between 1 and 4' })
   }
 
   const horse = await prisma.horse.findUnique({ where: { id: horseId } })
@@ -203,6 +218,7 @@ async function handlePost(
       farrierId,
       shoeingDate: shoeingDateObj,
       nextDueDate,
+      numberOfLegs: parsedLegCount,
       notes: notes ? sanitizeString(notes) : null,
     },
     include: {

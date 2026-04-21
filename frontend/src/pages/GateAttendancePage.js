@@ -6,7 +6,6 @@ import Pagination from '../components/Pagination';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { Navigate } from 'react-router-dom';
 import { Download, Plus, X, Users, UserCheck, Clock, DoorOpen } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DateTimePicker from '../components/shared/DateTimePicker';
@@ -14,6 +13,7 @@ import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const GateAttendancePage = () => {
   const { user } = useAuth();
@@ -209,18 +209,18 @@ const GateAttendancePage = () => {
     return displayLogs.map((log) => ({ 'Date': log.entryTime ? new Date(log.entryTime).toLocaleDateString('en-GB') : '', 'Visitor Name': log.personName || '-', 'Purpose': log.purpose || '-', 'Entry Time': formatTime(log.entryTime), 'Exit Time': log.exitTime ? formatTime(log.exitTime) : 'Not Exited', 'Contact': log.contact || '-', 'Notes': log.notes || '' }));
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const excelData = getExportRows();
     if (excelData.length === 0) { showNoExportDataToast(`No ${activeTab} logs to download`); return; }
     const fileName = activeTab === 'staff'
       ? `StaffGateAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`
       : `VisitorLog_${new Date().toISOString().slice(0, 10)}.xlsx`;
     const sheetName = activeTab === 'staff' ? 'Staff Entry/Exit' : 'Visitor Log';
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    worksheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-    XLSX.writeFile(workbook, fileName);
+    await writeRowsToXlsx(excelData, {
+      sheetName,
+      fileName,
+      columnWidths: [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 25 }],
+    });
   };
 
   const handleDownloadCSV = () => {

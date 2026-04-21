@@ -11,10 +11,10 @@ import {
   AlertTriangle, Package, Calendar, CreditCard, Save, Shield,
   Download, Filter, SlidersHorizontal, Lock, CheckCircle, RotateCcw
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const DEFAULT_PERMS = {
   manageEmployees: false,
@@ -294,13 +294,13 @@ const PermissionsPage = () => {
     toast.success('Permissions downloaded.');
   };
 
-  const handleDownloadPermissionsExcel = () => {
+  const handleDownloadPermissionsExcel = async () => {
     const rows = getPermissionExportRows();
     if (!rows.length) return;
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Permissions');
-    XLSX.writeFile(workbook, `permissions_${selectedEmployee?.fullName || 'export'}.xlsx`);
+    await writeRowsToXlsx(rows, {
+      sheetName: 'Permissions',
+      fileName: `permissions_${selectedEmployee?.fullName || 'export'}.xlsx`,
+    });
     toast.success('Permissions downloaded.');
   };
 

@@ -13,6 +13,7 @@ import {
   safeDate,
   sanitizeString,
 } from '@/lib/validate'
+import { ensureExpiredHorseFeedMenuNotifications } from '@/lib/horseFeeds'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin
@@ -64,6 +65,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           error: 'You do not have permission to view horse feeds',
         })
       }
+
+      await ensureExpiredHorseFeedMenuNotifications()
 
       const { startDate, endDate, horseId } = req.query
       const where: any = {}
@@ -131,6 +134,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         epsom,
         heylase,
         notes,
+        temporaryMenuName,
+        menuStartAt,
+        menuEndAt,
       } = req.body
 
       if (!isValidId(horseId)) {
@@ -141,6 +147,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
       if (notes && !isValidString(notes, 0, 1000)) {
         return res.status(400).json({ error: 'Notes must be max 1000 chars' })
+      }
+
+      const menuStartDate = menuStartAt ? safeDate(menuStartAt) : null
+      const menuEndDate = menuEndAt ? safeDate(menuEndAt) : null
+      const hasMenuOverrideFields = Boolean(
+        temporaryMenuName || menuStartAt || menuEndAt
+      )
+
+      if (hasMenuOverrideFields) {
+        if (!isValidString(temporaryMenuName, 1, 120)) {
+          return res.status(400).json({
+            error:
+              'Temporary menu name is required when adding a menu change period',
+          })
+        }
+        if (!menuStartDate || !menuEndDate) {
+          return res.status(400).json({
+            error: 'Valid menu start and end time are required',
+          })
+        }
+        if (menuEndDate < menuStartDate) {
+          return res.status(400).json({
+            error: 'Menu end time must be after the start time',
+          })
+        }
       }
 
       const horse = await prisma.horse.findUnique({
@@ -186,6 +217,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           epsom: epsom ? parseFloat(epsom) : null,
           heylase: heylase ? parseFloat(heylase) : null,
           notes: notes ? sanitizeString(notes) : null,
+          temporaryMenuName: temporaryMenuName
+            ? sanitizeString(temporaryMenuName)
+            : null,
+          menuStartAt: menuStartDate,
+          menuEndAt: menuEndDate,
         },
         include: {
           horse: {

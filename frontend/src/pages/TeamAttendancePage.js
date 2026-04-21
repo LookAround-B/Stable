@@ -6,13 +6,13 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { Download, Plus, X, Users, CalendarCheck, CheckCircle2, XCircle, Calendar } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -99,14 +99,14 @@ const TeamAttendancePage = () => {
       'Remarks': record.remarks || '',
       'Marked At': record.markedAt ? new Date(record.markedAt).toLocaleString('en-GB') : '',
     }));
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (attendanceRecords.length === 0) { showNoExportDataToast('No attendance records to download'); return; }
     const excelData = getExportRows();
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    worksheet['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 18 }];
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
-    XLSX.writeFile(workbook, `Attendance_${selectedDate}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await writeRowsToXlsx(excelData, {
+      sheetName: 'Attendance',
+      fileName: `Attendance_${selectedDate}_${new Date().toISOString().slice(0, 10)}.xlsx`,
+      columnWidths: [{ wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 18 }],
+    });
   };
 
   const handleDownloadCSV = () => {

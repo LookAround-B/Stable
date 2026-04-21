@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
-import * as XLSX from "xlsx";
 import { TableSkeleton } from '../components/Skeleton';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import farrierInventoryService from "../services/farrierInventoryService";
@@ -15,6 +14,7 @@ import { Download, Plus, X, AlertTriangle, Pencil, Trash2, ChevronLeft, ChevronR
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const CATEGORIES = ["Tools", "Consumables"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -113,10 +113,13 @@ const FarrierInventoryPage = () => {
 
   const getExportRows = () => filteredItems.map(i => ({ "Item Name": i.itemName, "Category": i.category, "Horse": i.horse?.name || "-", "Qty": i.quantity, "Size/Type": i.sizeType || "", "Material": i.material || "", "Condition": i.condition || "", "Last Used": formatDate(i.lastUsedDate), "Farrier": i.farrier?.fullName || "-", "Service Date": formatDate(i.serviceDate), "Next Service": formatDate(i.nextServiceDue), "Supplier": i.supplier || "", "Cost": i.costTracking || "", "Replacement Cycle": i.replacementCycle || "", "Notes": i.notes || "" }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (filteredItems.length === 0) { showNoExportDataToast('No data'); return; }
     const data = getExportRows();
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, "FarrierInventory"); XLSX.writeFile(wb, `FarrierInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'FarrierInventory',
+      fileName: `FarrierInventory_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

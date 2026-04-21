@@ -8,11 +8,18 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, Package, Scale, CalendarDays, Activity, Search } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { useAuth } from '../context/AuthContext';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
+
+const getLocalDateTimeString = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const local = new Date(now.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 16);
+};
 
 const HorseFeedsPage = () => {
   const { user } = useAuth();
@@ -43,6 +50,7 @@ const HorseFeedsPage = () => {
     horseId: '', date: new Date().toISOString().split('T')[0],
     balance: '', barley: '', oats: '', soya: '', lucerne: '', linseed: '',
     rOil: '', biotin: '', joint: '', epsom: '', heylase: '', notes: '',
+    temporaryMenuName: '', menuStartAt: getLocalDateTimeString(), menuEndAt: getLocalDateTimeString(),
   });
 
   useEffect(() => { setFormData((prev) => ({ ...prev, date: toDate })); }, [toDate]);
@@ -79,6 +87,12 @@ const HorseFeedsPage = () => {
     e.preventDefault();
     setMessage(''); setMessageType('success');
     if (!formData.horseId || !formData.date) { setMessage('Please fill in required fields (Horse and Date)'); setMessageType('error'); return; }
+    const hasMenuOverride = Boolean(formData.temporaryMenuName.trim());
+    if (hasMenuOverride) {
+      if (!formData.temporaryMenuName.trim()) { setMessage('Temporary menu name is required when using a menu period'); setMessageType('error'); return; }
+      if (!formData.menuStartAt || !formData.menuEndAt) { setMessage('Menu start and end time are required'); setMessageType('error'); return; }
+      if (new Date(formData.menuEndAt) < new Date(formData.menuStartAt)) { setMessage('Menu end time must be after the start time'); setMessageType('error'); return; }
+    }
     try {
       setLoading(true);
       const submitData = {
@@ -95,10 +109,13 @@ const HorseFeedsPage = () => {
         epsom: formData.epsom ? parseFloat(formData.epsom) : null,
         heylase: formData.heylase ? parseFloat(formData.heylase) : null,
         notes: formData.notes,
+        temporaryMenuName: formData.temporaryMenuName || null,
+        menuStartAt: formData.temporaryMenuName ? new Date(formData.menuStartAt).toISOString() : null,
+        menuEndAt: formData.temporaryMenuName ? new Date(formData.menuEndAt).toISOString() : null,
       };
       await apiClient.post('/horse-feeds', submitData);
       setMessage('Feed record created successfully'); setMessageType('success');
-      setFormData({ horseId: '', date: toDate, balance: '', barley: '', oats: '', soya: '', lucerne: '', linseed: '', rOil: '', biotin: '', joint: '', epsom: '', heylase: '', notes: '' });
+      setFormData({ horseId: '', date: toDate, balance: '', barley: '', oats: '', soya: '', lucerne: '', linseed: '', rOil: '', biotin: '', joint: '', epsom: '', heylase: '', notes: '', temporaryMenuName: '', menuStartAt: getLocalDateTimeString(), menuEndAt: getLocalDateTimeString() });
       setShowForm(false);
       loadRecords();
     } catch (error) {
@@ -110,7 +127,7 @@ const HorseFeedsPage = () => {
 
   // Filter by search
   const filteredSummary = summaryDataArray.filter(({ data }) =>
-    searchTerm === '' || data.horseName?.toLowerCase().includes(searchTerm.toLowerCase()) || (data.stableNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
+    searchTerm === '' || data.horseName?.toLowerCase().includes(searchTerm.toLowerCase()) || (data.stableNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) || (data.temporaryMenuName || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
   const totalPages = Math.ceil(filteredSummary.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -119,6 +136,14 @@ const HorseFeedsPage = () => {
   // KPIs
   const totalHorses = summaryDataArray.length;
   const totalFeedKg = summaryDataArray.reduce((acc, { data }) => acc + feedTypes.reduce((s, ft) => s + (data[ft] || 0), 0), 0);
+  const temporaryMenuChanges = summaryDataArray
+    .map(({ horseId, data }) => ({ horseId, ...data }))
+    .filter((item) => item.temporaryMenuName);
+  const activeMenuChanges = temporaryMenuChanges.filter((item) => {
+    if (!item.menuStartAt || !item.menuEndAt) return false;
+    const now = new Date();
+    return new Date(item.menuStartAt) <= now && new Date(item.menuEndAt) >= now;
+  }).length;
 
   const getExportRows = () => summaryDataArray.map(({ data }) => {
       const total = feedTypes.reduce((s, ft) => s + (data[ft] || 0), 0).toFixed(2);
@@ -130,16 +155,19 @@ const HorseFeedsPage = () => {
         'Linseed': data.linseed ? data.linseed.toFixed(2) : '-', 'R.Oil': data.rOil ? data.rOil.toFixed(2) : '-',
         'Biotin': data.biotin ? data.biotin.toFixed(2) : '-', 'Joint': data.joint ? data.joint.toFixed(2) : '-',
         'Epsom': data.epsom ? data.epsom.toFixed(2) : '-', 'Heylase': data.heylase ? data.heylase.toFixed(2) : '-',
+        'Temporary Menu': data.temporaryMenuName || '-',
+        'Menu Start': data.menuStartAt ? new Date(data.menuStartAt).toLocaleString('en-IN') : '-',
+        'Menu End': data.menuEndAt ? new Date(data.menuEndAt).toLocaleString('en-IN') : '-',
         'Total (kg)': total,
       };
     });
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (summaryDataArray.length === 0) return;
     const excelData = getExportRows();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Horse Feeds');
-    XLSX.writeFile(workbook, `HorseFeeds_${new Date().toISOString().split('T')[0]}.xlsx`);
+    await writeRowsToXlsx(excelData, {
+      sheetName: 'Horse Feeds',
+      fileName: `HorseFeeds_${new Date().toISOString().split('T')[0]}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {
@@ -169,16 +197,38 @@ const HorseFeedsPage = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: t('Total Horses').toUpperCase(), value: String(totalHorses).padStart(2, '0'), icon: Package, sub: 'Horses in feed report' },
           { label: t('Total Feed (kg)').toUpperCase(), value: totalFeedKg.toFixed(1), icon: Scale, sub: 'Combined feed volume' },
+          { label: t('Active Menu Changes').toUpperCase(), value: String(activeMenuChanges).padStart(2, '0'), icon: Activity, sub: 'Temporary feed periods running' },
           { label: t('Date Range').toUpperCase(), value: `${new Date(fromDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} - ${new Date(toDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`, icon: CalendarDays, sub: 'Selected reporting period', valueClass: 'text-2xl font-bold text-foreground mt-1 mono-data relative z-10' },
           { label: t('Avg per Horse (kg)').toUpperCase(), value: totalHorses > 0 ? (totalFeedKg / totalHorses).toFixed(1) : '0', icon: Activity, sub: 'Average feed allocation' },
         ].map(k => (
           <OperationalMetricCard key={k.label} label={k.label} value={k.value} icon={k.icon} colorClass="text-primary" bgClass="bg-primary/10" sub={k.sub} valueClass={k.valueClass || 'text-3xl font-bold text-foreground mt-1 mono-data relative z-10'} hideSub />
         ))}
       </div>
+
+      {temporaryMenuChanges.length > 0 && (
+        <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+          <div className="px-5 py-4 border-b border-border">
+            <h3 className="text-sm font-bold text-foreground">Temporary Menu Changes</h3>
+          </div>
+          <div className="divide-y divide-border/50">
+            {temporaryMenuChanges.map((item) => (
+              <div key={item.horseId} className="px-5 py-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{item.horseName}{item.stableNumber ? ` (${item.stableNumber})` : ''}</p>
+                  <p className="text-sm text-muted-foreground">{item.temporaryMenuName}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mono-data">
+                  {item.menuStartAt ? new Date(item.menuStartAt).toLocaleString('en-IN') : '-'} to {item.menuEndAt ? new Date(item.menuEndAt).toLocaleString('en-IN') : '-'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Message */}
       {message && (
@@ -233,7 +283,7 @@ const HorseFeedsPage = () => {
             </div>
             <div className="p-4 sm:px-5 sm:py-4">
               <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
                     <SearchableSelect id="horseId" name="horseId" value={formData.horseId} onChange={handleFormChange} placeholder={t("Select a horse")} required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: `${h.name} (${h.stableNumber || 'No Stable #'})` }))]} />
@@ -241,6 +291,18 @@ const HorseFeedsPage = () => {
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date *")}</label>
                     <DatePicker value={formData.date} onChange={(val) => handleFormChange({ target: { name: 'date', value: val } })} required />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Temporary Menu Name")}</label>
+                    <input type="text" id="temporaryMenuName" name="temporaryMenuName" value={formData.temporaryMenuName} onChange={handleFormChange} placeholder="e.g. Summer Recovery Feed" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Menu Start Time")}</label>
+                    <input type="datetime-local" id="menuStartAt" name="menuStartAt" value={formData.menuStartAt} onChange={handleFormChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Menu End Time")}</label>
+                    <input type="datetime-local" id="menuEndAt" name="menuEndAt" value={formData.menuEndAt} onChange={handleFormChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -280,7 +342,7 @@ const HorseFeedsPage = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    {['Horse', 'Stable #', 'H.Balance', 'Barley', 'Oats', 'Soya', 'Lucerne', 'Linseed', 'R.Oil', 'Biotin', 'Joint', 'Epsom', 'Heylase', 'Total'].map(h => (
+                    {['Horse', 'Stable #', 'H.Balance', 'Barley', 'Oats', 'Soya', 'Lucerne', 'Linseed', 'R.Oil', 'Biotin', 'Joint', 'Epsom', 'Heylase', 'Menu Override', 'Total'].map(h => (
                       <th key={h} className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -295,6 +357,14 @@ const HorseFeedsPage = () => {
                         {feedTypes.map(ft => (
                           <td key={ft} className="px-3 py-3 text-muted-foreground mono-data">{data[ft] ? data[ft].toFixed(2) : '-'}</td>
                         ))}
+                        <td className="px-3 py-3 text-muted-foreground">
+                          {data.temporaryMenuName ? (
+                            <div className="min-w-[180px]">
+                              <p className="text-foreground font-medium">{data.temporaryMenuName}</p>
+                              <p className="text-[11px] mono-data">{data.menuStartAt ? new Date(data.menuStartAt).toLocaleString('en-IN') : '-'} to {data.menuEndAt ? new Date(data.menuEndAt).toLocaleString('en-IN') : '-'}</p>
+                            </div>
+                          ) : '-'}
+                        </td>
                         <td className="px-3 py-3 font-bold text-primary mono-data">{total}</td>
                       </tr>
                     );

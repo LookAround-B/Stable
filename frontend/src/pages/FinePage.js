@@ -10,10 +10,10 @@ import { Navigate } from 'react-router-dom';
 import { Check, Download, Upload, X, Zap } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import * as XLSX from 'xlsx';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager', 'Jamedar', 'Instructor', 'Ground Supervisor'];
@@ -381,13 +381,13 @@ const FinePage = () => {
       'Resolution Notes': f.resolutionNotes || '',
     }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No data to download'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Fines');
-    XLSX.writeFile(wb, `Fines_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Fines',
+      fileName: `Fines_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

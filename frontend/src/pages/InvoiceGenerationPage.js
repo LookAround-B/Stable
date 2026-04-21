@@ -19,6 +19,14 @@ const esc = (str) => {
     .replace(/'/g, '&#39;');
 };
 
+const getInvoiceSessionLabel = (record) => {
+  if (record?.rider?.fullName) {
+    return record.rider.fullName;
+  }
+
+  return ['Lunging', 'Lunge', 'Launging'].includes(record?.workType) ? 'No rider (lunging)' : '-';
+};
+
 const InvoiceGenerationPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -115,9 +123,9 @@ const InvoiceGenerationPage = () => {
       .map(
         (r) => `
         <tr>
-          <td>${esc(new Date(r.date).toLocaleDateString())}</td>
+          <td>${esc(new Date(r.date).toLocaleString())}</td>
           <td>${esc(r.horse.name)}</td>
-          <td>${esc(r.rider.fullName)}</td>
+          <td>${esc(getInvoiceSessionLabel(r))}</td>
           <td>${esc(r.workType)}</td>
           <td>${esc(r.duration)}</td>
           <td>${esc(r.notes || '-')}</td>
@@ -415,6 +423,8 @@ const InvoiceGenerationPage = () => {
                           <td className="py-3">
                             <span className="font-semibold text-foreground block">
                               {new Date(record.date).toLocaleDateString('en-GB')}
+                              {' '}
+                              {new Date(record.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {record.notes || 'Verified EIRS work log'}
@@ -425,7 +435,7 @@ const InvoiceGenerationPage = () => {
                           </td>
                           <td className="py-3 text-right text-foreground">{record.workType}</td>
                           <td className="py-3 text-right text-muted-foreground">
-                            {record.rider.fullName} / {record.horse.name}
+                            {getInvoiceSessionLabel(record)} / {record.horse.name}
                           </td>
                         </tr>
                       ))}
@@ -494,4 +504,3 @@ const InvoiceGenerationPage = () => {
 };
 
 export default InvoiceGenerationPage;
-

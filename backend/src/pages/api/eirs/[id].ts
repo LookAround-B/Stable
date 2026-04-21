@@ -2,7 +2,15 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '../../../lib/prisma';
 import { verifyToken } from '../../../lib/auth';
 import { setCorsHeaders } from '@/lib/cors'
-import { sanitizeString, isValidString, isValidId, isOneOf, safeDate } from '@/lib/validate'
+import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
+import {
+  EIRS_VALID_WORK_TYPES,
+  isValidEirsWorkType,
+  workTypeRequiresDuration,
+  workTypeRequiresNotes,
+  normalizeEirsWorkType,
+  workTypeRequiresRider,
+} from '@/lib/eirs'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin
@@ -65,19 +73,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'PUT') {
       // Update record
       const { horseId, riderId, workType, duration, date, notes } = req.body;
+      const normalizedWorkType = workType !== undefined ? normalizeEirsWorkType(workType) : record.workType;
+      const riderRequired = workTypeRequiresRider(normalizedWorkType);
+      const durationRequired = workTypeRequiresDuration(normalizedWorkType);
+      const notesRequired = workTypeRequiresNotes(normalizedWorkType);
+      let nextRiderId = record.riderId;
 
       // Validate fields
       if (horseId && !isValidId(horseId)) {
         return res.status(400).json({ error: 'Invalid horseId' });
       }
-      if (riderId && !isValidId(riderId)) {
+      if (workType !== undefined && !isValidEirsWorkType(normalizedWorkType)) {
+        return res.status(400).json({ error: `Invalid workType. Must be one of: ${EIRS_VALID_WORK_TYPES.join(', ')}` });
+      }
+      if (riderId !== undefined && riderId !== null && riderId !== '' && !isValidId(riderId)) {
         return res.status(400).json({ error: 'Invalid riderId' });
       }
-      const WORK_TYPES = ['Flat Work', 'Jumping', 'Lunging', 'Hacking', 'Dressage', 'Cross Country', 'Pole Work', 'Walk', 'Other'] as const;
-      if (workType && !isOneOf(workType, WORK_TYPES)) {
-        return res.status(400).json({ error: `Invalid workType` });
-      }
-      if (duration) {
+      if (durationRequired && duration !== undefined) {
         const dur = parseInt(duration);
         if (isNaN(dur) || dur < 1 || dur > 480) {
           return res.status(400).json({ error: 'Duration must be 1-480 minutes' });
@@ -88,6 +100,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
       if (notes !== undefined && notes && !isValidString(notes, 0, 1000)) {
         return res.status(400).json({ error: 'Notes must be max 1000 chars' });
+      }
+
+      if (!riderRequired) {
+        nextRiderId = null;
+      }
+
+      if (riderId !== undefined) {
+        nextRiderId = riderRequired ? (riderId ? riderId : null) : null;
+      }
+
+      if (riderRequired && !nextRiderId) {
+        return res.status(400).json({ error: 'Valid riderId is required for riding sessions' });
+      }
+
+      const nextNotes =
+        notes !== undefined ? (notes ? sanitizeString(notes) : null) : record.notes;
+      if (notesRequired && !isValidString(nextNotes, 1, 1000)) {
+        return res.status(400).json({ error: 'Notes are required for rest and lame entries' });
       }
 
       // Validate horse if provided
@@ -101,28 +131,51 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Validate rider if provided
-      if (riderId) {
+      if (nextRiderId) {
         const rider = await prisma.employee.findUnique({
-          where: { id: riderId },
+          where: { id: nextRiderId },
         });
         if (!rider) {
           return res.status(404).json({ error: 'Rider/Student not found' });
         }
       }
 
+      let nextDate = record.date;
+      if (date) {
+        nextDate = safeDate(date) as Date;
+      }
+
+      const nextHorseId = horseId || record.horseId;
+      const conflictingRecord = await prisma.instructorDailyWorkRecord.findFirst({
+        where: {
+          id: { not: id },
+          instructorId: record.instructorId,
+          horseId: nextHorseId,
+          riderId: nextRiderId,
+          date: nextDate,
+        },
+        select: { id: true },
+      });
+
+      if (conflictingRecord) {
+        return res.status(400).json({ error: 'A record already exists for this instructor, horse, rider, and date combination' });
+      }
+
       const updateData: any = {};
       if (horseId) updateData.horseId = horseId;
-      if (riderId) updateData.riderId = riderId;
-      if (workType) updateData.workType = workType;
-      if (duration) updateData.duration = parseInt(duration);
+      if (workType !== undefined || riderId !== undefined) updateData.riderId = nextRiderId;
+      if (workType) updateData.workType = normalizedWorkType;
+      if (durationRequired) {
+        if (duration !== undefined) updateData.duration = parseInt(duration);
+      } else {
+        updateData.duration = 0;
+      }
       if (date) {
         // Parse date string as YYYY-MM-DD and create a Date at start of day UTC (same as POST handler)
-        const [year, month, day] = (date as string).split('-').map(Number);
-        const recordDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-        console.log(`[EIRS PUT] Updating date: ${date} to UTC: ${recordDate.toISOString()}`);
-        updateData.date = recordDate;
+        console.log(`[EIRS PUT] Updating date: ${date} to UTC: ${nextDate.toISOString()}`);
+        updateData.date = nextDate;
       }
-      if (notes !== undefined) updateData.notes = notes ? sanitizeString(notes) : null;
+      if (notes !== undefined) updateData.notes = nextNotes;
 
       const updatedRecord = await prisma.instructorDailyWorkRecord.update({
         where: { id },

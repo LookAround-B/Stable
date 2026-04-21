@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import roundCheckService from '../services/roundCheckService';
 import { useI18n } from '../context/I18nContext';
 import { Download, Users, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
@@ -10,6 +9,7 @@ import ExportDialog from '../components/shared/ExportDialog';
 import { useAuth } from '../context/AuthContext';
 import usePermissions from '../hooks/usePermissions';
 import { Navigate } from 'react-router-dom';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const RoundTrackingPage = () => {
   const { user } = useAuth();
@@ -60,13 +60,13 @@ const RoundTrackingPage = () => {
       ...missingJamedars.map(j => ({ 'Jamedar': j.fullName || '', 'Morning': '-', 'Afternoon': '-', 'Evening': '-', 'Completion %': '0%', 'Last Updated': '', 'Status': 'No Update' })),
     ];
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const allRows = getExportRows();
     if (!allRows.length) { showNoExportDataToast('No data to download'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(allRows);
-    XLSX.utils.book_append_sheet(wb, ws, 'Round Tracking');
-    XLSX.writeFile(wb, `RoundTracking_${selectedDate}.xlsx`);
+    await writeRowsToXlsx(allRows, {
+      sheetName: 'Round Tracking',
+      fileName: `RoundTracking_${selectedDate}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

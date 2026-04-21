@@ -7,11 +7,11 @@ import SearchableSelect from '../components/SearchableSelect';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, ClipboardCheck } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
@@ -86,11 +86,14 @@ const GroomWorkSheetPage = () => {
     return rows;
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (!worksheets.length) { showNoExportDataToast('No data'); return; }
     const rows = getExportRows();
     if (!rows.length) { showNoExportDataToast('No data'); return; }
-    const wb = XLSX.utils.book_new(); const wsSheet = XLSX.utils.json_to_sheet(rows); XLSX.utils.book_append_sheet(wb, wsSheet, 'Groom WorkSheet'); XLSX.writeFile(wb, `GroomWorkSheet_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await writeRowsToXlsx(rows, {
+      sheetName: 'Groom WorkSheet',
+      fileName: `GroomWorkSheet_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

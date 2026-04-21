@@ -64,6 +64,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       { itemName: { contains: search as string, mode: 'insensitive' } },
       { brand: { contains: search as string, mode: 'insensitive' } },
       { storageLocation: { contains: search as string, mode: 'insensitive' } },
+      { unitNumber: { contains: search as string, mode: 'insensitive' } },
     ]
   }
 
@@ -81,6 +82,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
     itemName, category, horseId, riderId, quantity, condition,
     brand, size, material, purchaseDate, lastUsedDate,
     maintenanceRequired, notes, cleaningSchedule, repairHistory, storageLocation,
+    unitNumber,
   } = req.body
 
   if (!isValidString(itemName, 1, 200)) {
@@ -104,6 +106,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
   if (storageLocation && !isValidString(storageLocation, 0, 200)) {
     return res.status(400).json({ error: 'Storage location must be max 200 chars' })
   }
+  if (unitNumber && !isValidString(unitNumber, 0, 50)) {
+    return res.status(400).json({ error: 'Unit number must be max 50 chars' })
+  }
 
   const record = await prisma.tackInventory.create({
     data: {
@@ -112,6 +117,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
       horseId: horseId || null,
       riderId: riderId || null,
       quantity: parseInt(quantity) || 1,
+      unitNumber: unitNumber ? sanitizeString(unitNumber) : null,
       condition: condition || 'Good',
       brand: brand ? sanitizeString(brand) : null,
       size: size ? sanitizeString(size) : null,
@@ -136,9 +142,13 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     id, itemName, category, horseId, riderId, quantity, condition,
     brand, size, material, purchaseDate, lastUsedDate,
     maintenanceRequired, notes, cleaningSchedule, repairHistory, storageLocation,
+    unitNumber,
   } = req.body
 
   if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' })
+  if (unitNumber && !isValidString(unitNumber, 0, 50)) {
+    return res.status(400).json({ error: 'Unit number must be max 50 chars' })
+  }
 
   const existing = await prisma.tackInventory.findUnique({ where: { id } })
   if (!existing) return res.status(404).json({ error: 'Record not found' })
@@ -151,6 +161,9 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       ...(horseId !== undefined && { horseId: horseId || null }),
       ...(riderId !== undefined && { riderId: riderId || null }),
       ...(quantity !== undefined && { quantity: parseInt(quantity) || 1 }),
+      ...(unitNumber !== undefined && {
+        unitNumber: unitNumber ? sanitizeString(unitNumber) : null,
+      }),
       ...(condition && { condition }),
       ...(brand !== undefined && { brand: brand || null }),
       ...(size !== undefined && { size: size || null }),

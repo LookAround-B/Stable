@@ -49,6 +49,7 @@ const GROUPS = [
       { to: '/feed-inventory', label: 'Feed Inventory', permission: 'viewFeedInventory' },
       { to: '/farrier-shoeing', label: 'Farrier Shoeing', permission: 'viewFarrierShoeing' },
       { to: '/tack-inventory', label: 'Tack Inventory', permission: 'viewTackInventory' },
+      { to: '/grass-bedding', label: 'Grass & Bedding', permission: 'viewGrassAndBedding' },
       { to: '/farrier-inventory', label: 'Farrier Inventory', permission: 'viewFarrierInventory' },
     ],
   },

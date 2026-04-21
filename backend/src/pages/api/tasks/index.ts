@@ -15,8 +15,23 @@ import {
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { createNotificationAndPublish } from '@/lib/notificationRealtime'
+import {
+  buildAccommodationNotificationMessage,
+  buildAccommodationTaskName,
+  buildBookingNotificationMessage,
+  buildBookingTaskName,
+  getBookingSlotTime,
+  isAccommodationTaskType,
+  isBookingTaskType,
+  isTaskBookingType,
+  isValidBookingCategory,
+  isValidBookingDestination,
+  isValidBookingSlot,
+  isValidPaymentSource,
+  resolveBookingRideType,
+} from '@/lib/taskBookings'
 import { taskListSelect } from '@/lib/taskPayload'
-import { safePositiveInt } from '@/lib/validate'
+import { isValidPhone, isValidString, safeDate, safePositiveInt } from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,
@@ -168,19 +183,38 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       name,
       type,
       horseId,
+      instructorId,
       assignedEmployeeId,
       scheduledTime,
       priority,
       requiredProof,
       description,
+      customerName,
+      customerPhone,
+      paymentSource,
+      leadPrice,
+      isMembershipBooking,
+      packageName,
+      packageRideCount,
+      packageMemberCount,
+      packagePrice,
+      gstAmount,
+      bookingCategory,
+      bookingRideType,
+      bookingDestination,
+      bookingSlot,
+      accommodationCheckIn,
+      accommodationCheckOut,
     } = req.body
 
     if (!name || !type || !assignedEmployeeId || !scheduledTime) {
-      return res.status(400).json({ error: 'Missing required fields: name, type, assignedEmployeeId, scheduledTime' })
+      if (!isTaskBookingType(type)) {
+        return res.status(400).json({ error: 'Missing required fields: name, type, assignedEmployeeId, scheduledTime' })
+      }
     }
 
     // Validate string fields
-    if (typeof name !== 'string' || name.trim().length < 1 || name.length > 200) {
+    if (!isTaskBookingType(type) && (typeof name !== 'string' || name.trim().length < 1 || name.length > 200)) {
       return res.status(400).json({ error: 'Task name must be 1-200 characters' })
     }
     if (typeof type !== 'string' || type.trim().length < 1 || type.length > 100) {
@@ -203,17 +237,204 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const sanitize = (s: string) => s.replace(/<[^>]*>/g, '').trim()
+    const isRideBookingTask = isBookingTaskType(type)
+    const isAccommodationBookingTask = isAccommodationTaskType(type)
+    const isAnyBookingTask = isTaskBookingType(type)
+
+    if (!isValidString(customerName, 1, 200) && isAnyBookingTask) {
+      return res.status(400).json({ error: 'Customer name is required for bookings' })
+    }
+    if (!isValidPhone(customerPhone) && isAnyBookingTask) {
+      return res.status(400).json({ error: 'Valid customer phone number is required for bookings' })
+    }
+    if (!isValidPaymentSource(paymentSource) && isAnyBookingTask) {
+      return res.status(400).json({ error: 'Valid payment source is required for bookings' })
+    }
+
+    const parsedLeadPrice =
+      leadPrice === undefined || leadPrice === null || leadPrice === ''
+        ? null
+        : Number(leadPrice)
+
+    if (
+      parsedLeadPrice !== null &&
+      (!Number.isFinite(parsedLeadPrice) || parsedLeadPrice < 0)
+    ) {
+      return res.status(400).json({ error: 'Lead price must be a valid non-negative number or empty' })
+    }
+
+    const [assignedEmployee, horse, instructor, parsedCheckIn, parsedCheckOut] = await Promise.all([
+      prisma.employee.findUnique({
+        where: { id: assignedEmployeeId },
+        select: { id: true, fullName: true, designation: true },
+      }),
+      horseId
+        ? prisma.horse.findUnique({
+            where: { id: horseId },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve(null),
+      instructorId
+        ? prisma.employee.findUnique({
+            where: { id: instructorId },
+            select: { id: true, fullName: true, designation: true },
+          })
+        : Promise.resolve(null),
+      Promise.resolve(safeDate(accommodationCheckIn)),
+      Promise.resolve(safeDate(accommodationCheckOut)),
+    ])
+
+    if (!assignedEmployee) {
+      return res.status(400).json({ error: 'Assigned employee not found' })
+    }
+
+    if (horseId && !horse) {
+      return res.status(400).json({ error: 'Selected horse was not found' })
+    }
+
+    if (isRideBookingTask) {
+      if (!horseId) {
+        return res.status(400).json({ error: 'Horse is required for riding bookings' })
+      }
+      if (!instructorId) {
+        return res.status(400).json({ error: 'Instructor is required for riding bookings' })
+      }
+      if (!instructor || instructor.designation !== 'Instructor') {
+        return res.status(400).json({ error: 'Selected instructor is invalid' })
+      }
+      if (assignedEmployee.designation !== 'Jamedar') {
+        return res.status(400).json({ error: 'Riding bookings must be assigned to a Jamedar' })
+      }
+      if (!isValidBookingCategory(bookingCategory)) {
+        return res.status(400).json({ error: 'Invalid booking category' })
+      }
+      if (!isValidBookingSlot(bookingSlot)) {
+        return res.status(400).json({ error: 'Invalid booking slot' })
+      }
+
+      const resolvedRideType = resolveBookingRideType(bookingCategory, bookingRideType)
+      if (!resolvedRideType) {
+        return res.status(400).json({ error: 'Invalid ride type for the selected booking category' })
+      }
+
+      const slotTime = getBookingSlotTime(bookingSlot)
+      if (!slotTime) {
+        return res.status(400).json({ error: 'Invalid booking slot time' })
+      }
+
+      if (bookingCategory === 'Fun Rides' && !isValidBookingDestination(bookingDestination)) {
+        return res.status(400).json({ error: 'Fun rides require a valid inside/outside destination' })
+      }
+
+      const conflictingBooking = await prisma.task.findFirst({
+        where: {
+          type,
+          horseId,
+          scheduledTime: parsedScheduled,
+          status: {
+            not: 'Cancelled',
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          scheduledTime: true,
+        },
+      })
+
+      if (conflictingBooking) {
+        return res.status(400).json({
+          error: `This horse is already booked at ${parsedScheduled.toLocaleString('en-IN')}. Please choose another horse or time.`,
+        })
+      }
+    }
+
+    const membershipEnabled =
+      isMembershipBooking === true || isMembershipBooking === 'true'
+
+    if (isRideBookingTask && membershipEnabled) {
+      const rideCount = Number(packageRideCount)
+      const memberCount = Number(packageMemberCount)
+      const totalPrice = Number(packagePrice)
+      const gstValue = Number(gstAmount)
+
+      if (!isValidString(packageName, 1, 200)) {
+        return res.status(400).json({ error: 'Package name is required for membership bookings' })
+      }
+      if (!Number.isFinite(rideCount) || rideCount < 1) {
+        return res.status(400).json({ error: 'Package ride count must be at least 1' })
+      }
+      if (!Number.isFinite(memberCount) || memberCount < 1) {
+        return res.status(400).json({ error: 'Member count must be at least 1' })
+      }
+      if (!Number.isFinite(totalPrice) || totalPrice < 0) {
+        return res.status(400).json({ error: 'Package price must be a valid number' })
+      }
+      if (!Number.isFinite(gstValue) || gstValue < 0) {
+        return res.status(400).json({ error: 'GST amount must be a valid number' })
+      }
+    }
+
+    if (isAccommodationBookingTask) {
+      if (assignedEmployee.designation !== 'Housekeeping') {
+        return res.status(400).json({ error: 'Accommodation bookings must be assigned to Housekeeping' })
+      }
+      if (!parsedCheckIn || !parsedCheckOut) {
+        return res.status(400).json({ error: 'Valid check-in and check-out timestamps are required' })
+      }
+      if (parsedCheckOut <= parsedCheckIn) {
+        return res.status(400).json({ error: 'Check-out must be after check-in' })
+      }
+    }
+
+    const resolvedBookingRideType = isRideBookingTask
+      ? resolveBookingRideType(bookingCategory, bookingRideType)
+      : null
+    const sanitizedName = isRideBookingTask
+      ? buildBookingTaskName({
+          bookingRideType: resolvedBookingRideType!,
+          horseName: horse!.name,
+          bookingSlot,
+          bookingDestination:
+            bookingCategory === 'Fun Rides' ? bookingDestination : null,
+        })
+      : isAccommodationBookingTask
+        ? buildAccommodationTaskName({
+            customerName: sanitize(customerName),
+            checkIn: parsedCheckIn!,
+          })
+      : sanitize(name)
 
     const task = await prisma.task.create({
       data: {
-        name: sanitize(name),
+        name: sanitizedName,
         type: sanitize(type),
         horseId: horseId && horseId.trim() ? horseId : null, // Convert empty string to null
+        instructorId: isRideBookingTask ? instructorId : null,
         assignedEmployeeId,
         createdById: userId,
         scheduledTime: parsedScheduled,
         priority: priority || 'Medium',
-        requiredProof: requiredProof === true || requiredProof === 'true',
+        requiredProof: isAnyBookingTask ? false : requiredProof === true || requiredProof === 'true',
+        customerName: isAnyBookingTask ? sanitize(customerName) : null,
+        customerPhone: isAnyBookingTask ? sanitize(customerPhone) : null,
+        paymentSource: isAnyBookingTask ? paymentSource : null,
+        leadPrice: isAnyBookingTask ? parsedLeadPrice : null,
+        isMembershipBooking: isRideBookingTask ? membershipEnabled : false,
+        packageName: isRideBookingTask && membershipEnabled ? sanitize(packageName) : null,
+        packageRideCount: isRideBookingTask && membershipEnabled ? Number(packageRideCount) : null,
+        packageMemberCount: isRideBookingTask && membershipEnabled ? Number(packageMemberCount) : null,
+        packagePrice: isRideBookingTask && membershipEnabled ? Number(packagePrice) : null,
+        gstAmount: isRideBookingTask && membershipEnabled ? Number(gstAmount) : null,
+        bookingCategory: isRideBookingTask ? bookingCategory : null,
+        bookingRideType: isRideBookingTask ? resolvedBookingRideType : null,
+        bookingDestination:
+          isRideBookingTask && bookingCategory === 'Fun Rides'
+            ? bookingDestination
+            : null,
+        bookingSlot: isRideBookingTask ? bookingSlot : null,
+        accommodationCheckIn: isAccommodationBookingTask ? parsedCheckIn : null,
+        accommodationCheckOut: isAccommodationBookingTask ? parsedCheckOut : null,
         description: description ? sanitize(description) : undefined,
         status: 'Pending',
       },
@@ -224,14 +445,39 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
 
     // Create notification for the assigned employee
     try {
-      const scheduledStr = parsedScheduled.toLocaleString('en-IN', {
-        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-      })
+      const scheduledStr = isRideBookingTask
+        ? buildBookingNotificationMessage({
+            action: 'created',
+            horseName: horse!.name,
+            instructorName: instructor!.fullName,
+            bookingCategory,
+            bookingRideType: resolvedBookingRideType!,
+            bookingDestination:
+              bookingCategory === 'Fun Rides' ? bookingDestination : null,
+            bookingSlot,
+            scheduledDate: parsedScheduled,
+          })
+        : isAccommodationBookingTask
+          ? buildAccommodationNotificationMessage({
+              action: 'created',
+              customerName: sanitize(customerName),
+              customerPhone: sanitize(customerPhone),
+              paymentSource,
+              checkIn: parsedCheckIn!,
+              checkOut: parsedCheckOut!,
+            })
+        : `You have been assigned a new task scheduled for ${parsedScheduled.toLocaleString('en-IN', {
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+          })}. Priority: ${priority || 'Medium'}.`
       await createNotificationAndPublish({
         employeeId: assignedEmployeeId,
         type: 'task_assignment',
-        title: `New task assigned: ${sanitize(name)}`,
-        message: `You have been assigned a new task scheduled for ${scheduledStr}. Priority: ${priority || 'Medium'}.`,
+        title: isRideBookingTask
+          ? `New riding booking: ${sanitizedName}`
+          : isAccommodationBookingTask
+            ? `New accommodation booking: ${sanitizedName}`
+            : `New task assigned: ${sanitizedName}`,
+        message: scheduledStr,
         relatedTaskId: task.id,
       })
     } catch (notifErr) {

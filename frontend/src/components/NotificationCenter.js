@@ -17,6 +17,7 @@ const TYPE_META = {
   task_completion: { icon: CheckCheck, color: '#00ffd0', label: 'Task' },
   report_filed: { icon: FileText, color: '#f783ac', label: 'Report' },
   farrier_reminder: { icon: AlertTriangle, color: '#ffd43b', label: 'Farrier' },
+  horse_feed_menu_expired: { icon: Package, color: '#4dabf7', label: 'Horse Feed' },
   general: { icon: Bell, color: '#868e96', label: 'General' },
 };
 
@@ -144,6 +145,14 @@ const NotificationCenter = () => {
       if (combinedText.includes('feed')) return '/feed-inventory';
       if (combinedText.includes('medicine')) return '/medicine-inventory';
       if (combinedText.includes('grocery')) return '/groceries-inventory';
+    }
+
+    if (notification?.type === 'horse_feed_menu_expired' || combinedText.includes('horse feed menu')) {
+      return '/horse-feeds';
+    }
+
+    if (combinedText.includes('grass') || combinedText.includes('bedding')) {
+      return '/grass-bedding';
     }
 
     return '/dashboard';

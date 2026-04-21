@@ -11,12 +11,12 @@ import { Navigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Pill, Activity, CheckCircle, AlertTriangle, SlidersHorizontal, Search, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DateTimePicker from '../components/shared/DateTimePicker';
 import SelectField from '../components/shared/SelectField';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const DEFAULT_MEDICINE_NAMES = [
   'Phenylbutazone (Bute)',
@@ -282,13 +282,13 @@ const MedicineLogsPage = () => {
       'Submitted By': l.jamedar?.fullName || '',
     }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No data to download'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Logs');
-    XLSX.writeFile(wb, `MedicineLogs_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Medicine Logs',
+      fileName: `MedicineLogs_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

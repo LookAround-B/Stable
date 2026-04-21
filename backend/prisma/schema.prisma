@@ -32,6 +32,7 @@ model Employee {
   // Relations
   assignedTasks         Task[]
   createdTasks          Task[]      @relation("TaskCreatedBy")
+  instructorTasks       Task[]      @relation("TaskInstructor")
   attendanceLogs        AttendanceLog[]
   healthRecords         HealthRecord[]
   createdApprovals      Approval[] @relation("approver")
@@ -75,6 +76,8 @@ model Employee {
   housekeepingCreated   HousekeepingInventory[] @relation("housekeepingCreatedBy")
   farrierInvFarrier     FarrierInventory[] @relation("farrierInvFarrier")
   farrierInvCreated     FarrierInventory[] @relation("farrierInvCreatedBy")
+  grassBeddingCollected GrassBeddingEntry[] @relation("grassBeddingCollectedBy")
+  grassBeddingCreated   GrassBeddingEntry[] @relation("grassBeddingCreatedBy")
 
   @@index([designation])
   @@index([department])
@@ -87,6 +90,7 @@ model Horse {
   name                  String      @unique
   gender                String      // 'Stallion', 'Mare', 'Gelding', 'Colt', 'Filly', 'Foal', 'Stud'
   dateOfBirth           DateTime
+  horseEntryType        String      @default("Normal") // 'Normal', 'Private'
   breed                 String?
   color                 String?
   height                Float?
@@ -121,6 +125,9 @@ model Horse {
   // Ownership
   ownerName             String?
   ownerContact          String?
+  privateDiagnosisNotes String?
+  privateEntryAt        DateTime?
+  privateExitAt         DateTime?
   leaseStatus           String?     // 'Owned', 'Leased', 'Training'
   emergencyContact      String?
   insuranceDetails      String?
@@ -145,9 +152,11 @@ model Horse {
   farrierShoeings       FarrierShoeing[] @relation("horseFarrierShoeings")
   tackItems             TackInventory[] @relation("tackHorse")
   farrierInvItems       FarrierInventory[] @relation("farrierInvHorse")
+  grassBeddingEntries   GrassBeddingEntry[] @relation("grassBeddingHorse")
 
   @@index([status])
   @@index([name])
+  @@index([horseEntryType])
   @@index([supervisorId])
 }
 
@@ -158,6 +167,8 @@ model Task {
   status                String      @default("Pending") // 'Pending', 'In Progress', 'Completed', 'Pending Review', 'Approved', 'Rejected'
   horseId               String?
   horse                 Horse?      @relation(fields: [horseId], references: [id], onDelete: SetNull)
+  instructorId          String?
+  instructor            Employee?   @relation("TaskInstructor", fields: [instructorId], references: [id], onDelete: SetNull)
   assignedEmployeeId    String
   assignedEmployee      Employee    @relation(fields: [assignedEmployeeId], references: [id])
   createdById           String
@@ -169,6 +180,22 @@ model Task {
   requiredProof         Boolean     @default(false)
   proofImage            String?
   completionNotes       String?     // Notes from employee about task completion
+  customerName          String?
+  customerPhone         String?
+  paymentSource         String?
+  leadPrice            Float?
+  isMembershipBooking   Boolean     @default(false)
+  packageName           String?
+  packageRideCount      Int?
+  packageMemberCount    Int?
+  packagePrice          Float?
+  gstAmount             Float?
+  bookingCategory       String?     // 'Normal Riding', 'Fun Rides'
+  bookingRideType       String?     // 'Instructor Book', 'Pony Ride', 'Hack'
+  bookingDestination    String?     // 'Inside', 'Outside'
+  bookingSlot           String?     // '6', '7', '8', '9', '10', '3', '4', '5'
+  accommodationCheckIn  DateTime?
+  accommodationCheckOut DateTime?
   description           String?
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
@@ -177,10 +204,14 @@ model Task {
   approvals             Approval[]
 
   @@index([horseId])
+  @@index([instructorId])
   @@index([assignedEmployeeId])
   @@index([createdById])
   @@index([status])
   @@index([scheduledTime])
+  @@index([customerName])
+  @@index([bookingCategory])
+  @@index([bookingSlot])
 }
 
 model Approval {
@@ -511,10 +542,10 @@ model InstructorDailyWorkRecord {
   id                    String      @id @default(cuid())
   instructorId          String      // Instructor who supervised
   instructor            Employee    @relation("instructorRecords", fields: [instructorId], references: [id], onDelete: Cascade)
-  horseId               String      // Horse that was ridden
+  horseId               String      // Horse that was worked
   horse                 Horse       @relation("workRecords", fields: [horseId], references: [id], onDelete: Cascade)
-  riderId               String      // Student/Rider
-  rider                 Employee    @relation("riderRecords", fields: [riderId], references: [id], onDelete: Cascade)
+  riderId               String?     // Student/Rider (optional for lunging sessions)
+  rider                 Employee?   @relation("riderRecords", fields: [riderId], references: [id], onDelete: Cascade)
   workType              String      // 'Lesson', 'Training', 'Exercise', 'Rehab', etc.
   duration              Int         // Duration in minutes
   date                  DateTime    // Date of the session
@@ -522,7 +553,7 @@ model InstructorDailyWorkRecord {
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
-  @@unique([instructorId, horseId, riderId, date]) // Prevent exact duplicate sessions on same day
+  @@unique([instructorId, horseId, riderId, date]) // Prevent exact duplicate riding sessions on same day
   @@index([instructorId])
   @@index([horseId])
   @@index([riderId])
@@ -552,6 +583,10 @@ model HorseFeed {
   heylase               Float?
   
   notes                 String?     // Optional notes
+  temporaryMenuName     String?     // Temporary menu override name
+  menuStartAt           DateTime?   // Temporary menu start time
+  menuEndAt             DateTime?   // Temporary menu end time
+  menuCompletionNotifiedAt DateTime?
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
@@ -559,6 +594,7 @@ model HorseFeed {
   @@index([recordedById])
   @@index([horseId])
   @@index([date])
+  @@index([menuEndAt])
 }
 
 model Expense {
@@ -788,6 +824,7 @@ model FarrierShoeing {
   farrier               Employee    @relation("farrierShoeings", fields: [farrierId], references: [id], onDelete: Cascade)
   shoeingDate           DateTime
   nextDueDate           DateTime    // shoeingDate + 21 days
+  numberOfLegs          Int         @default(4)
   notes                 String?
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
@@ -842,6 +879,7 @@ model TackInventory {
   riderId               String?
   rider                 Employee?   @relation("tackRider", fields: [riderId], references: [id], onDelete: SetNull)
   quantity              Int         @default(1)
+  unitNumber            String?
   condition             String      @default("Good") // 'New', 'Good', 'Worn', 'Damaged'
   brand                 String?
   size                  String?
@@ -863,6 +901,7 @@ model TackInventory {
   @@index([riderId])
   @@index([createdById])
   @@index([condition])
+  @@index([unitNumber])
 }
 
 // Housekeeping Inventory - Cleaning supplies, tools, consumables
@@ -894,6 +933,28 @@ model HousekeepingInventory {
   @@index([assignedStaffId])
   @@index([createdById])
   @@index([expiryDate])
+}
+
+model GrassBeddingEntry {
+  id                    String      @id @default(cuid())
+  horseId               String
+  horse                 Horse       @relation("grassBeddingHorse", fields: [horseId], references: [id], onDelete: Cascade)
+  entryType             String      @default("Grass") // 'Grass' or 'Bedding'
+  supplyName            String
+  collectedById         String
+  collectedBy           Employee    @relation("grassBeddingCollectedBy", fields: [collectedById], references: [id], onDelete: Cascade)
+  collectedAt           DateTime
+  notes                 String?
+  createdById           String
+  createdBy             Employee    @relation("grassBeddingCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([horseId])
+  @@index([entryType])
+  @@index([collectedById])
+  @@index([collectedAt])
+  @@index([createdById])
 }
 
 // Farrier Inventory - Horseshoes, nails, hoof tools

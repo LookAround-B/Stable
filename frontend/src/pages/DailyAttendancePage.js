@@ -7,11 +7,11 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Search, Users, UserCheck, UserX, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const DailyAttendancePage = () => {
   const { user } = useAuth();
@@ -89,10 +89,13 @@ const DailyAttendancePage = () => {
 
   const getExportRows = () => filteredEmployees.map(groom => ({ 'Groom Name': groom.fullName, 'Email': groom.email, 'Check In': getCheckInTime(groom.id), 'Check Out': getCheckOutTime(groom.id), 'Status': isCheckedIn(groom.id) ? 'IN' : 'OUT' }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (!filteredEmployees.length) { showNoExportDataToast('No data'); return; }
     const data = getExportRows();
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Daily Attendance'); XLSX.writeFile(wb, `DailyAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Daily Attendance',
+      fileName: `DailyAttendance_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

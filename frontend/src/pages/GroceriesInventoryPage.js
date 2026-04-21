@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import * as XLSX from "xlsx";
 import { TableSkeleton } from "../components/Skeleton";
 import groceriesInventoryService from "../services/groceriesInventoryService";
 import { getEmployees } from "../services/employeeService";
@@ -30,6 +29,7 @@ import ExportDialog from "../components/shared/ExportDialog";
 import Pagination from "../components/Pagination";
 import DatePicker from '../components/shared/DatePicker';
 import { downloadCsvFile } from "../lib/csvExport";
+import { writeRowsToXlsx } from "../lib/xlsxExport";
 
 const MONTH_NAMES = [
   "January",
@@ -440,33 +440,29 @@ const GroceriesInventoryPage = () => {
       Status: getStatusMeta(record).label,
     }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getExportRows();
     if (data.length === 0) {
       showMsg("No data to export", "error");
       return;
     }
-
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    worksheet["!cols"] = [
-      { wch: 14 },
-      { wch: 28 },
-      { wch: 10 },
-      { wch: 10 },
-      { wch: 14 },
-      { wch: 14 },
-      { wch: 14 },
-      { wch: 28 },
-      { wch: 20 },
-      { wch: 20 },
-      { wch: 18 },
-    ];
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Groceries");
-    XLSX.writeFile(
-      workbook,
-      `GroceriesInventory_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.xlsx`
-    );
+    await writeRowsToXlsx(data, {
+      sheetName: 'Groceries',
+      fileName: `GroceriesInventory_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.xlsx`,
+      columnWidths: [
+        { wch: 14 },
+        { wch: 28 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 28 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 18 },
+      ],
+    });
   };
 
   const handleDownloadCSV = () => {

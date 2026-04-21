@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
-import * as XLSX from "xlsx";
 import { TableSkeleton } from '../components/Skeleton';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import tackInventoryService from "../services/tackInventoryService";
@@ -15,6 +14,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Download, Package, Pencil, Pl
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const CATEGORIES = ["Saddle", "Bridle", "Grooming Gear", "Training Equipment"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -55,7 +55,7 @@ const TackInventoryPage = () => {
 
   const emptyForm = {
     itemName: "", category: "Saddle", horseId: "", riderId: "",
-    quantity: "1", condition: "Good", brand: "", size: "", material: "",
+    quantity: "1", unitNumber: "", condition: "Good", brand: "", size: "", material: "",
     purchaseDate: "", lastUsedDate: "", maintenanceRequired: false,
     notes: "", cleaningSchedule: "", repairHistory: "", storageLocation: "",
   };
@@ -113,7 +113,7 @@ const TackInventoryPage = () => {
   const handleEdit = (item) => {
     setFormData({
       itemName: item.itemName, category: item.category, horseId: item.horseId || "",
-      riderId: item.riderId || "", quantity: item.quantity, condition: item.condition || "Good",
+      riderId: item.riderId || "", quantity: item.quantity, unitNumber: item.unitNumber || "", condition: item.condition || "Good",
       brand: item.brand || "", size: item.size || "", material: item.material || "",
       purchaseDate: item.purchaseDate ? new Date(item.purchaseDate).toISOString().split("T")[0] : "",
       lastUsedDate: item.lastUsedDate ? new Date(item.lastUsedDate).toISOString().split("T")[0] : "",
@@ -137,19 +137,19 @@ const TackInventoryPage = () => {
 
   const getExportRows = () => items.map(i => ({
       "Item Name": i.itemName, "Category": i.category, "Horse": i.horse?.name || "-",
-      "Rider": i.rider?.fullName || "-", "Qty": i.quantity, "Condition": i.condition,
+      "Rider": i.rider?.fullName || "-", "Qty": i.quantity, "Unit Number": i.unitNumber || "", "Condition": i.condition,
       "Brand": i.brand || "", "Size": i.size || "", "Material": i.material || "",
       "Purchase Date": formatDate(i.purchaseDate), "Last Used": formatDate(i.lastUsedDate),
       "Maintenance": i.maintenanceRequired ? "Yes" : "No", "Storage": i.storageLocation || "",
       "Notes": i.notes || "",
     }));
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (items.length === 0) { showNoExportDataToast('No data'); return; }
     const data = getExportRows();
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, "TackInventory");
-    XLSX.writeFile(wb, `TackInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'TackInventory',
+      fileName: `TackInventory_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {
@@ -157,9 +157,9 @@ const TackInventoryPage = () => {
     downloadCsvFile(getExportRows(), `TackInventory_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
-  const uniqueCategories = [...new Set(items.map(i => i.category).filter(Boolean))];
   const maintenanceItems = items.filter(i => i.maintenanceRequired);
   const needsAttention = items.filter(i => i.condition === 'Damaged' || i.condition === 'Poor' || i.condition === 'Replace').length;
+  const totalUnits = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
   if (!p.viewTackInventory) return <Navigate to="/dashboard" replace />;
 
@@ -186,7 +186,7 @@ const TackInventoryPage = () => {
       {/* ── KPI Cards (EFM Style) ── */}
       <div className="tack-inventory-kpi-grid grid grid-cols-2 sm:grid-cols-3 gap-4">
         <OperationalMetricCard label={t("TOTAL ITEMS")} value={String(items.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Inventory count")} subColor="text-success" />
-        <OperationalMetricCard label={t("CATEGORIES")} value={String(uniqueCategories.length || CATEGORIES.length).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Unique equipment types")} />
+        <OperationalMetricCard label={t("TOTAL UNITS")} value={String(totalUnits).padStart(2, '0')} icon={Package} colorClass="text-primary" bgClass="bg-primary/10" sub={t("Combined quantity count")} />
         <div className="tack-inventory-kpi-card--wide-mobile">
           <OperationalMetricCard label={t("NEEDS ATTENTION")} value={String(needsAttention + maintenanceItems.length).padStart(2, '0')} icon={Wrench} colorClass="text-destructive" bgClass="bg-destructive/10" sub={t("Items flagged for repair")} subColor="text-destructive" />
         </div>
@@ -231,6 +231,10 @@ const TackInventoryPage = () => {
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Quantity")}</label>
                 <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} min="0" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Unit Number")}</label>
+                <input type="text" name="unitNumber" value={formData.unitNumber} onChange={handleInputChange} maxLength={50} placeholder="e.g. TACK-014" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Condition")}</label>
@@ -324,7 +328,7 @@ const TackInventoryPage = () => {
               <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {['ITEM NAME', 'CATEGORY', 'HORSE / SCOPE', 'QTY', 'CONDITION', 'BRAND', 'LOCATION', 'LAST USED', ''].map(h => (
+                    {['ITEM NAME', 'CATEGORY', 'HORSE / SCOPE', 'QTY', 'UNIT #', 'CONDITION', 'BRAND', 'LOCATION', 'LAST USED', ''].map(h => (
                       <th key={h || 'actions'} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
                     ))}
                   </tr>
@@ -350,6 +354,8 @@ const TackInventoryPage = () => {
                         <td className="px-6 py-4 text-sm text-foreground">{item.horse?.name || '-'}</td>
                         {/* Qty */}
                         <td className="px-6 py-4 mono-data text-sm font-semibold text-center">{String(item.quantity).padStart(2, '0')}</td>
+                        {/* Unit Number */}
+                        <td className="px-6 py-4 text-sm text-muted-foreground mono-data">{item.unitNumber || '-'}</td>
                         {/* Condition with dot */}
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase ${cs.color}`}>
@@ -378,7 +384,7 @@ const TackInventoryPage = () => {
                     );
                   })}
                   {paginatedItems.length === 0 && (
-                    <tr><td colSpan={9} className="px-6 py-8 text-center text-sm text-muted-foreground">No items match your filters.</td></tr>
+                    <tr><td colSpan={10} className="px-6 py-8 text-center text-sm text-muted-foreground">No items match your filters.</td></tr>
                   )}
                 </tbody>
               </table>

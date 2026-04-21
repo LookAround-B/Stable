@@ -97,6 +97,10 @@ export default function usePermissions() {
         'manageInventory',
         ['Stable Manager', 'Jamedar', 'Ground Supervisor'].includes(designation)
       ),
+      viewGrassAndBedding: has(
+        'manageInventory',
+        ['Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(designation)
+      ),
       viewFarrierInventory: has(
         'manageInventory',
         ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)

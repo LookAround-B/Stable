@@ -10,11 +10,11 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -93,10 +93,13 @@ const GateEntryRegisterPage = () => {
 
   const getExportRows = () => entries.map(entry => ({ 'Name': entry.personType === 'staff' ? getStaffName(entry.employeeId) : (entry.visitor?.name || entry.personName || ''), 'Type': entry.personType, 'Vehicle': entry.vehicleNo || '', 'Entry': formatTime(entry.entryTime), 'Exit': formatTime(entry.exitTime), 'Duration': getTotalDuration(entry.entryTime, entry.exitTime), 'Purpose/Notes': entry.visitor?.purpose || entry.notes || '' }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No data'); return; }
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Gate Register'); XLSX.writeFile(wb, `GateRegister_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Gate Register',
+      fileName: `GateRegister_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

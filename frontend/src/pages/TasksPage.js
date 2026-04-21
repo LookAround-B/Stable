@@ -8,7 +8,23 @@ import SearchableSelect from '../components/SearchableSelect';
 import TimePicker from '../components/shared/TimePicker';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { BarChart3, Camera, Check, Clock3, Package, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import { BarChart3, Camera, Check, Clock3, Package, Pencil, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import {
+  ACCOMMODATION_TASK_TYPE,
+  BOOKING_CATEGORY_OPTIONS,
+  BOOKING_DESTINATION_OPTIONS,
+  BOOKING_SLOT_OPTIONS,
+  BOOKING_TASK_TYPE,
+  FUN_RIDE_OPTIONS,
+  PAYMENT_SOURCE_OPTIONS,
+  getAccommodationScheduleLabel,
+  getBookingSlotLabel,
+  getBookingSlotTime,
+  getBookingSummary,
+  isAccommodationBookingTask,
+  isBookingTask,
+  isRideBookingTask,
+} from '../lib/taskBookings';
 
 const TASK_TYPES = [
   'Feed',
@@ -18,7 +34,9 @@ const TASK_TYPES = [
   'Health Check',
   'Training',
   'Cleaning',
-  'Other'
+  'Other',
+  BOOKING_TASK_TYPE,
+  ACCOMMODATION_TASK_TYPE,
 ];
 
 const TASK_CATEGORY_MAP = {
@@ -30,6 +48,8 @@ const TASK_CATEGORY_MAP = {
   Maintenance: 'MAINTENANCE',
   Cleaning: 'DAILY CHECK',
   Other: 'SPECIAL TASK',
+  [BOOKING_TASK_TYPE]: 'BOOKING',
+  [ACCOMMODATION_TASK_TYPE]: 'BOOKING',
 };
 const TASK_FILTERS = ['All Tasks', 'High Priority', 'Medication', 'Training'];
 
@@ -129,6 +149,27 @@ const TasksPageSkeleton = () => (
   </div>
 );
 
+const formatDateInputValue = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
+const formatTimeInputValue = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+
+const formatDateTimeLocalValue = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${formatDateInputValue(date)}T${formatTimeInputValue(date)}`;
+};
+
 const TasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -141,10 +182,12 @@ const TasksPage = () => {
     canManageSchedules || Boolean(taskCapabilities.canWorkOnAssignedTasks);
   const [tasks, setTasks] = useState([]);
   const [horses, setHorses] = useState([]);
+  const [allEmployees, setAllEmployees] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All Tasks');
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState('');
@@ -162,6 +205,23 @@ const TasksPage = () => {
     type: 'Feed',
     horseId: '',
     assignedEmployeeId: '',
+    instructorId: '',
+    customerName: '',
+    customerPhone: '',
+    paymentSource: '',
+    leadPrice: '',
+    isMembershipBooking: false,
+    packageName: '',
+    packageRideCount: '',
+    packageMemberCount: '',
+    packagePrice: '',
+    gstAmount: '',
+    bookingCategory: 'Normal Riding',
+    bookingRideType: '',
+    bookingDestination: '',
+    bookingSlot: '',
+    accommodationCheckIn: '',
+    accommodationCheckOut: '',
     priority: 'Medium',
     startDate: '',
     endDate: '',
@@ -352,6 +412,7 @@ const TasksPage = () => {
     try {
       const response = await apiClient.get('/employees');
       const allEmployees = response.data.data || [];
+      setAllEmployees(allEmployees);
       const filteredEmployees = getFilteredEmployeeList(allEmployees);
       setEmployees(filteredEmployees);
     } catch (error) {
@@ -359,8 +420,150 @@ const TasksPage = () => {
     }
   };
 
+  const resetTaskForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      type: 'Feed',
+      horseId: '',
+      assignedEmployeeId: '',
+      instructorId: '',
+      customerName: '',
+      customerPhone: '',
+      paymentSource: '',
+      leadPrice: '',
+      isMembershipBooking: false,
+      packageName: '',
+      packageRideCount: '',
+      packageMemberCount: '',
+      packagePrice: '',
+      gstAmount: '',
+      bookingCategory: 'Normal Riding',
+      bookingRideType: '',
+      bookingDestination: '',
+      bookingSlot: '',
+      accommodationCheckIn: '',
+      accommodationCheckOut: '',
+      priority: 'Medium',
+      startDate: '',
+      endDate: '',
+      scheduledTime: '',
+      endTime: '',
+      requiredProof: false,
+    });
+    setEditingTaskId(null);
+  };
+
+  const isRideBookingFormTask = formData.type === BOOKING_TASK_TYPE;
+  const isAccommodationBookingFormTask = formData.type === ACCOMMODATION_TASK_TYPE;
+  const isBookingFormTask = isRideBookingFormTask || isAccommodationBookingFormTask;
+  const instructorOptions = allEmployees
+    .filter((emp) => emp.designation === 'Instructor' && emp.isApproved !== false)
+    .map((emp) => ({ value: emp.id, label: emp.fullName }));
+  const jamedharOptions = allEmployees
+    .filter((emp) => emp.designation === 'Jamedar' && emp.isApproved !== false)
+    .map((emp) => ({ value: emp.id, label: emp.fullName }));
+  const housekeepingOptions = allEmployees
+    .filter((emp) => emp.designation === 'Housekeeping' && emp.isApproved !== false)
+    .map((emp) => ({ value: emp.id, label: emp.fullName }));
+
+  const openCreateForm = () => {
+    resetTaskForm();
+    setShowCreateForm(true);
+  };
+
+  const openEditForm = (task) => {
+    const scheduledDate = task?.scheduledTime ? new Date(task.scheduledTime) : null;
+    setFormData({
+      name: task?.name || '',
+      description: task?.description || '',
+      type: task?.type || 'Feed',
+      horseId: task?.horseId || '',
+      assignedEmployeeId: task?.assignedEmployeeId || '',
+      instructorId: task?.instructorId || '',
+      customerName: task?.customerName || '',
+      customerPhone: task?.customerPhone || '',
+      paymentSource: task?.paymentSource || '',
+      leadPrice: task?.leadPrice != null ? String(task.leadPrice) : '',
+      isMembershipBooking: Boolean(task?.isMembershipBooking),
+      packageName: task?.packageName || '',
+      packageRideCount: task?.packageRideCount != null ? String(task.packageRideCount) : '',
+      packageMemberCount: task?.packageMemberCount != null ? String(task.packageMemberCount) : '',
+      packagePrice: task?.packagePrice != null ? String(task.packagePrice) : '',
+      gstAmount: task?.gstAmount != null ? String(task.gstAmount) : '',
+      bookingCategory: task?.bookingCategory || 'Normal Riding',
+      bookingRideType: task?.bookingCategory === 'Fun Rides' ? (task?.bookingRideType || '') : '',
+      bookingDestination: task?.bookingDestination || '',
+      bookingSlot: task?.bookingSlot || '',
+      accommodationCheckIn: formatDateTimeLocalValue(task?.accommodationCheckIn),
+      accommodationCheckOut: formatDateTimeLocalValue(task?.accommodationCheckOut),
+      priority: task?.priority || 'Medium',
+      startDate: formatDateInputValue(scheduledDate),
+      endDate: '',
+      scheduledTime: formatTimeInputValue(scheduledDate),
+      endTime: '',
+      requiredProof: Boolean(task?.requiredProof),
+    });
+    setEditingTaskId(task.id);
+    setShowCreateForm(true);
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === 'type') {
+      const nextIsRideBooking = value === BOOKING_TASK_TYPE;
+      const nextIsAccommodationBooking = value === ACCOMMODATION_TASK_TYPE;
+      const nextIsBooking = nextIsRideBooking || nextIsAccommodationBooking;
+      setFormData((prev) => ({
+        ...prev,
+        type: value,
+        name: nextIsBooking ? '' : prev.name,
+        horseId: nextIsAccommodationBooking ? '' : prev.horseId,
+        instructorId: nextIsRideBooking ? prev.instructorId : '',
+        bookingCategory: nextIsRideBooking ? prev.bookingCategory : 'Normal Riding',
+        bookingRideType: nextIsRideBooking ? prev.bookingRideType : '',
+        bookingDestination: nextIsRideBooking ? prev.bookingDestination : '',
+        bookingSlot: nextIsRideBooking ? prev.bookingSlot : '',
+        customerName: nextIsBooking ? prev.customerName : '',
+        customerPhone: nextIsBooking ? prev.customerPhone : '',
+        paymentSource: nextIsBooking ? prev.paymentSource : '',
+        leadPrice: nextIsBooking ? prev.leadPrice : '',
+        isMembershipBooking: nextIsRideBooking ? prev.isMembershipBooking : false,
+        packageName: nextIsRideBooking ? prev.packageName : '',
+        packageRideCount: nextIsRideBooking ? prev.packageRideCount : '',
+        packageMemberCount: nextIsRideBooking ? prev.packageMemberCount : '',
+        packagePrice: nextIsRideBooking ? prev.packagePrice : '',
+        gstAmount: nextIsRideBooking ? prev.gstAmount : '',
+        accommodationCheckIn: nextIsAccommodationBooking ? prev.accommodationCheckIn : '',
+        accommodationCheckOut: nextIsAccommodationBooking ? prev.accommodationCheckOut : '',
+        requiredProof: nextIsBooking ? false : prev.requiredProof,
+      }));
+      return;
+    }
+
+    if (name === 'bookingCategory') {
+      setFormData((prev) => ({
+        ...prev,
+        bookingCategory: value,
+        bookingRideType: value === 'Fun Rides' ? prev.bookingRideType : '',
+        bookingDestination: value === 'Fun Rides' ? prev.bookingDestination : '',
+      }));
+      return;
+    }
+
+    if (name === 'isMembershipBooking') {
+      setFormData((prev) => ({
+        ...prev,
+        isMembershipBooking: checked,
+        packageName: checked ? prev.packageName : '',
+        packageRideCount: checked ? prev.packageRideCount : '',
+        packageMemberCount: checked ? prev.packageMemberCount : '',
+        packagePrice: checked ? prev.packagePrice : '',
+        gstAmount: checked ? prev.gstAmount : '',
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -373,35 +576,100 @@ const TasksPage = () => {
     setMessage('');
 
     try {
-      if (!formData.name || !formData.assignedEmployeeId || !formData.startDate) {
+      const trimmedCustomerName = formData.customerName.trim();
+      const trimmedCustomerPhone = formData.customerPhone.trim();
+      const needsMembershipFields =
+        isRideBookingFormTask && Boolean(formData.isMembershipBooking);
+      const needsFunRideDestination =
+        isRideBookingFormTask && formData.bookingCategory === 'Fun Rides';
+
+      if (
+        !formData.assignedEmployeeId ||
+        !formData.startDate ||
+        (!isBookingFormTask && !formData.name) ||
+        (isRideBookingFormTask &&
+          (!formData.horseId ||
+            !formData.instructorId ||
+            !formData.bookingSlot ||
+            !trimmedCustomerName ||
+            !trimmedCustomerPhone ||
+            !formData.paymentSource)) ||
+        (isRideBookingFormTask &&
+          formData.bookingCategory === 'Fun Rides' &&
+          (!formData.bookingRideType || !formData.bookingDestination)) ||
+        (needsMembershipFields &&
+          (!formData.packageName ||
+            !formData.packageRideCount ||
+            !formData.packageMemberCount ||
+            !formData.packagePrice ||
+            formData.gstAmount === '')) ||
+        (isAccommodationBookingFormTask &&
+          (!trimmedCustomerName ||
+            !trimmedCustomerPhone ||
+            !formData.paymentSource ||
+            !formData.accommodationCheckIn ||
+            !formData.accommodationCheckOut))
+      ) {
         setMessage('Error: Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+
+      const scheduledTimeValue = isRideBookingFormTask
+        ? getBookingSlotTime(formData.bookingSlot)
+        : (formData.scheduledTime || '09:00');
+
+      if (!scheduledTimeValue) {
+        setMessage('Error: Please select a valid booking slot');
         setLoading(false);
         return;
       }
 
       const payload = {
         ...formData,
-        scheduledTime: formData.startDate ? `${formData.startDate}T${formData.scheduledTime || '09:00'}` : '',
+        name: isBookingFormTask ? '' : formData.name,
+        scheduledTime: formData.startDate ? `${formData.startDate}T${scheduledTimeValue}` : '',
         endTime: formData.endDate ? `${formData.endDate}T${formData.endTime || '17:00'}` : '',
+        bookingRideType:
+          isRideBookingFormTask && formData.bookingCategory === 'Normal Riding'
+            ? 'Instructor Book'
+            : formData.bookingRideType,
+        horseId: isAccommodationBookingFormTask ? '' : formData.horseId,
+        instructorId: isRideBookingFormTask ? formData.instructorId : '',
+        customerName: isBookingFormTask ? trimmedCustomerName : '',
+        customerPhone: isBookingFormTask ? trimmedCustomerPhone : '',
+        paymentSource: isBookingFormTask ? formData.paymentSource : '',
+        leadPrice: isBookingFormTask ? formData.leadPrice : '',
+        isMembershipBooking: isRideBookingFormTask ? Boolean(formData.isMembershipBooking) : false,
+        packageName: needsMembershipFields ? formData.packageName : '',
+        packageRideCount: needsMembershipFields ? formData.packageRideCount : '',
+        packageMemberCount: needsMembershipFields ? formData.packageMemberCount : '',
+        packagePrice: needsMembershipFields ? formData.packagePrice : '',
+        gstAmount: needsMembershipFields ? formData.gstAmount : '',
+        bookingCategory: isRideBookingFormTask ? formData.bookingCategory : '',
+        bookingDestination: needsFunRideDestination ? formData.bookingDestination : '',
+        bookingSlot: isRideBookingFormTask ? formData.bookingSlot : '',
+        accommodationCheckIn: isAccommodationBookingFormTask ? formData.accommodationCheckIn : '',
+        accommodationCheckOut: isAccommodationBookingFormTask ? formData.accommodationCheckOut : '',
+        requiredProof: isBookingFormTask ? false : formData.requiredProof,
       };
-      const response = await apiClient.post('/tasks', payload);
-      
-      setMessage('Success: Task created successfully');
-      setTasks([response.data, ...tasks]);
+      const response = editingTaskId
+        ? await apiClient.patch(`/tasks/${editingTaskId}`, payload)
+        : await apiClient.post('/tasks', payload);
+
+      const itemLabel = isRideBookingFormTask
+        ? 'Riding booking'
+        : isAccommodationBookingFormTask
+          ? 'Accommodation booking'
+          : 'Task';
+      setMessage(`Success: ${itemLabel} ${editingTaskId ? 'updated' : 'created'} successfully`);
+      setTasks((prev) => (
+        editingTaskId
+          ? prev.map((task) => (task.id === editingTaskId ? { ...task, ...response.data } : task))
+          : [response.data, ...prev]
+      ));
       setShowCreateForm(false);
-      setFormData({
-        name: '',
-        description: '',
-        type: 'Feed',
-        horseId: '',
-        assignedEmployeeId: '',
-        priority: 'Medium',
-        startDate: '',
-        endDate: '',
-        scheduledTime: '',
-        endTime: '',
-        requiredProof: false,
-      });
+      resetTaskForm();
       
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
@@ -510,9 +778,11 @@ const TasksPage = () => {
   const handleCancelTask = async (taskId) => {
     setLoading(true);
     try {
-      const response = await apiClient.patch(`/tasks/${taskId}`, { status: 'Pending' });
+      const task = tasks.find((entry) => entry.id === taskId);
+      const nextStatus = isBookingTask(task) ? 'Cancelled' : 'Pending';
+      const response = await apiClient.patch(`/tasks/${taskId}`, { status: nextStatus });
       setTasks(tasks.map(t => t.id === taskId ? response.data : t));
-      setMessage('Success: Task cancelled');
+      setMessage(`Success: ${isBookingTask(task) ? 'Booking cancelled' : 'Task cancelled'}`);
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       setMessage(`Error: ${error.response?.data?.error || error.message}`);
@@ -565,6 +835,8 @@ const TasksPage = () => {
         return '#2e7d32';
       case 'Rejected':
         return '#c62828';
+      case 'Cancelled':
+        return '#64748b';
       default:
         return '#666';
     }
@@ -580,11 +852,14 @@ const TasksPage = () => {
     const taskId = String(task.id || '');
     const shortTaskId = taskId.slice(0, 8);
     const horseName = (task.horse?.name || '').toLowerCase();
+    const bookingSummary = getBookingSummary(task).toLowerCase();
     const searchMatch =
       !query ||
       taskId.toLowerCase().includes(query) ||
       shortTaskId.toLowerCase().includes(query) ||
-      horseName.includes(query);
+      horseName.includes(query) ||
+      bookingSummary.includes(query) ||
+      (task.name || '').toLowerCase().includes(query);
     return filterMatch && searchMatch;
   });
 
@@ -623,7 +898,12 @@ const TasksPage = () => {
     return horse?.name || 'Unknown Horse';
   };
 
-  const getTaskHorseName = (task) => task.horse?.name || getHorseName(task.horseId);
+  const getTaskHorseName = (task) => {
+    if (isAccommodationBookingTask(task)) {
+      return task.customerName || 'Accommodation Guest';
+    }
+    return task.horse?.name || getHorseName(task.horseId);
+  };
 
   const getHorseProfileImage = (horseId) => {
     const horse = horses.find(h => h.id === horseId);
@@ -641,11 +921,27 @@ const TasksPage = () => {
   const getTaskEmployeeName = (task) =>
     task.assignedEmployee?.fullName || getEmployeeName(task.assignedEmployeeId);
 
+  const getHorseBookingHistory = (horseId) =>
+    tasks
+      .filter((task) =>
+        isRideBookingTask(task) &&
+        task.horseId === horseId &&
+        task.status !== 'Cancelled'
+      )
+      .sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
+
   const getTaskTime = (scheduledTime) => {
     if (!scheduledTime) return 'No Time Set';
     const date = new Date(scheduledTime);
     if (Number.isNaN(date.getTime())) return 'No Time Set';
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getTaskScheduleLabel = (task) => {
+    if (isRideBookingTask(task) && task.bookingSlot) {
+      return `Slot ${getBookingSlotLabel(task.bookingSlot)}`;
+    }
+    return getTaskTime(task.scheduledTime);
   };
 
   const getTaskScheduledDate = (task) => {
@@ -656,6 +952,10 @@ const TasksPage = () => {
   };
 
   const getTaskSupportInfo = (task) => {
+    if (isAccommodationBookingTask(task)) {
+      return getAccommodationScheduleLabel(task) || 'Accommodation booking';
+    }
+    if (isBookingTask(task)) return getBookingSummary(task) || 'Stable booking';
     if (task.requiredProof) return 'Evidence Required';
     if (task.priority === 'Urgent') return 'Critical Window';
     if (task.priority === 'High') return 'Supplies Ready';
@@ -735,6 +1035,41 @@ const TasksPage = () => {
 
   const selectedTask = tasks.find((task) => task.id === selectedTaskId) || null;
   const reviewingTask = tasks.find((task) => task.id === viewingTaskId) || null;
+  const selectedInstructor = allEmployees.find((emp) => emp.id === formData.instructorId) || null;
+  const selectedHorseBookingHistory = tasks
+    .filter((task) =>
+      isRideBookingTask(task) &&
+      task.horseId === formData.horseId &&
+      task.id !== editingTaskId &&
+      task.status !== 'Cancelled'
+    )
+    .sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
+  const bookingPreview = isAccommodationBookingFormTask
+    ? [
+        formData.customerName ? `Guest: ${formData.customerName}` : '',
+        formData.customerPhone ? `Phone: ${formData.customerPhone}` : '',
+        formData.accommodationCheckIn ? `Check-in: ${new Date(formData.accommodationCheckIn).toLocaleString()}` : '',
+        formData.accommodationCheckOut ? `Check-out: ${new Date(formData.accommodationCheckOut).toLocaleString()}` : '',
+        formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
+        formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
+      ].filter(Boolean).join(' | ')
+    : isRideBookingFormTask
+      ? [
+          formData.bookingCategory,
+          formData.bookingCategory === 'Fun Rides'
+            ? (formData.bookingRideType || 'Select fun ride')
+            : 'Instructor Book',
+          formData.bookingDestination ? `Where: ${formData.bookingDestination}` : '',
+          selectedInstructor?.fullName ? `Instructor: ${selectedInstructor.fullName}` : '',
+          formData.customerName ? `Client: ${formData.customerName}` : '',
+          formData.bookingSlot ? `Slot ${getBookingSlotLabel(formData.bookingSlot)}` : '',
+          formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
+          formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
+          formData.isMembershipBooking && formData.packageName
+            ? `Package: ${formData.packageName}`
+            : '',
+        ].filter(Boolean).join(' | ')
+      : '';
 
   if (!p.manageTasks) return <Navigate to="/dashboard" replace />;
   if (pageLoading) return <TasksPageSkeleton />;
@@ -755,7 +1090,7 @@ const TasksPage = () => {
           {canCreateTasks && (
             <button
               className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium"
-              onClick={() => setShowCreateForm(true)}
+              onClick={openCreateForm}
               type="button"
             >
               + {t('Create New Task')}
@@ -816,6 +1151,9 @@ const TasksPage = () => {
               const evidenceSrc = evidenceImage
                 ? (evidenceImage.startsWith('http') ? evidenceImage : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${evidenceImage}`)
                 : null;
+              const horseBookingHistory = isRideBookingTask(task) && task.horseId
+                ? getHorseBookingHistory(task.horseId)
+                : [];
 
               return (
                 <div key={task.id} className="task-card task-card-lovable group bg-surface-container-high rounded-xl overflow-hidden edge-glow border border-primary/10 hover:border-primary/30 transition-colors">
@@ -860,11 +1198,20 @@ const TasksPage = () => {
 
                       <h3 className="task-card-title">{task.name}</h3>
                       <p className="task-card-horse">{getTaskHorseName(task)}</p>
+                      {isBookingTask(task) && (
+                        <p className="text-xs text-muted-foreground mt-1">{getBookingSummary(task)}</p>
+                      )}
+                      {isRideBookingTask(task) && horseBookingHistory.length > 0 && (
+                        <div className="mt-2 text-[11px] text-muted-foreground space-y-1">
+                          <p>{`Outings: ${horseBookingHistory.length}`}</p>
+                          <p>{horseBookingHistory.slice(0, 2).map((entry) => new Date(entry.scheduledTime).toLocaleString()).join(' | ')}</p>
+                        </div>
+                      )}
 
                       <div className="task-card-meta">
                         <span>
                           <Clock3 className="w-3.5 h-3.5 text-primary/60" />
-                          {getTaskTime(task.scheduledTime)}
+                          {getTaskScheduleLabel(task)}
                         </span>
                         <span>
                           <Package className="w-3.5 h-3.5 text-primary/60" />
@@ -878,7 +1225,27 @@ const TasksPage = () => {
                         {t('Assigned')}: <strong className="text-foreground">{getTaskEmployeeName(task)}</strong>
                       </span>
                       <div className="task-card-action-cluster flex gap-2 flex-wrap">
-                        {canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'Pending' && (
+                        {canCreateTasks && task.createdById === user?.id && isBookingTask(task) && !['Cancelled', 'Approved', 'Rejected'].includes(task.status) && (
+                          <>
+                            <button
+                              onClick={() => openEditForm(task)}
+                              disabled={loading}
+                              className="btn-review flex items-center gap-2"
+                              type="button"
+                            >
+                              <Pencil className="w-3.5 h-3.5" /> {t('Edit Booking')}
+                            </button>
+                            <button
+                              onClick={() => handleCancelTask(task.id)}
+                              disabled={loading}
+                              className="btn-cancel"
+                              type="button"
+                            >
+                              {t('Cancel Booking')}
+                            </button>
+                          </>
+                        )}
+                        {!isBookingTask(task) && canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'Pending' && (
                           <button
                             onClick={() => handleStartTask(task.id)}
                             disabled={loading}
@@ -888,7 +1255,7 @@ const TasksPage = () => {
                             {t('Start Task')} <Play className="w-3.5 h-3.5 fill-current" />
                           </button>
                         )}
-                        {canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'In Progress' && (
+                        {!isBookingTask(task) && canWorkOnAssignedTasks && task.assignedEmployeeId === user?.id && task.status === 'In Progress' && (
                           <>
                             <button
                               onClick={() => setSelectedTaskId(task.id)}
@@ -1017,36 +1384,181 @@ const TasksPage = () => {
         </div>
       </div>
 {canCreateTasks && showCreateForm && ReactDOM.createPortal(
-          <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowCreateForm(false)}>
+          <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => { setShowCreateForm(false); resetTaskForm(); }}>
             <div className="my-auto flex w-full max-w-lg flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 sm:px-5 sm:py-4 border-b border-border">
-                <h3 className="text-lg font-bold text-foreground">{t('Create New Task')}</h3>
-                <button className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1" onClick={() => setShowCreateForm(false)}><X size={18} /></button>
+                <h3 className="text-lg font-bold text-foreground">
+                  {t(
+                    editingTaskId
+                      ? isRideBookingFormTask
+                        ? 'Edit Riding Booking'
+                        : isAccommodationBookingFormTask
+                          ? 'Edit Accommodation Booking'
+                          : 'Edit Task'
+                      : isRideBookingFormTask
+                        ? 'Create Riding Booking'
+                        : isAccommodationBookingFormTask
+                          ? 'Create Accommodation Booking'
+                          : 'Create New Task'
+                  )}
+                </h3>
+                <button className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1" onClick={() => { setShowCreateForm(false); resetTaskForm(); }}><X size={18} /></button>
               </div>
               <div className="p-4 sm:px-5 sm:py-4">
                 <form id="create-task-form" onSubmit={handleCreateTask} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:gap-4">
+                  {!isBookingFormTask && (
                   <div className="md:col-span-2 xl:col-span-3">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Name *")}</label>
                     <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Morning Feed, Groom Shadow" required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                   </div>
+                  )}
                   <div className="md:col-span-2 xl:col-span-3">
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Description")}</label>
-                    <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Task details and instructions" rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(isBookingFormTask ? "Booking Notes" : "Description")}</label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder={
+                        isRideBookingFormTask
+                          ? "Booking notes or special instructions"
+                          : isAccommodationBookingFormTask
+                            ? "Accommodation notes or special instructions"
+                            : "Task details and instructions"
+                      }
+                      rows="3"
+                      className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Type *")}</label>
                     <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder={t("Select task type...")} required />
                   </div>
+                  {!isAccommodationBookingFormTask && (
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(isRideBookingFormTask ? "Horse *" : "Horse")}</label>
+                      <SearchableSelect
+                        name="horseId"
+                        value={formData.horseId}
+                        onChange={handleInputChange}
+                        placeholder={t(isRideBookingFormTask ? "Select horse" : "Select a horse (optional)")}
+                        options={[{ value: '', label: isRideBookingFormTask ? 'Select horse' : 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]}
+                      />
+                    </div>
+                  )}
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
-                    <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder={t("Select a horse (optional)")} options={[{ value: '', label: 'Select a horse (optional)' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">
+                      {t(isRideBookingFormTask ? "Jamedhar *" : isAccommodationBookingFormTask ? "Housekeeping *" : "Assign To *")}
+                    </label>
+                    <SearchableSelect
+                      name="assignedEmployeeId"
+                      value={formData.assignedEmployeeId}
+                      onChange={handleInputChange}
+                      placeholder={t(isRideBookingFormTask ? "Select Jamedhar" : isAccommodationBookingFormTask ? "Select housekeeper" : "Select employee")}
+                      required
+                      options={[
+                        {
+                          value: '',
+                          label: isRideBookingFormTask
+                            ? 'Select Jamedhar'
+                            : isAccommodationBookingFormTask
+                              ? 'Select housekeeper'
+                              : 'Select employee',
+                        },
+                        ...(
+                          isRideBookingFormTask
+                            ? jamedharOptions
+                            : isAccommodationBookingFormTask
+                              ? housekeepingOptions
+                              : employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))
+                        ),
+                      ]}
+                    />
                   </div>
+                  {isBookingFormTask && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Client Name *")}</label>
+                        <input type="text" name="customerName" value={formData.customerName} onChange={handleInputChange} placeholder="Customer or guest name" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Phone Number *")}</label>
+                        <input type="tel" name="customerPhone" value={formData.customerPhone} onChange={handleInputChange} placeholder="Client phone number" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Payment Source *")}</label>
+                        <SearchableSelect name="paymentSource" value={formData.paymentSource} onChange={handleInputChange} placeholder={t("Select payment source")} options={[{ value: '', label: 'Select payment source' }, ...PAYMENT_SOURCE_OPTIONS]} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Lead Price")}</label>
+                        <input type="number" min="0" step="0.01" name="leadPrice" value={formData.leadPrice} onChange={handleInputChange} placeholder="Leave empty for null" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                    </>
+                  )}
+                  {isRideBookingFormTask && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Instructor *")}</label>
+                        <SearchableSelect name="instructorId" value={formData.instructorId} onChange={handleInputChange} placeholder={t("Select instructor")} required options={[{ value: '', label: 'Select instructor' }, ...instructorOptions]} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Booking Type *")}</label>
+                        <SearchableSelect name="bookingCategory" value={formData.bookingCategory} onChange={handleInputChange} required options={BOOKING_CATEGORY_OPTIONS} />
+                      </div>
+                      {formData.bookingCategory === 'Fun Rides' && (
+                        <>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Fun Ride *")}</label>
+                            <SearchableSelect name="bookingRideType" value={formData.bookingRideType} onChange={handleInputChange} placeholder={t("Select ride type")} required options={[{ value: '', label: 'Select ride type' }, ...FUN_RIDE_OPTIONS]} />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Where To Go *")}</label>
+                            <SearchableSelect name="bookingDestination" value={formData.bookingDestination} onChange={handleInputChange} placeholder={t("Select inside or outside")} required options={[{ value: '', label: 'Select inside or outside' }, ...BOOKING_DESTINATION_OPTIONS]} />
+                          </div>
+                        </>
+                      )}
+                      {formData.horseId && (
+                        <div className="md:col-span-2 xl:col-span-3 rounded-lg border border-border bg-surface-container-high px-4 py-3 text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">{t('Horse Booking History')}:</span>{' '}
+                          {selectedHorseBookingHistory.length === 0
+                            ? 'No previous ride bookings found for this horse.'
+                            : `${selectedHorseBookingHistory.length} outing(s) | ${selectedHorseBookingHistory
+                                .slice(0, 5)
+                                .map((entry) => new Date(entry.scheduledTime).toLocaleString())
+                                .join(' | ')}`}
+                        </div>
+                      )}
+                      <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-3">
+                        <input type="checkbox" name="isMembershipBooking" checked={formData.isMembershipBooking} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
+                        Membership booking
+                      </label>
+                      {formData.isMembershipBooking && (
+                        <>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Package Name *")}</label>
+                            <input type="text" name="packageName" value={formData.packageName} onChange={handleInputChange} placeholder="Membership package" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("No. of Ridings *")}</label>
+                            <input type="number" min="1" name="packageRideCount" value={formData.packageRideCount} onChange={handleInputChange} placeholder="Total ridings" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Members *")}</label>
+                            <input type="number" min="1" name="packageMemberCount" value={formData.packageMemberCount} onChange={handleInputChange} placeholder="No. of members" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Package Price *")}</label>
+                            <input type="number" min="0" step="0.01" name="packagePrice" value={formData.packagePrice} onChange={handleInputChange} placeholder="Package amount" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("GST *")}</label>
+                            <input type="number" min="0" step="0.01" name="gstAmount" value={formData.gstAmount} onChange={handleInputChange} placeholder="GST amount" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Assign To *")}</label>
-                    <SearchableSelect name="assignedEmployeeId" value={formData.assignedEmployeeId} onChange={handleInputChange} placeholder={t("Select employee")} required options={[{ value: '', label: 'Select employee' }, ...employees.map(emp => ({ value: emp.id, label: `${emp.fullName} (${emp.designation})` }))]} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Date *")}</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(isBookingFormTask ? "Booking Date *" : "Start Date *")}</label>
                     <input
                       type="date"
                       required
@@ -1055,40 +1567,77 @@ const TasksPage = () => {
                       className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Start Time")}</label>
-                    <TimePicker
-                      value={formData.scheduledTime}
-                      onChange={(val) => setFormData(f => ({ ...f, scheduledTime: val }))}
-                      placeholder="Pick start time"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Date")}</label>
-                    <input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData(f => ({ ...f, endDate: e.target.value }))}
-                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Time")}</label>
-                    <TimePicker
-                      value={formData.endTime}
-                      onChange={(val) => setFormData(f => ({ ...f, endTime: val }))}
-                      placeholder="Pick end time"
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-2">
-                    <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
-                    Require photo evidence
-                  </label>
+                  {!isRideBookingFormTask ? (
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(isAccommodationBookingFormTask ? "Booking Time *" : "Start Time")}</label>
+                      <TimePicker
+                        value={formData.scheduledTime}
+                        onChange={(val) => setFormData(f => ({ ...f, scheduledTime: val }))}
+                        placeholder={isAccommodationBookingFormTask ? "Pick booking time" : "Pick start time"}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Slot *")}</label>
+                      <SearchableSelect name="bookingSlot" value={formData.bookingSlot} onChange={handleInputChange} placeholder={t("Select slot")} required options={[{ value: '', label: 'Select slot' }, ...BOOKING_SLOT_OPTIONS]} />
+                    </div>
+                  )}
+                  {isAccommodationBookingFormTask && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Check-in *")}</label>
+                        <input type="datetime-local" name="accommodationCheckIn" value={formData.accommodationCheckIn} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Check-out *")}</label>
+                        <input type="datetime-local" name="accommodationCheckOut" value={formData.accommodationCheckOut} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                    </>
+                  )}
+                  {!isBookingFormTask && (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Date")}</label>
+                        <input
+                          type="date"
+                          value={formData.endDate}
+                          onChange={(e) => setFormData(f => ({ ...f, endDate: e.target.value }))}
+                          className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Time")}</label>
+                        <TimePicker
+                          value={formData.endTime}
+                          onChange={(val) => setFormData(f => ({ ...f, endTime: val }))}
+                          placeholder="Pick end time"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {!isBookingFormTask && (
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-2">
+                      <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
+                      Require photo evidence
+                    </label>
+                  )}
+                  {isBookingFormTask && (
+                    <div className="md:col-span-2 xl:col-span-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+                      <span className="font-semibold text-primary">{t('Booking Summary')}:</span>{' '}
+                      {bookingPreview || (isAccommodationBookingFormTask ? 'Add guest details' : 'Add booking details')}
+                    </div>
+                  )}
                 </form>
               </div>
               <div className="p-4 sm:px-5 sm:py-4 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
-                <button type="button" onClick={() => setShowCreateForm(false)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-                <button type="submit" form="create-task-form" disabled={loading} className="btn-save-primary">{loading ? 'Creating...' : 'Create Task'}</button>
+                <button type="button" onClick={() => { setShowCreateForm(false); resetTaskForm(); }} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
+                <button type="submit" form="create-task-form" disabled={loading} className="btn-save-primary">
+                  {loading
+                    ? (editingTaskId ? 'Saving...' : 'Creating...')
+                    : editingTaskId
+                      ? (isBookingFormTask ? 'Save Booking' : 'Save Task')
+                      : (isBookingFormTask ? 'Create Booking' : 'Create Task')}
+                </button>
               </div>
             </div>
           </div>,

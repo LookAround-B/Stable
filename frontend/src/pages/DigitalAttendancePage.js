@@ -6,12 +6,12 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import Pagination from '../components/Pagination';
 import { useI18n } from '../context/I18nContext';
 import { Download, Plus, X, CalendarCheck, CheckCircle2, History, Calendar } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import SelectField from '../components/shared/SelectField';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none disabled:opacity-50';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -106,13 +106,13 @@ const DigitalAttendancePage = () => {
       'Remarks': r.remarks || ''
     }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No records'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'My Attendance');
-    XLSX.writeFile(wb, `MyAttendance_${searchDate}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'My Attendance',
+      fileName: `MyAttendance_${searchDate}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

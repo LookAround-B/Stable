@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
-import * as XLSX from "xlsx";
 import { TableSkeleton } from '../components/Skeleton';
 import housekeepingInventoryService from "../services/housekeepingInventoryService";
 import { getEmployees } from "../services/employeeService";
@@ -15,6 +14,7 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
 const UNIT_TYPES = ["Liters", "Pieces", "Kg"];
@@ -135,13 +135,13 @@ const HousekeepingInventoryPage = () => {
       "Notes": i.notes || "",
     }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getExportRows();
     if (data.length === 0) { showNoExportDataToast('No data'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, "Housekeeping");
-    XLSX.writeFile(wb, `HousekeepingInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Housekeeping',
+      fileName: `HousekeepingInventory_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

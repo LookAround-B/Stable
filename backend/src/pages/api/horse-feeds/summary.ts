@@ -7,6 +7,7 @@ import {
   verifyToken,
 } from '@/lib/auth'
 import { setCorsHeaders } from '@/lib/cors'
+import { ensureExpiredHorseFeedMenuNotifications } from '@/lib/horseFeeds'
 
 export default async function handler(
   req: NextApiRequest,
@@ -50,6 +51,8 @@ export default async function handler(
 
     const { fromDate, toDate } = req.query
 
+    await ensureExpiredHorseFeedMenuNotifications()
+
     if (!fromDate || !toDate) {
       return res
         .status(400)
@@ -82,6 +85,7 @@ export default async function handler(
           },
         },
       },
+      orderBy: { date: 'desc' },
     })
 
     const summary: Record<string, any> = {}
@@ -106,6 +110,9 @@ export default async function handler(
           joint: 0,
           epsom: 0,
           heylase: 0,
+          temporaryMenuName: null,
+          menuStartAt: null,
+          menuEndAt: null,
         }
       }
 
@@ -120,6 +127,17 @@ export default async function handler(
       summary[horseId].joint += record.joint || 0
       summary[horseId].epsom += record.epsom || 0
       summary[horseId].heylase += record.heylase || 0
+
+      if (
+        record.temporaryMenuName &&
+        (!summary[horseId].menuEndAt ||
+          new Date(record.menuEndAt || record.date) >
+            new Date(summary[horseId].menuEndAt || 0))
+      ) {
+        summary[horseId].temporaryMenuName = record.temporaryMenuName
+        summary[horseId].menuStartAt = record.menuStartAt
+        summary[horseId].menuEndAt = record.menuEndAt
+      }
     }
 
     return res.status(200).json({

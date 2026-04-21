@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useI18n } from '../context/I18nContext';
 import { Clock, Package, Search, Users, BarChart3, X, Camera, CheckCircle, Hourglass } from 'lucide-react';
+import { getBookingSlotLabel, getBookingSummary, isBookingTask } from '../lib/taskBookings';
 
 const cropImageToSquare = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -155,6 +156,7 @@ const MyAssignedTasksPage = () => {
       task.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getBookingSummary(task)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.horse?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.createdBy?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
     return statusMatch && (searchTerm === '' || searchMatch);
@@ -192,6 +194,7 @@ const MyAssignedTasksPage = () => {
       'Pending Review': 'border-destructive/30 text-destructive bg-destructive/10',
       'Approved': 'border-success/30 text-success bg-success/10',
       'Rejected': 'border-muted-foreground/30 text-muted-foreground bg-muted',
+      'Cancelled': 'border-border text-muted-foreground bg-muted',
     };
     const cls = cfg[status] || 'border-border text-muted-foreground bg-muted';
     return (
@@ -350,9 +353,12 @@ const MyAssignedTasksPage = () => {
 
                         <h3 className="text-lg font-bold text-foreground leading-tight">{task.name}</h3>
                         <p className="text-sm text-primary/90 mt-1 font-medium">{task.type}</p>
+                        {isBookingTask(task) && (
+                          <p className="text-xs text-muted-foreground mt-2">{getBookingSummary(task)}</p>
+                        )}
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary/60" /> {new Date(task.scheduledTime).toLocaleString()}</span>
+                          <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary/60" /> {isBookingTask(task) && task.bookingSlot ? `${new Date(task.scheduledTime).toLocaleDateString()} • Slot ${getBookingSlotLabel(task.bookingSlot)}` : new Date(task.scheduledTime).toLocaleString()}</span>
                           {task.horse?.name && <span className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5 text-primary/60" /> {task.horse.name}</span>}
                           {task.createdBy?.fullName && <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-primary/60" /> {task.createdBy.fullName}</span>}
                         </div>
@@ -368,7 +374,7 @@ const MyAssignedTasksPage = () => {
 
                         {/* Action buttons */}
                         <div className="mt-4 flex gap-2 flex-wrap">
-                          {task.status === 'Pending' && (
+                          {!isBookingTask(task) && task.status === 'Pending' && (
                             <button
                               type="button"
                               onClick={() => handleStartTask(task.id)}
@@ -378,7 +384,7 @@ const MyAssignedTasksPage = () => {
                               ▶ Start Task
                             </button>
                           )}
-                          {task.status === 'In Progress' && (
+                          {!isBookingTask(task) && task.status === 'In Progress' && (
                             <button
                               type="button"
                               onClick={() => setSelectedTaskId(task.id)}
@@ -387,6 +393,16 @@ const MyAssignedTasksPage = () => {
                             >
                               ✔ Submit Completion
                             </button>
+                          )}
+                          {isBookingTask(task) && task.status === 'Pending' && (
+                            <span className="h-9 px-5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-sm font-medium flex items-center gap-2">
+                              <Hourglass className="w-4 h-4" /> {t('Booking Scheduled')}
+                            </span>
+                          )}
+                          {isBookingTask(task) && task.status === 'Cancelled' && (
+                            <span className="h-9 px-5 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm font-medium flex items-center gap-2">
+                              <X className="w-4 h-4" /> {t('Booking Cancelled')}
+                            </span>
                           )}
                           {(task.status === 'Pending Review' || task.status === 'Approved') && (
                             <span className="h-9 px-5 rounded-lg bg-muted/50 border border-border text-muted-foreground text-sm font-medium flex items-center gap-2">
@@ -559,6 +575,3 @@ const MyAssignedTasksPage = () => {
 };
 
 export default MyAssignedTasksPage;
-
-
-

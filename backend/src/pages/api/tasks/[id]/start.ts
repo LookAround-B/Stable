@@ -10,6 +10,7 @@ import { invalidateTaskCaches } from '@/lib/cacheKeys'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { taskListSelect } from '@/lib/taskPayload'
+import { isTaskBookingType } from '@/lib/taskBookings'
 
 export default async function handler(
   req: NextApiRequest,
@@ -50,6 +51,12 @@ export default async function handler(
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' })
+    }
+
+    if (isTaskBookingType(task.type)) {
+      return res.status(400).json({
+        error: 'Bookings do not use the start workflow.',
+      })
     }
 
     const canManageSchedules = await checkPermission(decoded, 'manageSchedules')

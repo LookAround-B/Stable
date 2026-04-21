@@ -7,19 +7,115 @@ import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Download, Plus, Pencil, Trash2, ClipboardList, Clock, Activity, History, X } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
-import * as XLSX from 'xlsx';
+import DateTimePicker from '../components/shared/DateTimePicker';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const getTodayString = () => {
   const today = new Date();
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 };
 
+const getLocalDateTimeString = (value = new Date()) => {
+  const date = value instanceof Date ? value : new Date(value);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60000);
+  return localDate.toISOString().slice(0, 16);
+};
+
+const getDefaultSessionTimestamp = (dateStr = getTodayString()) => {
+  const currentTime = getLocalDateTimeString().split('T')[1] || '09:00';
+  return `${dateStr}T${currentTime}`;
+};
+
+const getInitialFormData = (dateStr = getTodayString()) => ({
+  horseId: '',
+  riderId: '',
+  entryType: 'riding',
+  workType: 'Task',
+  duration: '',
+  sessionAt: getDefaultSessionTimestamp(dateStr),
+  notes: '',
+});
+
 const CAN_CREATE_RECORDS = ['Instructor'];
+const DEFAULT_RIDING_WORK_TYPE = 'Task';
+const WORK_TYPE_OPTIONS = [
+  { value: 'Task', label: 'Task' },
+  { value: 'Lesson', label: 'Lesson' },
+  { value: 'Paddock', label: 'Paddock' },
+  { value: 'Walker', label: 'Walker' },
+  { value: 'Roll', label: 'Roll' },
+  { value: 'Shows', label: 'Shows' },
+  { value: 'Pony Rides', label: 'pony rides' },
+  { value: 'Horse Rides', label: 'horse rides' },
+  { value: 'Grading', label: 'Grading' },
+  { value: 'Hack', label: 'Hack' },
+  { value: 'Leaderships', label: 'Leaderships' },
+  { value: 'Schooling', label: 'Schooling' },
+  { value: 'Jumping', label: 'Jumping' },
+];
+const ENTRY_TYPES = [
+  { value: 'riding', label: 'Riding / Training' },
+  { value: 'lunging', label: 'Lunging' },
+  { value: 'rest', label: 'Rest' },
+  { value: 'lame', label: 'Lame' },
+];
+
+const ENTRY_TYPE_WORK_TYPES = {
+  riding: null,
+  lunging: 'Lunging',
+  rest: 'Rest',
+  lame: 'Lame',
+};
+
+const normalizeWorkType = (workType) => {
+  if (workType === 'Lunge' || workType === 'Launging') return 'Lunging';
+  if (workType === 'pony rides') return 'Pony Rides';
+  if (workType === 'horse rides') return 'Horse Rides';
+  return workType || DEFAULT_RIDING_WORK_TYPE;
+};
+
+const isLungingWorkType = (workType) => normalizeWorkType(workType) === 'Lunging';
+const isRestWorkType = (workType) => normalizeWorkType(workType) === 'Rest';
+const isLameWorkType = (workType) => normalizeWorkType(workType) === 'Lame';
+const isNonRidingWorkType = (workType) => isLungingWorkType(workType) || isRestWorkType(workType) || isLameWorkType(workType);
+
+const getEntryTypeFromWorkType = (workType) => {
+  if (isLungingWorkType(workType)) return 'lunging';
+  if (isRestWorkType(workType)) return 'rest';
+  if (isLameWorkType(workType)) return 'lame';
+  return 'riding';
+};
+
+const getEffectiveWorkType = (formData) =>
+  formData.entryType === 'riding'
+    ? normalizeWorkType(formData.workType)
+    : ENTRY_TYPE_WORK_TYPES[formData.entryType];
+
+const getAvailableWorkTypeOptions = (currentWorkType) => {
+  const normalizedWorkType = normalizeWorkType(currentWorkType);
+  if (!normalizedWorkType || WORK_TYPE_OPTIONS.some((option) => option.value === normalizedWorkType)) {
+    return WORK_TYPE_OPTIONS;
+  }
+
+  return [...WORK_TYPE_OPTIONS, { value: normalizedWorkType, label: normalizedWorkType }];
+};
+
+const getSessionLabel = (record) => {
+  if (record?.rider?.fullName) {
+    return record.rider.fullName;
+  }
+
+  if (isLungingWorkType(record?.workType)) return 'No rider (lunging)';
+  if (isRestWorkType(record?.workType)) return 'Horse at rest';
+  if (isLameWorkType(record?.workType)) return 'Horse marked lame';
+  return '-';
+};
 
 const DailyWorkRecordsPage = () => {
   const { user } = useAuth();
@@ -37,10 +133,18 @@ const DailyWorkRecordsPage = () => {
   const canCreateRecords = CAN_CREATE_RECORDS.includes(user?.designation);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
-  const [formData, setFormData] = useState({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: getTodayString(), notes: '' });
-  const workTypes = ['Lesson', 'Training', 'Exercise', 'Rehab', 'Groundwork', 'Lunge', 'Hack'];
+  const [formData, setFormData] = useState(() => getInitialFormData(getTodayString()));
+  const selectedWorkType = getEffectiveWorkType(formData);
+  const riderRequired = formData.entryType === 'riding';
+  const durationRequired = formData.entryType === 'riding' || formData.entryType === 'lunging';
+  const notesRequired = formData.entryType === 'rest' || formData.entryType === 'lame';
 
-  useEffect(() => { setFormData(prev => ({ ...prev, date: selectedDate })); }, [selectedDate]);
+  useEffect(() => {
+    setFormData(prev => {
+      const currentTime = prev.sessionAt?.split('T')[1] || getLocalDateTimeString().split('T')[1] || '09:00';
+      return { ...prev, sessionAt: `${selectedDate}T${currentTime}` };
+    });
+  }, [selectedDate]);
 
   const loadRecords = useCallback(async () => {
     try {
@@ -60,24 +164,66 @@ const DailyWorkRecordsPage = () => {
 
   useEffect(() => { loadRecords(); loadHorsesAndEmployees(); }, [selectedDate, loadRecords]);
 
-  const handleInputChange = (e) => { const { name, value } = e.target; setFormData(prev => ({ ...prev, [name]: value })); };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'entryType') {
+      setFormData(prev => ({
+        ...prev,
+        entryType: value,
+        riderId: value === 'riding' ? prev.riderId : '',
+        duration: value === 'rest' || value === 'lame' ? '' : prev.duration,
+        workType:
+          value === 'riding'
+            ? (isNonRidingWorkType(prev.workType) ? DEFAULT_RIDING_WORK_TYPE : normalizeWorkType(prev.workType))
+            : ENTRY_TYPE_WORK_TYPES[value],
+      }));
+      return;
+    }
+    if (name === 'workType') {
+      const normalizedWorkType = normalizeWorkType(value);
+      setFormData(prev => ({
+        ...prev,
+        workType: normalizedWorkType,
+      }));
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.horseId || !formData.riderId || !formData.duration) { setMessage('Please fill all required fields'); setMessageType('error'); return; }
+    if (!formData.horseId || !formData.sessionAt || (riderRequired && !formData.riderId) || (durationRequired && !formData.duration) || (notesRequired && !formData.notes.trim())) { setMessage('Please fill all required fields'); setMessageType('error'); return; }
     try {
       setLoading(true);
-      if (editingId) { await apiClient.put(`/eirs/${editingId}`, { ...formData, duration: parseInt(formData.duration) }); setMessage('Record updated successfully'); }
-      else { await apiClient.post('/eirs', { ...formData, duration: parseInt(formData.duration) }); setMessage('Record created successfully'); }
+      const payload = {
+        horseId: formData.horseId,
+        riderId: riderRequired ? formData.riderId : '',
+        workType: selectedWorkType,
+        duration: durationRequired ? parseInt(formData.duration) : 0,
+        date: new Date(formData.sessionAt).toISOString(),
+        notes: formData.notes.trim(),
+      };
+      if (editingId) { await apiClient.put(`/eirs/${editingId}`, payload); setMessage('Record updated successfully'); }
+      else { await apiClient.post('/eirs', payload); setMessage('Record created successfully'); }
       setMessageType('success');
-      setFormData({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: selectedDate, notes: '' });
+      setFormData(getInitialFormData(selectedDate));
       setEditingId(null); setShowForm(false); loadRecords();
     } catch (error) { setMessage(error.response?.data?.error || 'Failed to save'); setMessageType('error'); }
     finally { setLoading(false); }
   };
 
   const handleEdit = (record) => {
-    setFormData({ horseId: record.horseId, riderId: record.riderId, workType: record.workType, duration: record.duration.toString(), date: record.date.split('T')[0], notes: record.notes || '' });
+    const normalizedWorkType = normalizeWorkType(record.workType);
+    setFormData({
+      horseId: record.horseId,
+      riderId: record.riderId || '',
+      entryType: getEntryTypeFromWorkType(normalizedWorkType),
+      workType: normalizedWorkType,
+      duration: record.duration ? record.duration.toString() : '',
+      sessionAt: getLocalDateTimeString(record.date),
+      notes: record.notes || '',
+    });
     setEditingId(record.id); setShowForm(true);
   };
 
@@ -91,18 +237,19 @@ const DailyWorkRecordsPage = () => {
 
   const handleCancel = () => {
     setShowForm(false); setEditingId(null);
-    setFormData({ horseId: '', riderId: '', workType: 'Lesson', duration: '', date: selectedDate, notes: '' });
+    setFormData(getInitialFormData(selectedDate));
   };
 
-  const getExportRows = () => records.map(r => ({ 'Date': r.date ? new Date(r.date).toLocaleDateString('en-GB') : '', 'Horse': r.horse?.name || '-', 'Rider': r.rider?.fullName || '-', 'Work Type': r.workType, 'Duration (min)': r.duration || '-', 'Notes': r.notes || '' }));
+  const getExportRows = () => records.map(r => ({ 'Timestamp': r.date ? new Date(r.date).toLocaleString('en-GB') : '', 'Horse': r.horse?.name || '-', 'Rider / Session': getSessionLabel(r), 'Work Type': normalizeWorkType(r.workType), 'Duration (min)': r.duration || '-', 'Notes': r.notes || '' }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (records.length === 0) { showNoExportDataToast('No records'); return; }
     const data = getExportRows();
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = [{ wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 30 }];
-    XLSX.utils.book_append_sheet(wb, ws, 'Daily Work Records');
-    XLSX.writeFile(wb, `DailyWorkRecords_${selectedDate}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Daily Work Records',
+      fileName: `DailyWorkRecords_${selectedDate}.xlsx`,
+      columnWidths: [{ wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 30 }],
+    });
   };
 
   const handleDownloadCSV = () => {
@@ -111,11 +258,30 @@ const DailyWorkRecordsPage = () => {
   };
 
   const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const availableWorkTypeOptions = getAvailableWorkTypeOptions(formData.workType);
 
   const totalMinutes = records.reduce((sum, r) => sum + (r.duration || 0), 0);
   const workTypeBadge = (wt) => {
-    const colors = { Lesson: 'border-primary/30 text-primary bg-primary/10', Training: 'border-secondary/30 text-secondary bg-secondary/10', Exercise: 'border-success/30 text-success bg-success/10', Rehab: 'border-warning/30 text-warning bg-warning/10', Groundwork: 'border-accent-foreground/30 text-accent-foreground bg-accent', Lunge: 'border-muted-foreground/30 text-muted-foreground bg-muted-foreground/10', Hack: 'border-destructive/30 text-destructive bg-destructive/10' };
-    return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${colors[wt] || 'border-border text-muted-foreground'}`}>{wt}</span>;
+    const normalizedWorkType = normalizeWorkType(wt);
+    const colors = {
+      Task: 'border-primary/30 text-primary bg-primary/10',
+      Lesson: 'border-secondary/30 text-secondary bg-secondary/10',
+      Paddock: 'border-success/30 text-success bg-success/10',
+      Walker: 'border-warning/30 text-warning bg-warning/10',
+      Lunging: 'border-muted-foreground/30 text-muted-foreground bg-muted-foreground/10',
+      Roll: 'border-accent-foreground/30 text-accent-foreground bg-accent',
+      Shows: 'border-primary/30 text-primary bg-primary/10',
+      'Pony Rides': 'border-secondary/30 text-secondary bg-secondary/10',
+      'Horse Rides': 'border-success/30 text-success bg-success/10',
+      Grading: 'border-warning/30 text-warning bg-warning/10',
+      Hack: 'border-destructive/30 text-destructive bg-destructive/10',
+      Leaderships: 'border-primary/30 text-primary bg-primary/10',
+      Schooling: 'border-secondary/30 text-secondary bg-secondary/10',
+      Jumping: 'border-success/30 text-success bg-success/10',
+      Rest: 'border-primary/30 text-primary bg-primary/10',
+      Lame: 'border-destructive/30 text-destructive bg-destructive/10',
+    };
+    return <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${colors[normalizedWorkType] || 'border-border text-muted-foreground'}`}>{normalizedWorkType}</span>;
   };
 
   if (!p.viewEIRS) return <Navigate to="/dashboard" replace />;
@@ -194,28 +360,44 @@ const DailyWorkRecordsPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Date *")}</label>
-                <DatePicker value={formData.date} onChange={(val) => setFormData(prev => ({ ...prev, date: val }))} />
+                <DateTimePicker label={t("Timestamp *")} value={formData.sessionAt} onChange={(val) => setFormData(prev => ({ ...prev, sessionAt: val }))} required />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
                 <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} placeholder={t("Select horse")} required options={[{ value: '', label: 'Select a horse' }, ...horses.map(h => ({ value: h.id, label: h.name }))]} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Rider/Student *")}</label>
-                <SearchableSelect name="riderId" value={formData.riderId} onChange={handleInputChange} placeholder={t("Select rider")} required options={[{ value: '', label: 'Select rider' }, ...employees.filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation)).map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))]} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Entry Type *")}</label>
+                <SearchableSelect name="entryType" value={formData.entryType} onChange={handleInputChange} required options={ENTRY_TYPES.map(type => ({ value: type.value, label: t(type.label) }))} />
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Work Type *")}</label>
-                <SearchableSelect name="workType" value={formData.workType} onChange={handleInputChange} required options={workTypes.map(type => ({ value: type, label: type }))} />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(riderRequired ? "Rider/Student *" : "Rider/Student")}</label>
+                <SearchableSelect name="riderId" value={formData.riderId} onChange={handleInputChange} placeholder={t(riderRequired ? "Select rider" : "No rider required")} required={riderRequired} options={[{ value: '', label: riderRequired ? 'Select rider' : 'No rider assigned' }, ...employees.filter(emp => ['Rider', 'Riding Boy'].includes(emp.designation)).map(emp => ({ value: emp.id, label: `${emp.fullName} (${t(emp.designation)})` }))]} />
+                {!riderRequired && <p className="mt-1 text-[11px] text-muted-foreground">{t(formData.entryType === 'lunging' ? 'Leave this empty when the horse is only going for lunging.' : 'Rider is not required for rest or lame horse entries.')}</p>}
               </div>
+              {formData.entryType === 'riding' && (
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Work Type *")}</label>
+                <SearchableSelect name="workType" value={formData.workType} onChange={handleInputChange} required options={availableWorkTypeOptions} />
+              </div>
+              )}
+              {formData.entryType !== 'riding' && (
+              <div>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Work Type")}</label>
+                <div className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm flex items-center">
+                  {t(selectedWorkType)}
+                </div>
+              </div>
+              )}
+              {durationRequired && (
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Duration (min) *")}</label>
                 <input type="number" name="duration" value={formData.duration} onChange={handleInputChange} placeholder="45" min="1" required className={inputCls} />
               </div>
+              )}
               <div className="sm:col-span-2 lg:col-span-3">
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
-                <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder={t("Additional session notes")} rows={2} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(notesRequired ? "Notes / Reason *" : "Notes")}</label>
+                <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder={t(formData.entryType === 'rest' ? "Why is the horse on rest?" : formData.entryType === 'lame' ? "Describe the lameness or issue" : "Additional session notes")} rows={2} required={notesRequired} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
             </div>
                 <div className="flex gap-3">
@@ -244,8 +426,9 @@ const DailyWorkRecordsPage = () => {
             <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr className="border-b border-border/50">
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Timestamp")}</th>
                   <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Horse")}</th>
-                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Rider")}</th>
+                  <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Rider / Session")}</th>
                   <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Work Category")}</th>
                   <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Duration")}</th>
                   <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("Remarks")}</th>
@@ -255,6 +438,7 @@ const DailyWorkRecordsPage = () => {
               <tbody>
                 {records.map(record => (
                   <tr key={record.id} className="border-b border-border/50 hover:bg-surface-container-high/30 transition-colors">
+                    <td className="px-5 py-4 text-muted-foreground whitespace-nowrap">{new Date(record.date).toLocaleString('en-IN')}</td>
                     <td className="px-5 py-4 font-semibold text-foreground">
                        <span className="inline-flex items-center gap-2">
                          <div className="w-6 h-6 rounded bg-surface-container flex items-center justify-center text-[10px] font-bold text-primary shrink-0 opacity-80">
@@ -263,7 +447,7 @@ const DailyWorkRecordsPage = () => {
                          {record.horse?.name || '-'}
                        </span>
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">{record.rider?.fullName || '-'}</td>
+                    <td className="px-5 py-4 text-muted-foreground">{getSessionLabel(record)}</td>
                     <td className="px-5 py-4">{workTypeBadge(record.workType)}</td>
                     <td className="px-5 py-4 font-mono text-sm">
                       <span className="text-primary font-bold">{record.duration}</span>

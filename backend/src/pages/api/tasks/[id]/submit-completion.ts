@@ -12,6 +12,7 @@ import { setCorsHeaders } from '@/lib/cors'
 import { taskListSelect } from '@/lib/taskPayload'
 import { sanitizeString, isValidString } from '@/lib/validate'
 import { createNotificationAndPublish } from '@/lib/notificationRealtime'
+import { isTaskBookingType } from '@/lib/taskBookings'
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -52,6 +53,7 @@ export default async function handler(
       select: {
         id: true,
         name: true,
+        type: true,
         status: true,
         requiredProof: true,
         assignedEmployeeId: true,
@@ -67,6 +69,12 @@ export default async function handler(
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' })
+    }
+
+    if (isTaskBookingType(task.type)) {
+      return res.status(400).json({
+        error: 'Bookings do not use completion submission.',
+      })
     }
 
     const canManageSchedules = await checkPermission(decoded, 'manageSchedules')

@@ -7,12 +7,12 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { CheckCircle, Filter, Plus, TrendingUp, Upload, Download } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const ExpensePage = () => {
   const { user } = useAuth();
@@ -384,7 +384,7 @@ const ExpensePage = () => {
     });
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (expenses.length === 0) {
       showNoExportDataToast('No expenses to download');
       return;
@@ -411,30 +411,24 @@ const ExpensePage = () => {
       'Created By': expense.createdBy?.fullName || '',
     }));
 
-    // Create workbook and worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 12 }, // Date
-      { wch: 15 }, // Type
-      { wch: 25 }, // Description
-      { wch: 12 }, // Amount
-      { wch: 18 }, // Assigned Horse
-      { wch: 18 }, // Assigned Employee
-      { wch: 15 }, // Created By
-    ];
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Expenses');
-
     // Generate filename with date
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10);
     const filename = `Expenses_${dateStr}.xlsx`;
 
-    // Download file
-    XLSX.writeFile(workbook, filename);
+    await writeRowsToXlsx(excelData, {
+      sheetName: 'Expenses',
+      fileName: filename,
+      columnWidths: [
+        { wch: 12 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 15 },
+      ],
+    });
     console.log('Downloaded expenses to:', filename);
   };
 

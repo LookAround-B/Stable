@@ -10,9 +10,9 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import DatePicker from '../components/shared/DatePicker';
-import * as XLSX from 'xlsx';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const FEED_LABELS = {
   balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
@@ -124,14 +124,13 @@ const FeedInventoryPage = () => {
     );
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getInventoryExportRows();
     if (!data.length) return;
-
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Feed Inventory');
-    XLSX.writeFile(workbook, `FeedInventory_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Feed Inventory',
+      fileName: `FeedInventory_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.xlsx`,
+    });
   };
 
   const getReportExportRows = () => {
@@ -154,13 +153,13 @@ const FeedInventoryPage = () => {
     downloadCsvFile(rows, `FeedConsumption_${reportStartDate}_to_${reportEndDate}.csv`);
   };
 
-  const handleDownloadReportExcel = () => {
+  const handleDownloadReportExcel = async () => {
     const rows = getReportExportRows();
     if (!rows.length) { showMessage('No report data to export', 'error'); return; }
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Feed Report');
-    XLSX.writeFile(workbook, `FeedConsumption_${reportStartDate}_to_${reportEndDate}.xlsx`);
+    await writeRowsToXlsx(rows, {
+      sheetName: 'Feed Report',
+      fileName: `FeedConsumption_${reportStartDate}_to_${reportEndDate}.xlsx`,
+    });
   };
 
   const filteredInventoryRecords = inventoryRecords.filter((record) => {

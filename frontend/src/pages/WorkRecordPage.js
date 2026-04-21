@@ -9,10 +9,10 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { X, Plus, Wrench, Clock, ListChecks, Download, Search } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
-import * as XLSX from 'xlsx';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px]';
@@ -178,13 +178,13 @@ const WorkRecordPage = () => {
     return rows;
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (!workRecords.length) { showNoExportDataToast(t('No data to download')); return; }
     const rows = getExportRows();
-    const wb = XLSX.utils.book_new();
-    const wsSheet = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, wsSheet, 'Work Record');
-    XLSX.writeFile(wb, `WorkRecord_${selectedDate}.xlsx`);
+    await writeRowsToXlsx(rows, {
+      sheetName: 'Work Record',
+      fileName: `WorkRecord_${selectedDate}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {

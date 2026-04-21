@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { CardGridSkeleton } from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
@@ -6,7 +6,6 @@ import ConfirmModal from '../components/ConfirmModal';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import inspectionService from '../services/inspectionService';
 import apiClient from '../services/apiClient';
-import * as XLSX from 'xlsx';
 import { Navigate } from 'react-router-dom';
 import { Download, Plus, X, Eye, Pencil, Trash2, CheckCircle, Upload, AlertOctagon, ClipboardList, CheckCircle2, Activity } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
@@ -14,23 +13,26 @@ import usePermissions from '../hooks/usePermissions';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const InspectionPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const p = usePermissions();
-  const taskCapabilities = user?.taskCapabilities || {};
   const canManageSchedules = p.isAdmin || Boolean(user?.permissions?.manageSchedules);
-  const canCreateInspections = Boolean(taskCapabilities.canCreateInspections);
-  const canResolveInspections =
-    canManageSchedules || Boolean(taskCapabilities.canResolveInspections);
-  const canViewAll = useMemo(
-    () =>
-      canManageSchedules ||
-      Boolean(taskCapabilities.canViewAllInspections) ||
-      Boolean(taskCapabilities.canResolveInspections),
-    [canManageSchedules, taskCapabilities]
+  const canCreateInspections = Boolean(user?.taskCapabilities?.canCreateInspections);
+  const canResolveInspectionCapability = Boolean(
+    user?.taskCapabilities?.canResolveInspections
   );
+  const canViewAllInspectionCapability = Boolean(
+    user?.taskCapabilities?.canViewAllInspections
+  );
+  const canResolveInspections =
+    canManageSchedules || canResolveInspectionCapability;
+  const canViewAll =
+    canManageSchedules ||
+    canViewAllInspectionCapability ||
+    canResolveInspectionCapability;
   const canViewOwn = canCreateInspections;
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -119,10 +121,13 @@ const InspectionPage = () => {
     } catch (error) { setMessage(`✗ ${error.message}`); } finally { setLoading(false); }
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (!inspections.length) { showNoExportDataToast('No data'); return; }
     const data = inspections.map(i => ({ 'Date': i.createdAt ? new Date(i.createdAt).toLocaleDateString('en-GB') : '', 'Round': i.round, 'Horse': i.horse?.name || '-', 'Area': i.area || '-', 'Location': i.location, 'Description': i.description, 'Severity': i.severityLevel, 'Reported By': i.jamedar?.fullName || '' }));
-    const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Inspections'); XLSX.writeFile(wb, `Inspections_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Inspections',
+      fileName: `Inspections_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
   };
 
   // eslint-disable-next-line no-unused-vars

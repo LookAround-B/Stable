@@ -3,6 +3,7 @@ import { prisma } from '../../../../lib/prisma';
 import { verifyToken } from '../../../../lib/auth';
 import { setCorsHeaders } from '@/lib/cors'
 import { isValidId, safeDate } from '@/lib/validate'
+import { isBillableEirsWorkType } from '@/lib/eirs'
 
 interface InvoiceRecord {
   id: string;
@@ -12,9 +13,9 @@ interface InvoiceRecord {
   horse: {
     name: string;
   };
-  rider: {
+  rider?: {
     fullName: string;
-  };
+  } | null;
   notes?: string;
 }
 
@@ -156,17 +157,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         orderBy: { date: 'asc' },
       });
 
+      const billableRecords = records.filter((record) => isBillableEirsWorkType(record.workType));
+
       // Calculate summary
       const summary = {
-        totalSessions: records.length,
-        totalDuration: records.reduce((sum, r) => sum + r.duration, 0),
+        totalSessions: billableRecords.length,
+        totalDuration: billableRecords.reduce((sum, r) => sum + r.duration, 0),
         totalHours: 0,
         byWorkType: {} as Record<string, { count: number; duration: number }>,
       };
 
       summary.totalHours = Math.round((summary.totalDuration / 60) * 100) / 100;
 
-      records.forEach((record) => {
+      billableRecords.forEach((record) => {
         if (!summary.byWorkType[record.workType]) {
           summary.byWorkType[record.workType] = { count: 0, duration: 0 };
         }
@@ -180,7 +183,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         generatedDate: new Date(),
         periodStart: start,
         periodEnd: end,
-        records: records as InvoiceRecord[],
+        records: billableRecords as InvoiceRecord[],
         summary,
       };
 
@@ -199,4 +202,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
-

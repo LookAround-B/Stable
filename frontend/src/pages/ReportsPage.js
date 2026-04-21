@@ -6,12 +6,12 @@ import { StatsSkeleton, TableSkeleton } from '../components/Skeleton';
 import { expenseService } from '../services/expenseService';
 import inspectionService from '../services/inspectionService';
 import medicineLogService from '../services/medicineLogService';
-import * as XLSX from 'xlsx';
-import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { Download, Users, FileText, DollarSign, Heart, ArrowUpRight, TrendingUp, ClipboardList } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { loadXLSX } from '../lib/xlsxExport';
 
 const trendData = [
   { month: 'JAN_24', optimal: 60, actual: 55 },
@@ -22,6 +22,14 @@ const trendData = [
   { month: 'JUN_24', optimal: 72, actual: 68 },
   { month: 'JUL_24', optimal: 74, actual: 72 },
 ];
+
+const getWorkSessionLabel = (record) => {
+  if (record?.rider?.fullName) return record.rider.fullName;
+  if (['Lunging', 'Lunge', 'Launging'].includes(record?.workType)) return 'No rider (lunging)';
+  if (record?.workType === 'Rest') return 'Horse at rest';
+  if (record?.workType === 'Lame') return 'Horse marked lame';
+  return '-';
+};
 
 
 
@@ -40,6 +48,7 @@ const ReportsPage = () => {
   const [expensesData, setExpensesData] = useState([]);
   const [inspectionsData, setInspectionsData] = useState([]);
   const [medicineLogsData, setMedicineLogsData] = useState([]);
+  const [workData, setWorkData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 15;
 
@@ -125,13 +134,29 @@ const ReportsPage = () => {
     }
   }, [dateRange]);
 
+  const loadWorkData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.get('/eirs', {
+        params: { startDate: dateRange.startDate, endDate: dateRange.endDate },
+      });
+      setWorkData(Array.isArray(response.data?.data) ? response.data.data : []);
+    } catch (error) {
+      console.error('Error loading work data:', error);
+      setWorkData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [dateRange]);
+
   useEffect(() => {
     setCurrentPage(1);
     if (activeTab === 'attendance') loadAttendance();
     else if (activeTab === 'tasks') loadTasks();
     else if (activeTab === 'expenses') loadExpenses();
     else if (activeTab === 'health') loadHealthData();
-  }, [activeTab, dateRange, loadAttendance, loadTasks, loadExpenses, loadHealthData]);
+    else if (activeTab === 'work') loadWorkData();
+  }, [activeTab, dateRange, loadAttendance, loadTasks, loadExpenses, loadHealthData, loadWorkData]);
 
   const attendanceStats = useMemo(() => {
     const total = attendanceData.length;
@@ -171,6 +196,25 @@ const ReportsPage = () => {
     return { totalInspections, openInspections, criticalInspections, totalMedicineLogs, pendingApprovals };
   }, [inspectionsData, medicineLogsData]);
 
+  const workStats = useMemo(() => {
+    const total = workData.length;
+    const lungingSessions = workData.filter(record => ['Lunging', 'Lunge', 'Launging'].includes(record.workType)).length;
+    const ridingSessions = workData.filter(record => record.rider?.fullName).length;
+    const restEntries = workData.filter(record => record.workType === 'Rest').length;
+    const lameEntries = workData.filter(record => record.workType === 'Lame').length;
+    const totalDuration = workData.reduce((sum, record) => sum + (record.duration || 0), 0);
+
+    return {
+      total,
+      lungingSessions,
+      ridingSessions,
+      restEntries,
+      lameEntries,
+      totalDuration,
+      totalHours: Math.round((totalDuration / 60) * 100) / 100,
+    };
+  }, [workData]);
+
   const paginate = (data) => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return data.slice(startIndex, startIndex + rowsPerPage);
@@ -183,7 +227,9 @@ const ReportsPage = () => {
       ? taskStats.total
       : activeTab === 'expenses'
         ? expenseStats.total
-        : healthStats.totalInspections + healthStats.totalMedicineLogs;
+        : activeTab === 'health'
+          ? healthStats.totalInspections + healthStats.totalMedicineLogs
+          : workStats.total;
 
   const StatusBadge = ({ status }) => {
     const colorMap = {
@@ -228,7 +274,8 @@ const ReportsPage = () => {
     );
   };
 
-  const handleDownloadExcel = (tabId = activeTab) => {
+  const handleDownloadExcel = async (tabId = activeTab) => {
+    const XLSX = await loadXLSX();
     const workbook = XLSX.utils.book_new();
     const dateStr = new Date().toISOString().split('T')[0];
     if (tabId === 'attendance') {
@@ -285,6 +332,18 @@ const ReportsPage = () => {
       if (medData.length > 0) XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(medData), 'Medicine Logs');
       if (inspData.length === 0 && medData.length === 0) return;
       XLSX.writeFile(workbook, `Health_Report_${dateStr}.xlsx`);
+    } else if (tabId === 'work') {
+      const data = workData.map(record => ({
+        'Timestamp': formatDateTime(record.date),
+        'Instructor': record.instructor?.fullName || '-',
+        'Horse': record.horse?.name || '-',
+        'Rider / Session': getWorkSessionLabel(record),
+        'Work Type': record.workType || '-',
+        'Duration (min)': record.duration || '-',
+        'Notes': record.notes || '-',
+      }));
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data), 'Work Reports');
+      XLSX.writeFile(workbook, `Work_Report_${dateStr}.xlsx`);
     }
   };
 
@@ -346,6 +405,18 @@ const ReportsPage = () => {
       ];
     }
 
+    if (tabId === 'work') {
+      return workData.map(record => ({
+        'Timestamp': formatDateTime(record.date),
+        'Instructor': record.instructor?.fullName || '-',
+        'Horse': record.horse?.name || '-',
+        'Rider / Session': getWorkSessionLabel(record),
+        'Work Type': record.workType || '-',
+        'Duration (min)': record.duration || '-',
+        'Notes': record.notes || '-',
+      }));
+    }
+
     return [];
   };
 
@@ -359,6 +430,7 @@ const ReportsPage = () => {
       tasks: `Tasks_Report_${dateStr}.csv`,
       expenses: `Expenses_Report_${dateStr}.csv`,
       health: `Health_Report_${dateStr}.csv`,
+      work: `Work_Report_${dateStr}.csv`,
     };
 
     downloadCsvFile(rows, filenames[tabId] || `Report_${dateStr}.csv`);
@@ -400,12 +472,13 @@ const ReportsPage = () => {
       </div>
 
       {/* Report Category Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { id: 'attendance', icon: Users, label: t('ATTENDANCE'), desc: t('Shift clock-ins, logs, & matrix.'), color: 'bg-primary/10 text-primary' },
           { id: 'tasks', icon: FileText, label: t('TASK REPORTS'), desc: t('Completion rates & bottlenecks.'), color: 'bg-secondary/10 text-secondary' },
           { id: 'expenses', icon: DollarSign, label: t('EXPENSE REPORTS'), desc: t('Procurement & costs.'), color: 'bg-destructive/10 text-destructive' },
           { id: 'health', icon: Heart, label: t('HORSE HEALTH'), desc: t('Vetting, nutrition & risk scoring.'), color: 'bg-success/10 text-success' },
+          { id: 'work', icon: ClipboardList, label: t('WORK REPORTS'), desc: t('Riding and lunging session logs.'), color: 'bg-warning/10 text-warning' },
         ].map(cat => (
           <div key={cat.label} onClick={() => setActiveTab(cat.id)} className={`bg-surface-container-highest rounded-lg p-5 edge-glow hover:glow-primary transition-shadow cursor-pointer group ${activeTab === cat.id ? 'ring-1 ring-primary' : ''}`}>
             <div className="flex items-start justify-between mb-3">
@@ -697,6 +770,54 @@ const ReportsPage = () => {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ====== WORK REPORTS ====== */}
+          {activeTab === 'work' && (
+            <div>
+              <StatsTable stats={[
+                { label: t('Total Sessions'), value: workStats.total, color: '#6366f1' },
+                { label: t('Riding Sessions'), value: workStats.ridingSessions, color: '#22c55e' },
+                { label: t('Lunging Sessions'), value: workStats.lungingSessions, color: '#f59e0b' },
+                { label: t('Rest Entries'), value: workStats.restEntries, color: '#8b5cf6' },
+                { label: t('Lame Entries'), value: workStats.lameEntries, color: '#ef4444' },
+                { label: t('Total Hours'), value: workStats.totalHours.toFixed(2), color: '#8b5cf6' },
+              ]} />
+              <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Timestamp')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Instructor')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Horse')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Rider / Session')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Work Type')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Duration')}</th>
+                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t('Notes')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginate(workData).map((record, i) => (
+                        <tr key={record.id || i} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground">{formatDateTime(record.date)}</td>
+                          <td className="px-4 py-3 text-foreground">{record.instructor?.fullName || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{record.horse?.name || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{getWorkSessionLabel(record)}</td>
+                          <td className="px-4 py-3 text-foreground">{record.workType || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">{record.duration ? `${record.duration} min` : '-'}</td>
+                          <td className="px-4 py-3 text-muted-foreground max-w-[220px] truncate">{record.notes || '-'}</td>
+                        </tr>
+                      ))}
+                      {workData.length === 0 && (
+                        <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('No work records found')}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {renderPagination(workData)}
             </div>
           )}
         </>

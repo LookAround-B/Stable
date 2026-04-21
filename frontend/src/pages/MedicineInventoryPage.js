@@ -11,11 +11,11 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import { Download, Search, X, Package, AlertTriangle, TrendingUp, Plus, Pencil, Trash2, BellRing } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -269,13 +269,13 @@ const MedicineInventoryPage = () => {
     return 0;
   });
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     const data = getInventoryExportRows();
     if (!data.length) { showNoExportDataToast('No data to download'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Inventory');
-    XLSX.writeFile(wb, `MedicineInventory_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Medicine Inventory',
+      fileName: `MedicineInventory_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadInventoryCSV = () => {
@@ -302,13 +302,13 @@ const MedicineInventoryPage = () => {
     downloadCsvFile(rows, `medicine-inventory-report-${reportStartDate}-to-${reportEndDate}.csv`);
   };
 
-  const handleDownloadReportExcel = () => {
+  const handleDownloadReportExcel = async () => {
     const rows = getReportExportRows();
     if (!rows.length) { showMessage('No report data for selected date range', 'error'); return; }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, 'Medicine Report');
-    XLSX.writeFile(wb, `medicine-inventory-report-${reportStartDate}-to-${reportEndDate}.xlsx`);
+    await writeRowsToXlsx(rows, {
+      sheetName: 'Medicine Report',
+      fileName: `medicine-inventory-report-${reportStartDate}-to-${reportEndDate}.xlsx`,
+    });
   };
 
   const handleSaveThreshold = async () => {

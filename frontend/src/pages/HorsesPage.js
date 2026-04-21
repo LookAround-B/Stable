@@ -9,11 +9,11 @@ import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X, ChevronRight } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const SUPERVISORY_ROLES = [
   'Super Admin',
@@ -111,6 +111,7 @@ const HorsesPage = () => {
   const horseImgRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
+    horseEntryType: 'Normal',
     gender: 'Stallion',
     breed: '',
     color: '',
@@ -119,6 +120,11 @@ const HorsesPage = () => {
     stableNumber: '',
     supervisorId: '',
     passportNumber: '',
+    ownerName: '',
+    ownerPhone: '',
+    diagnosisNotes: '',
+    entryTimestamp: '',
+    exitTimestamp: '',
   });
   const [message, setMessage] = useState('');
 
@@ -173,6 +179,18 @@ const HorsesPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'horseEntryType') {
+      setFormData((prev) => ({
+        ...prev,
+        horseEntryType: value,
+        ownerName: value === 'Private' ? prev.ownerName : '',
+        ownerPhone: value === 'Private' ? prev.ownerPhone : '',
+        diagnosisNotes: value === 'Private' ? prev.diagnosisNotes : '',
+        entryTimestamp: value === 'Private' ? prev.entryTimestamp : '',
+        exitTimestamp: value === 'Private' ? prev.exitTimestamp : '',
+      }));
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -197,9 +215,19 @@ const HorsesPage = () => {
     setMessage('');
 
     try {
+      const isPrivateHorse = formData.horseEntryType === 'Private';
       // Validate required fields
-      if (!formData.name || !formData.gender) {
-        throw new Error('Name and Gender are required');
+      if (!formData.name || !formData.gender || !formData.breed || !formData.dateOfBirth) {
+        throw new Error('Name, Gender, Breed, and Date of Birth are required');
+      }
+
+      if (
+        isPrivateHorse &&
+        (!formData.ownerName || !formData.ownerPhone || !formData.entryTimestamp)
+      ) {
+        throw new Error(
+          'Private horses require owner name, owner phone number, and entry timestamp'
+        );
       }
 
       // Generate stable number if not provided
@@ -208,6 +236,7 @@ const HorsesPage = () => {
       // Call API to create horse
       await apiClient.post('/horses', {
         name: formData.name,
+        horseEntryType: formData.horseEntryType,
         gender: formData.gender,
         breed: formData.breed,
         color: formData.color,
@@ -218,6 +247,11 @@ const HorsesPage = () => {
         status: 'Active',
         profileImage: newHorseImage || null,
         passportNumber: formData.passportNumber.trim() || null,
+        ownerName: isPrivateHorse ? formData.ownerName : null,
+        ownerPhone: isPrivateHorse ? formData.ownerPhone : null,
+        diagnosisNotes: isPrivateHorse ? formData.diagnosisNotes : null,
+        entryTimestamp: isPrivateHorse ? formData.entryTimestamp : null,
+        exitTimestamp: isPrivateHorse ? formData.exitTimestamp || null : null,
       });
 
       setMessage('Horse added successfully!');
@@ -229,6 +263,7 @@ const HorsesPage = () => {
       // Reset form
       setFormData({
         name: '',
+        horseEntryType: 'Normal',
         gender: 'Stallion',
         breed: '',
         color: '',
@@ -236,10 +271,16 @@ const HorsesPage = () => {
         height: '',
         stableNumber: '',
         supervisorId: '',
+        passportNumber: '',
+        ownerName: '',
+        ownerPhone: '',
+        diagnosisNotes: '',
+        entryTimestamp: '',
+        exitTimestamp: '',
       });
       setShowModal(false);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message;
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
       setMessage('Error adding horse: ' + errorMsg);
     } finally {
       setLoading(false);
@@ -278,6 +319,7 @@ const HorsesPage = () => {
     setNewHorseImage(null);
     setFormData({
       name: '',
+      horseEntryType: 'Normal',
       gender: 'Stallion',
       breed: '',
       color: '',
@@ -286,6 +328,11 @@ const HorsesPage = () => {
       stableNumber: '',
       supervisorId: '',
       passportNumber: '',
+      ownerName: '',
+      ownerPhone: '',
+      diagnosisNotes: '',
+      entryTimestamp: '',
+      exitTimestamp: '',
     });
   };
 
@@ -293,10 +340,13 @@ const HorsesPage = () => {
   const filteredHorses = horses.filter((horse) => {
     const matchesSearch =
       horse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (horse.horseEntryType && horse.horseEntryType.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (horse.breed && horse.breed.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (horse.color && horse.color.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (horse.gender && horse.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+      (horse.stableNumber && horse.stableNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (horse.ownerName && horse.ownerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (horse.ownerContact && horse.ownerContact.toLowerCase().includes(searchTerm.toLowerCase()));
 
     if (!matchesSearch) {
       return false;
@@ -365,22 +415,28 @@ const HorsesPage = () => {
 
   const getExportRows = () => filteredHorses.map(h => ({
       'Name': h.name,
+      'Entry Type': h.horseEntryType || 'Normal',
       'Stable Number': h.stableNumber || '',
       'Gender': h.gender,
       'Breed': h.breed || '',
       'Color': h.color || '',
       'Status': h.status,
+      'Owner Name': h.ownerName || '',
+      'Owner Phone': h.ownerContact || '',
+      'Diagnosis Notes': h.privateDiagnosisNotes || '',
+      'Entry Timestamp': h.privateEntryAt ? new Date(h.privateEntryAt).toLocaleString() : '',
+      'Exit Timestamp': h.privateExitAt ? new Date(h.privateExitAt).toLocaleString() : '',
       'Manager': h.supervisor?.fullName || '-',
       'Passport No': h.passportNumber || '',
     }));
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (!filteredHorses.length) { showNoExportDataToast('No data to download'); return; }
     const data = getExportRows();
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Horses');
-    XLSX.writeFile(wb, `Horses_${new Date().toISOString().slice(0,10)}.xlsx`);
+    await writeRowsToXlsx(data, {
+      sheetName: 'Horses',
+      fileName: `Horses_${new Date().toISOString().slice(0,10)}.xlsx`,
+    });
   };
 
   const handleDownloadCSV = () => {
@@ -549,6 +605,10 @@ const HorsesPage = () => {
                             </div>
                             <div>
                               <p className="font-semibold text-foreground">{horse.name}</p>
+                              <p className="text-[11px] text-muted-foreground">{horse.horseEntryType || 'Normal'}</p>
+                              {horse.horseEntryType === 'Private' && horse.ownerName && (
+                                <p className="text-[11px] text-muted-foreground">{`${horse.ownerName} • ${horse.ownerContact || '-'}`}</p>
+                              )}
                               <p className="text-xs text-muted-foreground font-mono">{`ID: #${getHorseReferenceId(horse)}`}</p>
                             </div>
                           </div>
@@ -625,22 +685,63 @@ const HorsesPage = () => {
                 </div>
 
                 <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Horse Entry Type *')}</label>
+                  <SearchableSelect
+                    id="horseEntryType"
+                    name="horseEntryType"
+                    value={formData.horseEntryType}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    searchable={false}
+                    options={[
+                      { value: 'Normal', label: 'Normal' },
+                      { value: 'Private', label: 'Private' },
+                    ]}
+                  />
+                </div>
+
+                <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Gender *')}</label>
                   <SearchableSelect id="gender" name="gender" value={formData.gender} onChange={handleInputChange} disabled={loading} options={[{ value: 'Stallion', label: 'Stallion' }, { value: 'Mare', label: 'Mare' }, { value: 'Gelding', label: 'Gelding' }, { value: 'Colt', label: 'Colt' }, { value: 'Filly', label: 'Filly' }, { value: 'Foal', label: 'Foal' }, { value: 'Stud', label: 'Stud' }]} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date of Birth')}</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date of Birth *')}</label>
                   <DatePicker value={formData.dateOfBirth} onChange={(val) => handleInputChange({ target: { name: 'dateOfBirth', value: val } })} disabled={loading} />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Breed')}</label>
-                  <input id="breed" type="text" name="breed" value={formData.breed} onChange={handleInputChange} disabled={loading} placeholder="Thoroughbred" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Breed *')}</label>
+                  <input id="breed" type="text" name="breed" value={formData.breed} onChange={handleInputChange} required disabled={loading} placeholder="Thoroughbred" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Color')}</label>
                   <input id="color" type="text" name="color" value={formData.color} onChange={handleInputChange} disabled={loading} placeholder="Black" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                 </div>
+
+                {formData.horseEntryType === 'Private' && (
+                  <>
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Owner Name *')}</label>
+                      <input id="ownerName" type="text" name="ownerName" value={formData.ownerName} onChange={handleInputChange} disabled={loading} placeholder="Owner full name" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Owner Phone Number *')}</label>
+                      <input id="ownerPhone" type="tel" name="ownerPhone" value={formData.ownerPhone} onChange={handleInputChange} disabled={loading} placeholder="+91 98765 43210" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Entry Timestamp *')}</label>
+                      <input id="entryTimestamp" type="datetime-local" name="entryTimestamp" value={formData.entryTimestamp} onChange={handleInputChange} disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Exit Timestamp')}</label>
+                      <input id="exitTimestamp" type="datetime-local" name="exitTimestamp" value={formData.exitTimestamp} onChange={handleInputChange} disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div className="md:col-span-2 xl:col-span-3">
+                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Diagnosis Notes')}</label>
+                      <textarea id="diagnosisNotes" name="diagnosisNotes" value={formData.diagnosisNotes} onChange={handleInputChange} disabled={loading} rows="3" placeholder="Diagnosis or notes for this private horse entry" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none resize-none" />
+                    </div>
+                  </>
+                )}
 
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Height (hands)')}</label>

@@ -15,9 +15,24 @@ import {
   isValidString,
   isOneOf,
   safeDate,
+  isValidPhone,
   validateBase64Image,
   safePositiveInt,
 } from '@/lib/validate'
+
+const HORSE_GENDER_OPTIONS = [
+  'Stallion',
+  'Mare',
+  'Gelding',
+  'Colt',
+  'Filly',
+  'Foal',
+  'Stud',
+  'Male',
+  'Female',
+] as const
+
+const HORSE_ENTRY_TYPE_OPTIONS = ['Normal', 'Private'] as const
 
 export default async function handler(
   req: NextApiRequest,
@@ -87,6 +102,8 @@ async function handleGetHorses(req: NextApiRequest, res: NextApiResponse) {
             { name: { contains: safeSearch, mode: 'insensitive' } },
             { breed: { contains: safeSearch, mode: 'insensitive' } },
             { stableNumber: { contains: safeSearch, mode: 'insensitive' } },
+            { ownerName: { contains: safeSearch, mode: 'insensitive' } },
+            { ownerContact: { contains: safeSearch, mode: 'insensitive' } },
           ]
         }
 
@@ -122,6 +139,7 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
       name,
       gender,
       dateOfBirth,
+      horseEntryType,
       breed,
       color,
       height,
@@ -130,20 +148,29 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
       status,
       profileImage,
       passportNumber,
+      ownerName,
+      ownerPhone,
+      diagnosisNotes,
+      entryTimestamp,
+      exitTimestamp,
     } = req.body
 
     if (!isValidString(name, 1, 100)) {
       return res.status(400).json({ error: 'Name is required (max 100 chars)' })
     }
-    if (!isOneOf(gender, ['Male', 'Female', 'Gelding'] as const)) {
+    if (!isOneOf(gender, HORSE_GENDER_OPTIONS)) {
       return res.status(400).json({ error: 'Invalid gender' })
+    }
+    const normalizedEntryType = horseEntryType || 'Normal'
+    if (!isOneOf(normalizedEntryType, HORSE_ENTRY_TYPE_OPTIONS)) {
+      return res.status(400).json({ error: 'Invalid horse entry type' })
     }
     const dob = safeDate(dateOfBirth)
     if (!dob) {
       return res.status(400).json({ error: 'Valid date of birth is required' })
     }
-    if (breed && !isValidString(breed, 0, 100)) {
-      return res.status(400).json({ error: 'Breed must be max 100 chars' })
+    if (!isValidString(breed, 1, 100)) {
+      return res.status(400).json({ error: 'Breed is required (max 100 chars)' })
     }
     if (color && !isValidString(color, 0, 50)) {
       return res.status(400).json({ error: 'Color must be max 50 chars' })
@@ -183,6 +210,30 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
+    const privateEntryAt = safeDate(entryTimestamp)
+    const privateExitAt = safeDate(exitTimestamp)
+
+    if (normalizedEntryType === 'Private') {
+      if (!isValidString(ownerName, 1, 100)) {
+        return res.status(400).json({ error: 'Owner name is required for private horses' })
+      }
+      if (!isValidPhone(ownerPhone)) {
+        return res.status(400).json({ error: 'Valid owner phone number is required for private horses' })
+      }
+      if (!privateEntryAt) {
+        return res.status(400).json({ error: 'Entry timestamp is required for private horses' })
+      }
+      if (diagnosisNotes && !isValidString(diagnosisNotes, 0, 2000)) {
+        return res.status(400).json({ error: 'Diagnosis notes must be under 2000 characters' })
+      }
+      if (exitTimestamp && !privateExitAt) {
+        return res.status(400).json({ error: 'Exit timestamp must be a valid date/time' })
+      }
+      if (privateExitAt && privateExitAt < privateEntryAt) {
+        return res.status(400).json({ error: 'Exit timestamp cannot be earlier than entry timestamp' })
+      }
+    }
+
     let imageUrl: string | null = null
     if (profileImage && typeof profileImage === 'string' && profileImage.length > 0) {
       const imgCheck = validateBase64Image(profileImage, 5 * 1024 * 1024)
@@ -197,10 +248,22 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
         name: sanitizeString(name),
         gender,
         dateOfBirth: dob,
-        breed: breed ? sanitizeString(breed) : null,
+        horseEntryType: normalizedEntryType,
+        breed: sanitizeString(breed),
         color: color ? sanitizeString(color) : null,
         height: height ? parseFloat(height) : null,
         stableNumber: stableNumber ? sanitizeString(stableNumber) : null,
+        ownerName:
+          normalizedEntryType === 'Private' ? sanitizeString(ownerName) : null,
+        ownerContact:
+          normalizedEntryType === 'Private' ? sanitizeString(ownerPhone) : null,
+        privateDiagnosisNotes:
+          normalizedEntryType === 'Private' && diagnosisNotes
+            ? sanitizeString(diagnosisNotes)
+            : null,
+        privateEntryAt: normalizedEntryType === 'Private' ? privateEntryAt : null,
+        privateExitAt:
+          normalizedEntryType === 'Private' ? privateExitAt || null : null,
         supervisorId: supervisorId || null,
         status: status || 'Active',
         profileImage: imageUrl,
