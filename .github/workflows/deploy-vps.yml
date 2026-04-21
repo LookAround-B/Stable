@@ -85,7 +85,12 @@ jobs:
             -o ServerAliveCountMax=10 \
             -o TCPKeepAlive=yes \
             "${VPS_USER}@${VPS_HOST}" \
-            "export APP_ROOT='${APP_ROOT_VALUE}' \
+            "cd '${APP_ROOT_VALUE}' && \
+            git merge --abort 2>/dev/null || true && \
+            if [ -n \"\$(git status --porcelain --untracked-files=no)\" ]; then \
+              git stash push -m 'pre-deploy-bootstrap-\$(date +%s)' -- . || true; \
+            fi && \
+            export APP_ROOT='${APP_ROOT_VALUE}' \
             DEPLOY_BRANCH='${GITHUB_REF_NAME}' \
             BACKEND_PM2_NAME='${BACKEND_PM2_VALUE}' \
             FRONTEND_PM2_NAME='${FRONTEND_PM2_VALUE}' \
