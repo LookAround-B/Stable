@@ -13,6 +13,7 @@ FRONTEND_DIR="${APP_ROOT}/frontend"
 BACKEND_PM2_NAME="${BACKEND_PM2_NAME:-horsestable-backend}"
 FRONTEND_PM2_NAME="${FRONTEND_PM2_NAME:-horsestable-frontend}"
 FRONTEND_PORT="${FRONTEND_PORT:-3001}"
+SKIP_FRONTEND_RESTART="${SKIP_FRONTEND_RESTART:-false}"
 
 echo "Starting VPS deployment..."
 cd "${APP_ROOT}"
@@ -26,9 +27,9 @@ done
 echo "Cleaning merge state..."
 git merge --abort 2>/dev/null || true
 
-echo "Stashing tracked backend changes if needed..."
-if ! git diff --quiet -- backend/; then
-  git stash push -m "stash-before-deploy-$(date +%s)" -- backend/ || true
+echo "Stashing tracked working-tree changes if needed..."
+if ! git diff --quiet; then
+  git stash push -m "stash-before-deploy-$(date +%s)" -- . || true
 fi
 
 echo "Pulling latest code from ${DEPLOY_BRANCH}..."
@@ -66,23 +67,29 @@ fi
 sleep 2
 
 # ── Frontend ─────────────────────────────────────────────────────────────────
-# The build/ folder was already rsynced from GitHub Actions — nothing to build here.
-echo "Frontend already built and uploaded — restarting PM2..."
-if pm2 info "${FRONTEND_PM2_NAME}" >/dev/null 2>&1; then
-  pm2 restart "${FRONTEND_PM2_NAME}"
+# The build/ folder is uploaded from GitHub Actions after this script runs.
+if [ "${SKIP_FRONTEND_RESTART}" = "true" ]; then
+  echo "Skipping frontend restart in deploy-vps.sh"
 else
-  npm list -g serve >/dev/null 2>&1 || npm install -g serve
-  pm2 start "serve -s build -l ${FRONTEND_PORT}" --name "${FRONTEND_PM2_NAME}" --cwd "${FRONTEND_DIR}"
+  echo "Frontend already built and uploaded — restarting PM2..."
+  if pm2 info "${FRONTEND_PM2_NAME}" >/dev/null 2>&1; then
+    pm2 restart "${FRONTEND_PM2_NAME}"
+  else
+    npm list -g serve >/dev/null 2>&1 || npm install -g serve
+    pm2 start "serve -s build -l ${FRONTEND_PORT}" --name "${FRONTEND_PM2_NAME}" --cwd "${FRONTEND_DIR}"
+  fi
+  sleep 2
 fi
-sleep 2
 
 pm2 save
 
 echo "Backend status:"
 pm2 info "${BACKEND_PM2_NAME}" | grep -E "status|pid" || true
 
-echo "Frontend status:"
-pm2 info "${FRONTEND_PM2_NAME}" | grep -E "status|pid" || true
+if [ "${SKIP_FRONTEND_RESTART}" != "true" ]; then
+  echo "Frontend status:"
+  pm2 info "${FRONTEND_PM2_NAME}" | grep -E "status|pid" || true
+fi
 
 echo
 echo "Deployment complete"
