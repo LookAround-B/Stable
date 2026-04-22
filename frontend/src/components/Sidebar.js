@@ -33,6 +33,7 @@ const GROUPS = [
     icon: CheckSquare,
     items: [
       { to: '/tasks', label: 'Tasks', permission: 'manageTasks' },
+      { to: '/bookings', label: 'Bookings', permission: 'manageBookings' },
       { to: '/my-assigned-tasks', label: 'My Assigned Tasks', always: true },
       { to: '/pending-approvals', label: 'Approvals', permission: 'viewApprovals' },
       { to: '/meetings', label: 'Meetings', permission: 'viewMeetings' },

@@ -80,10 +80,13 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
     )
     const canCreateTasks =
       canManageSchedules || taskCapabilities.canCreateTasks
+    const canManageBookings =
+      canManageSchedules || taskCapabilities.canManageBookings
     const canReviewTasks =
       canManageSchedules || taskCapabilities.canReviewTasks
     const canViewAssignedTasks =
       canCreateTasks ||
+      canManageBookings ||
       canReviewTasks ||
       taskCapabilities.canViewTasks ||
       taskCapabilities.canWorkOnAssignedTasks
@@ -105,7 +108,7 @@ async function handleGetTasks(req: NextApiRequest, res: NextApiResponse) {
 
     if (statusValue === 'Pending Review' && canReviewTasks) {
       // Reviewers can see all pending submissions.
-    } else if (canCreateTasks || canReviewTasks) {
+    } else if (canCreateTasks || canReviewTasks || canManageBookings) {
       where.OR = [
         { createdById: userId },
         { assignedEmployeeId: userId },
@@ -161,17 +164,26 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
+    const requestedType =
+      typeof req.body?.type === 'string' ? req.body.type : ''
+    const isRequestedBookingTask = isTaskBookingType(requestedType)
+
     try {
       const canManageSchedules = await checkPermission(decoded, 'manageSchedules')
       const taskCapabilities = await getTaskCapabilitiesForUser(
         decoded.id,
         decoded.designation
       )
-      const allowed = canManageSchedules || taskCapabilities.canCreateTasks
+      const allowed =
+        canManageSchedules ||
+        taskCapabilities.canCreateTasks ||
+        (taskCapabilities.canManageBookings && isRequestedBookingTask)
       if (!allowed) {
         return res.status(403).json({
           error:
-            'Task creation is not enabled for your account. Ask an admin to enable task assignment access.',
+            isRequestedBookingTask
+              ? 'Booking creation is not enabled for your account.'
+              : 'Task creation is not enabled for your account. Ask an admin to enable task assignment access.',
         })
       }
     } catch (permErr) {

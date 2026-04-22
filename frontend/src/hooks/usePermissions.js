@@ -2,6 +2,11 @@ import { useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const ADMIN_ROLES = ['Super Admin', 'Director', 'School Administrator'];
+const BOOKING_ROLES = [
+  'Junior Executive Admin',
+  'Executive Admin',
+  'Senior Executive Admin',
+];
 
 /**
  * Shared permissions hook used by both the Sidebar and individual pages.
@@ -19,6 +24,7 @@ export default function usePermissions() {
   return useMemo(() => {
     const designation = user?.designation;
     const isAdmin = ADMIN_ROLES.includes(designation);
+    const isBookingRole = BOOKING_ROLES.includes(designation);
     const perms = user?.permissions || null;
     const taskCapabilities = user?.taskCapabilities || {};
 
@@ -46,7 +52,7 @@ export default function usePermissions() {
       viewHorses: hasAny(
         ['manageEmployees', 'manageSchedules', 'manageInventory'],
         designation !== 'Guard'
-      ),
+      ) || isBookingRole || !!taskCapabilities.canManageBookings,
       manageEmployees: has('manageEmployees', true),
       manageHorseTeams: hasAny(
         ['manageEmployees', 'manageSchedules'],
@@ -63,6 +69,12 @@ export default function usePermissions() {
         !!taskCapabilities.canCreateTasks ||
         !!taskCapabilities.canReviewTasks ||
         !!taskCapabilities.canWorkOnAssignedTasks,
+      manageBookings:
+        isBookingRole ||
+        has('manageSchedules', false) ||
+        !!taskCapabilities.canManageBookings ||
+        !!taskCapabilities.canCreateTasks ||
+        !!taskCapabilities.canViewTasks,
       viewApprovals:
         has('manageSchedules', designation === 'Stable Manager') ||
         !!taskCapabilities.canReviewTasks,

@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
@@ -170,13 +170,48 @@ const formatDateTimeLocalValue = (value) => {
   return `${formatDateInputValue(date)}T${formatTimeInputValue(date)}`;
 };
 
+const createDefaultTaskFormData = (taskType = 'Feed') => ({
+  name: '',
+  description: '',
+  type: taskType,
+  horseId: '',
+  assignedEmployeeId: '',
+  instructorId: '',
+  customerName: '',
+  customerPhone: '',
+  paymentSource: '',
+  leadPrice: '',
+  isMembershipBooking: false,
+  packageName: '',
+  packageRideCount: '',
+  packageMemberCount: '',
+  packagePrice: '',
+  gstAmount: '',
+  bookingCategory: 'Normal Riding',
+  bookingRideType: '',
+  bookingDestination: '',
+  bookingSlot: '',
+  accommodationCheckIn: '',
+  accommodationCheckOut: '',
+  priority: 'Medium',
+  startDate: '',
+  endDate: '',
+  scheduledTime: '',
+  endTime: '',
+  requiredProof: false,
+});
+
 const TasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const location = useLocation();
   const p = usePermissions();
   const taskCapabilities = user?.taskCapabilities || {};
+  const isBookingsRoute = location.pathname === '/bookings';
   const canManageSchedules = p.isAdmin || Boolean(user?.permissions?.manageSchedules);
   const canCreateTasks = canManageSchedules || Boolean(taskCapabilities.canCreateTasks);
+  const canManageBookings = canManageSchedules || Boolean(taskCapabilities.canManageBookings);
+  const canCreateBookings = canCreateTasks || canManageBookings || p.manageBookings;
   const canReviewTasks = canManageSchedules || Boolean(taskCapabilities.canReviewTasks);
   const canWorkOnAssignedTasks =
     canManageSchedules || Boolean(taskCapabilities.canWorkOnAssignedTasks);
@@ -199,36 +234,7 @@ const TasksPage = () => {
     notes: '',
   });
   
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'Feed',
-    horseId: '',
-    assignedEmployeeId: '',
-    instructorId: '',
-    customerName: '',
-    customerPhone: '',
-    paymentSource: '',
-    leadPrice: '',
-    isMembershipBooking: false,
-    packageName: '',
-    packageRideCount: '',
-    packageMemberCount: '',
-    packagePrice: '',
-    gstAmount: '',
-    bookingCategory: 'Normal Riding',
-    bookingRideType: '',
-    bookingDestination: '',
-    bookingSlot: '',
-    accommodationCheckIn: '',
-    accommodationCheckOut: '',
-    priority: 'Medium',
-    startDate: '',
-    endDate: '',
-    scheduledTime: '',
-    endTime: '',
-    requiredProof: false,
-  });
+  const [formData, setFormData] = useState(() => createDefaultTaskFormData());
 
   // Define hierarchy relationships for sorting
   const getHierarchyInfo = (designation) => {
@@ -420,37 +426,8 @@ const TasksPage = () => {
     }
   };
 
-  const resetTaskForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      type: 'Feed',
-      horseId: '',
-      assignedEmployeeId: '',
-      instructorId: '',
-      customerName: '',
-      customerPhone: '',
-      paymentSource: '',
-      leadPrice: '',
-      isMembershipBooking: false,
-      packageName: '',
-      packageRideCount: '',
-      packageMemberCount: '',
-      packagePrice: '',
-      gstAmount: '',
-      bookingCategory: 'Normal Riding',
-      bookingRideType: '',
-      bookingDestination: '',
-      bookingSlot: '',
-      accommodationCheckIn: '',
-      accommodationCheckOut: '',
-      priority: 'Medium',
-      startDate: '',
-      endDate: '',
-      scheduledTime: '',
-      endTime: '',
-      requiredProof: false,
-    });
+  const resetTaskForm = (taskType = isBookingsRoute ? BOOKING_TASK_TYPE : 'Feed') => {
+    setFormData(createDefaultTaskFormData(taskType));
     setEditingTaskId(null);
   };
 
@@ -468,7 +445,7 @@ const TasksPage = () => {
     .map((emp) => ({ value: emp.id, label: emp.fullName }));
 
   const openCreateForm = () => {
-    resetTaskForm();
+    resetTaskForm(isBookingsRoute ? BOOKING_TASK_TYPE : 'Feed');
     setShowCreateForm(true);
   };
 
@@ -627,7 +604,7 @@ const TasksPage = () => {
 
       const payload = {
         ...formData,
-        name: isBookingFormTask ? '' : formData.name,
+        ...(isBookingFormTask ? {} : { name: formData.name }),
         scheduledTime: formData.startDate ? `${formData.startDate}T${scheduledTimeValue}` : '',
         endTime: formData.endDate ? `${formData.endDate}T${formData.endTime || '17:00'}` : '',
         bookingRideType:
@@ -842,9 +819,14 @@ const TasksPage = () => {
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const visibleTasks = isBookingsRoute
+    ? tasks.filter((task) => isBookingTask(task))
+    : tasks;
+
+  const filteredTasks = visibleTasks.filter(task => {
     const query = searchTerm.trim().toLowerCase();
     const filterMatch =
+      isBookingsRoute ||
       activeFilter === 'All Tasks' ||
       (activeFilter === 'High Priority' && ['High', 'Urgent'].includes(task.priority)) ||
       (activeFilter === 'Medication' && ['Health Check', 'Medical'].includes(task.type)) ||
@@ -867,6 +849,9 @@ const TasksPage = () => {
     key: filterKey,
     label: t(filterKey),
   }));
+  const taskTypeOptions = (isBookingsRoute
+    ? [BOOKING_TASK_TYPE, ACCOMMODATION_TASK_TYPE]
+    : TASK_TYPES).map((type) => ({ value: type, label: type }));
 
   const observedStamp = new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
@@ -1071,7 +1056,7 @@ const TasksPage = () => {
         ].filter(Boolean).join(' | ')
       : '';
 
-  if (!p.manageTasks) return <Navigate to="/dashboard" replace />;
+  if (isBookingsRoute ? !p.manageBookings : !p.manageTasks) return <Navigate to="/dashboard" replace />;
   if (pageLoading) return <TasksPageSkeleton />;
 
   return (
@@ -1081,19 +1066,19 @@ const TasksPage = () => {
           <div className="lovable-header-kicker">
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--lg" />
             <span className="lovable-header-kicker-bar lovable-header-kicker-bar--sm" />
-            <span>{t('Task Operations')}</span>
+            <span>{t(isBookingsRoute ? 'Booking Operations' : 'Task Operations')}</span>
           </div>
-          <h1>{t('Tasks Management')}</h1>
+          <h1>{t(isBookingsRoute ? 'Bookings Management' : 'Tasks Management')}</h1>
           <p className="tasks-observed-line">{`OBSERVED: ${observedStamp} \u00B7 SHIFT: ${getShiftLabel()}`}</p>
         </div>
         <div className="lovable-header-actions">
-          {canCreateTasks && (
+          {(isBookingsRoute ? canCreateBookings : canCreateTasks) && (
             <button
               className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium"
               onClick={openCreateForm}
               type="button"
             >
-              + {t('Create New Task')}
+              + {t(isBookingsRoute ? 'Create New Booking' : 'Create New Task')}
             </button>
           )}
         </div>
@@ -1112,26 +1097,28 @@ const TasksPage = () => {
       )}
 
       <div className="tasks-page-filters">
-        <div className="lovable-pill-row">
-          {filterPills.map((pill) => (
-            <button
-              key={pill.key}
-              type="button"
-              onClick={() => setActiveFilter(pill.key)}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeFilter === pill.key
-                  ? 'bg-primary/15 text-primary border border-primary/30'
-                  : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent'
-              }`}
-            >
-              {pill.label}
-            </button>
-          ))}
-        </div>
+        {!isBookingsRoute && (
+          <div className="lovable-pill-row">
+            {filterPills.map((pill) => (
+              <button
+                key={pill.key}
+                type="button"
+                onClick={() => setActiveFilter(pill.key)}
+                className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeFilter === pill.key
+                    ? 'bg-primary/15 text-primary border border-primary/30'
+                    : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent'
+                }`}
+              >
+                {pill.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="task-filter-search relative w-full sm:w-72">
           <input
             type="text"
-            placeholder={t('Search task ID or horse name...')}
+            placeholder={t(isBookingsRoute ? 'Search booking ID, horse, or client...' : 'Search task ID or horse name...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="h-10 w-full pl-10 pr-4 rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
@@ -1225,7 +1212,7 @@ const TasksPage = () => {
                         {t('Assigned')}: <strong className="text-foreground">{getTaskEmployeeName(task)}</strong>
                       </span>
                       <div className="task-card-action-cluster flex gap-2 flex-wrap">
-                        {canCreateTasks && task.createdById === user?.id && isBookingTask(task) && !['Cancelled', 'Approved', 'Rejected'].includes(task.status) && (
+                        {canCreateBookings && task.createdById === user?.id && isBookingTask(task) && !['Cancelled', 'Approved', 'Rejected'].includes(task.status) && (
                           <>
                             <button
                               onClick={() => openEditForm(task)}
@@ -1383,7 +1370,7 @@ const TasksPage = () => {
           </div>
         </div>
       </div>
-{canCreateTasks && showCreateForm && ReactDOM.createPortal(
+{(isBookingsRoute ? canCreateBookings : canCreateTasks) && showCreateForm && ReactDOM.createPortal(
           <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => { setShowCreateForm(false); resetTaskForm(); }}>
             <div className="my-auto flex w-full max-w-lg flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 sm:px-5 sm:py-4 border-b border-border">
@@ -1431,7 +1418,7 @@ const TasksPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Task Type *")}</label>
-                    <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={TASK_TYPES.map(type => ({ value: type, label: type }))} placeholder={t("Select task type...")} required />
+                    <SearchableSelect name="type" value={formData.type} onChange={handleInputChange} options={taskTypeOptions} placeholder={t(isBookingsRoute ? "Select booking type..." : "Select task type...")} required />
                   </div>
                   {!isAccommodationBookingFormTask && (
                     <div>

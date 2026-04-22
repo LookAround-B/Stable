@@ -83,6 +83,7 @@ const TASK_CAPABILITY_RULES = {
   canViewTasks: [
     'assign_daily_tasks',
     'assign_tasks',
+    'manage_bookings',
     'approve_reject_tasks',
     'approve_groom_logs',
     'approve_instructor_updates',
@@ -97,6 +98,7 @@ const TASK_CAPABILITY_RULES = {
     'mark_issue_status',
   ],
   canCreateTasks: ['assign_daily_tasks', 'assign_tasks'],
+  canManageBookings: ['manage_bookings', 'assign_daily_tasks', 'assign_tasks'],
   canReviewTasks: [
     'approve_reject_tasks',
     'approve_groom_logs',

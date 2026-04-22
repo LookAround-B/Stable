@@ -243,6 +243,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     )
     const canCreateTasks =
       canManageSchedules || taskCapabilities.canCreateTasks
+    const canManageBookings =
+      canManageSchedules || taskCapabilities.canManageBookings
     const canReviewTasks =
       canManageSchedules || taskCapabilities.canReviewTasks
     const canWorkOnAssignedTasks =
@@ -289,10 +291,16 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     const isRideBookingTask = isBookingTaskType(nextType)
     const isAccommodationBookingTask = isAccommodationTaskType(nextType)
     const isAnyBookingTask = isTaskBookingType(nextType)
+    const canEditBookingFields =
+      isAnyBookingTask &&
+      canManageBookings &&
+      existingTask.createdById === userId
 
-    if (hasTaskFieldUpdates && !canCreateTasks) {
+    if (hasTaskFieldUpdates && !(canCreateTasks || canEditBookingFields)) {
       return res.status(403).json({
-        error: 'Task editing is not enabled for your account.',
+        error: isAnyBookingTask
+          ? 'Booking editing is not enabled for your account.'
+          : 'Task editing is not enabled for your account.',
       })
     }
 
@@ -372,9 +380,14 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    if (requestedStatus === 'Cancelled' && !canCreateTasks) {
+    if (
+      requestedStatus === 'Cancelled' &&
+      !(canCreateTasks || canEditBookingFields)
+    ) {
       return res.status(403).json({
-        error: 'Task cancellation is not enabled for your account.',
+        error: isAnyBookingTask
+          ? 'Booking cancellation is not enabled for your account.'
+          : 'Task cancellation is not enabled for your account.',
       })
     }
 
@@ -425,6 +438,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
 
       if (
         name !== undefined &&
+        !isAnyBookingTask &&
         (!isValidString(name, 1, 200) || typeof name !== 'string')
       ) {
         return res

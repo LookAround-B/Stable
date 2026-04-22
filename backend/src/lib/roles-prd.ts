@@ -21,7 +21,9 @@ const ROLE_HIERARCHY: Record<string, number> = {
   'Stable Manager': 3,
   
   // Accounts & Administration
+  'Junior Executive Admin': 1,
   'Executive Admin': 1,
+  'Senior Executive Admin': 2,
   'Executive Accounts': 1,
   'Senior Executive Accounts': 2,
   
@@ -40,7 +42,11 @@ export const DEPARTMENT_ROLES: Record<string, string[]> = {
     'Groom', 'Riding Boy', 'Rider', 'Farrier', 'Jamedar', 'Instructor', 'Stable Manager'
   ],
   'Accounts/Administration': [
-    'Executive Admin', 'Executive Accounts', 'Senior Executive Accounts'
+    'Junior Executive Admin',
+    'Executive Admin',
+    'Senior Executive Admin',
+    'Executive Accounts',
+    'Senior Executive Accounts'
   ],
   'Leadership': [
     'School Administrator', 'Director', 'Super Admin'
@@ -144,10 +150,23 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
   
   // Accounts
+  'Junior Executive Admin': [
+    'create_vouchers',
+    'upload_receipts',
+    'submit_for_approval',
+    'manage_bookings'
+  ],
   'Executive Admin': [
     'create_vouchers',
     'upload_receipts',
-    'submit_for_approval'
+    'submit_for_approval',
+    'manage_bookings'
+  ],
+  'Senior Executive Admin': [
+    'create_vouchers',
+    'upload_receipts',
+    'submit_for_approval',
+    'manage_bookings'
   ],
   'Executive Accounts': [
     'create_vouchers',
