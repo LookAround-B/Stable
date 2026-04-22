@@ -15,6 +15,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import DatePicker from "../components/shared/DatePicker";
 
 const CATEGORIES = ["Saddle", "Bridle", "Grooming Gear", "Training Equipment"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -258,11 +259,19 @@ const TackInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Purchase Date")}</label>
-                <input type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker
+                  value={formData.purchaseDate}
+                  onChange={(val) => setFormData(f => ({ ...f, purchaseDate: val }))}
+                  placeholder={t("Pick purchase date")}
+                />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Last Used Date")}</label>
-                <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                <DatePicker
+                  value={formData.lastUsedDate}
+                  onChange={(val) => setFormData(f => ({ ...f, lastUsedDate: val }))}
+                  placeholder={t("Pick last used date")}
+                />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Cleaning Schedule")}</label>

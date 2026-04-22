@@ -25,6 +25,7 @@ import {
   isBookingTask,
   isRideBookingTask,
 } from '../lib/taskBookings';
+import DatePicker from "../components/shared/DatePicker";
 
 const TASK_TYPES = [
   'Feed',
@@ -1546,12 +1547,10 @@ const TasksPage = () => {
                   )}
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(isBookingFormTask ? "Booking Date *" : "Start Date *")}</label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.startDate}
-                      onChange={(e) => setFormData(f => ({ ...f, startDate: e.target.value }))}
-                      className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                    <DatePicker
+                      value={formData.scheduledTime}
+                      onChange={(val) => setFormData(f => ({ ...f, scheduledTime: val }))}
+                      placeholder={isAccommodationBookingFormTask ? "Pick booking date" : "Pick date"}
                     />
                   </div>
                   {!isRideBookingFormTask ? (

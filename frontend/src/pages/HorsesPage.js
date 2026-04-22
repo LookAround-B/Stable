@@ -624,12 +624,12 @@ const HorsesPage = () => {
                           {horse.supervisor ? `${horse.supervisor.fullName} (${t(horse.supervisor.designation)})` : '-'}
                         </td>
                           <td className="px-4 sm:px-6 py-4 text-right">
-                            <button
+                            {/* <button
                               onClick={(e) => { e.stopPropagation(); navigate(`/horses/${horse.id}`); }}
                               className="h-8 px-3 rounded-lg border border-border bg-surface-container-high text-foreground text-xs font-medium hover:bg-surface-container-highest transition-colors inline-flex items-center gap-1"
                             >
                               {t('View')} <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
+                            </button> */}
                           </td>
                       </tr>
                     );

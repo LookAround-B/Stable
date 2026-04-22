@@ -13,6 +13,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import DateTimePicker from "../components/shared/DateTimePicker";
 
 const SHOEING_INTERVAL_DAYS = 21;
 
@@ -260,7 +261,7 @@ const FarrierShoeingPage = () => {
             </div>
             <div className="p-4 sm:px-5 sm:py-4">
               <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
                     <SearchableSelect value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder={t("Search horse...")} options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
@@ -269,9 +270,9 @@ const FarrierShoeingPage = () => {
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Farrier *")}</label>
                     <SearchableSelect value={formData.farrierId} onChange={(e) => setFormData((prev) => ({ ...prev, farrierId: e.target.value }))} placeholder={t("Search farrier...")} options={[{ value: '', label: 'Select Farrier' }, ...farriers.map((f) => ({ value: f.id, label: `${f.fullName} (${f.designation})` }))]} />
                   </div>
-                  <div>
+                  <div className="lg:col-span-2">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Shoeing Date & Time *")}</label>
-                    <input type="datetime-local" value={formData.shoeingDate} onChange={(e) => setFormData((prev) => ({ ...prev, shoeingDate: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <DateTimePicker value={formData.shoeingDate} onChange={(val) => setFormData((prev) => ({ ...prev, shoeingDate: val }))} required />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Next Due (auto)")}</label>

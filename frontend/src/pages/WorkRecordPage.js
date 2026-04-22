@@ -273,11 +273,11 @@ const WorkRecordPage = () => {
               </div>
             </div>
 
-            <div className="bg-surface-container/50 rounded-lg p-5 border border-border/50">
+            <div className="rounded-lg p-5 border border-border/50">
                <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-widest text-primary">{t('Task Entries')}</h4>
                
                {newWorkRecord.entries.map((entry, idx) => (
-                 <div key={idx} className="bg-surface-container-high rounded-xl p-4 border border-border mb-4 relative">
+                 <div key={idx} className="bg-background rounded-xl p-4 border border-border mb-4 relative">
                     <div className="flex items-center justify-between mb-3 border-b border-border/40 pb-2">
                        <span className="text-xs font-semibold text-muted-foreground uppercase">{t('Task')} {idx + 1}</span>
                        {newWorkRecord.entries.length > 1 && (
