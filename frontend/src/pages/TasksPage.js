@@ -1548,8 +1548,8 @@ const TasksPage = () => {
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(isBookingFormTask ? "Booking Date *" : "Start Date *")}</label>
                     <DatePicker
-                      value={formData.scheduledTime}
-                      onChange={(val) => setFormData(f => ({ ...f, scheduledTime: val }))}
+                      value={formData.startDate}
+                      onChange={(val) => setFormData(f => ({ ...f, startDate: val }))}
                       placeholder={isAccommodationBookingFormTask ? "Pick booking date" : "Pick date"}
                     />
                   </div>
@@ -1665,14 +1665,14 @@ const TasksPage = () => {
       )}
 
       {reviewingTask && (reviewingTask.status === 'Pending Review' || reviewingTask.status === 'Completed') && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewingTaskId(null)}>
-          <div className="bg-surface-container-highest border border-border rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center px-6 py-4 border-b border-border">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 overflow-hidden" onClick={() => setViewingTaskId(null)}>
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-highest border border-border rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-6 py-4 border-b border-border shrink-0">
               <h3 className="text-xl font-bold text-foreground">{t("Task Evidence Review")}</h3>
               <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setViewingTaskId(null)}><X size={18} /></button>
             </div>
-            <div className="p-6 space-y-5">
-              <div>
+            <div className="p-6 flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto">
+              <div className="shrink-0">
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t("Task Information")}</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {[
@@ -1691,25 +1691,25 @@ const TasksPage = () => {
                 </div>
               </div>
               {getTaskEvidenceImage(reviewingTask) && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t("Evidence Photo")}</p>
-                  <img src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`} alt="Task evidence" className="w-full max-h-[300px] object-contain rounded-lg border border-border cursor-pointer" onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
+                <div className="flex shrink min-h-0 flex-col overflow-hidden" style={{ maxHeight: '300px' }}>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2 shrink-0">{t("Evidence Photo")}</p>
+                  <img src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`} alt="Task evidence" className="w-full h-full object-contain rounded-lg border border-border cursor-pointer min-h-0 shrink" onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
                 </div>
               )}
               {(reviewingTask.completionNotes || reviewingTask.description) && (
-                <div className="p-3 rounded-lg bg-surface-container-high">
+                <div className="p-3 rounded-lg bg-surface-container-high shrink-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Notes")}</p>
                   <p className="text-sm text-foreground mt-1">{reviewingTask.completionNotes || reviewingTask.description}</p>
                 </div>
               )}
               {reviewingTask.completedTime && (
-                <div>
+                <div className="shrink-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Time")}</p>
                   <p className="text-sm text-foreground mt-0.5 mono-data">{new Date(reviewingTask.completedTime).toLocaleString()}</p>
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-border flex gap-3">
+            <div className="px-6 py-4 border-t border-border flex gap-3 shrink-0">
               {(reviewingTask.status === 'Pending Review' || reviewingTask.status === 'Completed') && (
                 <>
                   <button

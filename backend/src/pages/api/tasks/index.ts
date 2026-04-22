@@ -1,4 +1,3 @@
-// pages/api/tasks/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import {
   checkPermission,
