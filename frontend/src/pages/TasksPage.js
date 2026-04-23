@@ -6,9 +6,13 @@ import apiClient from '../services/apiClient';
 import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import TimePicker from '../components/shared/TimePicker';
+import ExportDialog from '../components/shared/ExportDialog';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { BarChart3, Camera, Check, Clock3, Package, Pencil, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import { BarChart3, Camera, Check, Clock3, Download, Package, Pencil, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
+import { showNoExportDataToast } from '../lib/exportToast';
+import { downloadCsvFile } from '../lib/csvExport';
+import { writeRowsToXlsx } from '../lib/xlsxExport';
 import {
   ACCOMMODATION_TASK_TYPE,
   BOOKING_CATEGORY_OPTIONS,
@@ -20,6 +24,7 @@ import {
   getAccommodationScheduleLabel,
   getBookingSlotLabel,
   getBookingSlotTime,
+  getBookingRideTypeLabel,
   getBookingSummary,
   isAccommodationBookingTask,
   isBookingTask,
@@ -181,6 +186,7 @@ const createDefaultTaskFormData = (taskType = 'Feed') => ({
   customerName: '',
   customerPhone: '',
   paymentSource: '',
+  leadGroomName: '',
   leadPrice: '',
   isMembershipBooking: false,
   packageName: '',
@@ -441,6 +447,13 @@ const TasksPage = () => {
   const jamedharOptions = allEmployees
     .filter((emp) => emp.designation === 'Jamedar' && emp.isApproved !== false)
     .map((emp) => ({ value: emp.id, label: emp.fullName }));
+  const leadGroomOptions = allEmployees
+    .filter(
+      (emp) =>
+        ['Groom', 'Riding Boy', 'Rider', 'Jamedar'].includes(emp.designation) &&
+        emp.isApproved !== false
+    )
+    .map((emp) => ({ value: emp.fullName, label: `${emp.fullName} (${emp.designation})` }));
   const housekeepingOptions = allEmployees
     .filter((emp) => emp.designation === 'Housekeeping' && emp.isApproved !== false)
     .map((emp) => ({ value: emp.id, label: emp.fullName }));
@@ -462,6 +475,7 @@ const TasksPage = () => {
       customerName: task?.customerName || '',
       customerPhone: task?.customerPhone || '',
       paymentSource: task?.paymentSource || '',
+      leadGroomName: task?.leadGroomName || '',
       leadPrice: task?.leadPrice != null ? String(task.leadPrice) : '',
       isMembershipBooking: Boolean(task?.isMembershipBooking),
       packageName: task?.packageName || '',
@@ -502,6 +516,7 @@ const TasksPage = () => {
         bookingRideType: nextIsRideBooking ? prev.bookingRideType : '',
         bookingDestination: nextIsRideBooking ? prev.bookingDestination : '',
         bookingSlot: nextIsRideBooking ? prev.bookingSlot : '',
+        leadGroomName: nextIsRideBooking ? prev.leadGroomName : '',
         customerName: nextIsBooking ? prev.customerName : '',
         customerPhone: nextIsBooking ? prev.customerPhone : '',
         paymentSource: nextIsBooking ? prev.paymentSource : '',
@@ -556,6 +571,7 @@ const TasksPage = () => {
     try {
       const trimmedCustomerName = formData.customerName.trim();
       const trimmedCustomerPhone = formData.customerPhone.trim();
+      const trimmedLeadGroomName = formData.leadGroomName.trim();
       const needsMembershipFields =
         isRideBookingFormTask && Boolean(formData.isMembershipBooking);
       const needsFunRideDestination =
@@ -617,6 +633,7 @@ const TasksPage = () => {
         customerName: isBookingFormTask ? trimmedCustomerName : '',
         customerPhone: isBookingFormTask ? trimmedCustomerPhone : '',
         paymentSource: isBookingFormTask ? formData.paymentSource : '',
+        leadGroomName: isRideBookingFormTask ? trimmedLeadGroomName : '',
         leadPrice: isBookingFormTask ? formData.leadPrice : '',
         isMembershipBooking: isRideBookingFormTask ? Boolean(formData.isMembershipBooking) : false,
         packageName: needsMembershipFields ? formData.packageName : '',
@@ -853,6 +870,61 @@ const TasksPage = () => {
   const taskTypeOptions = (isBookingsRoute
     ? [BOOKING_TASK_TYPE, ACCOMMODATION_TASK_TYPE]
     : TASK_TYPES).map((type) => ({ value: type, label: type }));
+  const getBookingExportRows = () =>
+    filteredTasks
+      .filter((task) => isBookingTask(task))
+      .map((task) => ({
+        'Booking ID': String(task.id || '').slice(0, 8).toUpperCase(),
+        'Booking Type': task.type || '',
+        'Status': task.status || '',
+        'Horse': task.horse?.name || '',
+        'Client / Guest': task.customerName || '',
+        'Phone': task.customerPhone || '',
+        'Instructor': task.instructor?.fullName || '',
+        'Lead/Groom Name': task.leadGroomName || '',
+        'Assigned To': task.assignedEmployee?.fullName || '',
+        'Assigned Role': task.assignedEmployee?.designation || '',
+        'Category': task.bookingCategory || '',
+        'Ride Type': isRideBookingTask(task) ? getBookingRideTypeLabel(task) : '',
+        'Where To Go': task.bookingDestination || '',
+        'Slot': task.bookingSlot ? getBookingSlotLabel(task.bookingSlot) : '',
+        'Scheduled Time': task.scheduledTime ? new Date(task.scheduledTime).toLocaleString() : '',
+        'Check-in': task.accommodationCheckIn ? new Date(task.accommodationCheckIn).toLocaleString() : '',
+        'Check-out': task.accommodationCheckOut ? new Date(task.accommodationCheckOut).toLocaleString() : '',
+        'Lead Price': task.leadPrice ?? '',
+        'Payment Source': task.paymentSource || '',
+        'Membership Booking': task.isMembershipBooking ? 'Yes' : 'No',
+        'Package Name': task.packageName || '',
+        'No. of Ridings': task.packageRideCount ?? '',
+        'Members': task.packageMemberCount ?? '',
+        'Package Price': task.packagePrice ?? '',
+        'GST': task.gstAmount ?? '',
+        'Summary': getBookingSummary(task),
+        'Created By': task.createdBy?.fullName || '',
+        'Notes': task.description || '',
+      }));
+
+  const handleDownloadBookingsExcel = async () => {
+    if (!filteredTasks.length) {
+      showNoExportDataToast('No bookings to download');
+      return;
+    }
+    await writeRowsToXlsx(getBookingExportRows(), {
+      sheetName: 'Bookings',
+      fileName: `Bookings_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    });
+  };
+
+  const handleDownloadBookingsCsv = () => {
+    if (!filteredTasks.length) {
+      showNoExportDataToast('No bookings to download');
+      return;
+    }
+    downloadCsvFile(
+      getBookingExportRows(),
+      `Bookings_${new Date().toISOString().slice(0, 10)}.csv`
+    );
+  };
 
   const observedStamp = new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
@@ -1045,10 +1117,11 @@ const TasksPage = () => {
           formData.bookingCategory === 'Fun Rides'
             ? (formData.bookingRideType || 'Select fun ride')
             : 'Instructor Book',
-          formData.bookingDestination ? `Where: ${formData.bookingDestination}` : '',
-          selectedInstructor?.fullName ? `Instructor: ${selectedInstructor.fullName}` : '',
-          formData.customerName ? `Client: ${formData.customerName}` : '',
-          formData.bookingSlot ? `Slot ${getBookingSlotLabel(formData.bookingSlot)}` : '',
+        formData.bookingDestination ? `Where: ${formData.bookingDestination}` : '',
+        selectedInstructor?.fullName ? `Instructor: ${selectedInstructor.fullName}` : '',
+        formData.customerName ? `Client: ${formData.customerName}` : '',
+        formData.leadGroomName ? `Lead/Groom: ${formData.leadGroomName}` : '',
+        formData.bookingSlot ? `Slot ${getBookingSlotLabel(formData.bookingSlot)}` : '',
           formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
           formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
           formData.isMembershipBooking && formData.packageName
@@ -1073,6 +1146,22 @@ const TasksPage = () => {
           <p className="tasks-observed-line">{`OBSERVED: ${observedStamp} \u00B7 SHIFT: ${getShiftLabel()}`}</p>
         </div>
         <div className="lovable-header-actions">
+          {isBookingsRoute && (
+            <ExportDialog
+              title={t('Export Bookings')}
+              options={{ xlsx: handleDownloadBookingsExcel, csv: handleDownloadBookingsCsv }}
+              trigger={(
+                <button
+                  className="h-9 w-9 rounded-lg border border-border bg-surface-container-high text-foreground inline-flex items-center justify-center"
+                  title={t('Export bookings')}
+                  type="button"
+                  aria-label={t('Export bookings')}
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+              )}
+            />
+          )}
           {(isBookingsRoute ? canCreateBookings : canCreateTasks) && (
             <button
               className="h-9 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-dim text-primary-foreground text-sm font-medium"
@@ -1487,6 +1576,17 @@ const TasksPage = () => {
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Instructor *")}</label>
                         <SearchableSelect name="instructorId" value={formData.instructorId} onChange={handleInputChange} placeholder={t("Select instructor")} required options={[{ value: '', label: 'Select instructor' }, ...instructorOptions]} />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Lead/Groom Name")}</label>
+                        <SearchableSelect
+                          name="leadGroomName"
+                          value={formData.leadGroomName}
+                          onChange={handleInputChange}
+                          placeholder={t("Select or type lead/groom")}
+                          options={leadGroomOptions}
+                          creatable
+                        />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Booking Type *")}</label>

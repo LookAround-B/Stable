@@ -183,6 +183,7 @@ model Task {
   customerName          String?
   customerPhone         String?
   paymentSource         String?
+  leadGroomName         String?
   leadPrice            Float?
   isMembershipBooking   Boolean     @default(false)
   packageName           String?

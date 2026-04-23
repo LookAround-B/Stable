@@ -203,6 +203,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       customerName,
       customerPhone,
       paymentSource,
+      leadGroomName,
       leadPrice,
       isMembershipBooking,
       packageName,
@@ -260,6 +261,14 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
     }
     if (!isValidPaymentSource(paymentSource) && isAnyBookingTask) {
       return res.status(400).json({ error: 'Valid payment source is required for bookings' })
+    }
+    if (
+      isRideBookingTask &&
+      leadGroomName !== undefined &&
+      leadGroomName !== null &&
+      !isValidString(leadGroomName, 0, 200)
+    ) {
+      return res.status(400).json({ error: 'Lead/Groom Name must be under 200 characters' })
     }
 
     const parsedLeadPrice =
@@ -430,6 +439,10 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
         customerName: isAnyBookingTask ? sanitize(customerName) : null,
         customerPhone: isAnyBookingTask ? sanitize(customerPhone) : null,
         paymentSource: isAnyBookingTask ? paymentSource : null,
+        leadGroomName:
+          isRideBookingTask && leadGroomName
+            ? sanitize(leadGroomName)
+            : null,
         leadPrice: isAnyBookingTask ? parsedLeadPrice : null,
         isMembershipBooking: isRideBookingTask ? membershipEnabled : false,
         packageName: isRideBookingTask && membershipEnabled ? sanitize(packageName) : null,

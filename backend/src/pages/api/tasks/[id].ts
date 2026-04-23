@@ -119,6 +119,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
       customerName,
       customerPhone,
       paymentSource,
+      leadGroomName,
       leadPrice,
       isMembershipBooking,
       packageName,
@@ -187,6 +188,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         customerName: true,
         customerPhone: true,
         paymentSource: true,
+        leadGroomName: true,
         leadPrice: true,
         isMembershipBooking: true,
         packageName: true,
@@ -263,6 +265,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
       customerName !== undefined ||
       customerPhone !== undefined ||
       paymentSource !== undefined ||
+      leadGroomName !== undefined ||
       leadPrice !== undefined ||
       isMembershipBooking !== undefined ||
       packageName !== undefined ||
@@ -398,6 +401,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     let nextCustomerName = existingTask.customerName || ''
     let nextCustomerPhone = existingTask.customerPhone || ''
     let nextPaymentSource = existingTask.paymentSource || ''
+    let nextLeadGroomName = existingTask.leadGroomName || ''
     let nextLeadPrice = existingTask.leadPrice
     let nextAccommodationCheckIn = existingTask.accommodationCheckIn
     let nextAccommodationCheckOut = existingTask.accommodationCheckOut
@@ -477,6 +481,10 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         customerPhone !== undefined ? sanitizeString(customerPhone) : existingTask.customerPhone || ''
       nextPaymentSource =
         paymentSource !== undefined ? sanitizeString(paymentSource) : existingTask.paymentSource || ''
+      nextLeadGroomName =
+        leadGroomName !== undefined
+          ? sanitizeString(leadGroomName)
+          : existingTask.leadGroomName || ''
       nextLeadPrice =
         leadPrice !== undefined
           ? leadPrice === null || leadPrice === ''
@@ -565,6 +573,11 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         if (!isValidPaymentSource(nextPaymentSource)) {
           return res.status(400).json({
             error: 'Valid payment source is required for bookings',
+          })
+        }
+        if (nextLeadGroomName && !isValidString(nextLeadGroomName, 0, 200)) {
+          return res.status(400).json({
+            error: 'Lead/Groom Name must be under 200 characters',
           })
         }
       }
@@ -743,6 +756,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         updateData.customerName = nextCustomerName
         updateData.customerPhone = nextCustomerPhone
         updateData.paymentSource = nextPaymentSource
+        updateData.leadGroomName = nextLeadGroomName || null
         updateData.leadPrice = nextLeadPrice
         updateData.accommodationCheckIn = null
         updateData.accommodationCheckOut = null
@@ -776,6 +790,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         updateData.customerName = nextCustomerName
         updateData.customerPhone = nextCustomerPhone
         updateData.paymentSource = nextPaymentSource
+        updateData.leadGroomName = null
         updateData.leadPrice = nextLeadPrice
         updateData.isMembershipBooking = false
         updateData.packageName = null
@@ -791,6 +806,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         updateData.customerName = null
         updateData.customerPhone = null
         updateData.paymentSource = null
+        updateData.leadGroomName = null
         updateData.leadPrice = null
         updateData.isMembershipBooking = false
         updateData.packageName = null

@@ -127,6 +127,7 @@ export const getBookingSummary = (task) => {
     task.bookingDestination ? `Where: ${task.bookingDestination}` : '',
     task.instructor?.fullName ? `Instructor: ${task.instructor.fullName}` : '',
     task.customerName ? `Client: ${task.customerName}` : '',
+    task.leadGroomName ? `Lead/Groom: ${task.leadGroomName}` : '',
     task.bookingSlot ? `Slot ${getBookingSlotLabel(task.bookingSlot)}` : '',
     task.leadPrice != null ? `Lead Price: ${task.leadPrice}` : 'Lead Price: null',
     task.paymentSource ? `Payment: ${task.paymentSource}` : '',
