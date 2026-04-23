@@ -43,7 +43,7 @@ const GROUPS = [
     label: 'Stable Operations',
     icon: Stethoscope,
     items: [
-      { to: '/medicine-logs', label: 'Medicine Logs', permission: 'viewMedicineLogs' },
+      { to: '/medicine-logs', label: 'Treatment Logs', permission: 'viewMedicineLogs' },
       { to: '/horse-care-team', label: 'Care Teams', permission: 'manageHorseTeams' },
       { to: '/medicine-inventory', label: 'Medicine Inventory', permission: 'viewMedicineInventory' },
       { to: '/horse-feeds', label: 'Horse Feeds', permission: 'viewHorseFeeds' },

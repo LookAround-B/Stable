@@ -1,8 +1,9 @@
-export const BOOKING_TASK_TYPE = 'Riding Booking';
+export const BOOKING_TASK_TYPE = 'Work Record';
 export const ACCOMMODATION_TASK_TYPE = 'Accommodation Booking';
 
 export const BOOKING_CATEGORY_OPTIONS = [
   { value: 'Normal Riding', label: 'Normal Riding' },
+  { value: 'Casual Rides', label: 'Casual Rides' },
   { value: 'Fun Rides', label: 'Fun Rides' },
 ];
 
@@ -89,8 +90,8 @@ export const getBookingSlotTime = (slot) => SLOT_TIMES[slot] || null;
 
 export const getBookingRideTypeLabel = (task) => {
   if (!task) return '';
-  if (task.bookingCategory === 'Normal Riding') return 'Instructor Book';
-  return task.bookingRideType || '';
+  if (task.bookingCategory === 'Fun Rides') return task.bookingRideType || '';
+  return '';
 };
 
 export const getAccommodationScheduleLabel = (task) => {

@@ -41,7 +41,7 @@ const MedicineLogPage = () => {
 
   const loadMedicineLogs = async () => {
     try { const response = await apiClient.get('/medicine-logs'); setLogs(response.data); }
-    catch (error) { console.error('Error loading medicine logs:', error); }
+    catch (error) { console.error('Error loading treatment logs:', error); }
   };
 
   const loadHorses = async () => {
@@ -141,8 +141,8 @@ const MedicineLogPage = () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No data to download'); return; }
     await writeRowsToXlsx(data, {
-      sheetName: 'Medicine Log',
-      fileName: `MedicineLog_${new Date().toISOString().slice(0,10)}.xlsx`,
+      sheetName: 'Treatment Logs',
+      fileName: `TreatmentLogs_${new Date().toISOString().slice(0,10)}.xlsx`,
     });
   };
 
@@ -168,10 +168,10 @@ const MedicineLogPage = () => {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <ExportDialog
-            title={t("Export Medicine Logs")}
+            title={t("Export Treatment Logs")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label={t("Export medicine logs")} title={t("Export medicine logs")}>
+              <button className="h-9 w-9 rounded-lg border border-border text-foreground flex items-center justify-center hover:bg-surface-container-high transition-colors" type="button" aria-label={t("Export treatment logs")} title={t("Export treatment logs")}>
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
@@ -321,7 +321,7 @@ const MedicineLogPage = () => {
             </thead>
             <tbody>
               {filteredLogs.length === 0 ? (
-                <tr><td colSpan="7" className="px-4 py-12 text-center text-muted-foreground text-sm">{t('No medicine logs found')}</td></tr>
+                <tr><td colSpan="7" className="px-4 py-12 text-center text-muted-foreground text-sm">{t('No treatment logs found')}</td></tr>
               ) : (
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">

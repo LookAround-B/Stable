@@ -48,7 +48,7 @@ const FarrierShoeingPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const [formData, setFormData] = useState({
-    horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), numberOfLegs: '4', notes: '',
+    horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), shoeChanged: 'Yes', numberOfLegs: '4', notes: '',
   });
 
   const showMsg = (msg, type = 'success') => { setMessage(msg); setMessageType(type); setTimeout(() => setMessage(''), 5000); };
@@ -123,9 +123,9 @@ const FarrierShoeingPage = () => {
     
     try {
       setLoading(true);
-      await apiClient.post('/farrier-shoeing', { horseId: formData.horseId, farrierId: formData.farrierId, shoeingDate: new Date(formData.shoeingDate).toISOString(), numberOfLegs: parseInt(formData.numberOfLegs, 10) || 4, notes: formData.notes || '' });
+      await apiClient.post('/farrier-shoeing', { horseId: formData.horseId, farrierId: formData.farrierId, shoeingDate: new Date(formData.shoeingDate).toISOString(), shoeChanged: formData.shoeChanged, numberOfLegs: parseInt(formData.numberOfLegs, 10) || 4, notes: formData.notes || '' });
       showMsg('Shoeing record created successfully');
-      setFormData({ horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), numberOfLegs: '4', notes: '' });
+      setFormData({ horseId: '', farrierId: '', shoeingDate: getLocalDateTimeString(), shoeChanged: 'Yes', numberOfLegs: '4', notes: '' });
       setShowForm(false);
       loadRecords(); loadPendingHorses(); loadReminderStatus();
     } catch (error) { showMsg(error.response?.data?.error || 'Failed to create shoeing record', 'error'); } finally { setLoading(false); }
@@ -140,11 +140,11 @@ const FarrierShoeingPage = () => {
   };
 
   const handleQuickShoe = (horseId) => {
-    setFormData({ horseId, farrierId: '', shoeingDate: getLocalDateTimeString(), numberOfLegs: '4', notes: '' });
+    setFormData({ horseId, farrierId: '', shoeingDate: getLocalDateTimeString(), shoeChanged: 'Yes', numberOfLegs: '4', notes: '' });
     setShowForm(true); setActiveTab('completed');
   };
 
-  const getCompletedExportRows = () => records.map((r) => ({ 'Horse': r.horse?.name || '', 'Stable #': r.horse?.stableNumber || '', 'Farrier': r.farrier?.fullName || '', 'Shoeing Date': r.shoeingDate ? new Date(r.shoeingDate).toLocaleDateString('en-GB') : '', 'Next Due Date': r.nextDueDate ? new Date(r.nextDueDate).toLocaleDateString('en-GB') : '', 'No. of Legs': r.numberOfLegs || 4, 'Notes': r.notes || '' }));
+  const getCompletedExportRows = () => records.map((r) => ({ 'Horse': r.horse?.name || '', 'Stable #': r.horse?.stableNumber || '', 'Farrier': r.farrier?.fullName || '', 'Shoeing Date': r.shoeingDate ? new Date(r.shoeingDate).toLocaleDateString('en-GB') : '', 'Next Due Date': r.nextDueDate ? new Date(r.nextDueDate).toLocaleDateString('en-GB') : '', 'Shoe Changed': r.shoeChanged ? 'Yes' : 'No', 'No. of Legs': r.numberOfLegs || 4, 'Notes': r.notes || '' }));
 
   const getPendingExportRows = () => pendingHorses.map((ph) => ({ 'Horse': ph.horse?.name || '', 'Stable #': ph.horse?.stableNumber || '', 'Last Shoeing': ph.lastShoeingDate ? new Date(ph.lastShoeingDate).toLocaleDateString('en-GB') : 'Never', 'Next Due': ph.nextDueDate ? new Date(ph.nextDueDate).toLocaleDateString('en-GB') : 'N/A', 'Days Overdue': ph.neverShoed ? 'Never Shoed' : (ph.daysOverdue || 0), 'Last Farrier': ph.farrier?.fullName || 'N/A' }));
 
@@ -279,6 +279,10 @@ const FarrierShoeingPage = () => {
                     <input type="text" value={calculateNextDue(formData.shoeingDate)} disabled className="w-full h-10 px-3 rounded-lg bg-muted border border-border text-muted-foreground text-sm" />
                   </div>
                   <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Shoe Changed *")}</label>
+                    <SearchableSelect value={formData.shoeChanged} onChange={(e) => setFormData((prev) => ({ ...prev, shoeChanged: e.target.value }))} options={[{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }]} searchable={false} />
+                  </div>
+                  <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("No. of Legs *")}</label>
                     <input type="number" min="1" max="4" value={formData.numberOfLegs} onChange={(e) => setFormData((prev) => ({ ...prev, numberOfLegs: e.target.value }))} required className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
@@ -326,7 +330,7 @@ const FarrierShoeingPage = () => {
               <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      {['Horse', 'Stable #', 'Farrier', 'Shoeing Date', 'Next Due', 'No. of Legs', 'Status', 'Notes', 'Actions'].map(h => (
+                      {['Horse', 'Stable #', 'Farrier', 'Shoeing Date', 'Next Due', 'Shoe Changed', 'No. of Legs', 'Status', 'Notes', 'Actions'].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
@@ -339,6 +343,7 @@ const FarrierShoeingPage = () => {
                         <td className="px-4 py-3 text-muted-foreground">{record.farrier?.fullName || 'Unknown'}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.shoeingDate).toLocaleDateString('en-GB')}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{new Date(record.nextDueDate).toLocaleDateString('en-GB')}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{record.shoeChanged ? 'Yes' : 'No'}</td>
                         <td className="px-4 py-3 text-muted-foreground mono-data">{record.numberOfLegs || 4}</td>
                         <td className="px-4 py-3">{getStatusBadge(record)}</td>
                         <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">{record.notes || 'N/A'}</td>

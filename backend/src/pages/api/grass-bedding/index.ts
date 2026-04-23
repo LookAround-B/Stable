@@ -100,35 +100,52 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: string) {
-  const { horseId, entryType, supplyName, collectedById, collectedAt, notes } = req.body
+  const { horseId, entryType, supplyName, collectedById, collectedAt, notes, grassLoadReceived, weightInTons } = req.body
 
-  if (!isValidId(horseId)) {
-    return res.status(400).json({ error: 'Valid horseId is required' })
+  if (horseId && !isValidId(horseId)) {
+    return res.status(400).json({ error: 'Invalid horseId' })
   }
-  if (!ENTRY_TYPES.includes(entryType)) {
+  if (entryType && !ENTRY_TYPES.includes(entryType)) {
     return res.status(400).json({ error: `Entry type must be one of: ${ENTRY_TYPES.join(', ')}` })
   }
-  if (!isValidString(supplyName, 1, 120)) {
-    return res.status(400).json({ error: 'Supply name is required (max 120 chars)' })
+  if (supplyName && !isValidString(supplyName, 1, 120)) {
+    return res.status(400).json({ error: 'Supply name must be max 120 chars' })
   }
-  if (!isValidId(collectedById)) {
-    return res.status(400).json({ error: 'Valid collectedById is required' })
+  if (collectedById && !isValidId(collectedById)) {
+    return res.status(400).json({ error: 'Invalid collectedById' })
   }
-  const collectedAtDate = safeDate(collectedAt)
-  if (!collectedAtDate) {
+  const collectedAtDate = collectedAt ? safeDate(collectedAt) : null
+  if (collectedAt && !collectedAtDate) {
     return res.status(400).json({ error: 'Valid collectedAt timestamp is required' })
   }
   if (notes && !isValidString(notes, 0, 1000)) {
     return res.status(400).json({ error: 'Notes must be max 1000 chars' })
   }
 
+  let parsedGrassLoadReceived: boolean | null = null
+  if (grassLoadReceived !== undefined && grassLoadReceived !== null && grassLoadReceived !== '') {
+    if (grassLoadReceived === true || grassLoadReceived === 'Yes') parsedGrassLoadReceived = true
+    else if (grassLoadReceived === false || grassLoadReceived === 'No') parsedGrassLoadReceived = false
+    else return res.status(400).json({ error: 'Grass load received must be Yes or No' })
+  }
+
+  let parsedWeightInTons: number | null = null
+  if (weightInTons !== undefined && weightInTons !== null && weightInTons !== '') {
+    parsedWeightInTons = parseInt(weightInTons, 10)
+    if (Number.isNaN(parsedWeightInTons) || parsedWeightInTons < 0 || parsedWeightInTons % 100 !== 0) {
+      return res.status(400).json({ error: 'Weight in tons must be a non-negative multiple of 100' })
+    }
+  }
+
   const record = await prisma.grassBeddingEntry.create({
     data: {
-      horseId,
-      entryType,
-      supplyName: sanitizeString(supplyName),
-      collectedById,
+      horseId: horseId || null,
+      entryType: entryType || 'Grass',
+      supplyName: supplyName ? sanitizeString(supplyName) : null,
+      collectedById: collectedById || null,
       collectedAt: collectedAtDate,
+      grassLoadReceived: parsedGrassLoadReceived,
+      weightInTons: parsedWeightInTons,
       notes: notes ? sanitizeString(notes) : null,
       createdById: userId,
     },
@@ -139,7 +156,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, userId: str
 }
 
 async function handlePut(req: NextApiRequest, res: NextApiResponse) {
-  const { id, horseId, entryType, supplyName, collectedById, collectedAt, notes } = req.body
+  const { id, horseId, entryType, supplyName, collectedById, collectedAt, notes, grassLoadReceived, weightInTons } = req.body
 
   if (!isValidId(id)) return res.status(400).json({ error: 'Valid ID is required' })
   if (horseId && !isValidId(horseId)) {
@@ -161,6 +178,25 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Valid collectedAt timestamp is required' })
   }
 
+  let parsedGrassLoadReceived: boolean | null | undefined
+  if (grassLoadReceived !== undefined) {
+    if (grassLoadReceived === null || grassLoadReceived === '') parsedGrassLoadReceived = null
+    else if (grassLoadReceived === true || grassLoadReceived === 'Yes') parsedGrassLoadReceived = true
+    else if (grassLoadReceived === false || grassLoadReceived === 'No') parsedGrassLoadReceived = false
+    else return res.status(400).json({ error: 'Grass load received must be Yes or No' })
+  }
+
+  let parsedWeightInTons: number | null | undefined
+  if (weightInTons !== undefined) {
+    if (weightInTons === null || weightInTons === '') parsedWeightInTons = null
+    else {
+      parsedWeightInTons = parseInt(weightInTons, 10)
+      if (Number.isNaN(parsedWeightInTons) || parsedWeightInTons < 0 || parsedWeightInTons % 100 !== 0) {
+        return res.status(400).json({ error: 'Weight in tons must be a non-negative multiple of 100' })
+      }
+    }
+  }
+
   const existing = await prisma.grassBeddingEntry.findUnique({ where: { id } })
   if (!existing) return res.status(404).json({ error: 'Record not found' })
 
@@ -170,12 +206,14 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       ...(horseId !== undefined && { horseId }),
       ...(entryType !== undefined && { entryType }),
       ...(supplyName !== undefined && {
-        supplyName: supplyName ? sanitizeString(supplyName) : existing.supplyName,
+        supplyName: supplyName ? sanitizeString(supplyName) : null,
       }),
-      ...(collectedById !== undefined && { collectedById }),
+      ...(collectedById !== undefined && { collectedById: collectedById || null }),
       ...(collectedAt !== undefined && {
-        collectedAt: collectedAt ? new Date(collectedAt) : existing.collectedAt,
+        collectedAt: collectedAt ? new Date(collectedAt) : null,
       }),
+      ...(grassLoadReceived !== undefined && { grassLoadReceived: parsedGrassLoadReceived }),
+      ...(weightInTons !== undefined && { weightInTons: parsedWeightInTons }),
       ...(notes !== undefined && { notes: notes ? sanitizeString(notes) : null }),
     },
     include: includeRelations,

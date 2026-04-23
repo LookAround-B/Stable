@@ -200,6 +200,7 @@ async function handlePost(
     jamiedarId,
     horseId,
     medicineName,
+    diagnosis,
     quantity,
     unit,
     timeAdministered,
@@ -223,6 +224,9 @@ async function handlePost(
     return res
       .status(400)
       .json({ error: 'Medicine name is required (max 200 chars)' })
+  }
+  if (diagnosis && !isValidString(diagnosis, 0, 2000)) {
+    return res.status(400).json({ error: 'Diagnosis must be max 2000 chars' })
   }
 
   const qty = parseFloat(quantity)
@@ -249,7 +253,7 @@ async function handlePost(
   const canManageAll = canManageAnyMedicineLog(user, access)
   if (!canManageAll && jamiedarId !== user.id) {
     return res.status(403).json({
-      error: 'You can only create medicine logs for your own account.',
+      error: 'You can only create treatment logs for your own account.',
     })
   }
 
@@ -280,6 +284,7 @@ async function handlePost(
         jamiedarId,
         horseId,
         medicineName: sanitizeString(medicineName),
+        diagnosis: diagnosis ? sanitizeString(diagnosis) : null,
         quantity: qty,
         unit: unit || 'ml',
         timeAdministered: new Date(timeAdministered),
@@ -317,7 +322,7 @@ async function handlePut(
   user: MedicineUser,
   access: MedicineAccess
 ) {
-  const { id, medicineName, quantity, unit, timeAdministered, notes, photoUrl } =
+  const { id, medicineName, diagnosis, quantity, unit, timeAdministered, notes, photoUrl } =
     req.body
 
   if (!access.canRecordMedicineLogs) {
@@ -331,6 +336,9 @@ async function handlePut(
   }
   if (medicineName && !isValidString(medicineName, 1, 200)) {
     return res.status(400).json({ error: 'Medicine name must be max 200 chars' })
+  }
+  if (diagnosis !== undefined && diagnosis && !isValidString(diagnosis, 0, 2000)) {
+    return res.status(400).json({ error: 'Diagnosis must be max 2000 chars' })
   }
   if (notes !== undefined && notes && !isValidString(notes, 0, 1000)) {
     return res.status(400).json({ error: 'Notes must be max 1000 chars' })
@@ -348,7 +356,7 @@ async function handlePut(
     const canManageAll = canManageAnyMedicineLog(user, access)
     if (!canManageAll && log.jamiedarId !== user.id) {
       return res.status(403).json({
-        error: 'You can only edit medicine logs submitted by your account.',
+        error: 'You can only edit treatment logs submitted by your account.',
       })
     }
 
@@ -362,6 +370,12 @@ async function handlePut(
         medicineName: medicineName
           ? sanitizeString(medicineName)
           : log.medicineName,
+        diagnosis:
+          diagnosis !== undefined
+            ? diagnosis
+              ? sanitizeString(diagnosis)
+              : null
+            : log.diagnosis,
         quantity:
           quantity !== undefined ? parseFloat(quantity) : log.quantity,
         unit: unit || log.unit,
@@ -430,7 +444,7 @@ async function handleDelete(
     const canManageAll = canManageAnyMedicineLog(user, access)
     if (!canManageAll && log.jamiedarId !== user.id) {
       return res.status(403).json({
-        error: 'You can only delete medicine logs submitted by your account.',
+        error: 'You can only delete treatment logs submitted by your account.',
       })
     }
 

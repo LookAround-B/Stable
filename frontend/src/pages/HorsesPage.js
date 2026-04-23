@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import DirectoryMetricCard from '../components/DirectoryMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X, ChevronRight } from 'lucide-react';
+import { Camera, Download, FileText, Link2, Plus, Search, ShieldCheck, Users, X } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
@@ -95,7 +95,6 @@ const HorsesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
   const location = useLocation();
-  const navigate = useNavigate();
   const p = usePermissions();
   const [showModal, setShowModal] = useState(false);
   const [horses, setHorses] = useState([]);
@@ -122,7 +121,6 @@ const HorsesPage = () => {
     passportNumber: '',
     ownerName: '',
     ownerPhone: '',
-    diagnosisNotes: '',
     entryTimestamp: '',
     exitTimestamp: '',
   });
@@ -185,7 +183,6 @@ const HorsesPage = () => {
         horseEntryType: value,
         ownerName: value === 'Private' ? prev.ownerName : '',
         ownerPhone: value === 'Private' ? prev.ownerPhone : '',
-        diagnosisNotes: value === 'Private' ? prev.diagnosisNotes : '',
         entryTimestamp: value === 'Private' ? prev.entryTimestamp : '',
         exitTimestamp: value === 'Private' ? prev.exitTimestamp : '',
       }));
@@ -249,7 +246,6 @@ const HorsesPage = () => {
         passportNumber: formData.passportNumber.trim() || null,
         ownerName: isPrivateHorse ? formData.ownerName : null,
         ownerPhone: isPrivateHorse ? formData.ownerPhone : null,
-        diagnosisNotes: isPrivateHorse ? formData.diagnosisNotes : null,
         entryTimestamp: isPrivateHorse ? formData.entryTimestamp : null,
         exitTimestamp: isPrivateHorse ? formData.exitTimestamp || null : null,
       });
@@ -274,7 +270,6 @@ const HorsesPage = () => {
         passportNumber: '',
         ownerName: '',
         ownerPhone: '',
-        diagnosisNotes: '',
         entryTimestamp: '',
         exitTimestamp: '',
       });
@@ -330,7 +325,6 @@ const HorsesPage = () => {
       passportNumber: '',
       ownerName: '',
       ownerPhone: '',
-      diagnosisNotes: '',
       entryTimestamp: '',
       exitTimestamp: '',
     });
@@ -423,7 +417,6 @@ const HorsesPage = () => {
       'Status': h.status,
       'Owner Name': h.ownerName || '',
       'Owner Phone': h.ownerContact || '',
-      'Diagnosis Notes': h.privateDiagnosisNotes || '',
       'Entry Timestamp': h.privateEntryAt ? new Date(h.privateEntryAt).toLocaleString() : '',
       'Exit Timestamp': h.privateExitAt ? new Date(h.privateExitAt).toLocaleString() : '',
       'Manager': h.supervisor?.fullName || '-',
@@ -735,10 +728,6 @@ const HorsesPage = () => {
                     <div>
                       <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Exit Timestamp')}</label>
                       <input id="exitTimestamp" type="datetime-local" name="exitTimestamp" value={formData.exitTimestamp} onChange={handleInputChange} disabled={loading} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
-                    </div>
-                    <div className="md:col-span-2 xl:col-span-3">
-                      <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Diagnosis Notes')}</label>
-                      <textarea id="diagnosisNotes" name="diagnosisNotes" value={formData.diagnosisNotes} onChange={handleInputChange} disabled={loading} rows="3" placeholder="Diagnosis or notes for this private horse entry" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none resize-none" />
                     </div>
                   </>
                 )}

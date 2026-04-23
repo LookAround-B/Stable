@@ -76,6 +76,6 @@ export default async function handler(
     return res.status(200).json({ data: pendingLogs })
   } catch (error: any) {
     console.error('Error fetching pending medicine logs:', error)
-    return res.status(500).json({ error: 'Failed to fetch pending medicine logs' })
+    return res.status(500).json({ error: 'Failed to fetch pending treatment logs' })
   }
 }

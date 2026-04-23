@@ -32,6 +32,8 @@ const createEmptyForm = () => ({
   supplyName: "",
   collectedById: "",
   collectedAt: getLocalDateTimeString(),
+  grassLoadReceived: "",
+  weightInTons: "",
   notes: "",
 });
 
@@ -106,10 +108,6 @@ const GrassBeddingPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.horseId || !formData.supplyName || !formData.collectedById || !formData.collectedAt) {
-      showMsg("Horse, name, collector and timestamp are required", "error");
-      return;
-    }
 
     try {
       if (editingId) {
@@ -133,6 +131,9 @@ const GrassBeddingPage = () => {
       supplyName: item.supplyName || "",
       collectedById: item.collectedById || "",
       collectedAt: item.collectedAt ? new Date(item.collectedAt).toISOString().slice(0, 16) : getLocalDateTimeString(),
+      grassLoadReceived:
+        item.grassLoadReceived === true ? "Yes" : item.grassLoadReceived === false ? "No" : "",
+      weightInTons: item.weightInTons != null ? String(item.weightInTons) : "",
       notes: item.notes || "",
     });
     setEditingId(item.id);
@@ -160,6 +161,8 @@ const GrassBeddingPage = () => {
     "Name": item.supplyName || "",
     "Collected By": item.collectedBy?.fullName || "",
     "Timestamp": item.collectedAt ? new Date(item.collectedAt).toLocaleString("en-IN") : "",
+    "Grass Load Received": item.grassLoadReceived === true ? "Yes" : item.grassLoadReceived === false ? "No" : "",
+    "Weight In Tons": item.weightInTons ?? "",
     "Notes": item.notes || "",
   }));
 
@@ -191,7 +194,7 @@ const GrassBeddingPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Grass <span className="text-primary">&amp; Bedding</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Track grass and bedding collection by horse and collector.</p>
+          <p className="text-sm text-muted-foreground mt-1">Track grass and bedding collection, load receipt, and tonnage.</p>
         </div>
         <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
           {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Entry")}</>}
@@ -223,24 +226,32 @@ const GrassBeddingPage = () => {
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse")}</label>
                     <SearchableSelect name="horseId" value={formData.horseId} onChange={handleInputChange} options={[{ value: "", label: t("Select Horse") }, ...horses.map((horse) => ({ value: horse.id, label: `${horse.name}${horse.stableNumber ? ` (${horse.stableNumber})` : ""}` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Type *")}</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Type")}</label>
                     <SearchableSelect name="entryType" value={formData.entryType} onChange={handleInputChange} options={ENTRY_TYPES.map((type) => ({ value: type, label: type }))} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{formData.entryType === "Bedding" ? t("Bedding Name *") : t("Grass Name *")}</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{formData.entryType === "Bedding" ? t("Bedding Name") : t("Grass Name")}</label>
                     <input type="text" name="supplyName" value={formData.supplyName} onChange={handleInputChange} maxLength={120} placeholder={formData.entryType === "Bedding" ? "e.g. Pine Shavings" : "e.g. Lucerne Grass"} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Collected By *")}</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Collected By")}</label>
                     <SearchableSelect name="collectedById" value={formData.collectedById} onChange={handleInputChange} options={[{ value: "", label: t("Select Employee") }, ...employees.map((employee) => ({ value: employee.id, label: `${employee.fullName} (${employee.designation})` }))]} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Timestamp *")}</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Timestamp")}</label>
                     <input type="datetime-local" name="collectedAt" value={formData.collectedAt} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Grass Load Received")}</label>
+                    <SearchableSelect name="grassLoadReceived" value={formData.grassLoadReceived} onChange={handleInputChange} searchable={false} options={[{ value: "", label: t("Select") }, { value: "Yes", label: "Yes" }, { value: "No", label: "No" }]} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Weight In Tons")}</label>
+                    <input type="number" name="weightInTons" value={formData.weightInTons} onChange={handleInputChange} min="0" step="100" placeholder="100" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                 </div>
                 <div>
@@ -289,7 +300,7 @@ const GrassBeddingPage = () => {
               <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {["HORSE", "TYPE", "NAME", "COLLECTED BY", "TIMESTAMP", "NOTES", ""].map((header) => (
+                  {["HORSE", "TYPE", "NAME", "COLLECTED BY", "TIMESTAMP", "LOAD RECEIVED", "WEIGHT", "NOTES", ""].map((header) => (
                       <th key={header || "actions"} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{header}</th>
                     ))}
                   </tr>
@@ -307,6 +318,8 @@ const GrassBeddingPage = () => {
                       <td className="px-6 py-4 text-sm text-foreground">{item.supplyName}</td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">{item.collectedBy?.fullName || "-"}</td>
                       <td className="px-6 py-4 text-xs mono-data text-foreground">{item.collectedAt ? new Date(item.collectedAt).toLocaleString("en-IN") : "-"}</td>
+                      <td className="px-6 py-4 text-sm text-foreground">{item.grassLoadReceived === true ? "Yes" : item.grassLoadReceived === false ? "No" : "-"}</td>
+                      <td className="px-6 py-4 text-sm text-foreground">{item.weightInTons ?? "-"}</td>
                       <td className="px-6 py-4 text-sm text-muted-foreground max-w-[240px] truncate">{item.notes || "-"}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1">

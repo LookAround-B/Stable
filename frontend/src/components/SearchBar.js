@@ -44,7 +44,7 @@ const NAVIGATION_ITEMS = [
   { to: '/pending-approvals', label: 'Approvals', group: 'Tasks & Approvals', icon: CheckSquare },
   { to: '/meetings', label: 'Meetings', group: 'Tasks & Approvals', icon: CheckSquare },
   // Stable Operations
-  { to: '/medicine-logs', label: 'Medicine Logs', group: 'Stable Operations', icon: Stethoscope },
+  { to: '/medicine-logs', label: 'Treatment Logs', group: 'Stable Operations', icon: Stethoscope },
   { to: '/horse-care-team', label: 'Care Teams', group: 'Stable Operations', icon: Stethoscope },
   { to: '/medicine-inventory', label: 'Medicine Inventory', group: 'Stable Operations', icon: Stethoscope },
   { to: '/horse-feeds', label: 'Horse Feeds', group: 'Stable Operations', icon: Stethoscope },
@@ -109,7 +109,7 @@ const ENTITY_CONFIG = {
   },
   medicineLogs: {
     icon: Pill,
-    label: 'Medicine Logs',
+    label: 'Treatment Logs',
     route: '/medicine-logs',
     getName: (item) => item.medicineName || item.name || `Log #${item.id}`,
     getMeta: (item) => item.horseName || item.status,

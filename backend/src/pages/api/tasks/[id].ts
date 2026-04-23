@@ -603,12 +603,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
             .status(400)
             .json({ error: 'Horse is required for riding bookings' })
         }
-        if (!nextInstructorId) {
-          return res
-            .status(400)
-            .json({ error: 'Instructor is required for riding bookings' })
-        }
-        if (!instructor || instructor.designation !== 'Instructor') {
+        if (nextInstructorId && (!instructor || instructor.designation !== 'Instructor')) {
           return res.status(400).json({ error: 'Selected instructor is invalid' })
         }
         if (assignedEmployee.designation !== 'Jamedar') {
@@ -678,7 +673,7 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         const normalizedBookingSlot = nextBookingSlot as string
 
         nextHorseName = horse!.name
-        nextInstructorName = instructor.fullName
+        nextInstructorName = instructor?.fullName || ''
         updateData.name = buildBookingTaskName({
           bookingRideType: normalizedBookingRideType,
           horseName: nextHorseName,
@@ -961,9 +956,9 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
               : buildBookingNotificationMessage({
                   action,
                   horseName: nextHorseName,
-                  instructorName: nextInstructorName,
+                  instructorName: nextInstructorName || null,
                   bookingCategory: nextBookingCategory || 'Normal Riding',
-                  bookingRideType: nextBookingRideType || 'Instructor Book',
+                  bookingRideType: nextBookingRideType || (nextBookingCategory || 'Normal Riding'),
                   bookingDestination: nextBookingDestination,
                   bookingSlot: nextBookingSlot || '',
                   scheduledDate: nextScheduledTime,

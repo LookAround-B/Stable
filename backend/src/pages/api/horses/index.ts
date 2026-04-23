@@ -150,7 +150,6 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
       passportNumber,
       ownerName,
       ownerPhone,
-      diagnosisNotes,
       entryTimestamp,
       exitTimestamp,
     } = req.body
@@ -223,9 +222,6 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
       if (!privateEntryAt) {
         return res.status(400).json({ error: 'Entry timestamp is required for private horses' })
       }
-      if (diagnosisNotes && !isValidString(diagnosisNotes, 0, 2000)) {
-        return res.status(400).json({ error: 'Diagnosis notes must be under 2000 characters' })
-      }
       if (exitTimestamp && !privateExitAt) {
         return res.status(400).json({ error: 'Exit timestamp must be a valid date/time' })
       }
@@ -257,10 +253,6 @@ async function handleCreateHorse(req: NextApiRequest, res: NextApiResponse) {
           normalizedEntryType === 'Private' ? sanitizeString(ownerName) : null,
         ownerContact:
           normalizedEntryType === 'Private' ? sanitizeString(ownerPhone) : null,
-        privateDiagnosisNotes:
-          normalizedEntryType === 'Private' && diagnosisNotes
-            ? sanitizeString(diagnosisNotes)
-            : null,
         privateEntryAt: normalizedEntryType === 'Private' ? privateEntryAt : null,
         privateExitAt:
           normalizedEntryType === 'Private' ? privateExitAt || null : null,

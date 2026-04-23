@@ -252,6 +252,10 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
     const isRideBookingTask = isBookingTaskType(type)
     const isAccommodationBookingTask = isAccommodationTaskType(type)
     const isAnyBookingTask = isTaskBookingType(type)
+    const normalizedInstructorId =
+      instructorId && typeof instructorId === 'string' && instructorId.trim()
+        ? instructorId
+        : null
 
     if (!isValidString(customerName, 1, 200) && isAnyBookingTask) {
       return res.status(400).json({ error: 'Customer name is required for bookings' })
@@ -296,7 +300,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
         : Promise.resolve(null),
       instructorId
         ? prisma.employee.findUnique({
-            where: { id: instructorId },
+            where: { id: normalizedInstructorId! },
             select: { id: true, fullName: true, designation: true },
           })
         : Promise.resolve(null),
@@ -316,10 +320,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       if (!horseId) {
         return res.status(400).json({ error: 'Horse is required for riding bookings' })
       }
-      if (!instructorId) {
-        return res.status(400).json({ error: 'Instructor is required for riding bookings' })
-      }
-      if (!instructor || instructor.designation !== 'Instructor') {
+      if (normalizedInstructorId && (!instructor || instructor.designation !== 'Instructor')) {
         return res.status(400).json({ error: 'Selected instructor is invalid' })
       }
       if (assignedEmployee.designation !== 'Jamedar') {
@@ -430,7 +431,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
         name: sanitizedName,
         type: sanitize(type),
         horseId: horseId && horseId.trim() ? horseId : null, // Convert empty string to null
-        instructorId: isRideBookingTask ? instructorId : null,
+        instructorId: isRideBookingTask ? normalizedInstructorId : null,
         assignedEmployeeId,
         createdById: userId,
         scheduledTime: parsedScheduled,
@@ -473,7 +474,7 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
         ? buildBookingNotificationMessage({
             action: 'created',
             horseName: horse!.name,
-            instructorName: instructor!.fullName,
+            instructorName: instructor?.fullName || null,
             bookingCategory,
             bookingRideType: resolvedBookingRideType!,
             bookingDestination:

@@ -286,9 +286,9 @@ const ApprovalTasksPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('Task & Medicine Approvals')}</h1>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('Task & Treatment Approvals')}</h1>
           <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-            {t('Review and approve tasks and medicine logs')}
+            {t('Review and approve tasks and treatment logs')}
           </p>
         </div>
         <div className="w-full lg:w-auto bg-surface-container-highest rounded-xl p-4 edge-glow flex items-center gap-4">

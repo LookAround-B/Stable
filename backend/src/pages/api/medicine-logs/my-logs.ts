@@ -83,6 +83,6 @@ export default async function handler(
     return res.status(200).json({ data: myLogs })
   } catch (error: any) {
     console.error('Error fetching my medicine logs:', error)
-    return res.status(500).json({ error: 'Failed to fetch medicine logs' })
+    return res.status(500).json({ error: 'Failed to fetch treatment logs' })
   }
 }

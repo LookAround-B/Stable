@@ -1,4 +1,4 @@
-export const BOOKING_TASK_TYPE = 'Riding Booking' as const
+export const BOOKING_TASK_TYPE = 'Work Record' as const
 export const ACCOMMODATION_TASK_TYPE = 'Accommodation Booking' as const
 
 export const TASK_BOOKING_TYPES = [
@@ -8,11 +8,13 @@ export const TASK_BOOKING_TYPES = [
 
 export const BOOKING_CATEGORY_OPTIONS = [
   'Normal Riding',
+  'Casual Rides',
   'Fun Rides',
 ] as const
 
 export const BOOKING_RIDE_TYPE_OPTIONS = [
-  'Instructor Book',
+  'Normal Riding',
+  'Casual Rides',
   'Pony Ride',
   'Hack',
 ] as const
@@ -98,7 +100,11 @@ export function resolveBookingRideType(
   bookingRideType?: string | null
 ): (typeof BOOKING_RIDE_TYPE_OPTIONS)[number] | null {
   if (bookingCategory === 'Normal Riding') {
-    return 'Instructor Book'
+    return 'Normal Riding'
+  }
+
+  if (bookingCategory === 'Casual Rides') {
+    return 'Casual Rides'
   }
 
   if (
@@ -139,7 +145,7 @@ export function buildBookingTaskName(params: {
 export function buildBookingNotificationMessage(params: {
   action: 'created' | 'updated' | 'cancelled'
   horseName: string
-  instructorName: string
+  instructorName?: string | null
   bookingCategory: string
   bookingRideType: string
   bookingSlot: string
@@ -155,7 +161,10 @@ export function buildBookingNotificationMessage(params: {
   const destinationLabel = params.bookingDestination
     ? ` (${params.bookingDestination})`
     : ''
-  const bookingSummary = `${params.bookingRideType}${destinationLabel} for ${params.horseName} with ${params.instructorName} on ${dateLabel} at ${slotLabel}`
+  const instructorLabel = params.instructorName
+    ? ` with ${params.instructorName}`
+    : ''
+  const bookingSummary = `${params.bookingRideType}${destinationLabel} for ${params.horseName}${instructorLabel} on ${dateLabel} at ${slotLabel}`
 
   if (params.action === 'created') {
     return `A ${params.bookingCategory.toLowerCase()} booking was created: ${bookingSummary}.`

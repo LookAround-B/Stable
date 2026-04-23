@@ -62,6 +62,7 @@ const MedicineLogsPage = () => {
   const [formData, setFormData] = useState({
     horseId: '',
     medicineName: '',
+    diagnosis: '',
     quantity: '',
     unit: 'ml',
     timeAdministered: new Date().toISOString().slice(0, 16),
@@ -94,7 +95,7 @@ const MedicineLogsPage = () => {
     } catch (error) {
       console.error('Error loading logs:', error);
       setLogs([]);
-      showMessage('Failed to load medicine logs', 'error');
+      showMessage('Failed to load treatment logs', 'error');
     } finally {
       setLoading(false);
     }
@@ -188,6 +189,7 @@ const MedicineLogsPage = () => {
         jamiedarId: user.id,
         horseId: formData.horseId,
         medicineName: formData.medicineName,
+        diagnosis: formData.diagnosis || '',
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
         timeAdministered: new Date(formData.timeAdministered).toISOString(),
@@ -196,11 +198,12 @@ const MedicineLogsPage = () => {
       };
 
       await medicineLogService.createMedicineLog(submitData);
-      showMessage('✓ Medicine log created successfully');
+      showMessage('Treatment log created successfully');
       
       setFormData({
         horseId: '',
         medicineName: '',
+        diagnosis: '',
         quantity: '',
         unit: 'ml',
         timeAdministered: new Date().toISOString().slice(0, 16),
@@ -210,7 +213,7 @@ const MedicineLogsPage = () => {
       setShowForm(false);
       loadLogs();
     } catch (error) {
-      showMessage(error.message || 'Failed to create medicine log', 'error');
+      showMessage(error.message || 'Failed to create treatment log', 'error');
     } finally {
       setLoading(false);
     }
@@ -239,7 +242,7 @@ const MedicineLogsPage = () => {
     try {
       setLoading(true);
       await medicineLogService.approveMedicineLog(id, 'Approved by ' + user.fullName);
-      showMessage('✓ Medicine log approved');
+      showMessage('Treatment log approved');
       loadLogs();
     } catch (error) {
       showMessage('Failed to approve record', 'error');
@@ -255,7 +258,7 @@ const MedicineLogsPage = () => {
     try {
       setLoading(true);
       await medicineLogService.rejectMedicineLog(id, reason);
-      showMessage('✓ Medicine log rejected');
+      showMessage('Treatment log rejected');
       loadLogs();
     } catch (error) {
       showMessage('Failed to reject record', 'error');
@@ -275,6 +278,7 @@ const MedicineLogsPage = () => {
       'Date': l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB') : '',
       'Horse': l.horse?.name || '',
       'Medicine': l.medicineName,
+      'Diagnosis': l.diagnosis || '',
       'Quantity': l.quantity,
       'Unit': l.unit,
       'Time Administered': l.timeAdministered || '',
@@ -286,15 +290,15 @@ const MedicineLogsPage = () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No data to download'); return; }
     await writeRowsToXlsx(data, {
-      sheetName: 'Medicine Logs',
-      fileName: `MedicineLogs_${new Date().toISOString().slice(0,10)}.xlsx`,
+      sheetName: 'Treatment Logs',
+      fileName: `TreatmentLogs_${new Date().toISOString().slice(0,10)}.xlsx`,
     });
   };
 
   const handleDownloadCSV = () => {
     const data = getExportRows();
     if (!data.length) { showNoExportDataToast('No data to download'); return; }
-    downloadCsvFile(data, `MedicineLogs_${new Date().toISOString().slice(0,10)}.csv`);
+    downloadCsvFile(data, `TreatmentLogs_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   if (!p.viewMedicineLogs) return <Navigate to="/dashboard" replace />;
@@ -331,6 +335,7 @@ const MedicineLogsPage = () => {
     return (
       (log.horse?.name || horseMap[log.horseId] || '').toLowerCase().includes(term) ||
       (log.medicineName || '').toLowerCase().includes(term) ||
+      (log.diagnosis || '').toLowerCase().includes(term) ||
       (log.jamedar?.fullName || '').toLowerCase().includes(term)
     );
   });
@@ -346,15 +351,15 @@ const MedicineLogsPage = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">{t("Logs")}</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('Track medicine administration records and treatment history.')}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Treatment <span className="text-primary">{t("Logs")}</span></h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('Track treatment administration records and diagnosis history.')}</p>
         </div>
         <div className="hidden sm:flex gap-2">
           <ExportDialog
-            title={t("Export Medicine Logs")}
+            title={t("Export Treatment Logs")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export medicine logs")} title={t("Export medicine logs")}>
+              <button className="h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center" type="button" aria-label={t("Export treatment logs")} title={t("Export treatment logs")}>
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
@@ -379,13 +384,13 @@ const MedicineLogsPage = () => {
       {selectedTab === 'all-logs' && !loading && filteredLogs.length > 0 && (
         <div className="medicine-logs-export-row sm:hidden">
           <ExportDialog
-            title={t("Export Medicine Logs")}
+            title={t("Export Treatment Logs")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
               <button
                 className="medicine-logs-export-mobile btn-download"
-                aria-label={t("Export medicine logs")}
-                title={t("Export medicine logs")}
+                aria-label={t("Export treatment logs")}
+                title={t("Export treatment logs")}
                 type="button"
               >
                 <Download className="w-4 h-4" />
@@ -429,7 +434,7 @@ const MedicineLogsPage = () => {
                 <input
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  placeholder={t("Search horse or medicine...")}
+                  placeholder={t("Search horse, medicine or diagnosis...")}
                   className="h-8 pl-8 pr-3 w-52 rounded-lg bg-surface-container-high text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
                 {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>}
@@ -451,7 +456,7 @@ const MedicineLogsPage = () => {
                 <input
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  placeholder={t("Search horse or medicine...")}
+                  placeholder={t("Search horse, medicine or diagnosis...")}
                   className="h-9 pl-8 pr-3 w-full rounded-lg bg-surface-container-high border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
@@ -465,7 +470,7 @@ const MedicineLogsPage = () => {
               <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {['HORSE', 'MEDICINE', 'QUANTITY', 'TIME', 'SUBMITTED BY', 'STATUS'].map(h => (
+                  {['HORSE', 'MEDICINE', 'DIAGNOSIS', 'QUANTITY', 'TIME', 'SUBMITTED BY', 'STATUS'].map(h => (
                       <th key={h} className="px-4 sm:px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
                     ))}
                   </tr>
@@ -475,6 +480,7 @@ const MedicineLogsPage = () => {
                     <tr key={log.id} className="border-b border-border/50 hover:bg-surface-container-high/50 transition-colors">
                       <td className="px-4 sm:px-6 py-4 font-semibold text-sm text-foreground">{log.horse?.name || horseMap[log.horseId] || 'Unknown'}</td>
                       <td className="px-4 sm:px-6 py-4 text-sm text-foreground">{log.medicineName}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-foreground">{log.diagnosis || '-'}</td>
                       <td className="px-4 sm:px-6 py-4 mono-data text-sm text-foreground">{log.quantity} {log.unit}</td>
                       <td className="px-4 sm:px-6 py-4 mono-data text-xs text-foreground">{new Date(log.timeAdministered).toLocaleString()}</td>
                       <td className="px-4 sm:px-6 py-4 text-sm text-foreground">{log.jamedar?.fullName || 'Unknown'}</td>
@@ -485,7 +491,7 @@ const MedicineLogsPage = () => {
               </table>
             </div>
           ) : (
-            !loading && <p className="px-6 py-8 text-center text-sm text-muted-foreground">{t('No medicine logs found')}</p>
+            !loading && <p className="px-6 py-8 text-center text-sm text-muted-foreground">{t('No treatment logs found')}</p>
           )}
 
           {/* Footer count */}
@@ -506,7 +512,7 @@ const MedicineLogsPage = () => {
               onClick={() => setShowForm(!showForm)}
               disabled={loading}
             >
-              {showForm ? '✕ Cancel' : '+ Add Medicine Log'}
+              {showForm ? '✕ Cancel' : '+ Add Treatment Log'}
             </button>
           </div>
 
@@ -515,7 +521,7 @@ const MedicineLogsPage = () => {
             <div className="efm-page-modal-overlay fixed inset-0 z-[60] flex items-start justify-center overflow-hidden bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => setShowForm(false)}>
               <div className="my-auto flex w-full max-w-2xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest edge-glow xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
-                  <h3 className="text-xl font-bold text-foreground">{t("Add Medicine Log")}</h3>
+                  <h3 className="text-xl font-bold text-foreground">{t("Add Treatment Log")}</h3>
                   <button type="button" onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                     <X className="w-5 h-5" />
                   </button>
@@ -546,6 +552,16 @@ const MedicineLogsPage = () => {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Diagnosis")}</label>
+                  <textarea name="diagnosis" value={formData.diagnosis} onChange={handleFormChange} placeholder={t("Diagnosis or treatment reason...")} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
+                  <textarea name="notes" value={formData.notes} onChange={handleFormChange} placeholder={t("Additional treatment notes...")} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Quantity *")}</label>
@@ -565,10 +581,6 @@ const MedicineLogsPage = () => {
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Notes")}</label>
-                <textarea name="notes" value={formData.notes} onChange={handleFormChange} placeholder={t("Additional notes about the medication...")} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
-              </div>
-              <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Treatment Photo")}</label>
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 {formData.photoUrl && (
@@ -577,7 +589,7 @@ const MedicineLogsPage = () => {
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" disabled={loading} className="btn-save-primary">
-                  {loading ? 'Submitting...' : 'Submit Log'}
+                  {loading ? 'Submitting...' : 'Submit Treatment Log'}
                 </button>
                 <button type="button" onClick={() => setShowForm(false)} disabled={loading} className="h-10 px-6 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">
                   Cancel
@@ -601,6 +613,7 @@ const MedicineLogsPage = () => {
                   </div>
                   <div className="space-y-1.5 text-sm">
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[70px]">Horse:</span> <strong className="text-foreground">{horseMap[log.horseId] || 'Unknown'}</strong></div>
+                    {log.diagnosis && <div className="flex gap-2"><span className="text-muted-foreground min-w-[70px]">Diagnosis:</span> <strong className="text-foreground">{log.diagnosis}</strong></div>}
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[70px]">Quantity:</span> <strong className="text-foreground">{log.quantity} {log.unit}</strong></div>
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[70px]">Time:</span> <strong className="text-foreground">{new Date(log.timeAdministered).toLocaleString('en-IN')}</strong></div>
                   </div>
@@ -628,7 +641,7 @@ const MedicineLogsPage = () => {
               ))}
             </div>
           ) : (
-            !loading && <p className="text-center py-8 text-sm text-muted-foreground">{t('No medicine logs yet')}</p>
+            !loading && <p className="text-center py-8 text-sm text-muted-foreground">{t('No treatment logs yet')}</p>
           )}
         </div>
       )}
@@ -644,10 +657,11 @@ const MedicineLogsPage = () => {
                 <div key={log.id} className="bg-surface-container-highest rounded-xl p-5 edge-glow border border-primary/10 hover:border-primary/30 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-bold text-foreground">{log.medicineName}</h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider">{t("Medicine Log")}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary uppercase tracking-wider">{t("Treatment Log")}</span>
                   </div>
                   <div className="space-y-1.5 text-sm">
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[80px]">Horse:</span> <strong className="text-foreground">{horseMap[log.horseId] || 'Unknown'}</strong></div>
+                    {log.diagnosis && <div className="flex gap-2"><span className="text-muted-foreground min-w-[80px]">Diagnosis:</span> <strong className="text-foreground">{log.diagnosis}</strong></div>}
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[80px]">Quantity:</span> <strong className="text-foreground">{log.quantity} {log.unit}</strong></div>
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[80px]">Time:</span> <strong className="text-foreground">{new Date(log.timeAdministered).toLocaleString('en-IN')}</strong></div>
                     <div className="flex gap-2"><span className="text-muted-foreground min-w-[80px]">Logged by:</span> <strong className="text-foreground">{log.jamedar?.fullName || 'Unknown'}</strong></div>
@@ -671,7 +685,7 @@ const MedicineLogsPage = () => {
               ))}
             </div>
           ) : (
-            !loading && <p className="text-center py-8 text-sm text-muted-foreground">{t('No pending medicine logs for approval')}</p>
+            !loading && <p className="text-center py-8 text-sm text-muted-foreground">{t('No pending treatment logs for approval')}</p>
           )}
         </div>
       )}
@@ -681,13 +695,14 @@ const MedicineLogsPage = () => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedLogForDetail(null)}>
           <div className="bg-surface-container-highest rounded-xl border border-border w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-bold text-foreground">{t("Medicine Log Details")}</h3>
+              <h3 className="text-lg font-bold text-foreground">{t("Treatment Log Details")}</h3>
               <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setSelectedLogForDetail(null)}>✕</button>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-2 text-sm">
                 <div className="flex gap-3"><span className="text-muted-foreground min-w-[100px] font-medium">Horse:</span> <strong className="text-foreground">{horseMap[selectedLogForDetail.horseId] || 'Unknown'}</strong></div>
                 <div className="flex gap-3"><span className="text-muted-foreground min-w-[100px] font-medium">Medicine:</span> <strong className="text-foreground">{selectedLogForDetail.medicineName}</strong></div>
+                {selectedLogForDetail.diagnosis && <div className="flex gap-3"><span className="text-muted-foreground min-w-[100px] font-medium">Diagnosis:</span> <strong className="text-foreground">{selectedLogForDetail.diagnosis}</strong></div>}
                 <div className="flex gap-3"><span className="text-muted-foreground min-w-[100px] font-medium">Quantity:</span> <strong className="text-foreground">{selectedLogForDetail.quantity} {selectedLogForDetail.unit}</strong></div>
                 <div className="flex gap-3"><span className="text-muted-foreground min-w-[100px] font-medium">Time:</span> <strong className="text-foreground">{new Date(selectedLogForDetail.timeAdministered).toLocaleString('en-IN')}</strong></div>
                 <div className="flex gap-3"><span className="text-muted-foreground min-w-[100px] font-medium">Status:</span> {getStatusBadge(selectedLogForDetail.approvalStatus)}</div>

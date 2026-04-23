@@ -583,7 +583,6 @@ const TasksPage = () => {
         (!isBookingFormTask && !formData.name) ||
         (isRideBookingFormTask &&
           (!formData.horseId ||
-            !formData.instructorId ||
             !formData.bookingSlot ||
             !trimmedCustomerName ||
             !trimmedCustomerPhone ||
@@ -625,9 +624,9 @@ const TasksPage = () => {
         scheduledTime: formData.startDate ? `${formData.startDate}T${scheduledTimeValue}` : '',
         endTime: formData.endDate ? `${formData.endDate}T${formData.endTime || '17:00'}` : '',
         bookingRideType:
-          isRideBookingFormTask && formData.bookingCategory === 'Normal Riding'
-            ? 'Instructor Book'
-            : formData.bookingRideType,
+          isRideBookingFormTask && formData.bookingCategory === 'Fun Rides'
+            ? formData.bookingRideType
+            : '',
         horseId: isAccommodationBookingFormTask ? '' : formData.horseId,
         instructorId: isRideBookingFormTask ? formData.instructorId : '',
         customerName: isBookingFormTask ? trimmedCustomerName : '',
@@ -1116,7 +1115,7 @@ const TasksPage = () => {
           formData.bookingCategory,
           formData.bookingCategory === 'Fun Rides'
             ? (formData.bookingRideType || 'Select fun ride')
-            : 'Instructor Book',
+            : '',
         formData.bookingDestination ? `Where: ${formData.bookingDestination}` : '',
         selectedInstructor?.fullName ? `Instructor: ${selectedInstructor.fullName}` : '',
         formData.customerName ? `Client: ${formData.customerName}` : '',
@@ -1468,12 +1467,12 @@ const TasksPage = () => {
                   {t(
                     editingTaskId
                       ? isRideBookingFormTask
-                        ? 'Edit Riding Booking'
+                        ? 'Edit Work Record'
                         : isAccommodationBookingFormTask
                           ? 'Edit Accommodation Booking'
                           : 'Edit Task'
                       : isRideBookingFormTask
-                        ? 'Create Riding Booking'
+                        ? 'Create Work Record'
                         : isAccommodationBookingFormTask
                           ? 'Create Accommodation Booking'
                           : 'Create New Task'
@@ -1574,8 +1573,8 @@ const TasksPage = () => {
                   {isRideBookingFormTask && (
                     <>
                       <div>
-                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Instructor *")}</label>
-                        <SearchableSelect name="instructorId" value={formData.instructorId} onChange={handleInputChange} placeholder={t("Select instructor")} required options={[{ value: '', label: 'Select instructor' }, ...instructorOptions]} />
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Instructor (Optional)")}</label>
+                        <SearchableSelect name="instructorId" value={formData.instructorId} onChange={handleInputChange} placeholder={t("Select instructor")} options={[{ value: '', label: 'Select instructor' }, ...instructorOptions]} />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Lead/Groom Name")}</label>

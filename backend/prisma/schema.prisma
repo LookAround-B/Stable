@@ -192,7 +192,7 @@ model Task {
   packagePrice          Float?
   gstAmount             Float?
   bookingCategory       String?     // 'Normal Riding', 'Fun Rides'
-  bookingRideType       String?     // 'Instructor Book', 'Pony Ride', 'Hack'
+  bookingRideType       String?     // 'Normal Riding', 'Casual Rides', 'Pony Ride', 'Hack'
   bookingDestination    String?     // 'Inside', 'Outside'
   bookingSlot           String?     // '6', '7', '8', '9', '10', '3', '4', '5'
   accommodationCheckIn  DateTime?
@@ -358,6 +358,7 @@ model MedicineLog {
   horseId               String
   horse                 Horse       @relation("medicineLogs", fields: [horseId], references: [id], onDelete: Cascade)
   medicineName          String
+  diagnosis             String?
   quantity              Float
   unit                  String      @default("ml") // ml, g, tablets, vials, etc.
   timeAdministered      DateTime
@@ -825,6 +826,7 @@ model FarrierShoeing {
   farrier               Employee    @relation("farrierShoeings", fields: [farrierId], references: [id], onDelete: Cascade)
   shoeingDate           DateTime
   nextDueDate           DateTime    // shoeingDate + 21 days
+  shoeChanged           Boolean     @default(true)
   numberOfLegs          Int         @default(4)
   notes                 String?
   createdAt             DateTime    @default(now())
@@ -938,13 +940,15 @@ model HousekeepingInventory {
 
 model GrassBeddingEntry {
   id                    String      @id @default(cuid())
-  horseId               String
-  horse                 Horse       @relation("grassBeddingHorse", fields: [horseId], references: [id], onDelete: Cascade)
+  horseId               String?
+  horse                 Horse?      @relation("grassBeddingHorse", fields: [horseId], references: [id], onDelete: SetNull)
   entryType             String      @default("Grass") // 'Grass' or 'Bedding'
-  supplyName            String
-  collectedById         String
-  collectedBy           Employee    @relation("grassBeddingCollectedBy", fields: [collectedById], references: [id], onDelete: Cascade)
-  collectedAt           DateTime
+  supplyName            String?
+  collectedById         String?
+  collectedBy           Employee?   @relation("grassBeddingCollectedBy", fields: [collectedById], references: [id], onDelete: SetNull)
+  collectedAt           DateTime?
+  grassLoadReceived     Boolean?
+  weightInTons          Int?
   notes                 String?
   createdById           String
   createdBy             Employee    @relation("grassBeddingCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)

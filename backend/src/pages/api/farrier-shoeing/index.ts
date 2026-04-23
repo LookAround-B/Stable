@@ -168,7 +168,7 @@ async function handlePost(
     })
   }
 
-  const { horseId, farrierId, shoeingDate, notes, numberOfLegs } = req.body
+  const { horseId, farrierId, shoeingDate, notes, numberOfLegs, shoeChanged } = req.body
 
   if (!isValidId(horseId)) {
     return res.status(400).json({ error: 'Valid horseId is required' })
@@ -181,6 +181,19 @@ async function handlePost(
   }
   if (notes && !isValidString(notes, 0, 1000)) {
     return res.status(400).json({ error: 'Notes must be max 1000 chars' })
+  }
+
+  let parsedShoeChanged = true
+  if (shoeChanged !== undefined) {
+    if (typeof shoeChanged === 'boolean') {
+      parsedShoeChanged = shoeChanged
+    } else if (shoeChanged === 'Yes') {
+      parsedShoeChanged = true
+    } else if (shoeChanged === 'No') {
+      parsedShoeChanged = false
+    } else {
+      return res.status(400).json({ error: 'shoeChanged must be Yes or No' })
+    }
   }
 
   const parsedLegCount =
@@ -218,6 +231,7 @@ async function handlePost(
       farrierId,
       shoeingDate: shoeingDateObj,
       nextDueDate,
+      shoeChanged: parsedShoeChanged,
       numberOfLegs: parsedLegCount,
       notes: notes ? sanitizeString(notes) : null,
     },

@@ -329,7 +329,7 @@ const ReportsPage = () => {
         'Approval Status': log.approvalStatus || '-',
       }));
       if (inspData.length > 0) XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(inspData), 'Inspections');
-      if (medData.length > 0) XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(medData), 'Medicine Logs');
+      if (medData.length > 0) XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(medData), 'Treatment Logs');
       if (inspData.length === 0 && medData.length === 0) return;
       XLSX.writeFile(workbook, `Health_Report_${dateStr}.xlsx`);
     } else if (tabId === 'work') {
@@ -393,7 +393,7 @@ const ReportsPage = () => {
           'Description/Medicine': insp.description || '-',
         })),
         ...medicineLogsData.map(log => ({
-          'Record Type': 'Medicine Log',
+          'Record Type': 'Treatment Log',
           'Date': formatDateTime(log.timeAdministered || log.createdAt),
           'Round': '-',
           'Horse': log.horse?.name || '-',
@@ -699,7 +699,7 @@ const ReportsPage = () => {
                 { label: t('Total Inspections'), value: healthStats.totalInspections, color: '#6366f1' },
                 { label: t('Open Issues'), value: healthStats.openInspections, color: '#f59e0b' },
                 { label: t('Critical/High'), value: healthStats.criticalInspections, color: '#ef4444' },
-                { label: t('Medicine Logs'), value: healthStats.totalMedicineLogs, color: '#22c55e' },
+                { label: t('Treatment Logs'), value: healthStats.totalMedicineLogs, color: '#22c55e' },
                 { label: t('Pending Approvals'), value: healthStats.pendingApprovals, color: '#8b5cf6' },
               ]} />
 
@@ -738,7 +738,7 @@ const ReportsPage = () => {
                 </div>
               </div>
 
-              <h3 className="text-base font-semibold text-foreground mb-3">{t('Medicine Logs')}</h3>
+              <h3 className="text-base font-semibold text-foreground mb-3">{t('Treatment Logs')}</h3>
               <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -764,7 +764,7 @@ const ReportsPage = () => {
                         </tr>
                       ))}
                       {medicineLogsData.length === 0 && (
-                        <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('No medicine logs found')}</td></tr>
+                        <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('No treatment logs found')}</td></tr>
                       )}
                     </tbody>
                   </table>
