@@ -47,6 +47,7 @@ const PermissionsPage = lazy(() => import('./pages/PermissionsPage'));
 const TackInventoryPage = lazy(() => import('./pages/TackInventoryPage'));
 const HousekeepingInventoryPage = lazy(() => import('./pages/HousekeepingInventoryPage'));
 const FarrierInventoryPage = lazy(() => import('./pages/FarrierInventoryPage'));
+const InstructorIncentivesPage = lazy(() => import('./pages/InstructorIncentivesPage'));
 const EntityMapPage = lazy(() => import('./pages/EntityMapPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
@@ -112,6 +113,7 @@ function App() {
                 <Route path="/tack-inventory" element={<TackInventoryPage />} />
                 <Route path="/housekeeping-inventory" element={<HousekeepingInventoryPage />} />
                 <Route path="/farrier-inventory" element={<FarrierInventoryPage />} />
+                <Route path="/instructor-incentives" element={<InstructorIncentivesPage />} />
                 <Route path="/entity-map" element={<EntityMapPage />} />
               </Route>
               

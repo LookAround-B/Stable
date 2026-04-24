@@ -84,6 +84,7 @@ const GROUPS = [
       { to: '/invoice-generation', label: 'Invoice Generation', permission: 'viewInvoiceGeneration' },
       { to: '/expenses', label: 'Expense Tracking', permission: 'viewExpenses' },
       { to: '/fines', label: 'Fine System', permission: 'viewFines' },
+      { to: '/instructor-incentives', label: 'Instructor Incentives', permission: 'isAdmin' },
     ],
   },
   {

@@ -78,6 +78,9 @@ model Employee {
   farrierInvCreated     FarrierInventory[] @relation("farrierInvCreatedBy")
   grassBeddingCollected GrassBeddingEntry[] @relation("grassBeddingCollectedBy")
   grassBeddingCreated   GrassBeddingEntry[] @relation("grassBeddingCreatedBy")
+  instructorIncentives  InstructorIncentive[] @relation("instructorIncentives")
+  approvedIncentives    InstructorIncentive[] @relation("approvedIncentives")
+  createdIncentives     InstructorIncentive[] @relation("createdIncentives")
 
   @@index([designation])
   @@index([department])
@@ -570,20 +573,25 @@ model HorseFeed {
   horseId               String
   horse                 Horse       @relation("horseFeedRecords", fields: [horseId], references: [id], onDelete: Cascade)
   date                  DateTime    // Date of feed record
-  
+
   // Feed quantities (in kg or standard units)
-  balance               Float?
-  barley                Float?
+  sports                Float?      // Sports feed
+  balance               Float?      // Balance feed
+  growth                Float?      // Growth feed
   oats                  Float?
+  barley                Float?
   soya                  Float?
-  lucerne               Float?
   linseed               Float?
-  rOil                  Float?      // R.Oil
-  biotin                Float?
-  joint                 Float?
-  epsom                 Float?
-  heylase               Float?
-  
+  bran                  Float?      // Bran
+  salt                  Float?      // Salt
+  dcp                   Float?      // DCP
+  epsom                 Float?      // Epsom salt
+  riceBranOil           Float?      // Rice bran oil
+  heylage               Float?      // Heylage
+  lucerne               Float?
+  electrolyte           Float?      // Electrolyte
+  diggyMax              Float?      // Diggy Max
+
   notes                 String?     // Optional notes
   temporaryMenuName     String?     // Temporary menu override name
   menuStartAt           DateTime?   // Temporary menu start time
@@ -992,4 +1000,32 @@ model FarrierInventory {
   @@index([farrierId])
   @@index([createdById])
   @@index([nextServiceDue])
+}
+
+// Instructor Incentives - Track instructor incentives with mode of payment
+model InstructorIncentive {
+  id                    String      @id @default(cuid())
+  instructorId          String
+  instructor            Employee    @relation("instructorIncentives", fields: [instructorId], references: [id], onDelete: Cascade)
+  date                  DateTime    // Date of incentive
+  amount                Float       // Incentive amount (minimum 1400 for eligibility)
+  paymentMode           String      // 'Cash', 'Bank Transfer', 'UPI', 'Cheque'
+  description           String?     // Optional description/reason
+  bookingId             String?     // Related booking task ID (optional)
+  lessonCount           Int         @default(0) // Number of lessons for this incentive
+  status                String      @default("Pending") // 'Pending', 'Approved', 'Paid', 'Rejected'
+  approvedById          String?
+  approvedBy            Employee?   @relation("approvedIncentives", fields: [approvedById], references: [id], onDelete: SetNull)
+  paidAt                DateTime?   // When incentive was paid
+  notes                 String?
+  createdById           String
+  createdBy             Employee    @relation("createdIncentives", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@index([instructorId])
+  @@index([date])
+  @@index([status])
+  @@index([approvedById])
+  @@index([createdById])
 }

@@ -5,7 +5,28 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  process.env.FRONTEND_URL,
+]).filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow non-browser requests (curl, Postman, mobile)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin '${origin}' not allowed`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Respond to all OPTIONS preflight requests
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
@@ -24,6 +45,7 @@ app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/medicine-inventory', require('./routes/medicineInventoryRoutes'));
 app.use('/api/medicine-logs', require('./routes/medicineLogRoutes'));
 app.use('/api/work-records', require('./routes/workRecordRoutes'));
+app.use('/api/instructor-incentives', require('./routes/instructorIncentiveRoutes'));
 // app.use('/api/inspections', require('./routes/inspectionRoutes'));
 
 // Error handling middleware

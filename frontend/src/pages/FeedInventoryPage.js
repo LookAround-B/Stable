@@ -15,8 +15,10 @@ import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
 
 const FEED_LABELS = {
-  balance: 'Himalayan Balance', barley: 'Barley', oats: 'Oats', soya: 'Soya', lucerne: 'Lucerne',
-  linseed: 'Linseed', rOil: 'R.Oil', biotin: 'Biotin', joint: 'Joint', epsom: 'Epsom', heylase: 'Heylase',
+  sports: 'Sports', balance: 'Balance', growth: 'Growth', oats: 'Oats', barley: 'Barley',
+  soya: 'Soya', linseed: 'Linseed', bran: 'Bran', salt: 'Salt', dcp: 'DCP',
+  epsom: 'Epsom Salt', riceBranOil: 'Rice Bran Oil', heylage: 'Heylage', lucerne: 'Lucerne',
+  electrolyte: 'Electrolyte', diggyMax: 'Diggy Max',
 };
 const FEED_TYPES = Object.keys(FEED_LABELS);
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
