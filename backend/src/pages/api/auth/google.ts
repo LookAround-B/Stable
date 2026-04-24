@@ -6,8 +6,9 @@ import {
   invalidateEmployeeCaches,
   invalidatePermissionCaches,
 } from '@/lib/cacheKeys'
-import { prisma } from '../../../lib/prisma';
+import prisma from '@/lib/prisma';
 import { setCorsHeaders } from '@/lib/cors'
+import { rateLimit } from '@/lib/rateLimit'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const origin = req.headers.origin
@@ -21,6 +22,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Only POST allowed
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
+  // Rate limit: 20 Google auth attempts per IP per minute
+  const limit = await rateLimit(req as any, { max: 20, windowSecs: 60, prefix: 'auth:google' })
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.resetAt - Math.floor(Date.now() / 1000)))
+    return res.status(429).json({ error: 'Too many requests. Please try again in a minute.' })
   }
 
   try {
@@ -39,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       ticket = await client.verifyIdToken({
         idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID || '244506553129-hcdjduecje6h3lt29umvdokatroau63p.apps.googleusercontent.com',
+        audience: process.env.GOOGLE_CLIENT_ID,
       });
     } catch (error) {
       console.error('Token verification error:', error);

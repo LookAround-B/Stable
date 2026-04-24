@@ -1,5 +1,18 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
+
+// ❌ Block seeding in production
+const env = process.env.NODE_ENV;
+if (env === 'production') {
+  console.error('🚫 Seeding is NOT allowed in production (NODE_ENV=production).');
+  console.error('   If you need to seed production, set ALLOW_PROD_SEED=true explicitly.');
+  if (process.env.ALLOW_PROD_SEED !== 'true') {
+    process.exit(1);
+  }
+}
+
+console.log(`🌱 Running seed in [${env || 'development'}] environment...`);
 
 const prisma = new PrismaClient();
 

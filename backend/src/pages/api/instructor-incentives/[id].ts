@@ -111,7 +111,7 @@ async function handleUpdateIncentive(
 }
 
 async function handleDeleteIncentive(
-  req: NextApiRequest,
+  _req: NextApiRequest,
   res: NextApiResponse,
   id: string
 ) {

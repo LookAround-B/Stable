@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '@/lib/prisma'
 import { generateToken, getTaskCapabilitiesForUser } from '@/lib/auth'
 import { setCorsHeaders } from '@/lib/cors'
+import { rateLimit } from '@/lib/rateLimit'
 import bcrypt from 'bcryptjs'
 import { isValidEmail, isValidString, validationError } from '@/lib/validate'
 
@@ -24,8 +25,17 @@ export default async function handler(
     return;
   }
 
+  // Rate limit: 10 login attempts per IP per minute
+  const limit = await rateLimit(req as any, { max: 10, windowSecs: 60, prefix: 'auth:login' })
+  if (!limit.allowed) {
+    res.setHeader('Retry-After', String(limit.resetAt - Math.floor(Date.now() / 1000)))
+    res.status(429).json({ error: 'Too many login attempts. Please try again in a minute.' })
+    return
+  }
+
   try {
     const { email, password } = req.body
+
 
     // Validate input
     if (!email || !isValidEmail(email)) {

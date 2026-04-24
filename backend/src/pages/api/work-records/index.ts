@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenFromRequest, verifyToken } from '../../lib/auth'
-import prisma from '../../lib/prisma'
-import { setCorsHeaders } from '../../lib/cors'
-import { sanitizeString, isValidString, isValidId, safeDate } from '../../lib/validate'
+import { getTokenFromRequest, verifyToken } from '@/lib/auth'
+import prisma from '@/lib/prisma'
+import { setCorsHeaders } from '@/lib/cors'
+import { sanitizeString, isValidString, isValidId, safeDate } from '@/lib/validate'
 
 export default async function handler(
   req: NextApiRequest,

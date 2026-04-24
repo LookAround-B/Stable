@@ -18,7 +18,8 @@
 /out/
 
 # production
-# /build  ← Commented out: we commit pre-built frontend from local builds
+/build
+build.log
 
 # misc
 .DS_Store

@@ -99,34 +99,45 @@ export default async function handler(
         summary[horseId] = {
           horseName,
           stableNumber,
+          sports: 0,
           balance: 0,
+          growth: 0,
           barley: 0,
           oats: 0,
           soya: 0,
           lucerne: 0,
           linseed: 0,
-          rOil: 0,
-          biotin: 0,
-          joint: 0,
+          bran: 0,
+          salt: 0,
+          dcp: 0,
           epsom: 0,
-          heylase: 0,
+          riceBranOil: 0,
+          heylage: 0,
+          electrolyte: 0,
+          diggyMax: 0,
           temporaryMenuName: null,
           menuStartAt: null,
           menuEndAt: null,
         }
       }
 
+      summary[horseId].sports += record.sports || 0
       summary[horseId].balance += record.balance || 0
+      summary[horseId].growth += record.growth || 0
       summary[horseId].barley += record.barley || 0
       summary[horseId].oats += record.oats || 0
       summary[horseId].soya += record.soya || 0
       summary[horseId].lucerne += record.lucerne || 0
       summary[horseId].linseed += record.linseed || 0
-      summary[horseId].rOil += record.rOil || 0
-      summary[horseId].biotin += record.biotin || 0
-      summary[horseId].joint += record.joint || 0
+      summary[horseId].bran += record.bran || 0
+      summary[horseId].salt += record.salt || 0
+      summary[horseId].dcp += record.dcp || 0
       summary[horseId].epsom += record.epsom || 0
-      summary[horseId].heylase += record.heylase || 0
+      summary[horseId].riceBranOil += record.riceBranOil || 0
+      summary[horseId].heylage += record.heylage || 0
+      summary[horseId].electrolyte += record.electrolyte || 0
+      summary[horseId].diggyMax += record.diggyMax || 0
+
 
       if (
         record.temporaryMenuName &&
