@@ -17,7 +17,7 @@ import { ChevronDown, Search, Check } from 'lucide-react';
  *  - required      {bool}
  *  - className     {string}   extra class for the wrapper
  *  - creatable     {bool}     allow typing a custom value not in the options list
- *  - size          {string}   'sm' = h-9, 'default' = h-10
+ *  - size          {string}   'compact' = h-9, 'sm' = h-10, 'default' = h-11
  */
 const SearchableSelect = ({
   name,
@@ -116,7 +116,12 @@ const SearchableSelect = ({
     if (!disabled) setOpen((prev) => !prev);
   };
 
-  const heightClass = size === 'sm' ? 'h-10' : 'h-11';
+  const heightClass =
+    size === 'compact'
+      ? 'h-9'
+      : size === 'sm'
+        ? 'h-10'
+        : 'h-11';
 
   const dropdownContent = open ? (
     <div

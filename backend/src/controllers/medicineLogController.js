@@ -104,7 +104,7 @@ exports.getMedicineLogById = async (req, res) => {
 // Create medicine log (Jamedar)
 exports.createMedicineLog = async (req, res) => {
   try {
-    const { horseId, medicineName, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
+    const { horseId, medicineName, diagnosis, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
     const userId = req.user?.id;
 
     if (!horseId || !medicineName || !quantity || !timeAdministered) {
@@ -116,6 +116,7 @@ exports.createMedicineLog = async (req, res) => {
         jamiedarId: userId,
         horseId,
         medicineName,
+        diagnosis: diagnosis || '',
         quantity: parseFloat(quantity),
         unit: unit || 'ml',
         timeAdministered: new Date(timeAdministered),
@@ -151,7 +152,7 @@ exports.createMedicineLog = async (req, res) => {
 exports.updateMedicineLog = async (req, res) => {
   try {
     const { id } = req.params;
-    const { horseId, medicineName, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
+    const { horseId, medicineName, diagnosis, quantity, unit, timeAdministered, notes, photoUrl } = req.body;
 
     const existing = await prisma.medicineLog.findUnique({
       where: { id },
@@ -170,6 +171,7 @@ exports.updateMedicineLog = async (req, res) => {
       data: {
         horseId: horseId || existing.horseId,
         medicineName: medicineName || existing.medicineName,
+        diagnosis: diagnosis !== undefined ? diagnosis : existing.diagnosis,
         quantity: quantity ? parseFloat(quantity) : existing.quantity,
         unit: unit || existing.unit,
         timeAdministered: timeAdministered ? new Date(timeAdministered) : existing.timeAdministered,

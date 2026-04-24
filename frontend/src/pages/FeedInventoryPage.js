@@ -333,7 +333,7 @@ const FeedInventoryPage = () => {
                       options={{ xlsx: handleDownloadExcel, csv: handleDownloadInventoryCSV }}
                       trigger={(
                         <button
-                          className="feed-inventory-mobile-export btn-download p-2 rounded-lg border border-border text-foreground transition-colors flex items-center justify-center sm:hidden"
+                          className="feed-inventory-mobile-export btn-download h-10 w-10 rounded-lg border border-border text-foreground transition-colors flex items-center justify-center sm:hidden"
                           aria-label={t("Export feed inventory")}
                           title={t("Export feed inventory")}
                           type="button"

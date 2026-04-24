@@ -9,6 +9,9 @@ import { Navigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Calendar, Users, Clock, MapPin, Plus, X } from 'lucide-react'
 import DatePicker from '../components/shared/DatePicker';
 import TimePicker from '../components/shared/TimePicker';
+import { getMeetingPageClassName } from '../lib/meetingPageLayout';
+import { formatLocalDateInputValue } from '../lib/localDateInput';
+import { getMeetingsForDate } from '../lib/meetingCalendar';
 
 const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
@@ -59,10 +62,8 @@ const MeetingPage = () => {
 
   const handleDateClick = (date) => {
     setSelectedDate(date)
-    if (canCreateMeeting) {
-      setFormData(prev => ({ ...prev, meetingDate: date.toISOString().split('T')[0] }))
-      setShowCreateForm(true)
-    }
+    setFormData(prev => ({ ...prev, meetingDate: formatLocalDateInputValue(date) }))
+    setShowCreateForm(false)
   }
 
   const handleCreateMeeting = async (e) => {
@@ -164,14 +165,6 @@ const MeetingPage = () => {
     return days
   }
 
-  const getMeetingsForDate = (date) => {
-    if (!date) return []
-    const y = date.getFullYear()
-    const mo = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    return meetings.filter(m => m.meetingDate.split('T')[0] === `${y}-${mo}-${d}`)
-  }
-
   const getFilteredMeetings = () => {
     const now = new Date()
     return meetings.filter(m => {
@@ -196,11 +189,14 @@ const MeetingPage = () => {
   const filteredMeetings = getFilteredMeetings()
   const parentRoles = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager']
   const canCreateMeeting = user && parentRoles.includes(user.designation)
-  const selectedDateMeetings = selectedDate ? getMeetingsForDate(selectedDate) : []
+  const selectedDateMeetings = selectedDate ? getMeetingsForDate(meetings, selectedDate) : []
   const scheduledCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'scheduled').length
   const completedCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'completed').length
   const cancelledCount = meetings.filter(meeting => meeting.status?.toLowerCase() === 'cancelled').length
   const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const selectedDateLabel = selectedDate
+    ? selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
 
   const getStatusBadge = (status) => {
     const cfg = {
@@ -216,12 +212,37 @@ const MeetingPage = () => {
     )
   }
 
+  const openMeetingCreateForm = (date = selectedDate || new Date()) => {
+    setFormData(prev => ({ ...prev, meetingDate: formatLocalDateInputValue(date) }))
+    setShowCreateForm(true)
+  }
+
+  const renderMeetingCard = (meeting, extraClassName = '') => (
+    <div
+      key={meeting.id}
+      onClick={() => handleSelectMeeting(meeting)}
+      className={`bg-surface-container-high rounded-xl p-5 edge-glow border border-primary/10 hover:border-primary/30 transition-colors cursor-pointer ${extraClassName}`}
+    >
+      <div className="flex items-center justify-between mb-2">
+        {getStatusBadge(meeting.status)}
+        <span className="text-xs text-muted-foreground italic">ID: {meeting.id?.slice(0, 8).toUpperCase()}</span>
+      </div>
+      <h3 className="text-lg font-bold text-foreground">{meeting.title}</h3>
+      <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(meeting.meetingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        {meeting.meetingTime && <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {meeting.meetingTime}</span>}
+        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {meeting.participants?.length || 0} attendees</span>
+      </div>
+      {meeting.description && <p className="text-sm text-muted-foreground mt-3">{meeting.description}</p>}
+    </div>
+  )
+
   if (!p.viewMeetings) return <Navigate to="/dashboard" replace />
 
   const filters = ['upcoming', 'past', 'all']
 
   return (
-    <div className="space-y-6">
+    <div className={getMeetingPageClassName()}>
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:justify-between">
         <div>
@@ -278,7 +299,7 @@ const MeetingPage = () => {
         ))}
         {canCreateMeeting && (
           <button
-            onClick={() => { setFormData(prev => ({ ...prev, meetingDate: new Date().toISOString().split('T')[0] })); setShowCreateForm(true) }}
+            onClick={() => openMeetingCreateForm()}
             className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold btn-save-primary"
           >
             <Plus className="w-4 h-4" /> {t('New Meeting')}
@@ -307,7 +328,7 @@ const MeetingPage = () => {
               ))}
               {calendarDays.map((date, idx) => {
                 if (!date) return <div key={idx} className="aspect-square" />
-                const dayMeetings = getMeetingsForDate(date)
+                const dayMeetings = getMeetingsForDate(meetings, date)
                 const hasMeeting = dayMeetings.length > 0
                 const isToday = date.toDateString() === today.toDateString()
                 const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
@@ -339,30 +360,56 @@ const MeetingPage = () => {
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-primary" /> Scheduled</span>
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-success" /> Completed</span>
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full bg-destructive" /> Cancelled</span>
-              {canCreateMeeting && <span className="flex items-center gap-1.5 text-xs text-primary italic ml-auto">{t('Click any day to schedule')}</span>}
+              <span className="flex items-center gap-1.5 text-xs text-primary italic ml-auto">{t(canCreateMeeting ? 'Click any day to view meetings or schedule one' : 'Click any day to view meetings')}</span>
             </div>
           </div>
+
+          {selectedDate && (
+            <div className="bg-surface-container-highest rounded-xl p-5 edge-glow space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">{t('Selected Date')}</p>
+                  <h3 className="text-lg font-bold text-foreground">{selectedDateLabel}</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary">
+                    {selectedDateMeetings.length} {selectedDateMeetings.length === 1 ? t('meeting') : t('meetings')}
+                  </span>
+                  {canCreateMeeting && (
+                    <button
+                      type="button"
+                      onClick={() => openMeetingCreateForm(selectedDate)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold btn-save-primary"
+                    >
+                      <Plus className="w-4 h-4" /> {t('Schedule On This Date')}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {selectedDateMeetings.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {selectedDateMeetings.map(m =>
+                    renderMeetingCard(
+                      m,
+                      selectedMeeting?.id === m.id ? 'border-primary/40 bg-primary/5' : ''
+                    )
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border bg-surface-container-high p-5 text-sm text-muted-foreground">
+                  {t('No meetings are scheduled for this day yet.')}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Meeting Cards */}
           {loading ? (
             <div className="p-4"><CardListSkeleton count={3} /></div>
           ) : filteredMeetings.length === 0 ? (
             <p className="text-center py-8 text-sm text-muted-foreground">{t('No meetings found')}</p>
-          ) : filteredMeetings.map(m => (
-            <div key={m.id} onClick={() => handleSelectMeeting(m)} className="bg-surface-container-high rounded-xl p-5 edge-glow border border-primary/10 hover:border-primary/30 transition-colors cursor-pointer">
-              <div className="flex items-center justify-between mb-2">
-                {getStatusBadge(m.status)}
-                <span className="text-xs text-muted-foreground italic">ID: {m.id?.slice(0, 8).toUpperCase()}</span>
-              </div>
-              <h3 className="text-lg font-bold text-foreground">{m.title}</h3>
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(m.meetingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                {m.meetingTime && <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {m.meetingTime}</span>}
-                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {m.participants?.length || 0} attendees</span>
-              </div>
-              {m.description && <p className="text-sm text-muted-foreground mt-3">{m.description}</p>}
-            </div>
-          ))}
+          ) : filteredMeetings.map(m => renderMeetingCard(m))}
         </div>
 
         {/* Sidebar */}
@@ -388,30 +435,6 @@ const MeetingPage = () => {
               </div>
             </div>
           </div>
-
-          {/* Selected date meetings */}
-          {selectedDate && selectedDateMeetings.length > 0 && (
-            <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-              <div className="px-5 py-3 border-b border-border flex justify-between items-center">
-                <h3 className="text-sm font-semibold text-foreground">
-                  {selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/20 text-primary">{selectedDateMeetings.length}</span>
-              </div>
-              {selectedDateMeetings.map(m => (
-                <div key={m.id} onClick={() => handleSelectMeeting(m)} className={`px-5 py-3 border-b border-border/50 cursor-pointer transition-colors hover:bg-surface-container-high/50 ${selectedMeeting?.id === m.id ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}>
-                  <div className="flex justify-between items-start gap-2 mb-1">
-                    <span className="font-semibold text-sm text-foreground">{m.title}</span>
-                    {getStatusBadge(m.status)}
-                  </div>
-                  <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
-                    {m.meetingTime && <span>{m.meetingTime}</span>}
-                    <span>{m.participants?.length || 0} attendees</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Common Venues */}
           <div className="bg-surface-container-highest rounded-xl p-5 edge-glow">

@@ -264,7 +264,7 @@ const FarrierShoeingPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Horse *")}</label>
-                    <SearchableSelect value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder={t("Search horse...")} options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
+                    <SearchableSelect size="compact" value={formData.horseId} onChange={(e) => setFormData((prev) => ({ ...prev, horseId: e.target.value }))} placeholder={t("Search horse...")} options={[{ value: '', label: 'Select Horse' }, ...horses.map((h) => ({ value: h.id, label: `${h.name}${h.stableNumber ? ` (${h.stableNumber})` : ''}` }))]} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Farrier *")}</label>
@@ -276,7 +276,7 @@ const FarrierShoeingPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Next Due (auto)")}</label>
-                    <input type="text" value={calculateNextDue(formData.shoeingDate)} disabled className="w-full h-10 px-3 rounded-lg bg-muted border border-border text-muted-foreground text-sm" />
+                    <input type="text" value={calculateNextDue(formData.shoeingDate)} disabled className="w-full h-9 px-3 rounded-lg bg-muted border border-border text-muted-foreground text-sm" />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Shoe Changed *")}</label>
