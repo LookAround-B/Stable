@@ -1,4 +1,3 @@
-// pages/api/instructor-incentives/[id].ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
 import { setCorsHeaders } from '@/lib/cors'
