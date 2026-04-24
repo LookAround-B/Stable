@@ -232,7 +232,7 @@ const GateAttendancePage = () => {
     downloadCsvFile(data, fileName);
   };
 
-  const inputCls = "w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const inputCls = "w-full h-10 px-3 rounded-lg bg-gray-100 border border-gray-200 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
 
   if (!p.viewGateEntry) return <Navigate to="/dashboard" replace />;
 
@@ -249,7 +249,7 @@ const GateAttendancePage = () => {
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('✗') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'TOTAL LOGS', value: logs.length, icon: Clock, sub: 'Recorded gate events' },
           { label: 'STAFF ENTRIES', value: staffLogs.length, icon: UserCheck, sub: 'Staff movement logs' },
@@ -260,25 +260,27 @@ const GateAttendancePage = () => {
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="gate-attendance-controls space-y-3">
-        <div className="gate-attendance-tab-row grid grid-cols-2 gap-3">
-          <button onClick={() => setActiveTab('staff')} className={`gate-attendance-tab-btn px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 justify-center ${activeTab === 'staff' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+      {/* Toolbar: Tabs + Action + Export */}
+      <div className="gate-attendance-controls flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Tab toggles */}
+        <div className="gate-attendance-tab-row flex gap-2">
+          <button onClick={() => setActiveTab('staff')} className={`gate-attendance-tab-btn h-10 px-4 rounded-lg text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'staff' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
             <UserCheck className="w-4 h-4 shrink-0" /> Staff Entry/Exit
           </button>
-          <button onClick={() => setActiveTab('visitor')} className={`gate-attendance-tab-btn px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center gap-2 justify-center ${activeTab === 'visitor' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
+          <button onClick={() => setActiveTab('visitor')} className={`gate-attendance-tab-btn h-10 px-4 rounded-lg text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'visitor' ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}>
             <Users className="w-4 h-4 shrink-0" /> Visitor Log
           </button>
         </div>
-        <div className="gate-attendance-action-row grid grid-cols-2 gap-3">
-          <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-2 ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
+        {/* Log button + Export — pushed to the right */}
+        <div className="flex items-center gap-2 sm:ml-auto">
+          <button onClick={() => activeTab === 'staff' ? setShowStaffForm(!showStaffForm) : setShowVisitorForm(!showVisitorForm)} disabled={!p.createGateEntry} title={!p.createGateEntry ? 'You do not have permission to log entries' : ''} className={`gate-attendance-action-btn h-10 px-5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${!p.createGateEntry ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
             {(activeTab === 'staff' && showStaffForm) || (activeTab === 'visitor' && showVisitorForm) ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {activeTab === 'staff' ? 'Log Staff Entry/Exit' : 'Log Visitor'}</>}
           </button>
           <ExportDialog
             title={t("Export Gate Attendance")}
             options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
             trigger={(
-              <button title={t("Export gate attendance")} className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0 ml-auto" type="button" aria-label={t("Export gate attendance")}>
+              <button title={t("Export gate attendance")} className="gate-attendance-export h-10 w-10 rounded-lg border border-border text-foreground hover:bg-surface-container-high transition-colors flex items-center justify-center shrink-0" type="button" aria-label={t("Export gate attendance")}>
                 <Download className="w-3.5 h-3.5 shrink-0" />
               </button>
             )}
@@ -291,7 +293,7 @@ const GateAttendancePage = () => {
         <div className="space-y-5">
 
           {showStaffForm && (
-            <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+            <div className="bg-white rounded-xl p-6 edge-glow border border-gray-200">
               <h3 className="text-lg font-bold text-foreground mb-4">{t("Log Staff Entry/Exit")}</h3>
               <form onSubmit={handleStaffSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -328,7 +330,7 @@ const GateAttendancePage = () => {
         <div className="space-y-5">
 
           {showVisitorForm && (
-            <div className="bg-surface-container-highest rounded-xl p-6 edge-glow border border-primary/10">
+            <div className="bg-white rounded-xl p-6 edge-glow border border-gray-200">
               <h3 className="text-lg font-bold text-foreground mb-4">{t("Log Visitor")}</h3>
               <form onSubmit={handleVisitorSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -370,9 +372,9 @@ const GateAttendancePage = () => {
 
       {/* Logs Table */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
-        <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 className="text-sm font-bold text-foreground">{activeTab === 'staff' ? 'Staff Entry/Exit Logs' : 'Visitor Logs'} ({displayLogs.length})</h3>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="px-5 py-3.5 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3">
+          <h3 className="text-sm font-bold text-foreground shrink-0">{activeTab === 'staff' ? 'Staff Entry/Exit Logs' : 'Visitor Logs'} ({displayLogs.length})</h3>
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
             <DatePicker value={filterFromDate} onChange={(val) => { setFilterFromDate(val); setCurrentPage(1); }} placeholder="From" />
             <span className="text-xs text-muted-foreground">to</span>
             <DatePicker value={filterToDate} onChange={(val) => { setFilterToDate(val); setCurrentPage(1); }} placeholder="To" />

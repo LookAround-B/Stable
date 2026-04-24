@@ -103,7 +103,7 @@ const GroomWorkSheetPage = () => {
     downloadCsvFile(rows, `GroomWorkSheet_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
-  const inputCls = "w-full h-10 px-3 rounded-lg bg-background border border-border text-foreground text-sm focus:ring-1 focus:ring-foreground/25 outline-none";
+  const inputCls = "w-full h-10 px-3 rounded-lg bg-gray-100 border border-gray-200 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
 
   if (!p.viewGroomWorksheet) return <Navigate to="/dashboard" replace />;
 
@@ -148,10 +148,10 @@ const GroomWorkSheetPage = () => {
       {/* Add Worksheet Form */}
       {showAddForm && canCreateWorksheet && ReactDOM.createPortal(
         <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowAddForm(false)}>
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-4xl overflow-visible flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="my-auto bg-white rounded-xl border border-border w-full max-w-4xl overflow-visible flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
               <h3 className="text-xl font-bold text-foreground">{t("Create New Work Sheet")}</h3>
-              <button type="button" onClick={() => setShowAddForm(false)} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
+              <button type="button" onClick={() => setShowAddForm(false)} className="p-2 rounded-lg hover:bg-gray-100 text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -164,14 +164,14 @@ const GroomWorkSheetPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Overall Remarks")}</label>
-                <textarea value={newWorksheet.remarks} onChange={(e) => setNewWorksheet({ ...newWorksheet, remarks: e.target.value })} placeholder="General notes for the day..." rows="2" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
+                <textarea value={newWorksheet.remarks} onChange={(e) => setNewWorksheet({ ...newWorksheet, remarks: e.target.value })} placeholder="General notes for the day..." rows="2" className="w-full px-3 py-2 rounded-lg bg-gray-100 border border-gray-200 text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
             </div>
 
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-foreground">Horse Entries</h4>
               {newWorksheet.entries.map((entry, index) => (
-                <div key={index} className="bg-surface-container-high rounded-lg p-4 border border-border/50 space-y-3">
+                <div key={index} className="bg-gray-100 rounded-lg p-4 border border-gray-200 space-y-3">
                   <div className="flex items-center justify-between">
                     <h5 className="text-xs font-bold text-foreground uppercase tracking-wider">Horse {index + 1}</h5>
                     {newWorksheet.entries.length > 1 && (
@@ -193,7 +193,7 @@ const GroomWorkSheetPage = () => {
                     </div>
                     <div>
                       <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1">{t("Total")}</label>
-                      <input type="number" value={entry.wholeDayHours} disabled className="w-full h-10 px-3 rounded-lg bg-surface-container border border-border text-foreground/60 text-sm" />
+                      <input type="number" value={entry.wholeDayHours} disabled className="w-full h-10 px-3 rounded-lg bg-gray-200 border border-gray-300 text-foreground/60 text-sm" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -220,7 +220,7 @@ const GroomWorkSheetPage = () => {
             </div>
           </form>
             </div>
-            <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50">
+            <div className="p-4 sm:p-6 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
               <button type="button" onClick={() => setShowAddForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
               <button onClick={handleSubmitWorksheet} disabled={loading} className="btn-save-primary groom-worksheet-submit">{loading ? 'Creating...' : 'Create Worksheet'}</button>
             </div>

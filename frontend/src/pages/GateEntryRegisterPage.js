@@ -9,7 +9,7 @@ import Pagination from '../components/Pagination';
 import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
-import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car } from 'lucide-react';
+import { Download, Plus, X, LogIn, LogOut, Users, UserCheck, Car, Pencil } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
@@ -31,6 +31,7 @@ const GateEntryRegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
+  const [editingEntry, setEditingEntry] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
 
@@ -59,18 +60,40 @@ const GateEntryRegisterPage = () => {
     setFormData(prev => ({ ...prev, personType: type, employeeId: '', visitorId: '', newVisitorName: '', newVisitorPurpose: '', newVisitorPhone: '' }));
   };
 
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setFormMode('entry');
+    setFormData({
+      personType: entry.personType === 'staff' ? 'Staff' : entry.personType,
+      employeeId: entry.employeeId || '',
+      visitorId: entry.visitor?.id || '',
+      newVisitorName: entry.personName || '',
+      newVisitorPurpose: entry.visitor?.purpose || '',
+      newVisitorPhone: entry.visitor?.phone || '',
+      vehicleNo: entry.vehicleNo || '',
+      notes: entry.notes || '',
+    });
+    setShowForm(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault(); setError(''); setSuccessMessage('');
     if (formData.personType === 'Staff' && !formData.employeeId) { setError('Please select a staff member'); return; }
     if (formData.personType === 'Visitor' && !formData.visitorId && !formData.newVisitorName) { setError('Please select or provide visitor details'); return; }
     try {
-      const endpoint = formMode === 'entry' ? '/gate-entry/entry' : '/gate-entry/exit';
-      await apiClient.post(endpoint, { personType: formData.personType, employeeId: formData.employeeId || null, visitorId: formData.visitorId || null, newVisitorName: formData.newVisitorName || null, newVisitorPurpose: formData.newVisitorPurpose || null, newVisitorPhone: formData.newVisitorPhone || null, vehicleNo: formData.vehicleNo || null, notes: formData.notes });
-      setSuccessMessage(`${formMode === 'entry' ? 'Entry' : 'Exit'} recorded successfully`);
+      if (editingEntry) {
+        await apiClient.put(`/gate-entry/${editingEntry.id}`, { vehicleNo: formData.vehicleNo || null, notes: formData.notes || null });
+        setSuccessMessage('Entry updated successfully');
+      } else {
+        const endpoint = formMode === 'entry' ? '/gate-entry/entry' : '/gate-entry/exit';
+        await apiClient.post(endpoint, { personType: formData.personType, employeeId: formData.employeeId || null, visitorId: formData.visitorId || null, newVisitorName: formData.newVisitorName || null, newVisitorPurpose: formData.newVisitorPurpose || null, newVisitorPhone: formData.newVisitorPhone || null, vehicleNo: formData.vehicleNo || null, notes: formData.notes });
+        setSuccessMessage(`${formMode === 'entry' ? 'Entry' : 'Exit'} recorded successfully`);
+      }
       setFormData({ personType: 'Staff', employeeId: '', visitorId: '', newVisitorName: '', newVisitorPurpose: '', newVisitorPhone: '', vehicleNo: '', notes: '' });
+      setEditingEntry(null);
       setShowForm(false);
       setTimeout(() => { loadData(); setSuccessMessage(''); }, 1500);
-    } catch (err) { setError(err.response?.data?.error || `Failed to record ${formMode}`); }
+    } catch (err) { setError(err.response?.data?.error || (editingEntry ? 'Failed to update entry' : `Failed to record ${formMode}`)); }
   };
 
   const handleExit = (entryId) => setConfirmModal({ isOpen: true, id: entryId });
@@ -108,7 +131,7 @@ const GateEntryRegisterPage = () => {
     downloadCsvFile(data, `GateRegister_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
-  const inputCls = "w-full h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const inputCls = "w-full h-10 px-4 rounded-lg bg-gray-100 border border-gray-200 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
   const activeIn = entries.filter(e => !e.exitTime).length;
   const totalExited = entries.filter(e => e.exitTime).length;
   const totalPages = Math.ceil(entries.length / rowsPerPage);
@@ -144,7 +167,7 @@ const GateEntryRegisterPage = () => {
 
       {/* Entry/Exit Section */}
       <div className="gate-entry-header-row flex flex-col md:flex-row items-stretch md:items-end gap-4">
-        <button onClick={() => setShowForm(!showForm)} className={`gate-entry-header-btn h-10 px-5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showForm ? 'bg-primary text-primary-foreground border border-primary/45 shadow-[0_0_0_1px_rgba(168,85,247,0.24)]' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
+        <button onClick={() => { setShowForm(!showForm); setEditingEntry(null); setFormData({ personType: 'Staff', employeeId: '', visitorId: '', newVisitorName: '', newVisitorPurpose: '', newVisitorPhone: '', vehicleNo: '', notes: '' }); }} className={`gate-entry-header-btn h-10 px-5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showForm ? 'bg-primary text-primary-foreground border border-primary/45 shadow-[0_0_0_1px_rgba(168,85,247,0.24)]' : 'bg-primary text-primary-foreground hover:brightness-110'}`}>
           {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> Record Entry/Exit</>}
         </button>
         <div className="gate-entry-date-wrap flex items-end gap-3 md:ml-auto">
@@ -154,11 +177,14 @@ const GateEntryRegisterPage = () => {
 
       {/* Form */}
       {showForm && ReactDOM.createPortal(
-        <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => setShowForm(false)}>
-          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+        <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => { setShowForm(false); setEditingEntry(null); }}>
+          <div className="my-auto bg-white rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">{t("Record Gate Entry")}</h3>
-              <button type="button" onClick={() => setShowForm(false)} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1">
+              <div className="flex items-center gap-2">
+                {editingEntry && <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/25"><Pencil className="w-3 h-3" /> Editing</span>}
+                <h3 className="text-xl font-bold text-foreground">{editingEntry ? t("Edit Gate Entry") : t("Record Gate Entry")}</h3>
+              </div>
+              <button type="button" onClick={() => { setShowForm(false); setEditingEntry(null); }} className="p-1 rounded-lg hover:bg-surface-container-high transition-colors text-muted-foreground mr-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -225,8 +251,8 @@ const GateEntryRegisterPage = () => {
           </form>
             </div>
             <div className="p-4 sm:p-6 border-t border-border flex justify-end gap-3 bg-surface-container-high/50 shrink-0">
-              <button type="button" onClick={() => setShowForm(false)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
-              <button type="button" onClick={handleSubmit} className={`gate-entry-submit-btn h-10 px-6 rounded-lg text-sm font-medium transition-all ${formMode === 'entry' ? 'bg-success text-success-foreground hover:brightness-110' : 'bg-warning text-warning-foreground hover:brightness-110'}`}>Record {formMode === 'entry' ? 'Entry' : 'Exit'}</button>
+              <button type="button" onClick={() => { setShowForm(false); setEditingEntry(null); }} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
+              <button type="button" onClick={handleSubmit} className={`gate-entry-submit-btn h-10 px-6 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${editingEntry ? 'bg-primary text-primary-foreground hover:brightness-110' : formMode === 'entry' ? 'bg-success text-success-foreground hover:brightness-110' : 'bg-warning text-warning-foreground hover:brightness-110'}`}>{editingEntry ? <><Pencil className="w-4 h-4" /> Save Changes</> : `Record ${formMode === 'entry' ? 'Entry' : 'Exit'}`}</button>
             </div>
           </div>
         </div>
@@ -272,11 +298,20 @@ const GateEntryRegisterPage = () => {
                       <td className="px-3 py-3 text-muted-foreground mono-data">{getTotalDuration(entry.entryTime, entry.exitTime)}</td>
                       <td className="px-3 py-3 text-muted-foreground text-xs max-w-[180px] truncate">{entry.personType === 'Visitor' && entry.visitor ? entry.visitor.purpose : entry.notes || '-'}</td>
                       <td className="px-3 py-3">
-                        {!entry.exitTime ? (
-                          <button onClick={() => handleExit(entry.id)} className="h-7 px-3 rounded text-[10px] font-semibold bg-warning/15 border border-warning/30 text-warning hover:bg-warning/25 transition-colors">{t("Mark Exit")}</button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/50">{t("Exited")}</span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {!entry.exitTime ? (
+                            <button onClick={() => handleExit(entry.id)} className="h-7 px-3 rounded text-[10px] font-semibold bg-warning/15 border border-warning/30 text-warning hover:bg-warning/25 transition-colors">{t("Mark Exit")}</button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/50">{t("Exited")}</span>
+                          )}
+                          <button
+                            onClick={() => handleEdit(entry)}
+                            className="h-7 w-7 rounded flex items-center justify-center text-muted-foreground bg-surface-container-high border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+                            title={t("Edit entry")}
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
