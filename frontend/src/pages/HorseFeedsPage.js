@@ -9,6 +9,7 @@ import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Download, Plus, X, Package, Scale, CalendarDays, Activity, Search } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
+import DateTimePicker from '../components/shared/DateTimePicker';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { useAuth } from '../context/AuthContext';
@@ -298,11 +299,17 @@ const HorseFeedsPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Menu Start Time")}</label>
-                    <input type="datetime-local" id="menuStartAt" name="menuStartAt" value={formData.menuStartAt} onChange={handleFormChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <DateTimePicker
+                      value={formData.menuStartAt}
+                      onChange={(val) => handleFormChange({ target: { name: 'menuStartAt', value: val } })}
+                    />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Menu End Time")}</label>
-                    <input type="datetime-local" id="menuEndAt" name="menuEndAt" value={formData.menuEndAt} onChange={handleFormChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <DateTimePicker
+                      value={formData.menuEndAt}
+                      onChange={(val) => handleFormChange({ target: { name: 'menuEndAt', value: val } })}
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">

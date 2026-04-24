@@ -7,12 +7,14 @@ import Skeleton from '../components/Skeleton';
 import SearchableSelect from '../components/SearchableSelect';
 import TimePicker from '../components/shared/TimePicker';
 import ExportDialog from '../components/shared/ExportDialog';
+import TaskEvidenceReviewModal from '../components/TaskEvidenceReviewModal';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { BarChart3, Camera, Check, Clock3, Download, Package, Pencil, Play, Search, Thermometer, TrendingDown, Users, X } from 'lucide-react';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import { getInitialTasksPageState } from '../lib/tasksPageState';
 import {
   ACCOMMODATION_TASK_TYPE,
   BOOKING_CATEGORY_OPTIONS,
@@ -208,6 +210,9 @@ const createDefaultTaskFormData = (taskType = 'Feed') => ({
   requiredProof: false,
 });
 
+let cachedTasksSnapshot = null;
+let cachedTasksSnapshotUserId = null;
+
 const TasksPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -222,12 +227,17 @@ const TasksPage = () => {
   const canReviewTasks = canManageSchedules || Boolean(taskCapabilities.canReviewTasks);
   const canWorkOnAssignedTasks =
     canManageSchedules || Boolean(taskCapabilities.canWorkOnAssignedTasks);
-  const [tasks, setTasks] = useState([]);
+  const userTaskCacheKey = user?.id || null;
+  const cachedTaskSeed =
+    cachedTasksSnapshotUserId === userTaskCacheKey ? cachedTasksSnapshot : null;
+  const initialTasksPageState = getInitialTasksPageState(cachedTaskSeed);
+  const [tasks, setTasks] = useState(initialTasksPageState.tasks);
   const [horses, setHorses] = useState([]);
   const [allEmployees, setAllEmployees] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(initialTasksPageState.pageLoading);
+  const [hasLoadedTaskData, setHasLoadedTaskData] = useState(() => Array.isArray(cachedTaskSeed));
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All Tasks');
@@ -338,9 +348,13 @@ const TasksPage = () => {
 
   useEffect(() => {
     let active = true;
+    const hasCachedTasks = Array.isArray(cachedTaskSeed);
 
     const loadInitialData = async () => {
-      setPageLoading(true);
+      if (active) {
+        setPageLoading(!hasCachedTasks);
+      }
+
       await loadTasks();
 
       if (active) {
@@ -360,6 +374,12 @@ const TasksPage = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!hasLoadedTaskData) return;
+    cachedTasksSnapshot = tasks;
+    cachedTasksSnapshotUserId = userTaskCacheKey;
+  }, [hasLoadedTaskData, tasks, userTaskCacheKey]);
 
   // ESC key handler for fullscreen image
   useEffect(() => {
@@ -405,10 +425,14 @@ const TasksPage = () => {
   const loadTasks = async () => {
     try {
       const response = await apiClient.get('/tasks');
-      setTasks(response.data.data || []);
+      const nextTasks = response.data.data || [];
+      setTasks(nextTasks);
+      setHasLoadedTaskData(true);
     } catch (error) {
       console.error('Error loading tasks:', error);
-      setTasks([]);
+      if (!Array.isArray(cachedTaskSeed)) {
+        setTasks([]);
+      }
     }
   };
 
@@ -1022,6 +1046,13 @@ const TasksPage = () => {
   };
 
   const getTaskEvidenceImage = (task) => task.proofImage || task.photoUrl || '';
+  const getTaskEvidenceImageSrc = (task) => {
+    const image = getTaskEvidenceImage(task);
+    if (!image) return '';
+    return image.startsWith('http')
+      ? image
+      : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${image}`;
+  };
 
   const now = new Date();
   const currentHour = now.getHours();
@@ -1133,7 +1164,7 @@ const TasksPage = () => {
   if (pageLoading) return <TasksPageSkeleton />;
 
   return (
-    <div className="tasks-page lovable-page-shell space-y-6">
+    <div className={`tasks-page lovable-page-shell space-y-6 ${isBookingsRoute ? 'tasks-page--bookings' : 'tasks-page--tasks'}`}>
       <div className="tasks-page-header">
         <div>
           <div className="lovable-header-kicker">
@@ -1151,12 +1182,12 @@ const TasksPage = () => {
               options={{ xlsx: handleDownloadBookingsExcel, csv: handleDownloadBookingsCsv }}
               trigger={(
                 <button
-                  className="h-9 w-9 rounded-lg border border-border bg-surface-container-high text-foreground inline-flex items-center justify-center"
+                  className="h-10 w-10 rounded-lg border border-border bg-surface-container-high text-foreground hover:bg-surface-container-highest transition-colors inline-flex items-center justify-center shrink-0"
                   title={t('Export bookings')}
                   type="button"
                   aria-label={t('Export bookings')}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 shrink-0" />
                 </button>
               )}
             />
@@ -1764,73 +1795,20 @@ const TasksPage = () => {
       )}
 
       {reviewingTask && (reviewingTask.status === 'Pending Review' || reviewingTask.status === 'Completed') && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 overflow-hidden" onClick={() => setViewingTaskId(null)}>
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-highest border border-border rounded-xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center px-6 py-4 border-b border-border shrink-0">
-              <h3 className="text-xl font-bold text-foreground">{t("Task Evidence Review")}</h3>
-              <button className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors" onClick={() => setViewingTaskId(null)}><X size={18} /></button>
-            </div>
-            <div className="p-6 flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto">
-              <div className="shrink-0">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">{t("Task Information")}</p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  {[
-                    ['Task Name', reviewingTask.name],
-                    ['Assigned To', getTaskEmployeeName(reviewingTask)],
-                    ['Horse', getTaskHorseName(reviewingTask)],
-                    ['Type', reviewingTask.type],
-                    ['Priority', reviewingTask.priority],
-                  ].map(([label, val]) => (
-                    <div key={label}><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</p><p className="text-foreground font-medium mt-0.5">{val}</p></div>
-                  ))}
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{t("Status")}</p>
-                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border" style={{ backgroundColor: getStatusColor(reviewingTask.status) + '22', color: getStatusColor(reviewingTask.status), borderColor: getStatusColor(reviewingTask.status) + '44' }}>{t(reviewingTask.status)}</span>
-                  </div>
-                </div>
-              </div>
-              {getTaskEvidenceImage(reviewingTask) && (
-                <div className="flex shrink min-h-0 flex-col overflow-hidden" style={{ maxHeight: '300px' }}>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2 shrink-0">{t("Evidence Photo")}</p>
-                  <img src={getTaskEvidenceImage(reviewingTask).startsWith('http') ? getTaskEvidenceImage(reviewingTask) : `${process.env.REACT_APP_API_URL?.replace('/api', '')}${getTaskEvidenceImage(reviewingTask)}`} alt="Task evidence" className="w-full h-full object-contain rounded-lg border border-border cursor-pointer min-h-0 shrink" onClick={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))} onError={(e) => { e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f0f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EImage not found%3C/text%3E%3C/svg%3E'; }} />
-                </div>
-              )}
-              {(reviewingTask.completionNotes || reviewingTask.description) && (
-                <div className="p-3 rounded-lg bg-surface-container-high shrink-0">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Notes")}</p>
-                  <p className="text-sm text-foreground mt-1">{reviewingTask.completionNotes || reviewingTask.description}</p>
-                </div>
-              )}
-              {reviewingTask.completedTime && (
-                <div className="shrink-0">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("Completion Time")}</p>
-                  <p className="text-sm text-foreground mt-0.5 mono-data">{new Date(reviewingTask.completedTime).toLocaleString()}</p>
-                </div>
-              )}
-            </div>
-            <div className="px-6 py-4 border-t border-border flex gap-3 shrink-0">
-              {(reviewingTask.status === 'Pending Review' || reviewingTask.status === 'Completed') && (
-                <>
-                  <button
-                    onClick={() => handleApproveTask(reviewingTask.id)}
-                    disabled={loading}
-                    className="flex-1 h-10 rounded-lg bg-success/15 border border-success/40 text-success text-sm font-semibold hover:bg-success/25 transition-colors disabled:opacity-50"
-                  >
-                    ✔ Approve
-                  </button>
-                  <button
-                    onClick={() => handleRejectTask(reviewingTask.id)}
-                    disabled={loading}
-                    className="flex-1 h-10 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm font-semibold hover:bg-destructive/20 transition-colors disabled:opacity-50"
-                  >
-                    ✗ Reject
-                  </button>
-                </>
-              )}
-              <button onClick={() => setViewingTaskId(null)} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Close")}</button>
-            </div>
-          </div>
-        </div>
+        <TaskEvidenceReviewModal
+          task={reviewingTask}
+          t={t}
+          loading={loading}
+          assignedTo={getTaskEmployeeName(reviewingTask)}
+          horseName={getTaskHorseName(reviewingTask)}
+          statusColor={getStatusColor(reviewingTask.status)}
+          evidenceImage={getTaskEvidenceImage(reviewingTask)}
+          evidenceImageSrc={getTaskEvidenceImageSrc(reviewingTask)}
+          onClose={() => setViewingTaskId(null)}
+          onApprove={() => handleApproveTask(reviewingTask.id)}
+          onReject={() => handleRejectTask(reviewingTask.id)}
+          onOpenFullscreen={() => setFullscreenImage(getTaskEvidenceImage(reviewingTask))}
+        />
       )}
 
       {/* Fullscreen Image Viewer */}
