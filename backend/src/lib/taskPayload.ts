@@ -48,6 +48,8 @@ export const taskListSelect = {
   paymentSource: true,
   leadGroomName: true,
   leadPrice: true,
+  totalRoomPrice: true,
+  isPaid: true,
   isMembershipBooking: true,
   packageName: true,
   packageRideCount: true,

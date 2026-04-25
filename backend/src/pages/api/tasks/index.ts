@@ -205,6 +205,8 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
       paymentSource,
       leadGroomName,
       leadPrice,
+      totalRoomPrice,
+      isPaid,
       isMembershipBooking,
       packageName,
       packageRideCount,
@@ -445,6 +447,10 @@ async function handleCreateTask(req: NextApiRequest, res: NextApiResponse) {
             ? sanitize(leadGroomName)
             : null,
         leadPrice: isAnyBookingTask ? parsedLeadPrice : null,
+        totalRoomPrice: isAnyBookingTask && totalRoomPrice !== undefined && totalRoomPrice !== null && totalRoomPrice !== ''
+          ? Number(totalRoomPrice)
+          : null,
+        isPaid: isAnyBookingTask ? (isPaid === true || isPaid === 'true') : false,
         isMembershipBooking: isRideBookingTask ? membershipEnabled : false,
         packageName: isRideBookingTask && membershipEnabled ? sanitize(packageName) : null,
         packageRideCount: isRideBookingTask && membershipEnabled ? Number(packageRideCount) : null,

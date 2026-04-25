@@ -190,6 +190,8 @@ const createDefaultTaskFormData = (taskType = 'Feed') => ({
   paymentSource: '',
   leadGroomName: '',
   leadPrice: '',
+  totalRoomPrice: '',
+  isPaid: false,
   isMembershipBooking: false,
   packageName: '',
   packageRideCount: '',
@@ -501,6 +503,8 @@ const TasksPage = () => {
       paymentSource: task?.paymentSource || '',
       leadGroomName: task?.leadGroomName || '',
       leadPrice: task?.leadPrice != null ? String(task.leadPrice) : '',
+      totalRoomPrice: task?.totalRoomPrice != null ? String(task.totalRoomPrice) : '',
+      isPaid: Boolean(task?.isPaid),
       isMembershipBooking: Boolean(task?.isMembershipBooking),
       packageName: task?.packageName || '',
       packageRideCount: task?.packageRideCount != null ? String(task.packageRideCount) : '',
@@ -545,6 +549,8 @@ const TasksPage = () => {
         customerPhone: nextIsBooking ? prev.customerPhone : '',
         paymentSource: nextIsBooking ? prev.paymentSource : '',
         leadPrice: nextIsBooking ? prev.leadPrice : '',
+        totalRoomPrice: nextIsBooking ? prev.totalRoomPrice : '',
+        isPaid: nextIsBooking ? prev.isPaid : false,
         isMembershipBooking: nextIsRideBooking ? prev.isMembershipBooking : false,
         packageName: nextIsRideBooking ? prev.packageName : '',
         packageRideCount: nextIsRideBooking ? prev.packageRideCount : '',
@@ -658,6 +664,8 @@ const TasksPage = () => {
         paymentSource: isBookingFormTask ? formData.paymentSource : '',
         leadGroomName: isRideBookingFormTask ? trimmedLeadGroomName : '',
         leadPrice: isBookingFormTask ? formData.leadPrice : '',
+        totalRoomPrice: isBookingFormTask ? formData.totalRoomPrice : '',
+        isPaid: isBookingFormTask ? formData.isPaid : false,
         isMembershipBooking: isRideBookingFormTask ? Boolean(formData.isMembershipBooking) : false,
         packageName: needsMembershipFields ? formData.packageName : '',
         packageRideCount: needsMembershipFields ? formData.packageRideCount : '',
@@ -915,6 +923,8 @@ const TasksPage = () => {
         'Check-in': task.accommodationCheckIn ? new Date(task.accommodationCheckIn).toLocaleString() : '',
         'Check-out': task.accommodationCheckOut ? new Date(task.accommodationCheckOut).toLocaleString() : '',
         'Lead Price': task.leadPrice ?? '',
+        'Room Price (w/ Tax)': task.totalRoomPrice ?? '',
+        'Payment Status': task.isPaid ? 'Paid' : 'Unpaid',
         'Payment Source': task.paymentSource || '',
         'Membership Booking': task.isMembershipBooking ? 'Yes' : 'No',
         'Package Name': task.packageName || '',
@@ -1139,7 +1149,9 @@ const TasksPage = () => {
         formData.accommodationCheckIn ? `Check-in: ${new Date(formData.accommodationCheckIn).toLocaleString()}` : '',
         formData.accommodationCheckOut ? `Check-out: ${new Date(formData.accommodationCheckOut).toLocaleString()}` : '',
         formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
+        formData.totalRoomPrice !== '' ? `Room Price (w/ Tax): ${formData.totalRoomPrice}` : '',
         formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
+        formData.isPaid ? 'Paid' : 'Unpaid',
       ].filter(Boolean).join(' | ')
     : isRideBookingFormTask
       ? [
@@ -1153,7 +1165,9 @@ const TasksPage = () => {
         formData.leadGroomName ? `Lead/Groom: ${formData.leadGroomName}` : '',
         formData.bookingSlot ? `Slot ${getBookingSlotLabel(formData.bookingSlot)}` : '',
           formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
+          formData.totalRoomPrice !== '' ? `Room Price (w/ Tax): ${formData.totalRoomPrice}` : '',
           formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
+          formData.isPaid ? 'Paid' : 'Unpaid',
           formData.isMembershipBooking && formData.packageName
             ? `Package: ${formData.packageName}`
             : '',
@@ -1598,6 +1612,37 @@ const TasksPage = () => {
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Lead Price")}</label>
                         <input type="number" min="0" step="0.01" name="leadPrice" value={formData.leadPrice} onChange={handleInputChange} placeholder="Leave empty for null" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Total Room Price with Tax")}</label>
+                        <input type="number" min="0" step="0.01" name="totalRoomPrice" value={formData.totalRoomPrice} onChange={handleInputChange} placeholder="Leave empty for null" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Payment Status")}</label>
+                        <div className="flex items-center gap-5 h-10 px-1">
+                          <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+                            <input
+                              type="radio"
+                              name="isPaid"
+                              value="true"
+                              checked={formData.isPaid === true}
+                              onChange={() => setFormData(prev => ({ ...prev, isPaid: true }))}
+                              className="accent-primary w-4 h-4"
+                            />
+                            <span className="font-medium text-emerald-600">Paid</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
+                            <input
+                              type="radio"
+                              name="isPaid"
+                              value="false"
+                              checked={formData.isPaid === false}
+                              onChange={() => setFormData(prev => ({ ...prev, isPaid: false }))}
+                              className="accent-primary w-4 h-4"
+                            />
+                            <span className="font-medium text-rose-500">Unpaid</span>
+                          </label>
+                        </div>
                       </div>
                     </>
                   )}

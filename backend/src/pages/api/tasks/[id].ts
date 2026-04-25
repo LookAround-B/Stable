@@ -121,6 +121,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
       paymentSource,
       leadGroomName,
       leadPrice,
+      totalRoomPrice,
+      isPaid,
       isMembershipBooking,
       packageName,
       packageRideCount,
@@ -190,6 +192,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         paymentSource: true,
         leadGroomName: true,
         leadPrice: true,
+        totalRoomPrice: true,
+        isPaid: true,
         isMembershipBooking: true,
         packageName: true,
         packageRideCount: true,
@@ -278,7 +282,9 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
       bookingDestination !== undefined ||
       bookingSlot !== undefined ||
       accommodationCheckIn !== undefined ||
-      accommodationCheckOut !== undefined
+      accommodationCheckOut !== undefined ||
+      totalRoomPrice !== undefined ||
+      isPaid !== undefined
     const requestedStatus =
       status === 'Completed' || status === 'Pending Review'
         ? 'Pending Review'
@@ -403,6 +409,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
     let nextPaymentSource = existingTask.paymentSource || ''
     let nextLeadGroomName = existingTask.leadGroomName || ''
     let nextLeadPrice = existingTask.leadPrice
+    let nextTotalRoomPrice = existingTask.totalRoomPrice
+    let nextIsPaid = existingTask.isPaid
     let nextAccommodationCheckIn = existingTask.accommodationCheckIn
     let nextAccommodationCheckOut = existingTask.accommodationCheckOut
     let nextBookingCategory = existingTask.bookingCategory
@@ -491,6 +499,16 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
             ? null
             : Number(leadPrice)
           : existingTask.leadPrice
+      nextTotalRoomPrice =
+        totalRoomPrice !== undefined
+          ? totalRoomPrice === null || totalRoomPrice === ''
+            ? null
+            : Number(totalRoomPrice)
+          : nextTotalRoomPrice
+      nextIsPaid =
+        isPaid !== undefined
+          ? isPaid === true || isPaid === 'true'
+          : nextIsPaid
 
       if (
         nextLeadPrice !== null &&
@@ -753,6 +771,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         updateData.paymentSource = nextPaymentSource
         updateData.leadGroomName = nextLeadGroomName || null
         updateData.leadPrice = nextLeadPrice
+        updateData.totalRoomPrice = nextTotalRoomPrice
+        updateData.isPaid = nextIsPaid
         updateData.accommodationCheckIn = null
         updateData.accommodationCheckOut = null
       } else if (isAccommodationBookingTask) {
@@ -787,6 +807,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         updateData.paymentSource = nextPaymentSource
         updateData.leadGroomName = null
         updateData.leadPrice = nextLeadPrice
+        updateData.totalRoomPrice = nextTotalRoomPrice
+        updateData.isPaid = nextIsPaid
         updateData.isMembershipBooking = false
         updateData.packageName = null
         updateData.packageRideCount = null
@@ -803,6 +825,8 @@ async function handleUpdateTask(req: NextApiRequest, res: NextApiResponse) {
         updateData.paymentSource = null
         updateData.leadGroomName = null
         updateData.leadPrice = null
+        updateData.totalRoomPrice = null
+        updateData.isPaid = false
         updateData.isMembershipBooking = false
         updateData.packageName = null
         updateData.packageRideCount = null

@@ -188,6 +188,8 @@ model Task {
   paymentSource         String?
   leadGroomName         String?
   leadPrice            Float?
+  totalRoomPrice       Float?      // Total room price with tax
+  isPaid               Boolean     @default(false) // Payment status
   isMembershipBooking   Boolean     @default(false)
   packageName           String?
   packageRideCount      Int?

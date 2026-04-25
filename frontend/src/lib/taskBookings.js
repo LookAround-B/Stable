@@ -116,7 +116,9 @@ export const getBookingSummary = (task) => {
       task.customerPhone ? `Phone: ${task.customerPhone}` : '',
       getAccommodationScheduleLabel(task),
       task.leadPrice != null ? `Lead Price: ${task.leadPrice}` : 'Lead Price: null',
+      task.totalRoomPrice != null ? `Room Price (w/ Tax): ${task.totalRoomPrice}` : '',
       task.paymentSource ? `Payment: ${task.paymentSource}` : '',
+      task.isPaid ? 'Paid' : 'Unpaid',
     ]
       .filter(Boolean)
       .join(' | ');
@@ -131,7 +133,9 @@ export const getBookingSummary = (task) => {
     task.leadGroomName ? `Lead/Groom: ${task.leadGroomName}` : '',
     task.bookingSlot ? `Slot ${getBookingSlotLabel(task.bookingSlot)}` : '',
     task.leadPrice != null ? `Lead Price: ${task.leadPrice}` : 'Lead Price: null',
+    task.totalRoomPrice != null ? `Room Price (w/ Tax): ${task.totalRoomPrice}` : '',
     task.paymentSource ? `Payment: ${task.paymentSource}` : '',
+    task.isPaid ? 'Paid' : 'Unpaid',
     task.isMembershipBooking && task.packageName ? `Package: ${task.packageName}` : '',
   ]
     .filter(Boolean)
