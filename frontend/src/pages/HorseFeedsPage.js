@@ -14,6 +14,7 @@ import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { useAuth } from '../context/AuthContext';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const getLocalDateTimeString = () => {
   const now = new Date();
@@ -37,6 +38,8 @@ const HorseFeedsPage = () => {
   const [messageType, setMessageType] = useState('success');
   const [summaryData, setSummaryData] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const feedTypes = ['balance', 'barley', 'oats', 'soya', 'lucerne', 'linseed', 'rOil', 'biotin', 'joint', 'epsom', 'heylase'];
   const [currentPage, setCurrentPage] = useState(1);

@@ -13,6 +13,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast, { shouldSuppressInlineModalFeedback } from '../hooks/useModalFeedbackToast';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -39,6 +40,9 @@ const TeamAttendancePage = () => {
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const suppressInlineError = shouldSuppressInlineModalFeedback({ open: showForm, error });
+
+  useModalFeedbackToast({ open: showForm, error });
 
   useEffect(() => {
     loadData();
@@ -139,7 +143,7 @@ const TeamAttendancePage = () => {
       </div>
 
       {successMessage && <div className="p-4 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30">✓ {successMessage}</div>}
-      {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
+      {error && !suppressInlineError && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
 
       {/* KPI Cards (EFM matched) */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">

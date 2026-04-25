@@ -16,6 +16,7 @@ import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
 import DatePicker from "../components/shared/DatePicker";
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const CATEGORIES = ["Saddle", "Bridle", "Grooming Gear", "Training Equipment"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -53,6 +54,8 @@ const TackInventoryPage = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [search, setSearch] = useState("");
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const emptyForm = {
     itemName: "", category: "Saddle", horseId: "", riderId: "",

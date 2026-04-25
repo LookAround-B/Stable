@@ -13,6 +13,7 @@ import DatePicker from '../components/shared/DatePicker';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const FEED_LABELS = {
   sports: 'Sports', balance: 'Balance', growth: 'Growth', oats: 'Oats', barley: 'Barley',
@@ -48,6 +49,8 @@ const FeedInventoryPage = () => {
   const [thresholdModal, setThresholdModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showTableSearch, setShowTableSearch] = useState(false);
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const showMessage = (msg, type = 'success') => { setMessage(msg); setMessageType(type); setTimeout(() => setMessage(''), 5000); };
 

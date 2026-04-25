@@ -16,6 +16,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const MEDICINE_LABELS = {
   antibiotic: 'Antibiotic',
@@ -72,6 +73,8 @@ const MedicineInventoryPage = () => {
   const [sortDir, setSortDir] = useState('asc');
 
   const [thresholdModal, setThresholdModal] = useState(null);
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);

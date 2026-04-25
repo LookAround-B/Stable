@@ -1,16 +1,15 @@
 import apiClient from './apiClient';
+import { prepareInspectionImagesForSubmission } from '../lib/inspectionImagePayload';
 
-// Convert a File or data-URL to a base64 data URL string
-const toBase64 = (img) => {
-  if (img instanceof File) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(img);
-    });
-  }
-  return Promise.resolve(img);
+const uploadInspectionImage = async (file) => {
+  const uploadData = new FormData();
+  uploadData.append('file', file);
+
+  const response = await apiClient.post('/upload', uploadData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  return response.data.url || response.data.path;
 };
 
 const inspectionService = {
@@ -38,7 +37,10 @@ const inspectionService = {
 
   createInspection: async (formData) => {
     try {
-      const imageDataArray = await Promise.all((formData.images || []).map(toBase64));
+      const imageDataArray = await prepareInspectionImagesForSubmission(
+        formData.images || [],
+        uploadInspectionImage
+      );
       const payload = {
         round: formData.round,
         description: formData.description,
@@ -71,7 +73,10 @@ const inspectionService = {
         ...(formData.resolutionNotes !== undefined && { resolutionNotes: formData.resolutionNotes || null }),
       };
       if (formData.images && Array.isArray(formData.images)) {
-        payload.images = await Promise.all(formData.images.map(toBase64));
+        payload.images = await prepareInspectionImagesForSubmission(
+          formData.images,
+          uploadInspectionImage
+        );
       }
       const response = await apiClient.put(`/inspections/${id}`, payload);
       return response.data;

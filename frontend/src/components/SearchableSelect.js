@@ -37,9 +37,25 @@ const SearchableSelect = ({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [dropdownStyle, setDropdownStyle] = useState({});
+  const [portalContainer, setPortalContainer] = useState(null);
   const wrapperRef = useRef(null);
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    const portalNode = document.createElement('div');
+    portalNode.setAttribute('data-searchable-select-portal', 'true');
+    document.body.appendChild(portalNode);
+    setPortalContainer(portalNode);
+
+    return () => {
+      if (portalNode.parentNode) {
+        portalNode.parentNode.removeChild(portalNode);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -216,8 +232,8 @@ const SearchableSelect = ({
         />
       </button>
 
-      {/* Dropdown — rendered via portal to escape overflow clipping */}
-      {ReactDOM.createPortal(dropdownContent, document.body)}
+      {/* Dropdown — rendered via a dedicated portal root to avoid body child ownership races on modal unmount */}
+      {open && portalContainer ? ReactDOM.createPortal(dropdownContent, portalContainer) : null}
     </div>
   );
 };

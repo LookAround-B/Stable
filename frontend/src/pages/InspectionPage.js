@@ -117,7 +117,7 @@ const InspectionPage = () => {
       setLoading(true);
       if (editingInspection) { await inspectionService.updateInspection(editingInspection.id, formData); setMessage('✓ Updated!'); }
       else { await inspectionService.createInspection(formData); setMessage('✓ Reported!'); }
-      resetForm(); await loadInspections(); setTimeout(() => setMessage(''), 3000);
+      closeForm(); await loadInspections(); setTimeout(() => setMessage(''), 3000);
     } catch (error) { setMessage(`✗ ${error.message}`); } finally { setLoading(false); }
   };
 
@@ -283,7 +283,7 @@ const InspectionPage = () => {
 
       {/* Inspections List */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold text-foreground">Inspections ({inspections.length})</h2>
+        <h2 className="text-sm font-bold text-foreground">{`Inspections (${inspections.length})`}</h2>
         <div className="flex gap-2">
           {inspections.length > 0 && (
             <ExportDialog

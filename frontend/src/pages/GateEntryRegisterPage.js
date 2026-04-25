@@ -15,6 +15,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast, { shouldSuppressInlineModalFeedback } from '../hooks/useModalFeedbackToast';
 
 const GateEntryRegisterPage = () => {
   const { user } = useAuth();
@@ -34,6 +35,9 @@ const GateEntryRegisterPage = () => {
   const [editingEntry, setEditingEntry] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const suppressInlineError = shouldSuppressInlineModalFeedback({ open: showForm, error });
+
+  useModalFeedbackToast({ open: showForm, error });
 
   const loadData = useCallback(async () => {
     setLoading(true); setError('');
@@ -69,7 +73,7 @@ const GateEntryRegisterPage = () => {
       visitorId: entry.visitor?.id || '',
       newVisitorName: entry.personName || '',
       newVisitorPurpose: entry.visitor?.purpose || '',
-      newVisitorPhone: entry.visitor?.phone || '',
+      newVisitorPhone: entry.visitor?.contactNumber || '',
       vehicleNo: entry.vehicleNo || '',
       notes: entry.notes || '',
     });
@@ -131,7 +135,7 @@ const GateEntryRegisterPage = () => {
     downloadCsvFile(data, `GateRegister_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
-  const inputCls = "w-full h-10 px-4 rounded-lg bg-gray-100 border border-gray-200 text-foreground text-sm focus:ring-1 focus:ring-primary outline-none";
+  const inputCls = "w-full h-10 px-4 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none";
   const activeIn = entries.filter(e => !e.exitTime).length;
   const totalExited = entries.filter(e => e.exitTime).length;
   const totalPages = Math.ceil(entries.length / rowsPerPage);
@@ -151,7 +155,7 @@ const GateEntryRegisterPage = () => {
       </div>
 
       {successMessage && <div className="px-4 py-3 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30">✓ {successMessage}</div>}
-      {error && <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
+      {error && !suppressInlineError && <div className="px-4 py-3 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30">✕ {error}</div>}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
@@ -178,7 +182,7 @@ const GateEntryRegisterPage = () => {
       {/* Form */}
       {showForm && ReactDOM.createPortal(
         <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto px-4 pb-4 pt-[72px] sm:p-6 bg-background/80" onClick={() => { setShowForm(false); setEditingEntry(null); }}>
-          <div className="my-auto bg-white rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+          <div className="my-auto bg-surface-container-highest rounded-xl border border-border w-full max-w-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
               <div className="flex items-center gap-2">
                 {editingEntry && <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/25"><Pencil className="w-3 h-3" /> Editing</span>}
@@ -306,10 +310,11 @@ const GateEntryRegisterPage = () => {
                           )}
                           <button
                             onClick={() => handleEdit(entry)}
-                            className="h-7 w-7 rounded flex items-center justify-center text-muted-foreground bg-surface-container-high border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+                            className="h-7 px-3 rounded text-[10px] font-semibold bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors inline-flex items-center gap-1"
                             title={t("Edit entry")}
                           >
                             <Pencil className="w-3 h-3" />
+                            {t("Edit")}
                           </button>
                         </div>
                       </td>

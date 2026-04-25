@@ -15,6 +15,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const CATEGORIES = ["Cleaning Supplies", "Tools", "Consumables"];
 const UNIT_TYPES = ["Liters", "Pieces", "Kg"];
@@ -40,6 +41,8 @@ const HousekeepingInventoryPage = () => {
   const [rowsPerPage] = useState(5);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
   const [search, setSearch] = useState("");
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const emptyForm = {
     itemName: "", category: "Cleaning Supplies", quantity: "", unitType: "Pieces",

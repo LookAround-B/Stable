@@ -20811,3 +20811,14 @@ body.efm-theme-light .crop-area {
     min-width: 0;
   }
 }
+.grass-bedding-stepper-input {
+  appearance: textfield;
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.grass-bedding-stepper-input::-webkit-outer-spin-button,
+.grass-bedding-stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

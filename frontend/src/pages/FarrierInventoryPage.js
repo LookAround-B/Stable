@@ -15,6 +15,8 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import DatePicker from '../components/shared/DatePicker';
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const CATEGORIES = ["Tools", "Consumables"];
 const CONDITIONS = ["New", "Good", "Worn", "Damaged"];
@@ -46,6 +48,8 @@ const FarrierInventoryPage = () => {
   const [rowsPerPage] = useState(5);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
   const [search, setSearch] = useState("");
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const emptyForm = { itemName: "", category: "Tools", horseId: "", quantity: "1", sizeType: "", material: "", condition: "Good", lastUsedDate: "", farrierId: "", serviceDate: "", nextServiceDue: "", notes: "", replacementCycle: "", costTracking: "", supplier: "" };
   const [formData, setFormData] = useState(emptyForm);
@@ -223,15 +227,15 @@ const FarrierInventoryPage = () => {
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Last Used Date")}</label>
-                <input type="date" name="lastUsedDate" value={formData.lastUsedDate} onChange={handleInputChange} className={inputCls} />
+                <DatePicker value={formData.lastUsedDate} onChange={(val) => handleInputChange({ target: { name: 'lastUsedDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Service Date")}</label>
-                <input type="date" name="serviceDate" value={formData.serviceDate} onChange={handleInputChange} className={inputCls} />
+                <DatePicker value={formData.serviceDate} onChange={(val) => handleInputChange({ target: { name: 'serviceDate', value: val } })} />
               </div>
               <div>
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Next Service Due")}</label>
-                <input type="date" name="nextServiceDue" value={formData.nextServiceDue} onChange={handleInputChange} className={inputCls} />
+                <DatePicker value={formData.nextServiceDue} onChange={(val) => handleInputChange({ target: { name: 'nextServiceDue', value: val } })} />
               </div>
             </div>
             <div>

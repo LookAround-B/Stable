@@ -7,6 +7,7 @@ import OperationalMetricCard from '../components/OperationalMetricCard';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { Users, Star, AlertTriangle, Shield, CheckCircle, Plus, X } from 'lucide-react';
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const HORSE_TEAM_FILTER_OPTIONS = [
   { value: 'all', label: 'All Horses' },
@@ -28,6 +29,8 @@ const HorseCareTeamPage = () => {
   const [selectedHorse, setSelectedHorse] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [teamFilter, setTeamFilter] = useState('all');
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const [formData, setFormData] = useState({
     horseId: '',

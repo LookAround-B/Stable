@@ -14,6 +14,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast, { shouldSuppressInlineModalFeedback } from '../hooks/useModalFeedbackToast';
 
 const getTodayString = () => {
   const today = new Date();
@@ -134,6 +135,9 @@ const DailyWorkRecordsPage = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [formData, setFormData] = useState(() => getInitialFormData(getTodayString()));
+  const suppressInlineMessage = shouldSuppressInlineModalFeedback({ open: showForm, message, type: messageType });
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
   const selectedWorkType = getEffectiveWorkType(formData);
   const riderRequired = formData.entryType === 'riding';
   const durationRequired = formData.entryType === 'riding' || formData.entryType === 'lunging';
@@ -296,7 +300,7 @@ const DailyWorkRecordsPage = () => {
         </div>
       </div>
 
-      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}<button onClick={() => setMessage('')} className="ml-3 opacity-60 hover:opacity-100">✕</button></div>}
+      {message && !suppressInlineMessage && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'error' ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}<button onClick={() => setMessage('')} className="ml-3 opacity-60 hover:opacity-100">✕</button></div>}
 
       {/* KPI Cards (2x2 Grid) */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
@@ -341,7 +345,7 @@ const DailyWorkRecordsPage = () => {
         </div>
         {!showForm && canCreateRecords && (
           <button onClick={() => setShowForm(true)} disabled={loading} className="h-10 px-5 rounded-lg bg-surface-container-high border border-border/50 text-foreground text-sm font-medium hover:bg-surface-container-highest hover:text-primary transition-all flex items-center gap-2">
-            <Plus className="w-4 h-4" /> New Record
+            <Plus className="w-4 h-4" /> Add Entry
           </button>
         )}
       </div>
@@ -351,7 +355,7 @@ const DailyWorkRecordsPage = () => {
         <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm px-4 pb-4 pt-[72px] sm:p-6" onClick={handleCancel}>
           <div className="my-auto flex min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface-container-highest max-h-[calc(100dvh-5.5rem)] sm:max-h-[90vh] edge-glow" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-              <h3 className="text-xl font-bold text-foreground">{editingId ? t('Edit Work Record') : t('New Work Record')}</h3>
+              <h3 className="text-xl font-bold text-foreground">{editingId ? t('Edit Entry') : t('Add Entry')}</h3>
               <button type="button" onClick={handleCancel} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -399,9 +403,9 @@ const DailyWorkRecordsPage = () => {
                 <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t(notesRequired ? "Notes / Reason *" : "Notes")}</label>
                 <textarea name="notes" value={formData.notes} onChange={handleInputChange} placeholder={t(formData.entryType === 'rest' ? "Why is the horse on rest?" : formData.entryType === 'lame' ? "Describe the lameness or issue" : "Additional session notes")} rows={2} required={notesRequired} className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
-            </div>
+                </div>
                 <div className="flex gap-3">
-                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : editingId ? 'Update' : 'Create'}</button>
+                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : editingId ? 'Save Changes' : 'Add Entry'}</button>
                   <button type="button" onClick={handleCancel} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
                 </div>
               </form>

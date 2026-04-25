@@ -9,7 +9,6 @@ import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
 import { Check, Download, Plus, X, DollarSign, Users, Clock, CheckCircle } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
-import usePermissions from '../hooks/usePermissions';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
@@ -23,19 +22,12 @@ const PAYMENT_MODES = [
   { value: 'UPI', label: 'UPI' },
   { value: 'Cheque', label: 'Cheque' },
 ];
-const STATUS_OPTIONS = [
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Approved', label: 'Approved' },
-  { value: 'Paid', label: 'Paid' },
-  { value: 'Rejected', label: 'Rejected' },
-];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const AUTHORIZED_ROLES = ['Super Admin', 'Director', 'School Administrator', 'Stable Manager'];
 
 const InstructorIncentivesPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
-  const p = usePermissions();
   const [incentives, setIncentives] = useState([]);
   const [summary, setSummary] = useState({ pending: { amount: 0, count: 0 }, approved: { amount: 0, count: 0 }, paid: { amount: 0, count: 0 }, rejected: { amount: 0, count: 0 } });
   const [loading, setLoading] = useState(false);

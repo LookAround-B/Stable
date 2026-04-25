@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination';
 import SearchableSelect from '../components/SearchableSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import { Navigate } from 'react-router-dom';
-import { Check, Download, Upload, X, Zap } from 'lucide-react';
+import { Check, Download, Eye, Image as ImageIcon, Trash2, Upload, X, Zap } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import usePermissions from '../hooks/usePermissions';
 import { showNoExportDataToast } from '../lib/exportToast';
@@ -593,21 +593,46 @@ const FinePage = () => {
                           </span>
                         </td>
                         <td className="px-3 py-4">
-                          <div className="flex items-center gap-2">
-                            <button className="text-xs text-primary hover:underline font-medium" onClick={() => fine.evidenceImage && setFullScreenImage(fine.evidenceImage)}>
-                              {t('Evidence')}
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              title={t('Evidence')}
+                              aria-label={t('Evidence')}
+                              disabled={!fine.evidenceImage}
+                              className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                              onClick={() => fine.evidenceImage && setFullScreenImage(fine.evidenceImage)}
+                            >
+                              <ImageIcon className="w-4 h-4" />
                             </button>
-                            <button className="text-xs text-primary hover:underline font-medium" onClick={() => setViewingFine(fine)}>
-                              {t('Details')}
+                            <button
+                              type="button"
+                              title={t('Details')}
+                              aria-label={t('Details')}
+                              className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                              onClick={() => setViewingFine(fine)}
+                            >
+                              <Eye className="w-4 h-4" />
                             </button>
                             {canIssueFines && fine.status === 'Open' && (
-                              <button className="text-xs text-success hover:underline font-medium" onClick={() => { setResolvingFine(fine); setResolveData({ status: 'Resolved', resolutionNotes: '' }); }}>
-                                {t('Resolve')}
+                              <button
+                                type="button"
+                                title={t('Resolve')}
+                                aria-label={t('Resolve')}
+                                className="p-1.5 rounded-lg text-success hover:bg-success/10 transition-colors"
+                                onClick={() => { setResolvingFine(fine); setResolveData({ status: 'Resolved', resolutionNotes: '' }); }}
+                              >
+                                <Check className="w-4 h-4" />
                               </button>
                             )}
                             {canIssueFines && (fine.issuedById === user?.id || user?.designation === 'Director' || user?.designation === 'School Administrator') && (
-                              <button className="text-xs text-destructive hover:underline font-medium" onClick={() => handleDeleteFine(fine.id)}>
-                                {t('Delete')}
+                              <button
+                                type="button"
+                                title={t('Delete')}
+                                aria-label={t('Delete')}
+                                className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                                onClick={() => handleDeleteFine(fine.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             )}
                           </div>

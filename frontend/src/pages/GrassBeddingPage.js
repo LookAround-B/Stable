@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Navigate } from "react-router-dom";
-import { Download, Leaf, Package, Pencil, Plus, Search, Trash2, User, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Download, Leaf, Package, Pencil, Plus, Search, Trash2, User, X } from "lucide-react";
 import { TableSkeleton } from "../components/Skeleton";
 import OperationalMetricCard from "../components/OperationalMetricCard";
 import SearchableSelect from "../components/SearchableSelect";
 import ConfirmModal from "../components/ConfirmModal";
 import Pagination from "../components/Pagination";
 import ExportDialog from "../components/shared/ExportDialog";
+import DateTimePicker from "../components/shared/DateTimePicker";
 import { downloadCsvFile } from "../lib/csvExport";
 import { showNoExportDataToast } from "../lib/exportToast";
 import { writeRowsToXlsx } from "../lib/xlsxExport";
@@ -16,6 +17,7 @@ import { useI18n } from "../context/I18nContext";
 import grassBeddingService from "../services/grassBeddingService";
 import { getEmployees } from "../services/employeeService";
 import { getHorses } from "../services/horseService";
+import useModalFeedbackToast from '../hooks/useModalFeedbackToast';
 
 const ENTRY_TYPES = ["Grass", "Bedding"];
 
@@ -52,6 +54,8 @@ const GrassBeddingPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const [formData, setFormData] = useState(createEmptyForm);
 
@@ -104,6 +108,13 @@ const GrassBeddingPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleWeightStep = (direction) => {
+    const currentValue = Number.parseFloat(formData.weightInTons);
+    const safeCurrent = Number.isFinite(currentValue) ? currentValue : 0;
+    const nextValue = Math.max(0, safeCurrent + direction * 100);
+    setFormData((prev) => ({ ...prev, weightInTons: String(nextValue) }));
   };
 
   const handleSubmit = async (e) => {
@@ -241,9 +252,9 @@ const GrassBeddingPage = () => {
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Collected By")}</label>
                     <SearchableSelect name="collectedById" value={formData.collectedById} onChange={handleInputChange} options={[{ value: "", label: t("Select Employee") }, ...employees.map((employee) => ({ value: employee.id, label: `${employee.fullName} (${employee.designation})` }))]} />
                   </div>
-                  <div>
+                  <div className="sm:col-span-2 lg:col-span-2">
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Timestamp")}</label>
-                    <input type="datetime-local" name="collectedAt" value={formData.collectedAt} onChange={handleInputChange} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <DateTimePicker value={formData.collectedAt} onChange={(val) => handleInputChange({ target: { name: "collectedAt", value: val } })} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Grass Load Received")}</label>
@@ -251,7 +262,36 @@ const GrassBeddingPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Weight In Tons")}</label>
-                    <input type="number" name="weightInTons" value={formData.weightInTons} onChange={handleInputChange} min="0" step="100" placeholder="100" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <div className="grass-bedding-stepper relative">
+                      <input
+                        type="number"
+                        name="weightInTons"
+                        value={formData.weightInTons}
+                        onChange={handleInputChange}
+                        min="0"
+                        step="100"
+                        placeholder="100"
+                        className="grass-bedding-stepper-input w-full h-10 px-3 pr-12 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                      <div className="absolute inset-y-1 right-1 flex w-8 flex-col gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleWeightStep(1)}
+                          className="flex-1 rounded-md border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center justify-center"
+                          aria-label={t("Increase weight")}
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleWeightStep(-1)}
+                          className="flex-1 rounded-md border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center justify-center"
+                          aria-label={t("Decrease weight")}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div>

@@ -21,6 +21,7 @@ import {
   getInitialMedicineLogFormData,
   getMedicineLogFormDataFromLog,
 } from '../lib/medicineLogFormState';
+import useModalFeedbackToast, { shouldSuppressInlineModalFeedback } from '../hooks/useModalFeedbackToast';
 
 const DEFAULT_MEDICINE_NAMES = [
   'Phenylbutazone (Bute)',
@@ -65,6 +66,9 @@ const MedicineLogsPage = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null });
 
   const [formData, setFormData] = useState(() => getInitialMedicineLogFormData());
+  const suppressInlineMessage = shouldSuppressInlineModalFeedback({ open: showForm, message, type: messageType });
+
+  useModalFeedbackToast({ open: showForm, message, type: messageType });
 
   const UNITS = ['ml', 'g', 'tablets', 'vials', 'bottles', 'injections'];
 
@@ -387,7 +391,7 @@ const MedicineLogsPage = () => {
       </div>
 
       {/* ── Message ── */}
-      {message && (
+      {message && !suppressInlineMessage && (
         <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === 'success' ? 'bg-success/15 text-success border border-success/30' : 'bg-destructive/15 text-destructive border border-destructive/30'}`}>
           {messageType === 'success' ? '✓' : '✕'} {message}
         </div>

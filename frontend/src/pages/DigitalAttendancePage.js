@@ -8,10 +8,17 @@ import { useI18n } from '../context/I18nContext';
 import { Download, Plus, X, CalendarCheck, CheckCircle2, History, Calendar } from 'lucide-react';
 import DatePicker from '../components/shared/DatePicker';
 import SelectField from '../components/shared/SelectField';
+import SearchableSelect from '../components/SearchableSelect';
 import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import {
+  buildDigitalAttendanceSubmitRequest,
+  getDigitalAttendanceHistoryEndpoint,
+  isDigitalAttendanceTeamMode,
+} from '../lib/digitalAttendanceMode';
+import useModalFeedbackToast, { shouldSuppressInlineModalFeedback } from '../hooks/useModalFeedbackToast';
 
 const inp = 'w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none disabled:opacity-50';
 const lbl = 'label-sm text-muted-foreground block mb-1.5 uppercase tracking-wider text-[10px] font-semibold flex items-center gap-1.5';
@@ -31,7 +38,9 @@ const DigitalAttendancePage = () => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [assignableEmployees, setAssignableEmployees] = useState([]);
   const [formData, setFormData] = useState({
+    employeeId: '',
     date: new Date().toISOString().split('T')[0],
     status: 'Present',
     remarks: ''
@@ -41,24 +50,56 @@ const DigitalAttendancePage = () => {
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(15);
+  const isTeamMode = isDigitalAttendanceTeamMode(user?.designation);
+  const suppressInlineError = shouldSuppressInlineModalFeedback({ open: showForm, error });
+
+  useModalFeedbackToast({ open: showForm, error });
 
   const loadAttendanceRecords = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await apiClient.get(`/attendance/personal`, {
+      const response = await apiClient.get(getDigitalAttendanceHistoryEndpoint(user?.designation), {
         params: { date: searchDate }
       });
-      setAttendanceRecords(response.data.records || []);
+      setAttendanceRecords(isTeamMode ? response.data.attendance || [] : response.data.records || []);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load attendance records');
       console.error('Error loading records:', err);
     } finally {
       setLoading(false);
     }
-  }, [searchDate]);
+  }, [isTeamMode, searchDate, user?.designation]);
+
+  const loadAssignableEmployees = useCallback(async () => {
+    if (!isTeamMode) {
+      setAssignableEmployees([]);
+      return;
+    }
+
+    try {
+      const response = await apiClient.get('/attendance/team-members', {
+        params: { date: formData.date }
+      });
+      const teamMembers = response.data.teamMembers || [];
+      setAssignableEmployees(teamMembers);
+      setFormData((prev) => (
+        prev.employeeId && !teamMembers.some((member) => member.id === prev.employeeId)
+          ? { ...prev, employeeId: '' }
+          : prev
+      ));
+    } catch (err) {
+      console.error('Error loading assignable employees:', err);
+      setAssignableEmployees([]);
+    }
+  }, [formData.date, isTeamMode]);
 
   useEffect(() => { loadAttendanceRecords(); setCurrentPage(1); }, [loadAttendanceRecords]);
+  useEffect(() => {
+    if (showForm) {
+      loadAssignableEmployees();
+    }
+  }, [loadAssignableEmployees, showForm]);
 
   // Auto-set to WOFF if date is Monday
   useEffect(() => {
@@ -77,20 +118,31 @@ const DigitalAttendancePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setSuccessMessage('');
-    if (!formData.date || !formData.status) {
+    if (!formData.date || !formData.status || (isTeamMode && !formData.employeeId)) {
       setError('Please fill in all required fields');
       return;
     }
     try {
-      await apiClient.post('/attendance/digital', {
-        date: formData.date,
-        status: formData.status,
-        remarks: formData.remarks
+      const request = buildDigitalAttendanceSubmitRequest({
+        designation: user?.designation,
+        formData,
       });
-      setSuccessMessage(`Attendance marked successfully - ${formData.status}`);
-      setFormData({ date: new Date().toISOString().split('T')[0], status: 'Present', remarks: '' });
+
+      await apiClient.post(request.endpoint, request.payload);
+
+      const selectedEmployee = assignableEmployees.find((employee) => employee.id === formData.employeeId);
+      setSuccessMessage(
+        isTeamMode
+          ? `Attendance marked for ${selectedEmployee?.fullName || 'employee'} - ${formData.status}`
+          : `Attendance marked successfully - ${formData.status}`
+      );
+      setFormData({ employeeId: '', date: new Date().toISOString().split('T')[0], status: 'Present', remarks: '' });
       setShowForm(false);
-      setTimeout(() => { loadAttendanceRecords(); setSuccessMessage(''); }, 2000);
+      setTimeout(() => {
+        loadAttendanceRecords();
+        loadAssignableEmployees();
+        setSuccessMessage('');
+      }, 2000);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to mark attendance');
     }
@@ -99,6 +151,7 @@ const DigitalAttendancePage = () => {
   const isMonday = () => new Date(formData.date).getDay() === 1;
 
   const getExportRows = () => attendanceRecords.map(r => ({
+      ...(isTeamMode ? { 'Employee': r.employee?.fullName || '' } : {}),
       'Date': new Date(r.date).toLocaleDateString('en-GB'),
       'Status': r.status,
       'Check-in Time': r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString() : '',
@@ -133,7 +186,11 @@ const DigitalAttendancePage = () => {
       <div className="digital-attendance-header-row flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{t('Digital Attendance')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manual attendance logging for <span className="text-primary font-medium">{user?.fullName || 'Staff'}</span></p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isTeamMode
+              ? 'Manual attendance logging for staff'
+              : <>Manual attendance logging for <span className="text-primary font-medium">{user?.fullName || 'Staff'}</span></>}
+          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button onClick={() => setShowForm(!showForm)} className="digital-attendance-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
@@ -144,7 +201,7 @@ const DigitalAttendancePage = () => {
       </div>
 
       {successMessage && <div className="p-4 rounded-lg text-sm font-medium bg-success/15 text-success border border-success/30 flex items-center gap-2">✓ {successMessage}</div>}
-      {error && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-2">✕ {error}</div>}
+      {error && !suppressInlineError && <div className="p-4 rounded-lg text-sm font-medium bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-2">✕ {error}</div>}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -170,7 +227,24 @@ const DigitalAttendancePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={lbl}>{t('Employee Name')}</label>
-                <input type="text" value={user?.fullName || ''} disabled className={inp} />
+                {isTeamMode ? (
+                  <SearchableSelect
+                    name="employeeId"
+                    value={formData.employeeId}
+                    onChange={handleFormChange}
+                    placeholder="-- Select Employee --"
+                    required
+                    options={[
+                      { value: '', label: '-- Select Employee --' },
+                      ...assignableEmployees.map((employee) => ({
+                        value: employee.id,
+                        label: `${employee.fullName} (${t(employee.designation)})`,
+                      })),
+                    ]}
+                  />
+                ) : (
+                  <input type="text" value={user?.fullName || ''} disabled className={inp} />
+                )}
               </div>
               <div>
                 <label className={lbl}>{t('Date')} *</label>
@@ -231,7 +305,10 @@ const DigitalAttendancePage = () => {
               <table className="w-full text-sm min-w-[600px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {['DATE', 'STATUS', 'CHECK-IN', 'CHECK-OUT', 'REMARKS'].map(h => (
+                    {(isTeamMode
+                      ? ['EMPLOYEE', 'DATE', 'STATUS', 'CHECK-IN', 'CHECK-OUT', 'REMARKS']
+                      : ['DATE', 'STATUS', 'CHECK-IN', 'CHECK-OUT', 'REMARKS']
+                    ).map(h => (
                       <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{h}</th>
                     ))}
                   </tr>
@@ -241,6 +318,9 @@ const DigitalAttendancePage = () => {
                     const isAbs = record.status === 'Absent' || record.status === 'Leave';
                     return (
                       <tr key={record.id} className={`border-b border-border/50 hover:bg-surface-container-high/50 transition-colors ${isAbs ? 'bg-destructive/5' : ''}`}>
+                        {isTeamMode && (
+                          <td className="px-6 py-4 text-sm text-foreground font-medium">{record.employee?.fullName || '-'}</td>
+                        )}
                         <td className="px-6 py-4 font-mono text-sm text-foreground">{new Date(record.date).toLocaleDateString('en-GB')}</td>
                         <td className="px-6 py-4"><StatusBadge status={record.status} /></td>
                         <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>

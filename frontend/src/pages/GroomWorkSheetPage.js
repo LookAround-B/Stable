@@ -12,6 +12,7 @@ import { showNoExportDataToast } from '../lib/exportToast';
 import { downloadCsvFile } from '../lib/csvExport';
 import ExportDialog from '../components/shared/ExportDialog';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+import useModalFeedbackToast, { shouldSuppressInlineModalFeedback } from '../hooks/useModalFeedbackToast';
 
 const GroomWorkSheetPage = () => {
   const { user } = useAuth();
@@ -31,6 +32,9 @@ const GroomWorkSheetPage = () => {
     entries: [{ horseId: '', amHours: 0, pmHours: 0, wholeDayHours: 0, woodchipsUsed: 0, bichaliUsed: 0, booSaUsed: 0, remarks: '' }],
     remarks: '',
   });
+  const suppressInlineMessage = shouldSuppressInlineModalFeedback({ open: showAddForm, message });
+
+  useModalFeedbackToast({ open: showAddForm, message });
 
   const loadWorksheets = useCallback(async () => {
     try {
@@ -122,7 +126,7 @@ const GroomWorkSheetPage = () => {
         )}
       </div>
 
-      {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Failed') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
+      {message && !suppressInlineMessage && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${message.includes('Failed') ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{message}</div>}
 
       {/* Controls */}
       <div className="groom-worksheet-toolbar flex flex-col md:flex-row items-stretch md:items-end gap-4">
@@ -171,7 +175,7 @@ const GroomWorkSheetPage = () => {
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-foreground">Horse Entries</h4>
               {newWorksheet.entries.map((entry, index) => (
-                <div key={index} className="bg-gray-100 rounded-lg p-4 border border-gray-200 space-y-3">
+                <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 space-y-3">
                   <div className="flex items-center justify-between">
                     <h5 className="text-xs font-bold text-foreground uppercase tracking-wider">Horse {index + 1}</h5>
                     {newWorksheet.entries.length > 1 && (

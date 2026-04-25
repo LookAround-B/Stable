@@ -7,6 +7,8 @@ const prisma = new PrismaClient();
 
 const SUPERVISOR_ROLES = [
   'Super Admin',
+  'Director',
+  'School Administrator',
   'Ground Supervisor',
   'Stable Manager'
 ];
@@ -164,4 +166,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
-
