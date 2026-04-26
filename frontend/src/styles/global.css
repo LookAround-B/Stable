@@ -17304,6 +17304,99 @@ body.efm-theme-light .crop-area {
   align-items: stretch;
 }
 
+.tasks-page.tasks-page--bookings .task-card.task-card-lovable {
+  align-items: flex-start;
+  min-height: 134px !important;
+  height: 134px;
+}
+
+.tasks-page.tasks-page--bookings .task-card-media {
+  width: 124px;
+  min-width: 124px;
+  min-height: 134px;
+  height: 134px;
+  align-self: auto;
+}
+
+.tasks-page.tasks-page--bookings .task-card-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  min-height: 0;
+  height: 134px;
+}
+
+.tasks-page.tasks-page--bookings .task-card-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.tasks-page.tasks-page--bookings .task-card-topline {
+  flex-wrap: nowrap;
+  row-gap: 0;
+}
+
+.tasks-page.tasks-page--bookings .task-card-booking-summary,
+.tasks-page.tasks-page--bookings .task-card-booking-history,
+.tasks-page.tasks-page--bookings .task-card-booking-history-items,
+.tasks-page.tasks-page--bookings .task-card-booking-history-count {
+  margin: 0;
+  color: var(--lovable-text-soft);
+  font-size: 11.5px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.tasks-page.tasks-page--bookings .task-card-booking-summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+.tasks-page.tasks-page--bookings .task-card-booking-history {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+}
+
+.tasks-page.tasks-page--bookings .task-card-booking-history-items {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+.tasks-page.tasks-page--bookings .task-card-meta {
+  margin-top: 2px;
+}
+
+.tasks-page.tasks-page--bookings .task-card-footer {
+  min-width: 188px;
+  margin-top: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.tasks-page.tasks-page--bookings .task-card-assigned {
+  text-align: right;
+}
+
+.tasks-page.tasks-page--bookings .task-card-action-cluster {
+  width: auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 .tasks-page.tasks-page--tasks .task-card.task-card-lovable {
   display: flex;
   flex-direction: column;
@@ -17377,6 +17470,39 @@ body.efm-theme-light .crop-area {
 @media (min-width: 768px) {
   .tasks-page.tasks-page--tasks .tasks-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .tasks-page.tasks-page--bookings .task-card.task-card-lovable {
+    height: auto;
+  }
+
+  .tasks-page.tasks-page--bookings .task-card-media {
+    width: 100%;
+    min-width: 0;
+    height: 128px;
+  }
+
+  .tasks-page.tasks-page--bookings .task-card-main {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .tasks-page.tasks-page--bookings .task-card-booking-summary {
+    -webkit-line-clamp: 2;
+  }
+
+  .tasks-page.tasks-page--bookings .task-card-footer {
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .tasks-page.tasks-page--bookings .task-card-action-cluster {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 

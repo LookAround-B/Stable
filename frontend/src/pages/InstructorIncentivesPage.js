@@ -59,6 +59,8 @@ const InstructorIncentivesPage = () => {
   });
 
   const isAdmin = useMemo(() => AUTHORIZED_ROLES.includes(user?.designation), [user?.designation]);
+  const paymentModeOptions = PAYMENT_MODES.map((mode) => ({ ...mode, label: t(mode.label) }));
+  const monthOptions = MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: t(name) }));
 
   const showMessage = (msg, type = 'success') => {
     setMessage(msg);
@@ -79,11 +81,11 @@ const InstructorIncentivesPage = () => {
       setIncentives(data.data || []);
     } catch (error) {
       console.error('Error loading incentives:', error);
-      showMessage(`Error loading incentives: ${error.message}`, 'error');
+      showMessage(`${t('Error loading incentives:')} ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth, selectedYear, activeTab]);
+  }, [selectedMonth, selectedYear, activeTab, t]);
 
   const loadSummary = useCallback(async () => {
     try {
@@ -147,19 +149,19 @@ const InstructorIncentivesPage = () => {
     e.preventDefault();
 
     if (!formData.instructorId) {
-      showMessage('Please select an instructor.', 'error');
+      showMessage(t('Please select an instructor.'), 'error');
       return;
     }
     if (!formData.date) {
-      showMessage('Please select a date.', 'error');
+      showMessage(t('Please select a date.'), 'error');
       return;
     }
     if (!formData.amount || parseFloat(formData.amount) < MINIMUM_INCENTIVE_AMOUNT) {
-      showMessage(`Amount must be at least Rs${MINIMUM_INCENTIVE_AMOUNT}. Only lessons with Rs${MINIMUM_INCENTIVE_AMOUNT}+ are eligible for incentives.`, 'error');
+      showMessage(t('Amount must be at least Rs1400. Only lessons with Rs1400+ are eligible for incentives.'), 'error');
       return;
     }
     if (!formData.paymentMode) {
-      showMessage('Please select payment mode.', 'error');
+      showMessage(t('Please select payment mode.'), 'error');
       return;
     }
 
@@ -167,10 +169,10 @@ const InstructorIncentivesPage = () => {
       setLoading(true);
       if (editingId) {
         await instructorIncentiveService.updateIncentive(editingId, formData);
-        showMessage('Incentive updated successfully.');
+        showMessage(t('Incentive updated successfully.'));
       } else {
         await instructorIncentiveService.createIncentive(formData);
-        showMessage('Incentive created successfully.');
+        showMessage(t('Incentive created successfully.'));
       }
       resetForm();
       loadIncentives();
@@ -202,7 +204,12 @@ const InstructorIncentivesPage = () => {
     try {
       setLoading(true);
       await instructorIncentiveService.updateIncentive(id, { status: newStatus });
-      showMessage(`Incentive ${newStatus.toLowerCase()} successfully.`);
+      const successMessageByStatus = {
+        Approved: t('Incentive approved successfully.'),
+        Rejected: t('Incentive rejected successfully.'),
+        Paid: t('Incentive marked as paid successfully.'),
+      };
+      showMessage(successMessageByStatus[newStatus] || t('Incentive updated successfully.'));
       loadIncentives();
       loadSummary();
     } catch (error) {
@@ -217,7 +224,7 @@ const InstructorIncentivesPage = () => {
     try {
       setLoading(true);
       await instructorIncentiveService.deleteIncentive(id);
-      showMessage('Incentive deleted successfully.');
+      showMessage(t('Incentive deleted successfully.'));
       loadIncentives();
       loadSummary();
     } catch (error) {
@@ -242,15 +249,15 @@ const InstructorIncentivesPage = () => {
 
   // Export
   const getExportRows = () => filteredIncentives.map((i) => ({
-    'Date': new Date(i.date).toLocaleDateString('en-IN'),
-    'Instructor': i.instructor?.fullName || '-',
-    'Amount': `Rs${i.amount}`,
-    'Payment Mode': i.paymentMode,
-    'Lessons': i.lessonCount || '-',
-    'Status': i.status,
-    'Description': i.description || '-',
-    'Approved By': i.approvedBy?.fullName || '-',
-    'Created By': i.createdBy?.fullName || '-',
+    [t('Date')]: new Date(i.date).toLocaleDateString('en-IN'),
+    [t('Instructor')]: i.instructor?.fullName || '-',
+    [t('Amount')]: `Rs${i.amount}`,
+    [t('Payment Mode')]: t(i.paymentMode),
+    [t('Lessons')]: i.lessonCount || '-',
+    [t('Status')]: t(i.status),
+    [t('Description')]: i.description || '-',
+    [t('Approved By')]: i.approvedBy?.fullName || '-',
+    [t('Created By')]: i.createdBy?.fullName || '-',
   }));
 
   const handleDownloadCSV = () => {
@@ -288,7 +295,7 @@ const InstructorIncentivesPage = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Instructor <span className="text-primary">{t("Incentives")}</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Instructor Incentives")}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Track and manage instructor incentives (minimum Rs1400)')}</p>
         </div>
         {isAdmin && (
@@ -296,7 +303,7 @@ const InstructorIncentivesPage = () => {
             onClick={() => { resetForm(); setShowForm(!showForm); }}
             className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
           >
-            {showForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Incentive</>}
+            {showForm ? <><X className="w-4 h-4" /> {t('Cancel')}</> : <><Plus className="w-4 h-4" /> {t('Add Incentive')}</>}
           </button>
         )}
       </div>
@@ -313,9 +320,9 @@ const InstructorIncentivesPage = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-warning/15 flex items-center justify-center"><Clock className="w-5 h-5 text-warning" /></div>
             <div>
-              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Pending</p>
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{t('Pending')}</p>
               <p className="text-xl font-bold text-foreground">Rs {summary.pending.amount.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{summary.pending.count} entries</p>
+              <p className="text-xs text-muted-foreground">{summary.pending.count} {t('entries')}</p>
             </div>
           </div>
         </div>
@@ -323,9 +330,9 @@ const InstructorIncentivesPage = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-primary" /></div>
             <div>
-              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Approved</p>
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{t('Approved')}</p>
               <p className="text-xl font-bold text-foreground">Rs {summary.approved.amount.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{summary.approved.count} entries</p>
+              <p className="text-xs text-muted-foreground">{summary.approved.count} {t('entries')}</p>
             </div>
           </div>
         </div>
@@ -333,9 +340,9 @@ const InstructorIncentivesPage = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-success/15 flex items-center justify-center"><DollarSign className="w-5 h-5 text-success" /></div>
             <div>
-              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Paid</p>
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{t('Paid')}</p>
               <p className="text-xl font-bold text-foreground">Rs {summary.paid.amount.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{summary.paid.count} entries</p>
+              <p className="text-xs text-muted-foreground">{summary.paid.count} {t('entries')}</p>
             </div>
           </div>
         </div>
@@ -343,9 +350,9 @@ const InstructorIncentivesPage = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-destructive/15 flex items-center justify-center"><Users className="w-5 h-5 text-destructive" /></div>
             <div>
-              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Rejected</p>
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">{t('Rejected')}</p>
               <p className="text-xl font-bold text-foreground">Rs {summary.rejected.amount.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{summary.rejected.count} entries</p>
+              <p className="text-xs text-muted-foreground">{summary.rejected.count} {t('entries')}</p>
             </div>
           </div>
         </div>
@@ -356,7 +363,7 @@ const InstructorIncentivesPage = () => {
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => resetForm()}>
           <div className="my-auto flex w-full max-w-2xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
-              <h3 className="text-xl font-bold text-foreground">{editingId ? 'Edit Incentive' : 'Add Incentive'}</h3>
+              <h3 className="text-xl font-bold text-foreground">{editingId ? t('Edit Incentive') : t('Add Incentive')}</h3>
               <button type="button" onClick={resetForm} className="p-2 rounded-lg hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -365,22 +372,22 @@ const InstructorIncentivesPage = () => {
               <form onSubmit={handleSubmitForm} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Instructor *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Instructor *')}</label>
                     <SearchableSelect
                       name="instructorId"
                       value={formData.instructorId}
                       onChange={handleFormChange}
                       options={instructors.map((i) => ({ value: i.id, label: i.fullName }))}
-                      placeholder="Select instructor..."
+                      placeholder={t('Select instructor...')}
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Date *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Date *')}</label>
                     <DatePicker value={formData.date} onChange={(val) => setFormData((prev) => ({ ...prev, date: val }))} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Amount (Rs) * <span className="text-warning">(min Rs{MINIMUM_INCENTIVE_AMOUNT})</span></label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Amount (Rs) *')} <span className="text-warning">({t('min Rs1400')})</span></label>
                     <input
                       type="number"
                       name="amount"
@@ -389,60 +396,60 @@ const InstructorIncentivesPage = () => {
                       min={MINIMUM_INCENTIVE_AMOUNT}
                       step="0.01"
                       required
-                      placeholder={`Minimum Rs${MINIMUM_INCENTIVE_AMOUNT}`}
+                      placeholder={t('Minimum Rs1400')}
                       className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Payment Mode *</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Payment Mode *')}</label>
                     <SearchableSelect
                       name="paymentMode"
                       value={formData.paymentMode}
                       onChange={handleFormChange}
-                      options={PAYMENT_MODES}
-                      placeholder="Select payment mode..."
+                      options={paymentModeOptions}
+                      placeholder={t('Select payment mode...')}
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Number of Lessons</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Number of Lessons')}</label>
                     <input
                       type="number"
                       name="lessonCount"
                       value={formData.lessonCount}
                       onChange={handleFormChange}
                       min="0"
-                      placeholder="0"
+                      placeholder={t('0')}
                       className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Description</label>
+                    <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Description')}</label>
                     <input
                       type="text"
                       name="description"
                       value={formData.description}
                       onChange={handleFormChange}
-                      placeholder="Reason for incentive..."
+                      placeholder={t('Reason for incentive...')}
                       maxLength={200}
                       className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Notes</label>
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Notes')}</label>
                   <textarea
                     name="notes"
                     value={formData.notes}
                     onChange={handleFormChange}
-                    placeholder="Additional notes..."
+                    placeholder={t('Additional notes...')}
                     rows={2}
                     className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none"
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? 'Saving...' : editingId ? 'Update Incentive' : 'Create Incentive'}</button>
-                  <button type="button" onClick={resetForm} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">Cancel</button>
+                  <button type="submit" disabled={loading} className="btn-save-primary">{loading ? t('Saving...') : editingId ? t('Update Incentive') : t('Create Incentive')}</button>
+                  <button type="button" onClick={resetForm} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t('Cancel')}</button>
                 </div>
               </form>
             </div>
@@ -454,21 +461,21 @@ const InstructorIncentivesPage = () => {
       <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4 p-4 rounded-xl bg-surface-container-highest border border-border edge-glow">
         <div className="flex items-end gap-3 w-full sm:w-auto">
           <div className="flex-1 min-w-[140px]">
-            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Month</label>
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Month')}</label>
             <SearchableSelect
               value={selectedMonth.toString()}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
-              options={MONTH_NAMES.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
-              placeholder="Select month..."
+              options={monthOptions}
+              placeholder={t('Select month...')}
             />
           </div>
           <div className="flex-1 min-w-[120px]">
-            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Year</label>
+            <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Year')}</label>
             <SearchableSelect
               value={selectedYear.toString()}
               onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
               options={[2024, 2025, 2026, 2027].map((y) => ({ value: y.toString(), label: y.toString() }))}
-              placeholder="Select year..."
+              placeholder={t('Select year...')}
               searchable={false}
             />
           </div>
@@ -476,11 +483,11 @@ const InstructorIncentivesPage = () => {
         {filteredIncentives.length > 0 && (
           <div className="md:ml-auto">
             <ExportDialog
-              title="Export Incentives"
+              title={t('Export Incentives')}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
               trigger={
                 <button className="h-10 px-4 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-2">
-                  <Download className="w-4 h-4" /> Export
+                  <Download className="w-4 h-4" /> {t('Export')}
                 </button>
               }
             />
@@ -496,7 +503,7 @@ const InstructorIncentivesPage = () => {
             onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-surface-container-high text-muted-foreground hover:text-foreground border border-transparent hover:bg-surface-container-highest'}`}
           >
-            {tab}
+            {t(tab)}
           </button>
         ))}
       </div>
@@ -504,15 +511,15 @@ const InstructorIncentivesPage = () => {
       {/* Table */}
       <div className="bg-surface-container-highest rounded-xl edge-glow overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
-          <h3 className="text-sm font-bold text-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Incentives</h3>
+          <h3 className="text-sm font-bold text-foreground">{t(MONTH_NAMES[selectedMonth - 1])} {selectedYear} {t('Incentives')}</h3>
         </div>
 
         {loading ? (
           <div className="p-6"><TableSkeleton rows={5} /></div>
         ) : filteredIncentives.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            <p>No incentives found for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}.</p>
-            {isAdmin && <p className="text-xs mt-1">Click "Add Incentive" to create one.</p>}
+            <p>{t('No incentives found for')} {t(MONTH_NAMES[selectedMonth - 1])} {selectedYear}.</p>
+            {isAdmin && <p className="text-xs mt-1">{t('Click "Add Incentive" to create one.')}</p>}
           </div>
         ) : (
           <>
@@ -520,8 +527,8 @@ const InstructorIncentivesPage = () => {
               <table className="w-full text-sm min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {['DATE', 'INSTRUCTOR', 'AMOUNT', 'PAYMENT MODE', 'LESSONS', 'STATUS', 'DESCRIPTION', ''].map((h) => (
-                      <th key={h || 'actions'} className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] uppercase text-muted-foreground whitespace-nowrap">{h}</th>
+                    {['Date', 'Instructor', 'Amount', 'Payment Mode', 'Lessons', 'Status', 'Description', ''].map((h) => (
+                      <th key={h || 'actions'} className="px-5 py-3 text-left text-[10px] font-semibold tracking-[0.12em] uppercase text-muted-foreground whitespace-nowrap">{h ? t(h) : h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -538,11 +545,11 @@ const InstructorIncentivesPage = () => {
                         </div>
                       </td>
                       <td className="px-5 py-4 font-bold text-foreground mono-data">Rs{incentive.amount.toLocaleString()}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{incentive.paymentMode}</td>
+                      <td className="px-5 py-4 text-muted-foreground">{t(incentive.paymentMode)}</td>
                       <td className="px-5 py-4 text-muted-foreground mono-data">{incentive.lessonCount || '-'}</td>
                       <td className="px-5 py-4">
                         <span className={`px-2.5 py-1 rounded text-xs font-medium border ${getStatusBadgeClass(incentive.status)}`}>
-                          {incentive.status}
+                          {t(incentive.status)}
                         </span>
                       </td>
                       <td className="px-5 py-4 text-muted-foreground max-w-[200px] truncate">{incentive.description || '-'}</td>
@@ -554,14 +561,14 @@ const InstructorIncentivesPage = () => {
                                 <button
                                   onClick={() => handleStatusChange(incentive.id, 'Approved')}
                                   className="p-1.5 rounded hover:bg-success/10 text-success transition-colors"
-                                  title="Approve"
+                                  title={t('Approve')}
                                 >
                                   <Check className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleStatusChange(incentive.id, 'Rejected')}
                                   className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
-                                  title="Reject"
+                                  title={t('Reject')}
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -571,7 +578,7 @@ const InstructorIncentivesPage = () => {
                               <button
                                 onClick={() => handleStatusChange(incentive.id, 'Paid')}
                                 className="p-1.5 rounded hover:bg-success/10 text-success transition-colors"
-                                title="Mark as Paid"
+                                title={t('Mark as Paid')}
                               >
                                 <DollarSign className="w-4 h-4" />
                               </button>
@@ -580,16 +587,16 @@ const InstructorIncentivesPage = () => {
                               <button
                                 onClick={() => handleEdit(incentive)}
                                 className="p-1.5 rounded hover:bg-primary/10 text-primary transition-colors"
-                                title="Edit"
+                                title={t('Edit')}
                               >
-                                <span className="text-xs">Edit</span>
+                                <span className="text-xs">{t('Edit')}</span>
                               </button>
                             )}
                             {incentive.status !== 'Paid' && (
                               <button
                                 onClick={() => setConfirmModal({ isOpen: true, id: incentive.id, action: 'delete' })}
                                 className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
-                                title="Delete"
+                                title={t('Delete')}
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -619,12 +626,12 @@ const InstructorIncentivesPage = () => {
       {/* Confirm Modal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        title="Delete Incentive"
-        message="Are you sure you want to delete this incentive? This action cannot be undone."
+        title={t('Delete Incentive')}
+        message={t('Are you sure you want to delete this incentive? This action cannot be undone.')}
         onConfirm={() => handleDelete(confirmModal.id)}
         onCancel={() => setConfirmModal({ isOpen: false, id: null, action: null })}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText={t('Delete')}
+        cancelText={t('Cancel')}
         variant="destructive"
       />
     </div>

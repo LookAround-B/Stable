@@ -84,59 +84,62 @@ export const isTaskBooking = (taskOrType) =>
 
 export const isBookingTask = isTaskBooking;
 
-export const getBookingSlotLabel = (slot) => SLOT_LABELS[slot] || (slot ? `Slot ${slot}` : 'No slot');
+export const getBookingSlotLabel = (slot, translate = (value) => value) =>
+  SLOT_LABELS[slot] || (slot ? `${translate('Slot')} ${slot}` : translate('No slot'));
 
 export const getBookingSlotTime = (slot) => SLOT_TIMES[slot] || null;
 
-export const getBookingRideTypeLabel = (task) => {
+export const getBookingRideTypeLabel = (task, translate = (value) => value) => {
   if (!task) return '';
-  if (task.bookingCategory === 'Fun Rides') return task.bookingRideType || '';
+  if (task.bookingCategory === 'Fun Rides') {
+    return task.bookingRideType ? translate(task.bookingRideType) : '';
+  }
   return '';
 };
 
-export const getAccommodationScheduleLabel = (task) => {
+export const getAccommodationScheduleLabel = (task, translate = (value) => value) => {
   if (!isAccommodationBookingTask(task)) return '';
 
   const checkInLabel = formatDateTime(task.accommodationCheckIn);
   const checkOutLabel = formatDateTime(task.accommodationCheckOut);
 
   if (checkInLabel && checkOutLabel) {
-    return `Check-in ${checkInLabel} | Check-out ${checkOutLabel}`;
+    return `${translate('Check-in')} ${checkInLabel} | ${translate('Check-out')} ${checkOutLabel}`;
   }
 
   return checkInLabel || checkOutLabel || '';
 };
 
-export const getBookingSummary = (task) => {
+export const getBookingSummary = (task, translate = (value) => value) => {
   if (!isTaskBooking(task)) return '';
 
   if (isAccommodationBookingTask(task)) {
     return [
-      task.customerName ? `Guest: ${task.customerName}` : '',
-      task.customerPhone ? `Phone: ${task.customerPhone}` : '',
-      getAccommodationScheduleLabel(task),
-      task.leadPrice != null ? `Lead Price: ${task.leadPrice}` : 'Lead Price: null',
-      task.totalRoomPrice != null ? `Room Price (w/ Tax): ${task.totalRoomPrice}` : '',
-      task.paymentSource ? `Payment: ${task.paymentSource}` : '',
-      task.isPaid ? 'Paid' : 'Unpaid',
+      task.customerName ? `${translate('Guest')}: ${task.customerName}` : '',
+      task.customerPhone ? `${translate('Phone')}: ${task.customerPhone}` : '',
+      getAccommodationScheduleLabel(task, translate),
+      task.leadPrice != null ? `${translate('Lead Price')}: ${task.leadPrice}` : `${translate('Lead Price')}: null`,
+      task.totalRoomPrice != null ? `${translate('Room Price (w/ Tax)')}: ${task.totalRoomPrice}` : '',
+      task.paymentSource ? `${translate('Payment')}: ${translate(task.paymentSource)}` : '',
+      task.isPaid ? translate('Paid') : translate('Unpaid'),
     ]
       .filter(Boolean)
       .join(' | ');
   }
 
   return [
-    task.bookingCategory,
-    getBookingRideTypeLabel(task),
-    task.bookingDestination ? `Where: ${task.bookingDestination}` : '',
-    task.instructor?.fullName ? `Instructor: ${task.instructor.fullName}` : '',
-    task.customerName ? `Client: ${task.customerName}` : '',
-    task.leadGroomName ? `Lead/Groom: ${task.leadGroomName}` : '',
-    task.bookingSlot ? `Slot ${getBookingSlotLabel(task.bookingSlot)}` : '',
-    task.leadPrice != null ? `Lead Price: ${task.leadPrice}` : 'Lead Price: null',
-    task.totalRoomPrice != null ? `Room Price (w/ Tax): ${task.totalRoomPrice}` : '',
-    task.paymentSource ? `Payment: ${task.paymentSource}` : '',
-    task.isPaid ? 'Paid' : 'Unpaid',
-    task.isMembershipBooking && task.packageName ? `Package: ${task.packageName}` : '',
+    task.bookingCategory ? translate(task.bookingCategory) : '',
+    getBookingRideTypeLabel(task, translate),
+    task.bookingDestination ? `${translate('Where')}: ${translate(task.bookingDestination)}` : '',
+    task.instructor?.fullName ? `${translate('Instructor')}: ${task.instructor.fullName}` : '',
+    task.customerName ? `${translate('Client')}: ${task.customerName}` : '',
+    task.leadGroomName ? `${translate('Lead/Groom')}: ${task.leadGroomName}` : '',
+    task.bookingSlot ? `${translate('Slot')} ${getBookingSlotLabel(task.bookingSlot, translate)}` : '',
+    task.leadPrice != null ? `${translate('Lead Price')}: ${task.leadPrice}` : `${translate('Lead Price')}: null`,
+    task.totalRoomPrice != null ? `${translate('Room Price (w/ Tax)')}: ${task.totalRoomPrice}` : '',
+    task.paymentSource ? `${translate('Payment')}: ${translate(task.paymentSource)}` : '',
+    task.isPaid ? translate('Paid') : translate('Unpaid'),
+    task.isMembershipBooking && task.packageName ? `${translate('Package')}: ${task.packageName}` : '',
   ]
     .filter(Boolean)
     .join(' | ');

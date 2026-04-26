@@ -73,11 +73,11 @@ const GrassBeddingPage = () => {
       setItems(Array.isArray(data) ? data : []);
       setCurrentPage(1);
     } catch {
-      showMsg("Failed to load grass and bedding records", "error");
+      showMsg(t("Failed to load grass and bedding records"), "error");
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, t]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
@@ -124,15 +124,15 @@ const GrassBeddingPage = () => {
     try {
       if (editingId) {
         await grassBeddingService.updateItem(editingId, formData);
-        showMsg("Record updated");
+        showMsg(t("Record updated"));
       } else {
         await grassBeddingService.createItem(formData);
-        showMsg("Record added");
+        showMsg(t("Record added"));
       }
       resetForm();
       fetchItems();
     } catch (err) {
-      showMsg(err.response?.data?.error || "Failed to save record", "error");
+      showMsg(err.response?.data?.error || t("Failed to save record"), "error");
     }
   };
 
@@ -159,28 +159,28 @@ const GrassBeddingPage = () => {
     setConfirmModal({ isOpen: false, id: null });
     try {
       await grassBeddingService.deleteItem(id);
-      showMsg("Deleted");
+      showMsg(t("Deleted"));
       fetchItems();
     } catch {
-      showMsg("Failed to delete", "error");
+      showMsg(t("Failed to delete"), "error");
     }
   };
 
   const getExportRows = () => items.map((item) => ({
-    "Horse": item.horse?.name || "",
-    "Stable #": item.horse?.stableNumber || "",
-    "Type": item.entryType || "",
-    "Name": item.supplyName || "",
-    "Collected By": item.collectedBy?.fullName || "",
-    "Timestamp": item.collectedAt ? new Date(item.collectedAt).toLocaleString("en-IN") : "",
-    "Grass Load Received": item.grassLoadReceived === true ? "Yes" : item.grassLoadReceived === false ? "No" : "",
-    "Weight In Tons": item.weightInTons ?? "",
-    "Notes": item.notes || "",
+    [t("Horse")]: item.horse?.name || "",
+    [t("Stable #")]: item.horse?.stableNumber || "",
+    [t("Type")]: item.entryType ? t(item.entryType) : "",
+    [t("Name")]: item.supplyName || "",
+    [t("Collected By")]: item.collectedBy?.fullName || "",
+    [t("Timestamp")]: item.collectedAt ? new Date(item.collectedAt).toLocaleString("en-IN") : "",
+    [t("Grass Load Received")]: item.grassLoadReceived === true ? t("Yes") : item.grassLoadReceived === false ? t("No") : "",
+    [t("Weight In Tons")]: item.weightInTons ?? "",
+    [t("Notes")]: item.notes || "",
   }));
 
   const handleDownloadExcel = async () => {
     const rows = getExportRows();
-    if (rows.length === 0) { showNoExportDataToast("No data"); return; }
+    if (rows.length === 0) { showNoExportDataToast(t("No data")); return; }
     await writeRowsToXlsx(rows, {
       sheetName: 'GrassBedding',
       fileName: `GrassBedding_${new Date().toISOString().slice(0, 10)}.xlsx`,
@@ -189,7 +189,7 @@ const GrassBeddingPage = () => {
 
   const handleDownloadCSV = () => {
     const rows = getExportRows();
-    if (rows.length === 0) { showNoExportDataToast("No data"); return; }
+    if (rows.length === 0) { showNoExportDataToast(t("No data")); return; }
     downloadCsvFile(rows, `GrassBedding_${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
@@ -205,8 +205,8 @@ const GrassBeddingPage = () => {
     <div className="grass-bedding-page space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Grass <span className="text-primary">&amp; Bedding</span></h1>
-          <p className="text-sm text-muted-foreground mt-1">Track grass and bedding collection, load receipt, and tonnage.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Grass & Bedding")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("Track grass and bedding collection, load receipt, and tonnage.")}</p>
         </div>
         {canWriteGrassBedding && (
           <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
@@ -245,11 +245,11 @@ const GrassBeddingPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Type")}</label>
-                    <SearchableSelect name="entryType" value={formData.entryType} onChange={handleInputChange} options={ENTRY_TYPES.map((type) => ({ value: type, label: type }))} />
+                    <SearchableSelect name="entryType" value={formData.entryType} onChange={handleInputChange} options={ENTRY_TYPES.map((type) => ({ value: type, label: t(type) }))} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{formData.entryType === "Bedding" ? t("Bedding Name") : t("Grass Name")}</label>
-                    <input type="text" name="supplyName" value={formData.supplyName} onChange={handleInputChange} maxLength={120} placeholder={formData.entryType === "Bedding" ? "e.g. Pine Shavings" : "e.g. Lucerne Grass"} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
+                    <input type="text" name="supplyName" value={formData.supplyName} onChange={handleInputChange} maxLength={120} placeholder={formData.entryType === "Bedding" ? t("e.g. Pine Shavings") : t("e.g. Lucerne Grass")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Collected By")}</label>
@@ -261,7 +261,7 @@ const GrassBeddingPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Grass Load Received")}</label>
-                    <SearchableSelect name="grassLoadReceived" value={formData.grassLoadReceived} onChange={handleInputChange} searchable={false} options={[{ value: "", label: t("Select") }, { value: "Yes", label: "Yes" }, { value: "No", label: "No" }]} />
+                    <SearchableSelect name="grassLoadReceived" value={formData.grassLoadReceived} onChange={handleInputChange} searchable={false} options={[{ value: "", label: t("Select") }, { value: "Yes", label: t("Yes") }, { value: "No", label: t("No") }]} />
                   </div>
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Weight In Tons")}</label>
@@ -273,7 +273,7 @@ const GrassBeddingPage = () => {
                         onChange={handleInputChange}
                         min="0"
                         step="100"
-                        placeholder="100"
+                        placeholder={t("100")}
                         className="grass-bedding-stepper-input w-full h-10 px-3 pr-12 rounded-lg bg-surface-container-high border border-border text-foreground text-sm focus:ring-1 focus:ring-primary outline-none"
                       />
                       <div className="absolute inset-y-1 right-1 flex w-8 flex-col gap-1">
@@ -319,7 +319,7 @@ const GrassBeddingPage = () => {
             <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t("Search records...")} className="h-10 pl-10 pr-3 w-full rounded-lg bg-surface-container-high text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} entries</span>
+            <span className="text-xs text-muted-foreground mono-data hidden sm:block">{items.length} {t("entries")}</span>
             <ExportDialog
               title={t("Export Grass and Bedding")}
               options={{ xlsx: handleDownloadExcel, csv: handleDownloadCSV }}
@@ -336,15 +336,15 @@ const GrassBeddingPage = () => {
         {loading ? (
           <div className="p-4"><TableSkeleton cols={7} rows={5} /></div>
         ) : items.length === 0 ? (
-          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `No records matching "${search}"` : "No grass or bedding records found."}</p>
+          <p className="text-center py-8 text-sm text-muted-foreground">{search ? `${t("No records matching")} "${search}"` : t("No grass or bedding records found.")}</p>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                  {["HORSE", "TYPE", "NAME", "COLLECTED BY", "TIMESTAMP", "LOAD RECEIVED", "WEIGHT", "NOTES", ""].map((header) => (
-                      <th key={header || "actions"} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{header}</th>
+                  {["Horse", "Type", "Name", "Collected By", "Timestamp", "Load Received", "Weight", "Notes", ""].map((header) => (
+                      <th key={header || "actions"} className="px-6 py-3 text-left text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{header ? t(header) : header}</th>
                     ))}
                   </tr>
                 </thead>
@@ -357,11 +357,11 @@ const GrassBeddingPage = () => {
                           <span className="text-xs text-muted-foreground">{item.horse?.stableNumber || "-"}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-foreground">{item.entryType}</td>
+                      <td className="px-6 py-4 text-sm text-foreground">{item.entryType ? t(item.entryType) : "-"}</td>
                       <td className="px-6 py-4 text-sm text-foreground">{item.supplyName}</td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">{item.collectedBy?.fullName || "-"}</td>
                       <td className="px-6 py-4 text-xs mono-data text-foreground">{item.collectedAt ? new Date(item.collectedAt).toLocaleString("en-IN") : "-"}</td>
-                      <td className="px-6 py-4 text-sm text-foreground">{item.grassLoadReceived === true ? "Yes" : item.grassLoadReceived === false ? "No" : "-"}</td>
+                      <td className="px-6 py-4 text-sm text-foreground">{item.grassLoadReceived === true ? t("Yes") : item.grassLoadReceived === false ? t("No") : "-"}</td>
                       <td className="px-6 py-4 text-sm text-foreground">{item.weightInTons ?? "-"}</td>
                       <td className="px-6 py-4 text-sm text-muted-foreground max-w-[240px] truncate">{item.notes || "-"}</td>
                       <td className="px-6 py-4">

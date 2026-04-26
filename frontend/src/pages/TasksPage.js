@@ -883,7 +883,7 @@ const TasksPage = () => {
     const taskId = String(task.id || '');
     const shortTaskId = taskId.slice(0, 8);
     const horseName = (task.horse?.name || '').toLowerCase();
-    const bookingSummary = getBookingSummary(task).toLowerCase();
+    const bookingSummary = getBookingSummary(task, t).toLowerCase();
     const searchMatch =
       !query ||
       taskId.toLowerCase().includes(query) ||
@@ -900,46 +900,62 @@ const TasksPage = () => {
   }));
   const taskTypeOptions = (isBookingsRoute
     ? [BOOKING_TASK_TYPE, ACCOMMODATION_TASK_TYPE]
-    : TASK_TYPES).map((type) => ({ value: type, label: type }));
+    : TASK_TYPES).map((type) => ({ value: type, label: t(type) }));
+  const localizedPaymentSourceOptions = PAYMENT_SOURCE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(option.label),
+  }));
+  const localizedBookingCategoryOptions = BOOKING_CATEGORY_OPTIONS.map((option) => ({
+    ...option,
+    label: t(option.label),
+  }));
+  const localizedFunRideOptions = FUN_RIDE_OPTIONS.map((option) => ({
+    ...option,
+    label: t(option.label),
+  }));
+  const localizedBookingDestinationOptions = BOOKING_DESTINATION_OPTIONS.map((option) => ({
+    ...option,
+    label: t(option.label),
+  }));
   const getBookingExportRows = () =>
     filteredTasks
       .filter((task) => isBookingTask(task))
       .map((task) => ({
-        'Booking ID': String(task.id || '').slice(0, 8).toUpperCase(),
-        'Booking Type': task.type || '',
-        'Status': task.status || '',
-        'Horse': task.horse?.name || '',
-        'Client / Guest': task.customerName || '',
-        'Phone': task.customerPhone || '',
-        'Instructor': task.instructor?.fullName || '',
-        'Lead/Groom Name': task.leadGroomName || '',
-        'Assigned To': task.assignedEmployee?.fullName || '',
-        'Assigned Role': task.assignedEmployee?.designation || '',
-        'Category': task.bookingCategory || '',
-        'Ride Type': isRideBookingTask(task) ? getBookingRideTypeLabel(task) : '',
-        'Where To Go': task.bookingDestination || '',
-        'Slot': task.bookingSlot ? getBookingSlotLabel(task.bookingSlot) : '',
-        'Scheduled Time': task.scheduledTime ? new Date(task.scheduledTime).toLocaleString() : '',
-        'Check-in': task.accommodationCheckIn ? new Date(task.accommodationCheckIn).toLocaleString() : '',
-        'Check-out': task.accommodationCheckOut ? new Date(task.accommodationCheckOut).toLocaleString() : '',
-        'Lead Price': task.leadPrice ?? '',
-        'Room Price (w/ Tax)': task.totalRoomPrice ?? '',
-        'Payment Status': task.isPaid ? 'Paid' : 'Unpaid',
-        'Payment Source': task.paymentSource || '',
-        'Membership Booking': task.isMembershipBooking ? 'Yes' : 'No',
-        'Package Name': task.packageName || '',
-        'No. of Ridings': task.packageRideCount ?? '',
-        'Members': task.packageMemberCount ?? '',
-        'Package Price': task.packagePrice ?? '',
-        'GST': task.gstAmount ?? '',
-        'Summary': getBookingSummary(task),
-        'Created By': task.createdBy?.fullName || '',
-        'Notes': task.description || '',
+        [t('Booking ID')]: String(task.id || '').slice(0, 8).toUpperCase(),
+        [t('Booking Type')]: task.type ? t(task.type) : '',
+        [t('Status')]: task.status ? t(task.status) : '',
+        [t('Horse')]: task.horse?.name || '',
+        [t('Client / Guest')]: task.customerName || '',
+        [t('Phone')]: task.customerPhone || '',
+        [t('Instructor')]: task.instructor?.fullName || '',
+        [t('Lead/Groom Name')]: task.leadGroomName || '',
+        [t('Assigned To')]: task.assignedEmployee?.fullName || '',
+        [t('Assigned Role')]: task.assignedEmployee?.designation || '',
+        [t('Category')]: task.bookingCategory ? t(task.bookingCategory) : '',
+        [t('Ride Type')]: isRideBookingTask(task) ? getBookingRideTypeLabel(task, t) : '',
+        [t('Where To Go')]: task.bookingDestination ? t(task.bookingDestination) : '',
+        [t('Slot')]: task.bookingSlot ? getBookingSlotLabel(task.bookingSlot, t) : '',
+        [t('Scheduled Time')]: task.scheduledTime ? new Date(task.scheduledTime).toLocaleString() : '',
+        [t('Check-in')]: task.accommodationCheckIn ? new Date(task.accommodationCheckIn).toLocaleString() : '',
+        [t('Check-out')]: task.accommodationCheckOut ? new Date(task.accommodationCheckOut).toLocaleString() : '',
+        [t('Lead Price')]: task.leadPrice ?? '',
+        [t('Room Price (w/ Tax)')]: task.totalRoomPrice ?? '',
+        [t('Payment Status')]: task.isPaid ? t('Paid') : t('Unpaid'),
+        [t('Payment Source')]: task.paymentSource ? t(task.paymentSource) : '',
+        [t('Membership Booking')]: task.isMembershipBooking ? t('Yes') : t('No'),
+        [t('Package Name')]: task.packageName || '',
+        [t('No. of Ridings')]: task.packageRideCount ?? '',
+        [t('Members')]: task.packageMemberCount ?? '',
+        [t('Package Price')]: task.packagePrice ?? '',
+        [t('GST')]: task.gstAmount ?? '',
+        [t('Summary')]: getBookingSummary(task, t),
+        [t('Created By')]: task.createdBy?.fullName || '',
+        [t('Notes')]: task.description || '',
       }));
 
   const handleDownloadBookingsExcel = async () => {
     if (!filteredTasks.length) {
-      showNoExportDataToast('No bookings to download');
+      showNoExportDataToast(t('No bookings to download'));
       return;
     }
     await writeRowsToXlsx(getBookingExportRows(), {
@@ -950,7 +966,7 @@ const TasksPage = () => {
 
   const handleDownloadBookingsCsv = () => {
     if (!filteredTasks.length) {
-      showNoExportDataToast('No bookings to download');
+      showNoExportDataToast(t('No bookings to download'));
       return;
     }
     downloadCsvFile(
@@ -1022,15 +1038,15 @@ const TasksPage = () => {
       .sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
 
   const getTaskTime = (scheduledTime) => {
-    if (!scheduledTime) return 'No Time Set';
+    if (!scheduledTime) return t('No Time Set');
     const date = new Date(scheduledTime);
-    if (Number.isNaN(date.getTime())) return 'No Time Set';
+    if (Number.isNaN(date.getTime())) return t('No Time Set');
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getTaskScheduleLabel = (task) => {
     if (isRideBookingTask(task) && task.bookingSlot) {
-      return `Slot ${getBookingSlotLabel(task.bookingSlot)}`;
+      return `${t('Slot')} ${getBookingSlotLabel(task.bookingSlot, t)}`;
     }
     return getTaskTime(task.scheduledTime);
   };
@@ -1044,15 +1060,15 @@ const TasksPage = () => {
 
   const getTaskSupportInfo = (task) => {
     if (isAccommodationBookingTask(task)) {
-      return getAccommodationScheduleLabel(task) || 'Accommodation booking';
+      return getAccommodationScheduleLabel(task, t) || t('Accommodation booking');
     }
-    if (isBookingTask(task)) return getBookingSummary(task) || 'Stable booking';
-    if (task.requiredProof) return 'Evidence Required';
-    if (task.priority === 'Urgent') return 'Critical Window';
-    if (task.priority === 'High') return 'Supplies Ready';
-    if (task.type === 'Training') return 'Arena Booked';
-    if (task.type === 'Health Check') return 'Vitals Review';
-    return 'Standard Flow';
+    if (isBookingTask(task)) return getBookingSummary(task, t) || t('Stable booking');
+    if (task.requiredProof) return t('Evidence Required');
+    if (task.priority === 'Urgent') return t('Critical Window');
+    if (task.priority === 'High') return t('Supplies Ready');
+    if (task.type === 'Training') return t('Arena Booked');
+    if (task.type === 'Health Check') return t('Vitals Review');
+    return t('Standard Flow');
   };
 
   const getTaskEvidenceImage = (task) => task.proofImage || task.photoUrl || '';
@@ -1144,32 +1160,32 @@ const TasksPage = () => {
     .sort((a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime());
   const bookingPreview = isAccommodationBookingFormTask
     ? [
-        formData.customerName ? `Guest: ${formData.customerName}` : '',
-        formData.customerPhone ? `Phone: ${formData.customerPhone}` : '',
-        formData.accommodationCheckIn ? `Check-in: ${new Date(formData.accommodationCheckIn).toLocaleString()}` : '',
-        formData.accommodationCheckOut ? `Check-out: ${new Date(formData.accommodationCheckOut).toLocaleString()}` : '',
-        formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
-        formData.totalRoomPrice !== '' ? `Room Price (w/ Tax): ${formData.totalRoomPrice}` : '',
-        formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
-        formData.isPaid ? 'Paid' : 'Unpaid',
+        formData.customerName ? `${t('Guest')}: ${formData.customerName}` : '',
+        formData.customerPhone ? `${t('Phone')}: ${formData.customerPhone}` : '',
+        formData.accommodationCheckIn ? `${t('Check-in')}: ${new Date(formData.accommodationCheckIn).toLocaleString()}` : '',
+        formData.accommodationCheckOut ? `${t('Check-out')}: ${new Date(formData.accommodationCheckOut).toLocaleString()}` : '',
+        formData.leadPrice !== '' ? `${t('Lead Price')}: ${formData.leadPrice}` : `${t('Lead Price')}: null`,
+        formData.totalRoomPrice !== '' ? `${t('Room Price (w/ Tax)')}: ${formData.totalRoomPrice}` : '',
+        formData.paymentSource ? `${t('Payment')}: ${t(formData.paymentSource)}` : '',
+        formData.isPaid ? t('Paid') : t('Unpaid'),
       ].filter(Boolean).join(' | ')
     : isRideBookingFormTask
       ? [
-          formData.bookingCategory,
+          t(formData.bookingCategory),
           formData.bookingCategory === 'Fun Rides'
-            ? (formData.bookingRideType || 'Select fun ride')
+            ? (formData.bookingRideType ? t(formData.bookingRideType) : t('Select fun ride'))
             : '',
-        formData.bookingDestination ? `Where: ${formData.bookingDestination}` : '',
-        selectedInstructor?.fullName ? `Instructor: ${selectedInstructor.fullName}` : '',
-        formData.customerName ? `Client: ${formData.customerName}` : '',
-        formData.leadGroomName ? `Lead/Groom: ${formData.leadGroomName}` : '',
-        formData.bookingSlot ? `Slot ${getBookingSlotLabel(formData.bookingSlot)}` : '',
-          formData.leadPrice !== '' ? `Lead Price: ${formData.leadPrice}` : 'Lead Price: null',
-          formData.totalRoomPrice !== '' ? `Room Price (w/ Tax): ${formData.totalRoomPrice}` : '',
-          formData.paymentSource ? `Payment: ${formData.paymentSource}` : '',
-          formData.isPaid ? 'Paid' : 'Unpaid',
+        formData.bookingDestination ? `${t('Where')}: ${t(formData.bookingDestination)}` : '',
+        selectedInstructor?.fullName ? `${t('Instructor')}: ${selectedInstructor.fullName}` : '',
+        formData.customerName ? `${t('Client')}: ${formData.customerName}` : '',
+        formData.leadGroomName ? `${t('Lead/Groom')}: ${formData.leadGroomName}` : '',
+        formData.bookingSlot ? `${t('Slot')} ${getBookingSlotLabel(formData.bookingSlot, t)}` : '',
+          formData.leadPrice !== '' ? `${t('Lead Price')}: ${formData.leadPrice}` : `${t('Lead Price')}: null`,
+          formData.totalRoomPrice !== '' ? `${t('Room Price (w/ Tax)')}: ${formData.totalRoomPrice}` : '',
+          formData.paymentSource ? `${t('Payment')}: ${t(formData.paymentSource)}` : '',
+          formData.isPaid ? t('Paid') : t('Unpaid'),
           formData.isMembershipBooking && formData.packageName
-            ? `Package: ${formData.packageName}`
+            ? `${t('Package')}: ${formData.packageName}`
             : '',
         ].filter(Boolean).join(' | ')
       : '';
@@ -1320,12 +1336,12 @@ const TasksPage = () => {
                       <h3 className="task-card-title">{task.name}</h3>
                       <p className="task-card-horse">{getTaskHorseName(task)}</p>
                       {isBookingTask(task) && (
-                        <p className="text-xs text-muted-foreground mt-1">{getBookingSummary(task)}</p>
+                        <p className="task-card-booking-summary">{getBookingSummary(task, t)}</p>
                       )}
                       {isRideBookingTask(task) && horseBookingHistory.length > 0 && (
-                        <div className="mt-2 text-[11px] text-muted-foreground space-y-1">
-                          <p>{`Outings: ${horseBookingHistory.length}`}</p>
-                          <p>{horseBookingHistory.slice(0, 2).map((entry) => new Date(entry.scheduledTime).toLocaleString()).join(' | ')}</p>
+                        <div className="task-card-booking-history">
+                          <p className="task-card-booking-history-count">{`${t('outing(s)')}: ${horseBookingHistory.length}`}</p>
+                          <p className="task-card-booking-history-items">{horseBookingHistory.slice(0, 2).map((entry) => new Date(entry.scheduledTime).toLocaleString()).join(' | ')}</p>
                         </div>
                       )}
 
@@ -1599,23 +1615,23 @@ const TasksPage = () => {
                     <>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Client Name *")}</label>
-                        <input type="text" name="customerName" value={formData.customerName} onChange={handleInputChange} placeholder="Customer or guest name" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                        <input type="text" name="customerName" value={formData.customerName} onChange={handleInputChange} placeholder={t("Customer or guest name")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Phone Number *")}</label>
-                        <input type="tel" name="customerPhone" value={formData.customerPhone} onChange={handleInputChange} placeholder="Client phone number" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                        <input type="tel" name="customerPhone" value={formData.customerPhone} onChange={handleInputChange} placeholder={t("Client phone number")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Payment Source *")}</label>
-                        <SearchableSelect name="paymentSource" value={formData.paymentSource} onChange={handleInputChange} placeholder={t("Select payment source")} options={[{ value: '', label: 'Select payment source' }, ...PAYMENT_SOURCE_OPTIONS]} />
+                        <SearchableSelect name="paymentSource" value={formData.paymentSource} onChange={handleInputChange} placeholder={t("Select payment source")} options={[{ value: '', label: t('Select payment source') }, ...localizedPaymentSourceOptions]} />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Lead Price")}</label>
-                        <input type="number" min="0" step="0.01" name="leadPrice" value={formData.leadPrice} onChange={handleInputChange} placeholder="Leave empty for null" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                        <input type="number" min="0" step="0.01" name="leadPrice" value={formData.leadPrice} onChange={handleInputChange} placeholder={t("Leave empty for null")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Total Room Price with Tax")}</label>
-                        <input type="number" min="0" step="0.01" name="totalRoomPrice" value={formData.totalRoomPrice} onChange={handleInputChange} placeholder="Leave empty for null" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                        <input type="number" min="0" step="0.01" name="totalRoomPrice" value={formData.totalRoomPrice} onChange={handleInputChange} placeholder={t("Leave empty for null")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Payment Status")}</label>
@@ -1629,7 +1645,7 @@ const TasksPage = () => {
                               onChange={() => setFormData(prev => ({ ...prev, isPaid: true }))}
                               className="accent-primary w-4 h-4"
                             />
-                            <span className="font-medium text-emerald-600">Paid</span>
+                            <span className="font-medium text-emerald-600">{t("Paid")}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
                             <input
@@ -1640,7 +1656,7 @@ const TasksPage = () => {
                               onChange={() => setFormData(prev => ({ ...prev, isPaid: false }))}
                               className="accent-primary w-4 h-4"
                             />
-                            <span className="font-medium text-rose-500">Unpaid</span>
+                            <span className="font-medium text-rose-500">{t("Unpaid")}</span>
                           </label>
                         </div>
                       </div>
@@ -1650,7 +1666,7 @@ const TasksPage = () => {
                     <>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Instructor (Optional)")}</label>
-                        <SearchableSelect name="instructorId" value={formData.instructorId} onChange={handleInputChange} placeholder={t("Select instructor")} options={[{ value: '', label: 'Select instructor' }, ...instructorOptions]} />
+                        <SearchableSelect name="instructorId" value={formData.instructorId} onChange={handleInputChange} placeholder={t("Select instructor")} options={[{ value: '', label: t('Select instructor') }, ...instructorOptions]} />
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Lead/Groom Name")}</label>
@@ -1665,17 +1681,17 @@ const TasksPage = () => {
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Booking Type *")}</label>
-                        <SearchableSelect name="bookingCategory" value={formData.bookingCategory} onChange={handleInputChange} required options={BOOKING_CATEGORY_OPTIONS} />
+                        <SearchableSelect name="bookingCategory" value={formData.bookingCategory} onChange={handleInputChange} required options={localizedBookingCategoryOptions} />
                       </div>
                       {formData.bookingCategory === 'Fun Rides' && (
                         <>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Fun Ride *")}</label>
-                            <SearchableSelect name="bookingRideType" value={formData.bookingRideType} onChange={handleInputChange} placeholder={t("Select ride type")} required options={[{ value: '', label: 'Select ride type' }, ...FUN_RIDE_OPTIONS]} />
+                            <SearchableSelect name="bookingRideType" value={formData.bookingRideType} onChange={handleInputChange} placeholder={t("Select ride type")} required options={[{ value: '', label: t('Select ride type') }, ...localizedFunRideOptions]} />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Where To Go *")}</label>
-                            <SearchableSelect name="bookingDestination" value={formData.bookingDestination} onChange={handleInputChange} placeholder={t("Select inside or outside")} required options={[{ value: '', label: 'Select inside or outside' }, ...BOOKING_DESTINATION_OPTIONS]} />
+                            <SearchableSelect name="bookingDestination" value={formData.bookingDestination} onChange={handleInputChange} placeholder={t("Select inside or outside")} required options={[{ value: '', label: t('Select inside or outside') }, ...localizedBookingDestinationOptions]} />
                           </div>
                         </>
                       )}
@@ -1683,8 +1699,8 @@ const TasksPage = () => {
                         <div className="md:col-span-2 xl:col-span-3 rounded-lg border border-border bg-surface-container-high px-4 py-3 text-xs text-muted-foreground">
                           <span className="font-semibold text-foreground">{t('Horse Booking History')}:</span>{' '}
                           {selectedHorseBookingHistory.length === 0
-                            ? 'No previous ride bookings found for this horse.'
-                            : `${selectedHorseBookingHistory.length} outing(s) | ${selectedHorseBookingHistory
+                            ? t('No previous ride bookings found for this horse.')
+                            : `${selectedHorseBookingHistory.length} ${t('outing(s)')} | ${selectedHorseBookingHistory
                                 .slice(0, 5)
                                 .map((entry) => new Date(entry.scheduledTime).toLocaleString())
                                 .join(' | ')}`}
@@ -1692,29 +1708,29 @@ const TasksPage = () => {
                       )}
                       <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-3">
                         <input type="checkbox" name="isMembershipBooking" checked={formData.isMembershipBooking} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
-                        Membership booking
+                        {t('Membership booking')}
                       </label>
                       {formData.isMembershipBooking && (
                         <>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Package Name *")}</label>
-                            <input type="text" name="packageName" value={formData.packageName} onChange={handleInputChange} placeholder="Membership package" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                            <input type="text" name="packageName" value={formData.packageName} onChange={handleInputChange} placeholder={t("Membership package")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("No. of Ridings *")}</label>
-                            <input type="number" min="1" name="packageRideCount" value={formData.packageRideCount} onChange={handleInputChange} placeholder="Total ridings" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                            <input type="number" min="1" name="packageRideCount" value={formData.packageRideCount} onChange={handleInputChange} placeholder={t("Total ridings")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Members *")}</label>
-                            <input type="number" min="1" name="packageMemberCount" value={formData.packageMemberCount} onChange={handleInputChange} placeholder="No. of members" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                            <input type="number" min="1" name="packageMemberCount" value={formData.packageMemberCount} onChange={handleInputChange} placeholder={t("No. of members")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Package Price *")}</label>
-                            <input type="number" min="0" step="0.01" name="packagePrice" value={formData.packagePrice} onChange={handleInputChange} placeholder="Package amount" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                            <input type="number" min="0" step="0.01" name="packagePrice" value={formData.packagePrice} onChange={handleInputChange} placeholder={t("Package amount")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                           </div>
                           <div>
                             <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("GST *")}</label>
-                            <input type="number" min="0" step="0.01" name="gstAmount" value={formData.gstAmount} onChange={handleInputChange} placeholder="GST amount" className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
+                            <input type="number" min="0" step="0.01" name="gstAmount" value={formData.gstAmount} onChange={handleInputChange} placeholder={t("GST amount")} className="w-full h-10 px-3 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none" />
                           </div>
                         </>
                       )}
@@ -1725,7 +1741,7 @@ const TasksPage = () => {
                     <DatePicker
                       value={formData.startDate}
                       onChange={(val) => setFormData(f => ({ ...f, startDate: val }))}
-                      placeholder={isAccommodationBookingFormTask ? "Pick booking date" : "Pick date"}
+                      placeholder={isAccommodationBookingFormTask ? t("Pick booking date") : t("Pick date")}
                     />
                   </div>
                   {!isRideBookingFormTask ? (
@@ -1734,13 +1750,13 @@ const TasksPage = () => {
                       <TimePicker
                         value={formData.scheduledTime}
                         onChange={(val) => setFormData(f => ({ ...f, scheduledTime: val }))}
-                        placeholder={isAccommodationBookingFormTask ? "Pick booking time" : "Pick start time"}
+                        placeholder={isAccommodationBookingFormTask ? t("Pick booking time") : t("Pick start time")}
                       />
                     </div>
                   ) : (
                     <div>
                       <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("Slot *")}</label>
-                      <SearchableSelect name="bookingSlot" value={formData.bookingSlot} onChange={handleInputChange} placeholder={t("Select slot")} required options={[{ value: '', label: 'Select slot' }, ...BOOKING_SLOT_OPTIONS]} />
+                      <SearchableSelect name="bookingSlot" value={formData.bookingSlot} onChange={handleInputChange} placeholder={t("Select slot")} required options={[{ value: '', label: t('Select slot') }, ...BOOKING_SLOT_OPTIONS]} />
                     </div>
                   )}
                   {isAccommodationBookingFormTask && (
@@ -1768,24 +1784,24 @@ const TasksPage = () => {
                       </div>
                       <div>
                         <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t("End Time")}</label>
-                        <TimePicker
-                          value={formData.endTime}
-                          onChange={(val) => setFormData(f => ({ ...f, endTime: val }))}
-                          placeholder="Pick end time"
-                        />
+                          <TimePicker
+                            value={formData.endTime}
+                            onChange={(val) => setFormData(f => ({ ...f, endTime: val }))}
+                            placeholder={t("Pick end time")}
+                          />
                       </div>
                     </>
                   )}
                   {!isBookingFormTask && (
                     <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer md:col-span-2 xl:col-span-2">
                       <input type="checkbox" name="requiredProof" checked={formData.requiredProof} onChange={handleInputChange} className="w-4 h-4 rounded accent-primary" />
-                      Require photo evidence
+                      {t("Require photo evidence")}
                     </label>
                   )}
                   {isBookingFormTask && (
                     <div className="md:col-span-2 xl:col-span-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
                       <span className="font-semibold text-primary">{t('Booking Summary')}:</span>{' '}
-                      {bookingPreview || (isAccommodationBookingFormTask ? 'Add guest details' : 'Add booking details')}
+                      {bookingPreview || (isAccommodationBookingFormTask ? t('Add guest details') : t('Add booking details'))}
                     </div>
                   )}
                 </form>
@@ -1794,10 +1810,10 @@ const TasksPage = () => {
                 <button type="button" onClick={() => { setShowCreateForm(false); resetTaskForm(); }} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-highest transition-colors">{t("Cancel")}</button>
                 <button type="submit" form="create-task-form" disabled={loading} className="btn-save-primary">
                   {loading
-                    ? (editingTaskId ? 'Saving...' : 'Creating...')
+                    ? (editingTaskId ? t('Saving...') : t('Creating...'))
                     : editingTaskId
-                      ? (isBookingFormTask ? 'Save Booking' : 'Save Task')
-                      : (isBookingFormTask ? 'Create Booking' : 'Create Task')}
+                      ? (isBookingFormTask ? t('Save Booking') : t('Save Task'))
+                      : (isBookingFormTask ? t('Create Booking') : t('Create Task'))}
                 </button>
               </div>
             </div>
@@ -1818,11 +1834,11 @@ const TasksPage = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">Photo Evidence {selectedTask.requiredProof && <span className="text-destructive">*</span>}</label>
+                <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block mb-1.5">{t('Photo Evidence')} {selectedTask.requiredProof && <span className="text-destructive">*</span>}</label>
                 <input type="file" id={`photo-${selectedTask.id}`} accept="image/*" onChange={handlePhotoUpload} disabled={loading} className="hidden" />
                 <label htmlFor={`photo-${selectedTask.id}`} className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-border hover:border-primary/40 cursor-pointer transition-colors bg-surface-container-high">
                   <Camera className="w-5 h-5 text-primary" />
-                  <div><p className="text-sm font-medium text-foreground">{completionData.photoUrl ? 'Change Photo' : 'Click to Upload Photo'}</p><p className="text-xs text-muted-foreground">{t("JPG, PNG (Max 5MB)")}</p></div>
+                  <div><p className="text-sm font-medium text-foreground">{completionData.photoUrl ? t('Change Photo') : t('Click to Upload Photo')}</p><p className="text-xs text-muted-foreground">{t("JPG, PNG (Max 5MB)")}</p></div>
                 </label>
                 {completionData.photoUrl && <img src={completionData.photoUrl} alt="Task evidence" className="mt-3 max-w-[150px] max-h-[150px] rounded-lg border border-border" />}
               </div>
@@ -1831,7 +1847,7 @@ const TasksPage = () => {
                 <textarea placeholder={t("Add any notes about task completion...")} value={completionData.notes} onChange={(e) => setCompletionData({ ...completionData, notes: e.target.value })} rows="3" className="w-full px-3 py-2 rounded-lg bg-surface-container-high border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-primary outline-none resize-none" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => handleCompleteTask(selectedTask.id)} disabled={loading} className="btn-save-primary flex-1">{loading ? 'Submitting...' : 'Submit for Approval'}</button>
+                <button type="button" onClick={() => handleCompleteTask(selectedTask.id)} disabled={loading} className="btn-save-primary flex-1">{loading ? t('Submitting...') : t('Submit for Approval')}</button>
                 <button type="button" onClick={() => setSelectedTaskId(null)} disabled={loading} className="h-10 px-5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-surface-container-high transition-colors">{t("Cancel")}</button>
               </div>
             </div>
@@ -1867,7 +1883,7 @@ const TasksPage = () => {
           <button
             className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
             onClick={() => setFullscreenImage(null)}
-            title="Close (ESC)"
+            title={t("Close (ESC)")}
             type="button"
           >
             <X size={20} />
@@ -1876,7 +1892,7 @@ const TasksPage = () => {
           {/* Label */}
           <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
             <span className="bg-primary/80 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
-              Task Evidence
+              {t("Task Evidence")}
             </span>
           </div>
 
@@ -1894,7 +1910,7 @@ const TasksPage = () => {
             />
             {/* Tap-to-close hint on mobile */}
             <p className="absolute -bottom-8 left-0 right-0 text-center text-white/40 text-xs sm:hidden">
-              Tap outside to close
+              {t("Tap outside to close")}
             </p>
           </div>
         </div>

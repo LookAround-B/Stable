@@ -103,6 +103,7 @@ const resetHeadingEnhancement = (heading) => {
   });
   heading.classList.remove('orbit-heading');
   delete heading.dataset.orbitHeadingReady;
+  delete heading.dataset.orbitHeadingText;
 };
 
 const enhanceHeading = (heading) => {
@@ -115,8 +116,14 @@ const enhanceHeading = (heading) => {
     return;
   }
 
+  const headingText = heading.textContent?.trim() || '';
+
   if (heading.dataset.orbitHeadingReady === '1') {
-    return;
+    if (heading.dataset.orbitHeadingText === headingText) {
+      return;
+    }
+
+    resetHeadingEnhancement(heading);
   }
 
   heading.classList.add('orbit-heading');
@@ -133,6 +140,7 @@ const enhanceHeading = (heading) => {
 
   accentLastWord(heading);
   heading.dataset.orbitHeadingReady = '1';
+  heading.dataset.orbitHeadingText = heading.textContent?.trim() || '';
 };
 
 const enhanceHeadings = (root) => {
@@ -155,7 +163,7 @@ function MainLayout() {
     return saved === '1';
   });
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const location = useLocation();
   const innerContentRef = useRef(null);
   const hasMountedRef = useRef(false);
@@ -289,7 +297,7 @@ function MainLayout() {
     });
 
     return () => observer.disconnect();
-  }, [routeSkeleton, location.pathname]);
+  }, [routeSkeleton, location.pathname, lang]);
 
   const quote = useMemo(() => QUOTES[quoteIndex], [quoteIndex]);
 
