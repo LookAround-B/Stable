@@ -12,6 +12,16 @@ function getPrismaClientDir(projectRoot) {
   return require('path').join(projectRoot, 'node_modules', '.prisma', 'client')
 }
 
+function getPrismaGenerateCommand({
+  nodeExecutable = process.execPath,
+  prismaCliPath = require.resolve('prisma/build/index.js'),
+} = {}) {
+  return {
+    command: nodeExecutable,
+    args: [prismaCliPath, 'generate'],
+  }
+}
+
 function getStaleEngineTempFiles(entries) {
   return entries
     .filter((entry) => entry.isFile())
@@ -36,6 +46,7 @@ module.exports = {
   ENGINE_FILE_NAME,
   formatLockedEngineHelp,
   getPrismaClientDir,
+  getPrismaGenerateCommand,
   getStaleEngineTempFiles,
   isWindowsEngineRenameLockError,
 }

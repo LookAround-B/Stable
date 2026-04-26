@@ -6,6 +6,7 @@ const { spawn } = require('child_process')
 const {
   formatLockedEngineHelp,
   getPrismaClientDir,
+  getPrismaGenerateCommand,
   getStaleEngineTempFiles,
   isWindowsEngineRenameLockError,
 } = require('./prisma-generate-safe-lib')
@@ -46,11 +47,13 @@ async function removeStaleEngineTempFiles() {
 
 function runPrismaGenerate() {
   return new Promise((resolve) => {
-    const child = spawn('cmd.exe', ['/d', '/s', '/c', 'prisma generate'], {
+    const { command, args } = getPrismaGenerateCommand()
+    const child = spawn(command, args, {
       cwd: PROJECT_ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: false,
     })
+    let settled = false
 
     let stdout = ''
     let stderr = ''
@@ -67,7 +70,18 @@ function runPrismaGenerate() {
       process.stderr.write(text)
     })
 
+    child.on('error', (error) => {
+      if (settled) return
+      settled = true
+      resolve({
+        code: 1,
+        output: `${stdout}\n${stderr}\n${error instanceof Error ? error.message : String(error)}`,
+      })
+    })
+
     child.on('close', (code) => {
+      if (settled) return
+      settled = true
       resolve({ code: code || 0, output: `${stdout}\n${stderr}` })
     })
   })

@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict')
 const {
   formatLockedEngineHelp,
+  getPrismaGenerateCommand,
   getStaleEngineTempFiles,
   isWindowsEngineRenameLockError,
 } = require('./prisma-generate-safe-lib')
@@ -22,6 +23,17 @@ const entries = [
 ]
 
 assert.deepEqual(getStaleEngineTempFiles(entries), ['query_engine-windows.dll.node.tmp60520'])
+
+assert.deepEqual(
+  getPrismaGenerateCommand({
+    nodeExecutable: '/usr/local/bin/node',
+    prismaCliPath: '/repo/backend/node_modules/prisma/build/index.js',
+  }),
+  {
+    command: '/usr/local/bin/node',
+    args: ['/repo/backend/node_modules/prisma/build/index.js', 'generate'],
+  }
+)
 
 const message = formatLockedEngineHelp({ attempts: 3, tmpFileCount: 9 })
 
