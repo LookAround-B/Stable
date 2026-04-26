@@ -1,5 +1,9 @@
 import axios from 'axios';
 import { getToken } from './authService';
+import {
+  handleAuthenticationFailure,
+  isAuthenticationFailure,
+} from './apiAuthGuard';
 
 const API_URL = process.env.REACT_APP_API_URL || '/api';
 
@@ -36,7 +40,13 @@ apiClient.interceptors.response.use(
 
     return response;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    if (isAuthenticationFailure(error)) {
+      handleAuthenticationFailure();
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;

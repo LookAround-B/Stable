@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '@/lib/auth';
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  verifyToken,
+} from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
@@ -69,18 +73,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'User not found' });
     }
 
-    if (!AUTHORIZED_ROLES.includes(user.designation)) {
-      return res.status(403).json({ error: 'You do not have permission to manage feed inventory' });
-    }
+    const hasRoleAccess = AUTHORIZED_ROLES.includes(user.designation);
+    const canManageInventory = await checkPermission(decoded, 'manageInventory');
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    );
+    const canReadFeedInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canReadFeedInventory ||
+      taskCapabilities.canWriteFeedInventory;
+    const canWriteFeedInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canWriteFeedInventory;
 
     switch (req.method) {
       case 'GET':
+        if (!canReadFeedInventory) {
+          return res.status(403).json({ error: 'You do not have permission to view feed inventory' });
+        }
         return handleGet(req, res);
       case 'POST':
+        if (!canWriteFeedInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage feed inventory' });
+        }
         return handlePost(req, res, user);
       case 'PUT':
+        if (!canWriteFeedInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage feed inventory' });
+        }
         return handlePut(req, res, user);
       case 'PATCH':
+        if (!canWriteFeedInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage feed inventory' });
+        }
         return handlePatch(req, res, user);
       default:
         res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH']);

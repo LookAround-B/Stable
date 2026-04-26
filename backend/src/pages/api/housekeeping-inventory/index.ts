@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { verifyToken, checkPermission } from '@/lib/auth'
+import {
+  verifyToken,
+  checkPermission,
+  getTaskCapabilitiesForUser,
+} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
@@ -28,16 +32,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     if (!user) return res.status(401).json({ error: 'User not found' })
 
-    if (!AUTHORIZED_ROLES.includes(user.designation)) {
-      const allowed = await checkPermission(decoded, 'manageInventory')
-      if (!allowed) return res.status(403).json({ error: 'Access denied' })
-    }
+    const hasRoleAccess = AUTHORIZED_ROLES.includes(user.designation)
+    const canManageInventory = await checkPermission(decoded, 'manageInventory')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canReadHousekeepingInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canReadHousekeepingInventory ||
+      taskCapabilities.canWriteHousekeepingInventory
+    const canWriteHousekeepingInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canWriteHousekeepingInventory
 
     switch (req.method) {
-      case 'GET': return handleGet(req, res)
-      case 'POST': return handlePost(req, res, user.id)
-      case 'PUT': return handlePut(req, res)
-      case 'DELETE': return handleDelete(req, res, user)
+      case 'GET':
+        if (!canReadHousekeepingInventory) return res.status(403).json({ error: 'Access denied' })
+        return handleGet(req, res)
+      case 'POST':
+        if (!canWriteHousekeepingInventory) return res.status(403).json({ error: 'Access denied' })
+        return handlePost(req, res, user.id)
+      case 'PUT':
+        if (!canWriteHousekeepingInventory) return res.status(403).json({ error: 'Access denied' })
+        return handlePut(req, res)
+      case 'DELETE':
+        if (!canWriteHousekeepingInventory) return res.status(403).json({ error: 'Access denied' })
+        return handleDelete(req, res, user)
       default: return res.status(405).json({ error: 'Method not allowed' })
     }
   } catch (error) {

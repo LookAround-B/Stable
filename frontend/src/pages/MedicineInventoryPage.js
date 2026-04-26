@@ -38,6 +38,7 @@ const MedicineInventoryPage = () => {
   const p = usePermissions();
   const { user } = useAuth();
   const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const canWriteMedicineInventory = Boolean(p.canWriteMedicineInventory);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -362,15 +363,17 @@ const MedicineInventoryPage = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Medicine <span className="text-primary">{t("Inventory")}</span></h1>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button
-              onClick={() => !showForm && setShowForm(true)}
-              disabled={loading || showForm}
-              className="medicine-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="sm:hidden">{t("Add")}</span>
-              <span className="hidden sm:inline">{t("Add Record")}</span>
-            </button>
+            {canWriteMedicineInventory && (
+              <button
+                onClick={() => !showForm && setShowForm(true)}
+                disabled={loading || showForm}
+                className="medicine-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="sm:hidden">{t("Add")}</span>
+                <span className="hidden sm:inline">{t("Add Record")}</span>
+              </button>
+            )}
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{t('Manage and track medicine stock levels across the facility.')}</p>
@@ -439,7 +442,7 @@ const MedicineInventoryPage = () => {
           </div>
 
           {/* Add/Edit Record Form */}
-          {showForm && ReactDOM.createPortal(
+          {canWriteMedicineInventory && showForm && ReactDOM.createPortal(
             <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={handleCancel}>
               <div className="my-auto flex w-full max-w-2xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-5xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
@@ -605,24 +608,26 @@ const MedicineInventoryPage = () => {
                               {isBelowThreshold && <span className="ml-1.5 text-[10px] text-destructive font-bold cursor-help" title="Low stock! Below threshold limit.">⚠ LOW</span>}
                             </td>
                             <td className="px-6 py-4">
-                              <div className="flex gap-1.5">
-                                <button onClick={() => handleEdit(record)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary disabled:opacity-50" title={t("Edit")}>
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDelete(record.id)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive disabled:opacity-50" title={t("Delete")}>
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                                {isAdmin && (
-                                  <button
-                                    onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
-                                    disabled={loading || showForm}
-                                    title="Configure threshold alert"
-                                    className={`p-1.5 rounded transition-colors disabled:opacity-50 ${record.notifyAdmin ? 'bg-warning/15 text-warning' : 'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'}`}
-                                  >
-                                    <BellRing className="w-3.5 h-3.5" />
+                              {canWriteMedicineInventory && (
+                                <div className="flex gap-1.5">
+                                  <button onClick={() => handleEdit(record)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary disabled:opacity-50" title={t("Edit")}>
+                                    <Pencil className="w-3.5 h-3.5" />
                                   </button>
-                                )}
-                              </div>
+                                  <button onClick={() => handleDelete(record.id)} disabled={loading || showForm} className="p-1.5 rounded hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive disabled:opacity-50" title={t("Delete")}>
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  {isAdmin && (
+                                    <button
+                                      onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })}
+                                      disabled={loading || showForm}
+                                      title="Configure threshold alert"
+                                      className={`p-1.5 rounded transition-colors disabled:opacity-50 ${record.notifyAdmin ? 'bg-warning/15 text-warning' : 'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'}`}
+                                    >
+                                      <BellRing className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           </tr>
                         );

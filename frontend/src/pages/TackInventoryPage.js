@@ -41,6 +41,7 @@ const conditionStyle = {
 const TackInventoryPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
+  const canWriteTackInventory = Boolean(p.canWriteTackInventory);
   const [items, setItems] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -175,9 +176,11 @@ const TackInventoryPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Tack")} <span className="text-primary">{t("Inventory")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Manage tack and equipment across all stable operations.')}</p>
         </div>
-        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn btn-save-primary shrink-0 sm:ml-auto">
-          {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
-        </button>
+        {canWriteTackInventory && (
+          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="tack-inventory-header-btn btn-save-primary shrink-0 sm:ml-auto">
+            {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
+          </button>
+        )}
       </div>
 
       {/* ── Message ── */}
@@ -204,7 +207,7 @@ const TackInventoryPage = () => {
       )}
 
       {/* ── Form ── */}
-      {showForm && ReactDOM.createPortal(
+      {canWriteTackInventory && showForm && ReactDOM.createPortal(
         <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={resetForm}>
           <div className="my-auto flex w-full max-w-6xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
@@ -383,14 +386,16 @@ const TackInventoryPage = () => {
                         <td className="px-6 py-4 mono-data text-xs text-foreground">{formatDate(item.lastUsedDate)}</td>
                         {/* Action icons */}
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          {canWriteTackInventory && (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );

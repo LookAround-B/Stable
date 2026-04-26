@@ -208,6 +208,35 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
   ],
 }
 
+const EXTRA_TASK_PERMISSIONS = [
+  'horse_feeds_read',
+  'horse_feeds_write',
+  'feed_inventory_read',
+  'feed_inventory_write',
+  'medicine_logs_read',
+  'medicine_logs_write',
+  'medicine_logs_approve',
+  'medicine_inventory_read',
+  'medicine_inventory_write',
+  'farrier_shoeing_read',
+  'farrier_shoeing_write',
+  'farrier_inventory_read',
+  'farrier_inventory_write',
+  'tack_inventory_read',
+  'tack_inventory_write',
+  'housekeeping_inventory_read',
+  'housekeeping_inventory_write',
+  'grass_bedding_read',
+  'grass_bedding_write',
+  'inspections_read',
+  'inspections_write',
+  'inspections_resolve',
+] as const
+
+export const ALL_TASK_PERMISSIONS = Array.from(
+  new Set([...Object.values(ROLE_PERMISSIONS).flat(), ...EXTRA_TASK_PERMISSIONS])
+).sort()
+
 // API Endpoint Permissions
 const ENDPOINT_PERMISSIONS: Record<string, string[]> = {
   'GET /api/employees': ['Ground Supervisor', 'Stable Manager', 'School Administrator', 'Director', 'Super Admin'],

@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken, checkPermission } from '@/lib/auth';
+import {
+  verifyToken,
+  checkPermission,
+  getTaskCapabilitiesForUser,
+} from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
@@ -67,24 +71,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'User not found' });
     }
 
-    if (!AUTHORIZED_ROLES.includes(user.designation)) {
-      // Fall back to permission-based check
-      const allowed = await checkPermission(decoded, 'manageInventory');
-      if (!allowed) {
-        return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
-      }
-    }
+    const hasRoleAccess = AUTHORIZED_ROLES.includes(user.designation);
+    const canManageInventory = await checkPermission(decoded, 'manageInventory');
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    );
+    const canReadMedicineInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canReadMedicineInventory ||
+      taskCapabilities.canWriteMedicineInventory;
+    const canWriteMedicineInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canWriteMedicineInventory;
 
     switch (req.method) {
       case 'GET':
+        if (!canReadMedicineInventory) {
+          return res.status(403).json({ error: 'You do not have permission to view medicine inventory' });
+        }
         return handleGet(req, res);
       case 'POST':
+        if (!canWriteMedicineInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
+        }
         return handlePost(req, res, user);
       case 'PUT':
+        if (!canWriteMedicineInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
+        }
         return handlePut(req, res, user);
       case 'DELETE':
+        if (!canWriteMedicineInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
+        }
         return handleDelete(req, res, user);
       case 'PATCH':
+        if (!canWriteMedicineInventory) {
+          return res.status(403).json({ error: 'You do not have permission to manage medicine inventory' });
+        }
         return handlePatch(req, res, user);
       default:
         res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);

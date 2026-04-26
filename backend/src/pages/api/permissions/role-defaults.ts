@@ -3,7 +3,11 @@
 // So the frontend can display role defaults alongside per-employee overrides
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenFromRequest, verifyToken } from '@/lib/auth'
-import { ROLE_PERMISSIONS, DEPARTMENT_ROLES } from '@/lib/roles-prd'
+import {
+  ALL_TASK_PERMISSIONS,
+  ROLE_PERMISSIONS,
+  DEPARTMENT_ROLES,
+} from '@/lib/roles-prd'
 import { setCorsHeaders } from '@/lib/cors'
 
 const ADMIN_ROLES = ['Super Admin', 'Director', 'School Administrator']
@@ -44,6 +48,7 @@ export default async function handler(
     data: {
       rolePermissions: ROLE_PERMISSIONS,
       departmentRoles: DEPARTMENT_ROLES,
+      availableTaskPermissions: ALL_TASK_PERMISSIONS,
     },
   })
 }

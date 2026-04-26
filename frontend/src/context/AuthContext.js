@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getCurrentUser, isAuthenticated, getCachedUser, setCachedUser } from '../services/authService';
+import { clearStoredAuth } from '../services/apiAuthGuard';
 
 const AuthContext = createContext();
 
@@ -20,7 +21,6 @@ export const AuthProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Refresh user data from API in the background
     const refreshUser = async () => {
       try {
         if (isAuthenticated()) {
@@ -34,14 +34,39 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         // If token is invalid, clear everything
         setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearStoredAuth();
       } finally {
         setLoading(false);
       }
     };
 
     refreshUser();
+
+    const handleStorage = (event) => {
+      if (!(event.key === 'token' || event.key === 'user')) {
+        return;
+      }
+
+      if (!isAuthenticated()) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      const cachedUser = getCachedUser();
+      if (cachedUser) {
+        setUser(cachedUser);
+        setLoading(false);
+        return;
+      }
+
+      setUser(null);
+      setLoading(true);
+      refreshUser();
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const login = (userData) => {
@@ -59,7 +84,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    clearStoredAuth();
   };
 
   const value = {

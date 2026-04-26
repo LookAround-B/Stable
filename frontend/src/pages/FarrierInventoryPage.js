@@ -36,6 +36,7 @@ const conditionStyle = {
 const FarrierInventoryPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
+  const canWriteFarrierInventory = Boolean(p.canWriteFarrierInventory);
   const [items, setItems] = useState([]);
   const [horses, setHorses] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -146,9 +147,11 @@ const FarrierInventoryPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Farrier")} <span className="text-primary">{t("Inventory")}</span></h1>
           <p className="text-sm text-muted-foreground mt-1">{t('Track farrier tools, horseshoes & service records')}</p>
         </div>
-        <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="farrier-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
-          {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
-        </button>
+        {canWriteFarrierInventory && (
+          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="farrier-inventory-header-btn h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2">
+            {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
+          </button>
+        )}
       </div>
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm font-medium ${messageType === "error" ? 'bg-destructive/15 text-destructive border border-destructive/30' : 'bg-success/15 text-success border border-success/30'}`}>{messageType === 'success' ? '✓' : '✕'} {message}</div>}
@@ -169,7 +172,7 @@ const FarrierInventoryPage = () => {
       )}
 
       {/* ── Form ── */}
-      {showForm && ReactDOM.createPortal(
+      {canWriteFarrierInventory && showForm && ReactDOM.createPortal(
         <div className="efm-page-modal-overlay fixed inset-0 z-[60] flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={resetForm}>
           <div className="my-auto flex w-full max-w-6xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
@@ -334,14 +337,16 @@ const FarrierInventoryPage = () => {
                         </td>
                         <td className="px-6 py-4 text-sm text-foreground mono-data">{item.costTracking ? `₹${parseFloat(item.costTracking).toFixed(2)}` : "-"}</td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          {canWriteFarrierInventory && (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );

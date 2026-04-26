@@ -42,6 +42,9 @@ export default function usePermissions() {
       return fallback;
     };
 
+    const canManageInventory = has('manageInventory', false);
+    const canManageSchedules = has('manageSchedules', false);
+
     return {
       isAdmin,
 
@@ -71,7 +74,7 @@ export default function usePermissions() {
         !!taskCapabilities.canWorkOnAssignedTasks,
       manageBookings:
         isBookingRole ||
-        has('manageSchedules', false) ||
+        canManageSchedules ||
         !!taskCapabilities.canManageBookings ||
         !!taskCapabilities.canCreateTasks ||
         !!taskCapabilities.canViewTasks,
@@ -89,34 +92,60 @@ export default function usePermissions() {
         !!taskCapabilities.canViewMedicineLogs ||
         !!taskCapabilities.canRecordMedicineLogs ||
         !!taskCapabilities.canApproveMedicineLogs,
+      canWriteMedicineLogs:
+        canManageInventory || !!taskCapabilities.canRecordMedicineLogs,
       viewMedicineInventory: has(
         'manageInventory',
         ['Stable Manager', 'Jamedar'].includes(designation)
-      ),
+      ) ||
+        !!taskCapabilities.canReadMedicineInventory ||
+        !!taskCapabilities.canWriteMedicineInventory,
+      canWriteMedicineInventory:
+        canManageInventory || !!taskCapabilities.canWriteMedicineInventory,
       viewHorseFeeds: has(
         'manageInventory',
         ['Stable Manager', 'Ground Supervisor'].includes(designation)
       ) || !!taskCapabilities.canViewHorseFeeds || !!taskCapabilities.canRecordHorseFeeds,
+      canWriteHorseFeeds:
+        canManageInventory || !!taskCapabilities.canRecordHorseFeeds,
       viewFeedInventory: has(
         'manageInventory',
         ['Stable Manager', 'Ground Supervisor'].includes(designation)
-      ),
+      ) ||
+        !!taskCapabilities.canReadFeedInventory ||
+        !!taskCapabilities.canWriteFeedInventory,
+      canWriteFeedInventory:
+        canManageInventory || !!taskCapabilities.canWriteFeedInventory,
       viewFarrierShoeing: has(
         'manageSchedules',
         ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)
       ) || !!taskCapabilities.canViewFarrierShoeing || !!taskCapabilities.canRecordFarrierShoeing,
+      canWriteFarrierShoeing:
+        canManageSchedules || !!taskCapabilities.canRecordFarrierShoeing,
       viewTackInventory: has(
         'manageInventory',
         ['Stable Manager', 'Jamedar', 'Ground Supervisor'].includes(designation)
-      ),
+      ) ||
+        !!taskCapabilities.canReadTackInventory ||
+        !!taskCapabilities.canWriteTackInventory,
+      canWriteTackInventory:
+        canManageInventory || !!taskCapabilities.canWriteTackInventory,
       viewGrassAndBedding: has(
         'manageInventory',
         ['Stable Manager', 'Instructor', 'Ground Supervisor', 'Jamedar'].includes(designation)
-      ),
+      ) ||
+        !!taskCapabilities.canReadGrassBedding ||
+        !!taskCapabilities.canWriteGrassBedding,
+      canWriteGrassAndBedding:
+        canManageInventory || !!taskCapabilities.canWriteGrassBedding,
       viewFarrierInventory: has(
         'manageInventory',
         ['Stable Manager', 'Farrier', 'Ground Supervisor'].includes(designation)
-      ),
+      ) ||
+        !!taskCapabilities.canReadFarrierInventory ||
+        !!taskCapabilities.canWriteFarrierInventory,
+      canWriteFarrierInventory:
+        canManageInventory || !!taskCapabilities.canWriteFarrierInventory,
 
       // Ground Operations
       viewGateEntry: has(
@@ -136,16 +165,23 @@ export default function usePermissions() {
         'manageSchedules',
         designation === 'Jamedar' || designation === 'Stable Manager'
       ) ||
+        !!taskCapabilities.canReadInspections ||
         !!taskCapabilities.canViewInspections ||
         !!taskCapabilities.canViewAllInspections ||
         !!taskCapabilities.canCreateInspections ||
         !!taskCapabilities.canResolveInspections ||
         !!taskCapabilities.canViewTeamRoundChecks ||
         !!taskCapabilities.canUpdateOwnRoundChecks,
+      canWriteInspections:
+        canManageSchedules || !!taskCapabilities.canCreateInspections,
       viewHousekeepingInventory: has(
         'manageInventory',
         ['Stable Manager', 'Ground Supervisor', 'Housekeeping'].includes(designation)
-      ),
+      ) ||
+        !!taskCapabilities.canReadHousekeepingInventory ||
+        !!taskCapabilities.canWriteHousekeepingInventory,
+      canWriteHousekeepingInventory:
+        canManageInventory || !!taskCapabilities.canWriteHousekeepingInventory,
       viewEIRS: has(
         'manageSchedules',
         ['Instructor', 'Riding Boy', 'Rider', 'Groom'].includes(designation)

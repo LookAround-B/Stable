@@ -29,6 +29,7 @@ const FeedInventoryPage = () => {
   const p = usePermissions();
   const { user } = useAuth();
   const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
+  const canWriteFeedInventory = Boolean(p.canWriteFeedInventory);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -243,17 +244,21 @@ const FeedInventoryPage = () => {
               </div>
             </div>
             <div className="feed-inventory-actions flex gap-2 md:ml-auto w-full sm:w-auto">
-              <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="feed-inventory-add-btn flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
-                {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Entry")}</>}
-              </button>
-              <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="feed-inventory-recalc-btn h-10 px-4 rounded-lg border border-primary/35 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.14)] text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
-                <RotateCw className="w-4 h-4" /> Recalculate
-              </button>
+              {canWriteFeedInventory && (
+                <>
+                  <button onClick={() => { resetForm(); setEditingRecord(null); setShowForm(!showForm); }} disabled={availableFeedTypes.length === 0 && !showForm} className="feed-inventory-add-btn flex-1 h-10 px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex justify-center items-center gap-2 whitespace-nowrap disabled:opacity-50">
+                    {showForm ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Entry")}</>}
+                  </button>
+                  <button onClick={handleRecalculate} disabled={loading || inventoryRecords.length === 0} className="feed-inventory-recalc-btn h-10 px-4 rounded-lg border border-primary/35 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.14)] text-foreground text-sm font-medium hover:bg-surface-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-w-[120px]">
+                    <RotateCw className="w-4 h-4" /> Recalculate
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           {/* Form */}
-          {showForm && ReactDOM.createPortal(
+          {canWriteFeedInventory && showForm && ReactDOM.createPortal(
             <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={() => { setShowForm(false); setEditingRecord(null); resetForm(); }}>
               <div className="my-auto flex w-full max-w-5xl flex-col overflow-visible rounded-xl border border-border bg-surface-container-highest xl:max-w-6xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
@@ -429,12 +434,14 @@ const FeedInventoryPage = () => {
                               {isBelowThreshold && <span className="ml-1 text-destructive" title="Below threshold">⚠</span>}
                             </td>
                             <td className="px-5 py-4">
-                              <div className="flex gap-1">
-                                <button onClick={() => handleEdit(record)} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit Entry"><Pencil className="w-3.5 h-3.5" /></button>
-                                {isAdmin && (
-                                  <button onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })} className={`p-1.5 rounded transition-colors ${record.notifyAdmin ? 'bg-warning/15 text-warning' : 'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'}`} title="Configure threshold alert"><Settings className="w-3.5 h-3.5" /></button>
-                                )}
-                              </div>
+                              {canWriteFeedInventory && (
+                                <div className="flex gap-1">
+                                  <button onClick={() => handleEdit(record)} className="p-1.5 rounded hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title="Edit Entry"><Pencil className="w-3.5 h-3.5" /></button>
+                                  {isAdmin && (
+                                    <button onClick={() => setThresholdModal({ record, value: record.threshold ?? '', notifyAdmin: record.notifyAdmin ?? false })} className={`p-1.5 rounded transition-colors ${record.notifyAdmin ? 'bg-warning/15 text-warning' : 'text-muted-foreground hover:bg-surface-container-high hover:text-foreground'}`} title="Configure threshold alert"><Settings className="w-3.5 h-3.5" /></button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           </tr>
                         );

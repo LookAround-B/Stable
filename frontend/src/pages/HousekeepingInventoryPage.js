@@ -30,6 +30,7 @@ const categoryStyle = {
 const HousekeepingInventoryPage = () => {
   const { t } = useI18n();
   const p = usePermissions();
+  const canWriteHousekeepingInventory = Boolean(p.canWriteHousekeepingInventory);
   const [items, setItems] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -166,9 +167,11 @@ const HousekeepingInventoryPage = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("Housekeeping")} <span className="text-primary">{t("Inventory")}</span></h1>
             <p className="text-sm text-muted-foreground mt-1">{t('Manage cleaning supplies, tools & consumables')}</p>
           </div>
-          <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 w-fit px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
-            {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
-          </button>
+          {canWriteHousekeepingInventory && (
+            <button onClick={() => { setShowForm(!showForm); if (editingId) resetForm(); }} className="housekeeping-inventory-header-btn h-10 w-fit px-4 sm:px-5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 transition-all flex items-center gap-2 shrink-0">
+              {showForm && !editingId ? <><X className="w-4 h-4" /> {t("Cancel")}</> : <><Plus className="w-4 h-4" /> {t("Add Item")}</>}
+            </button>
+          )}
       </div>
 
       {/* ── Message ── */}
@@ -195,7 +198,7 @@ const HousekeepingInventoryPage = () => {
       )}
 
       {/* ── Form ── */}
-      {showForm && ReactDOM.createPortal(
+      {canWriteHousekeepingInventory && showForm && ReactDOM.createPortal(
         <div className="efm-page-modal-overlay fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-background/80 px-4 pb-4 pt-[78px] sm:px-6 sm:pb-6 sm:pt-[92px]" onClick={resetForm}>
           <div className="my-auto flex w-full max-w-5xl flex-col overflow-visible rounded-2xl border border-border bg-surface-container-highest xl:max-w-6xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border p-4 sm:px-5 sm:py-4">
@@ -360,14 +363,16 @@ const HousekeepingInventoryPage = () => {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          {canWriteHousekeepingInventory && (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary" title={t("Edit")}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive" title={t("Delete")}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );

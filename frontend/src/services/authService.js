@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { clearStoredAuth } from './apiAuthGuard';
 
 export const loginWithEmail = (email, password) => {
   return apiClient.post('/auth/login', { email, password });
@@ -17,8 +18,7 @@ export const getCurrentUser = () => {
 };
 
 export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  clearStoredAuth();
 };
 
 export const setToken = (token) => {

@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { verifyToken, checkPermission } from '@/lib/auth'
+import {
+  verifyToken,
+  checkPermission,
+  getTaskCapabilitiesForUser,
+} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { setCorsHeaders } from '@/lib/cors'
 import { sanitizeString, isValidString, isValidId } from '@/lib/validate'
@@ -28,16 +32,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     if (!user) return res.status(401).json({ error: 'User not found' })
 
-    if (!AUTHORIZED_ROLES.includes(user.designation)) {
-      const allowed = await checkPermission(decoded, 'manageInventory')
-      if (!allowed) return res.status(403).json({ error: 'Access denied' })
-    }
+    const hasRoleAccess = AUTHORIZED_ROLES.includes(user.designation)
+    const canManageInventory = await checkPermission(decoded, 'manageInventory')
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    )
+    const canReadFarrierInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canReadFarrierInventory ||
+      taskCapabilities.canWriteFarrierInventory
+    const canWriteFarrierInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canWriteFarrierInventory
 
     switch (req.method) {
-      case 'GET': return handleGet(req, res)
-      case 'POST': return handlePost(req, res, user.id)
-      case 'PUT': return handlePut(req, res)
-      case 'DELETE': return handleDelete(req, res, user)
+      case 'GET':
+        if (!canReadFarrierInventory) return res.status(403).json({ error: 'Access denied' })
+        return handleGet(req, res)
+      case 'POST':
+        if (!canWriteFarrierInventory) return res.status(403).json({ error: 'Access denied' })
+        return handlePost(req, res, user.id)
+      case 'PUT':
+        if (!canWriteFarrierInventory) return res.status(403).json({ error: 'Access denied' })
+        return handlePut(req, res)
+      case 'DELETE':
+        if (!canWriteFarrierInventory) return res.status(403).json({ error: 'Access denied' })
+        return handleDelete(req, res, user)
       default: return res.status(405).json({ error: 'Method not allowed' })
     }
   } catch (error) {

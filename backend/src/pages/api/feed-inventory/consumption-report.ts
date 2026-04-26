@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { verifyToken } from '@/lib/auth';
+import {
+  checkPermission,
+  getTaskCapabilitiesForUser,
+  verifyToken,
+} from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { setCorsHeaders } from '@/lib/cors'
 
@@ -71,7 +75,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'User not found' });
     }
 
-    if (!AUTHORIZED_ROLES.includes(user.designation)) {
+    const hasRoleAccess = AUTHORIZED_ROLES.includes(user.designation);
+    const canManageInventory = await checkPermission(decoded, 'manageInventory');
+    const taskCapabilities = await getTaskCapabilitiesForUser(
+      decoded.id,
+      decoded.designation
+    );
+    const canReadFeedInventory =
+      hasRoleAccess ||
+      canManageInventory ||
+      taskCapabilities.canReadFeedInventory ||
+      taskCapabilities.canWriteFeedInventory;
+    if (!canReadFeedInventory) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 

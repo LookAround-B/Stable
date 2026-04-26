@@ -14,7 +14,10 @@ import {
 import { toast } from 'sonner';
 import ExportDialog from '../components/shared/ExportDialog';
 import { downloadCsvFile } from '../lib/csvExport';
+import { filterTaskPermissions } from '../lib/permissionsTaskFilters';
 import { writeRowsToXlsx } from '../lib/xlsxExport';
+
+const ADMIN_ROLES = ['Super Admin', 'Director', 'School Administrator'];
 
 const DEFAULT_PERMS = {
   manageEmployees: false,
@@ -35,6 +38,8 @@ function formatPermName(key) {
 const PermissionsPage = () => {
   const { user } = useAuth();
   const { t } = useI18n();
+  const isAdmin = ADMIN_ROLES.includes(user?.designation);
+
 
   // ── Shared state ──
   const [employees, setEmployees] = useState([]);
@@ -50,11 +55,14 @@ const PermissionsPage = () => {
 
   // ── Task-based permission state ──
   const [roleDefaults, setRoleDefaults] = useState({});
+  const [availableTaskPermissions, setAvailableTaskPermissions] = useState([]);
   const [taskOverrides, setTaskOverrides] = useState({});
   const [pendingOverrides, setPendingOverrides] = useState({});
   
   const [isSaving, setIsSaving] = useState(false);
   const [taskLoading, setTaskLoading] = useState(false);
+  const [taskPermTab, setTaskPermTab] = useState('all');
+  const [taskPermSearch, setTaskPermSearch] = useState('');
 
   // Define properties dynamically using t() function
   const globalPermDefs = () => [
@@ -76,6 +84,7 @@ const PermissionsPage = () => {
       const empData = permRes.data?.data || [];
       setEmployees(empData);
       setRoleDefaults(roleRes.data?.data?.rolePermissions || {});
+      setAvailableTaskPermissions(roleRes.data?.data?.availableTaskPermissions || []);
       
       if (empData.length > 0) {
         selectEmployee(empData[0]);
@@ -89,7 +98,14 @@ const PermissionsPage = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    if (!isAdmin) {
+      setLoading(false);
+      return;
+    }
+
+    fetchData();
+  }, [fetchData, isAdmin]);
 
   const loadTaskPerms = useCallback(async (empId) => {
     setTaskLoading(true);
@@ -188,7 +204,12 @@ const PermissionsPage = () => {
     if (!selectedEmployee) return [];
     const role = selectedEmployee.designation;
     const defaults = roleDefaults[role] || [];
-    const allPerms = new Set([...defaults, ...Object.keys(taskOverrides), ...Object.keys(pendingOverrides)]);
+    const allPerms = new Set([
+      ...availableTaskPermissions,
+      ...defaults,
+      ...Object.keys(taskOverrides),
+      ...Object.keys(pendingOverrides),
+    ]);
     const list = [];
     for (const perm of allPerms) {
       const roleDefault = defaults.includes(perm);
@@ -224,7 +245,12 @@ const PermissionsPage = () => {
       });
     }
     return list.sort((a, b) => a.label.localeCompare(b.label));
-  }, [selectedEmployee, roleDefaults, taskOverrides, pendingOverrides]);
+  }, [selectedEmployee, roleDefaults, availableTaskPermissions, taskOverrides, pendingOverrides]);
+
+  const filteredTaskPerms = useMemo(
+    () => filterTaskPermissions(taskPermsList, taskPermTab, taskPermSearch),
+    [taskPermSearch, taskPermTab, taskPermsList]
+  );
 
   const toggleTaskPerm = useCallback((permKey, currentEffective, roleDefault, hasOverride) => {
     setPendingOverrides(prev => {
@@ -304,7 +330,6 @@ const PermissionsPage = () => {
     toast.success('Permissions downloaded.');
   };
 
-  const isAdmin = ['Super Admin', 'Director', 'School Administrator'].includes(user?.designation);
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   if (loading) {
@@ -484,20 +509,50 @@ const PermissionsPage = () => {
                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
                )}
-               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
-                 <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><ActionIcon className="w-4 h-4 text-primary" /></div>
-                   <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">{t("Operational Task Overrides")}</h3>
+               <div className="flex flex-col gap-3 mb-5">
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                   <div className="flex items-center gap-2">
+                     <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><ActionIcon className="w-4 h-4 text-primary" /></div>
+                     <h3 className="heading-md text-foreground uppercase tracking-wider text-sm">{t("Operational Task Overrides")}</h3>
+                   </div>
+                   <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] text-muted-foreground bg-surface-container-high px-3 py-1.5 rounded tracking-wider uppercase">TARGET: {selectedEmployee.fullName}</span>
+                    <span className="px-2 py-1 rounded bg-primary/20 text-primary text-[10px] font-bold flex items-center gap-1">{selectedEmployee.designation} <CheckCircle className="w-3 h-3" /></span>
+                    {Object.keys(pendingOverrides).length > 0 && <span className="px-2 py-1 rounded bg-warning/20 text-warning text-[10px] font-bold flex items-center gap-1 animate-pulse"><AlertTriangle className="w-3 h-3" /> UNSAVED PROFILES</span>}
+                   </div>
                  </div>
-                 <div className="flex items-center gap-2 flex-wrap">
-                   <span className="text-[10px] text-muted-foreground bg-surface-container-high px-3 py-1.5 rounded tracking-wider uppercase">TARGET: {selectedEmployee.fullName}</span>
-                   <span className="px-2 py-1 rounded bg-primary/20 text-primary text-[10px] font-bold flex items-center gap-1">{selectedEmployee.designation} <CheckCircle className="w-3 h-3" /></span>
-                   {Object.keys(pendingOverrides).length > 0 && <span className="px-2 py-1 rounded bg-warning/20 text-warning text-[10px] font-bold flex items-center gap-1 animate-pulse"><AlertTriangle className="w-3 h-3" /> UNSAVED PROFILES</span>}
+                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                   <div className="inline-flex h-9 items-center gap-1 p-1 rounded-lg bg-surface-container-high border border-border self-start">
+                     {['all', 'write', 'read'].map((tab) => {
+                       const isActive = taskPermTab === tab;
+                       return (
+                         <button
+                           key={tab}
+                           type="button"
+                           className={`h-7 px-3 rounded-md text-[10px] font-bold tracking-[0.18em] uppercase transition-colors ${
+                             isActive
+                               ? 'bg-primary text-primary-foreground'
+                               : 'text-muted-foreground hover:text-foreground hover:bg-surface-container'
+                           }`}
+                           onClick={() => setTaskPermTab(tab)}
+                         >
+                           {tab}
+                         </button>
+                       );
+                     })}
+                   </div>
+                            <input
+                              type="text"
+                              value={taskPermSearch}
+                              onChange={(e) => setTaskPermSearch(e.target.value)}
+                              placeholder="Search operational permissions"
+                              className="perm-task-filter-search w-full sm:w-[240px] lg:w-[220px] h-8 lg:ml-auto rounded-lg border border-border bg-surface-container-high px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
                  </div>
-               </div>
+                </div>
 
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {taskPermsList.map(perm => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                 {filteredTaskPerms.map(perm => {
                        const isPending = perm.hasPending;
                        const isOverride = perm.hasOverride;
 
@@ -572,14 +627,28 @@ const PermissionsPage = () => {
                    <p className="label-sm text-muted-foreground">{t("APPEND TASK NODE")}</p>
                  </div> */}
                  {/* Empty State */}
-                 {taskPermsList.length === 0 && !taskLoading && (
-                   <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center min-h-[160px] bg-surface-container/50">
-                     <AlertTriangle className="w-6 h-6 text-muted-foreground mb-2" />
-                     <p className="label-sm text-foreground uppercase tracking-widest font-bold">{t("NO TASKS DEFINED")}</p>
-                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">{t("This user role possesses zero default behaviors.")}</p>
-                   </div>
-                 )}
-               </div>
+                  {filteredTaskPerms.length === 0 && !taskLoading && (
+                    <div className="rounded-lg p-4 border border-dashed border-border flex flex-col items-center justify-center text-center min-h-[160px] bg-surface-container/50">
+                      <AlertTriangle className="w-6 h-6 text-muted-foreground mb-2" />
+                      <p className="label-sm text-foreground uppercase tracking-widest font-bold">
+                        {taskPermSearch.trim()
+                          ? t("NO MATCHING TASKS")
+                          : taskPermTab === 'write'
+                            ? t("NO WRITE TASKS")
+                            : taskPermTab === 'read'
+                              ? t("NO READ TASKS")
+                              : t("NO TASKS DEFINED")}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
+                        {taskPermSearch.trim()
+                          ? t("Try a different permission name or key.")
+                          : taskPermTab === 'all'
+                            ? t("This user role possesses zero default behaviors.")
+                            : t("No permissions are available in this view.")}
+                      </p>
+                    </div>
+                  )}
+                </div>
             </div>
 
           </div>
